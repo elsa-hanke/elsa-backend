@@ -1,15 +1,13 @@
 package fi.elsapalvelu.elsa.service.mapper
 
-import org.junit.jupiter.api.BeforeEach
+import fi.elsapalvelu.elsa.web.rest.mapperVerifier as verifyMapper
+import org.junit.jupiter.api.Test
 
-import fi.elsapalvelu.elsa.service.mapper.koulutus.KoulutussuunnitelmaMapper
 import fi.elsapalvelu.elsa.service.mapper.koulutus.KoulutussuunnitelmaMapperImpl
 class KoulutussuunnitelmaMapperTest {
 
-    private lateinit var koulutussuunnitelmaMapper: KoulutussuunnitelmaMapper
-
-    @BeforeEach
-    fun setUp() {
-        koulutussuunnitelmaMapper = KoulutussuunnitelmaMapperImpl()
+    @Test
+    fun mapperVerifier() {
+        verifyMapper<KoulutussuunnitelmaMapperImpl>()
     }
 }

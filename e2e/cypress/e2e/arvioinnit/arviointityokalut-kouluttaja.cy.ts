@@ -16,18 +16,14 @@ const KOULUTTAJA_SUKUNIMI = 'Hummaamistes'
 
 describe('Arviointityökalut – kouluttaja', () => {
   before(() => {
-    Cypress.session.clearAllSavedSessions()
-
-    cy.task('db:cleanupErikoistuva', { email: KOULUTTAJA_EMAIL })
+    cy.resetErikoistuvaE2eState(KOULUTTAJA_EMAIL)
     cy.task('db:cleanupKouluttaja', { email: KOULUTTAJA_EMAIL })
 
-    cy.task('db:seedKouluttaja', {
+    cy.seedKouluttajaUser({
       email: KOULUTTAJA_EMAIL,
       etunimi: KOULUTTAJA_ETUNIMI,
       sukunimi: KOULUTTAJA_SUKUNIMI,
-    }).then((result: any) => {
-      Cypress.env('kouluttajaToken', result?.token)
-    })
+    }, 'kouluttajaToken')
   })
 
   it('Kouluttaja avaa arviointityökalut-esittelysivun ja sivu lataa API-datat onnistuneesti', () => {

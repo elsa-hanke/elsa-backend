@@ -4,8 +4,7 @@ export {}
 
 describe('Opintosuoritukset', () => {
   before(() => {
-    Cypress.session.clearAllSavedSessions()
-    cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
+    cy.resetErikoistuvaE2eState()
     cy.loginAsErikoistuva()
   })
 

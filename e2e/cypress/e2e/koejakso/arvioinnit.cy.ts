@@ -1,4 +1,4 @@
-import { E2E_ERIKOISTUVA_EMAIL, KOULUTTAJA_EMAIL, VASTUUHENKILO_EMAIL, VIRKAILIJA_EMAIL } from '../../support/commands/credentials'
+import { E2E_ERIKOISTUVA_EMAIL, KOULUTTAJA_EMAIL } from '../../support/commands/credentials'
 
 export {}
 
@@ -19,47 +19,10 @@ export {}
 // Käyttäjä: Erikoistuja (11a) ja Kouluttaja (11b – vaatii DevLoginResource)
 // Laukaisija: Väliarviointi on hyväksytty
 //
-const KOULUTTAJA_ETUNIMI     = 'E2E'
-const KOULUTTAJA_SUKUNIMI    = 'Kouluttaja'
-const VASTUUHENKILO_ETUNIMI  = 'E2E'
-const VASTUUHENKILO_SUKUNIMI = 'Vastuuhenkilo'
-const VIRKAILIJA_ETUNIMI     = 'E2E'
-const VIRKAILIJA_SUKUNIMI    = 'Virkailija'
-
 describe('Koejakson arvioinnit', () => {
   // ── Esialustetaan tietokanta testisarjaa varten ──────────────────────────────
   before(() => {
-    Cypress.session.clearAllSavedSessions()
-
-    // Siivotaan vanhat koejakso-lomakkeet ennen erikoistuvan poistoa (FK-turvallisuus)
-    cy.task('db:cleanupKoejakso', { erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL })
-    cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
-
-    // Siemennetään tukikäyttäjät
-    cy.task('db:seedKouluttaja', {
-      email: KOULUTTAJA_EMAIL,
-      etunimi: KOULUTTAJA_ETUNIMI,
-      sukunimi: KOULUTTAJA_SUKUNIMI,
-    })
-    cy.task('db:seedVastuuhenkilo', {
-      email: VASTUUHENKILO_EMAIL,
-      etunimi: VASTUUHENKILO_ETUNIMI,
-      sukunimi: VASTUUHENKILO_SUKUNIMI,
-    })
-    cy.task('db:seedVirkailija', {
-      email: VIRKAILIJA_EMAIL,
-      etunimi: VIRKAILIJA_ETUNIMI,
-      sukunimi: VIRKAILIJA_SUKUNIMI,
-    })
-
-    // Kirjautuminen luo erikoistuvan ja opinto-oikeuden (createWithoutOpintotietodata)
-    cy.loginAsErikoistuva()
-
-    // Luodaan kouluttajavaltuutus kirjautumisen jälkeen
-    cy.task('db:seedKouluttajavaltuutus', {
-      erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL,
-      kouluttajaEmail: KOULUTTAJA_EMAIL,
-    })
+    cy.prepareKoejaksoE2e({ seedVirkailija: true })
   })
 
   // ── Käyttötapaukset 9a, 10a, 11a: kaikki erikoistuja-toimet yhdessä testissä ─

@@ -28,37 +28,19 @@ const VASTUUHENKILO_SUKUNIMI = 'Ålands'
 describe('Koulutussopimus', () => {
   // ── Esialustetaan tietokanta testisarjaa varten ──────────────────────────────
   before(() => {
-    Cypress.session.clearAllSavedSessions()
-
-    // Siivotaan vanhat koejakso-lomakkeet ennen erikoistuvan poistoa (FK-turvallisuus)
-    cy.task('db:cleanupKoejakso', { erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL })
-    cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
-    cy.task('db:cleanupKouluttaja', { email: KOULUTTAJA_EMAIL })
-    cy.task('db:cleanupVastuuhenkilo', { email: VASTUUHENKILO_EMAIL })
-
-    // Siemennetään tukikäyttäjät ja talletetaan verification-tokenit Cypress.env:iin
-    cy.task('db:seedKouluttaja', {
-      email: KOULUTTAJA_EMAIL,
-      etunimi: KOULUTTAJA_ETUNIMI,
-      sukunimi: KOULUTTAJA_SUKUNIMI,
-    }).then((result: any) => {
-      Cypress.env('kouluttajaToken', result?.token)
-    })
-    cy.task('db:seedVastuuhenkilo', {
-      email: VASTUUHENKILO_EMAIL,
-      etunimi: VASTUUHENKILO_ETUNIMI,
-      sukunimi: VASTUUHENKILO_SUKUNIMI,
-    }).then((result: any) => {
-      Cypress.env('vastuuhenkiloToken', result?.token)
-    })
-
-    // Kirjautuminen luo erikoistuvan ja opinto-oikeuden (createWithoutOpintotietodata)
-    cy.loginAsErikoistuva()
-
-    // Luodaan kouluttajavaltuutus kirjautumisen jälkeen (opinto-oikeus täytyy olla olemassa)
-    cy.task('db:seedKouluttajavaltuutus', {
-      erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL,
-      kouluttajaEmail: KOULUTTAJA_EMAIL,
+    cy.prepareKoejaksoE2e({
+      cleanupSupportUsers: true,
+      storeTokens: true,
+      kouluttaja: {
+        email: KOULUTTAJA_EMAIL,
+        etunimi: KOULUTTAJA_ETUNIMI,
+        sukunimi: KOULUTTAJA_SUKUNIMI,
+      },
+      vastuuhenkilo: {
+        email: VASTUUHENKILO_EMAIL,
+        etunimi: VASTUUHENKILO_ETUNIMI,
+        sukunimi: VASTUUHENKILO_SUKUNIMI,
+      },
     })
   })
 

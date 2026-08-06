@@ -16,18 +16,14 @@ const VASTUUHENKILO_SUKUNIMI = 'Ålands'
 
 describe('Arviointityökalut – vastuuhenkilö', () => {
   before(() => {
-    Cypress.session.clearAllSavedSessions()
-
-    cy.task('db:cleanupErikoistuva', { email: VASTUUHENKILO_EMAIL })
+    cy.resetErikoistuvaE2eState(VASTUUHENKILO_EMAIL)
     cy.task('db:cleanupVastuuhenkilo', { email: VASTUUHENKILO_EMAIL })
 
-    cy.task('db:seedVastuuhenkilo', {
+    cy.seedVastuuhenkiloUser({
       email: VASTUUHENKILO_EMAIL,
       etunimi: VASTUUHENKILO_ETUNIMI,
       sukunimi: VASTUUHENKILO_SUKUNIMI,
-    }).then((result: any) => {
-      Cypress.env('vastuuhenkiloToken', result?.token)
-    })
+    }, 'vastuuhenkiloToken')
   })
 
   it('Vastuuhenkilö avaa arviointityökalut-esittelysivun ja sivu lataa API-datat onnistuneesti', () => {

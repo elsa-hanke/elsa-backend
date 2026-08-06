@@ -79,96 +79,58 @@ Cypress.Commands.add('loginWithSuomifi', (ssn = SSN_ERIKOISTUVA, email?: string,
   }
 })
 
-// ── loginAsErikoistuva ───────────────────────────────────────────────────────
-Cypress.Commands.add('loginAsErikoistuva', () => {
+const assertLoggedIn = () => {
+  cy.location('origin', { timeout: 60000 }).should(
+    'eq',
+    new URL(Cypress.config('baseUrl') as string).origin
+  )
+  cy.location('pathname').should('not.eq', '/kirjautuminen')
+  cy.get('main[role="main"]').should('exist')
+}
+
+const validateLoggedInSession = () => {
+  cy.visit('/etusivu')
+  cy.url().should('not.include', '/kirjautuminen')
+}
+
+const loginWithCachedSession = (
+  sessionId: string | string[],
+  ssn: string,
+  email?: string,
+  token?: string
+) => {
   cy.session(
-    'erikoistuva',
+    sessionId,
     () => {
-      cy.loginWithSuomifi(SSN_ERIKOISTUVA, E2E_ERIKOISTUVA_EMAIL)
-      cy.location('origin', { timeout: 60000 }).should(
-        'eq',
-        new URL(Cypress.config('baseUrl') as string).origin
-      )
-      cy.location('pathname').should('not.eq', '/kirjautuminen')
-      cy.get('main[role="main"]').should('exist')
+      cy.loginWithSuomifi(ssn, email, token)
+      assertLoggedIn()
     },
     {
-      // Re-validate: confirm the session is still alive by checking we land on
-      // etusivu after a visit.
-      validate() {
-        cy.visit('/etusivu')
-        cy.url().should('not.include', '/kirjautuminen')
-      },
+      validate: validateLoggedInSession,
     }
   )
+}
+
+// ── loginAsErikoistuva ───────────────────────────────────────────────────────
+Cypress.Commands.add('loginAsErikoistuva', () => {
+  loginWithCachedSession('erikoistuva', SSN_ERIKOISTUVA, E2E_ERIKOISTUVA_EMAIL)
 })
 
 // ── loginAsKouluttaja ────────────────────────────────────────────────────────
 Cypress.Commands.add('loginAsKouluttaja', (token?: string) => {
-  cy.session(
-    ['kouluttaja', token ?? 'linked'],
-    () => {
-      // The kouluttaja account must have been pre-seeded via db:seedKouluttaja and
-      // linked to this SSN through the verification-token invite flow beforehand.
-      cy.loginWithSuomifi(SSN_KOULUTTAJA, undefined, token)
-      cy.location('origin', { timeout: 60000 }).should(
-        'eq',
-        new URL(Cypress.config('baseUrl') as string).origin
-      )
-      cy.location('pathname').should('not.eq', '/kirjautuminen')
-      cy.get('main[role="main"]').should('exist')
-    },
-    {
-      validate() {
-        cy.visit('/etusivu')
-        cy.url().should('not.include', '/kirjautuminen')
-      },
-    }
-  )
+  // The kouluttaja account must have been pre-seeded via db:seedKouluttaja and
+  // linked to this SSN through the verification-token invite flow beforehand.
+  loginWithCachedSession(['kouluttaja', token ?? 'linked'], SSN_KOULUTTAJA, undefined, token)
 })
 
 // ── loginAsVastuuhenkilo ─────────────────────────────────────────────────────
 Cypress.Commands.add('loginAsVastuuhenkilo', (token?: string) => {
-  cy.session(
-    ['vastuuhenkilo', token ?? 'linked'],
-    () => {
-      cy.loginWithSuomifi(SSN_VASTUUHENKILO, undefined, token)
-      cy.location('origin', { timeout: 60000 }).should(
-        'eq',
-        new URL(Cypress.config('baseUrl') as string).origin
-      )
-      cy.location('pathname').should('not.eq', '/kirjautuminen')
-      cy.get('main[role="main"]').should('exist')
-    },
-    {
-      validate() {
-        cy.visit('/etusivu')
-        cy.url().should('not.include', '/kirjautuminen')
-      },
-    }
-  )
+  loginWithCachedSession(['vastuuhenkilo', token ?? 'linked'], SSN_VASTUUHENKILO, undefined, token)
 })
 
 // ── loginAsVirkailija ────────────────────────────────────────────────────────
 Cypress.Commands.add('loginAsVirkailija', (token?: string) => {
-  cy.session(
-    ['virkailija', token ?? 'linked'],
-    () => {
-      cy.loginWithSuomifi(SSN_VIRKAILIJA, undefined, token)
-      cy.location('origin', { timeout: 60000 }).should(
-        'eq',
-        new URL(Cypress.config('baseUrl') as string).origin
-      )
-      cy.location('pathname').should('not.eq', '/kirjautuminen')
-      cy.get('main[role="main"]').should('exist')
-    },
-    {
-      validate() {
-        cy.visit('/etusivu')
-        cy.url().should('not.include', '/kirjautuminen')
-      },
-    }
-  )
+  loginWithCachedSession(['virkailija', token ?? 'linked'], SSN_VIRKAILIJA, undefined, token)
 })
 
 Cypress.Commands.add('logout', () => {

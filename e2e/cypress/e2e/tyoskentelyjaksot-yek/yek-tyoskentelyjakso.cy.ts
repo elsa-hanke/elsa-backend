@@ -25,8 +25,7 @@ describe('YEK työskentelyjakso', () => {
   }
 
   before(() => {
-    Cypress.session.clearAllSavedSessions()
-    cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
+    cy.resetErikoistuvaE2eState()
     cy.loginAsErikoistuva()
     cy.task('db:seedOpintooikeus', {
       email: E2E_ERIKOISTUVA_EMAIL,
