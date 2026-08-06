@@ -4,7 +4,7 @@ build:
   ./gradlew clean build -x test -x integrationTest
 
 test:
-  ./gradlew clean test integrationTest
+  ./gradlew clean test integrationTest detekt detektTest
 
 itest:
   ./gradlew clean integrationTest
