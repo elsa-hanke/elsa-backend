@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluService
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.perustiedot.YliopistoService
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.HakaYliopistoDTO
@@ -10,7 +9,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.security.Principal
 
 @RestController
 @RequestMapping("/api/")

@@ -10,7 +10,6 @@ import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
-import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 @Entity

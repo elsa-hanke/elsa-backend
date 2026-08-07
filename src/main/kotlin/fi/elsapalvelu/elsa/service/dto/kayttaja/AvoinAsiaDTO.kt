@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.dto.kayttaja
 
 import fi.elsapalvelu.elsa.domain.kayttaja.AvoinAsiaTyyppiEnum
 import java.io.Serializable
-import java.time.LocalDate
 
 data class AvoinAsiaDTO(
 

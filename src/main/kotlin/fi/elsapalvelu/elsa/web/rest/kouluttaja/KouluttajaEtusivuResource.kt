@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest.kouluttaja
 import fi.elsapalvelu.elsa.service.kayttaja.EtusivuService
 import fi.elsapalvelu.elsa.service.koejakso.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.koejakso.*
@@ -21,7 +20,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.security.Principal
 
 @RestController
 @RequestMapping("/api/kouluttaja/etusivu")

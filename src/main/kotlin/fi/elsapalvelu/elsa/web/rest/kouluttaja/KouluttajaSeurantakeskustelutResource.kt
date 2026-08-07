@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.web.rest.SeurantakeskustelutResource
 import org.springframework.web.bind.annotation.*
 import java.util.*

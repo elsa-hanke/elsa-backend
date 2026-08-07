@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.domain.suoritteet.Suorite
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
 
 @Repository
 interface SuoriteRepository : JpaRepository<Suorite, Long> {

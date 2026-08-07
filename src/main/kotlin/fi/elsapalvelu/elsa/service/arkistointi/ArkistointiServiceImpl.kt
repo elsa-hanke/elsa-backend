@@ -4,7 +4,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiMetadata
@@ -23,7 +22,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.util.ResourceBundle
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream

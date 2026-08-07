@@ -7,7 +7,6 @@ import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
-import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
@@ -15,7 +14,6 @@ import jakarta.validation.constraints.NotNull
 
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
-import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutusjakso
 import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.suoritteet.Suoritemerkinta

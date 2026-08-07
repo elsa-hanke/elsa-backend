@@ -14,7 +14,6 @@ import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.abs
 import kotlin.math.max

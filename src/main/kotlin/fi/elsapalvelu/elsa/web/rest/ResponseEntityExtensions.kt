@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import java.io.InputStream
-import java.net.URLEncoder
 
 /**
  * Builds a file-download [ResponseEntity] from this [InputStream].

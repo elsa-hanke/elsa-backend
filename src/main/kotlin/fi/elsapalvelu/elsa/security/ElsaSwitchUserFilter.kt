@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.security
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository
@@ -27,7 +26,6 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserGran
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.filter.OncePerRequestFilter
-import java.time.LocalDate
 import jakarta.persistence.EntityNotFoundException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest

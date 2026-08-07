@@ -7,7 +7,6 @@ import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
-import java.security.Principal
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 

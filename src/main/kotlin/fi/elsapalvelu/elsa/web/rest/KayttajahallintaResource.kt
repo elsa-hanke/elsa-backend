@@ -39,7 +39,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URI
-import java.security.Principal
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 private const val ERIKOISTUVA_LAAKARI_ENTITY_NAME = "erikoistuvaLaakari"
@@ -200,7 +199,7 @@ open class KayttajahallintaResource(
     fun deleteKayttaja(
         @PathVariable id: Long, principal: Principal?,
         @Valid @RequestBody kayttajahallintaReassignedKouluttajaDTO: KayttajahallintaReassignedKouluttajaDTO
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val kayttaja = getKayttajaOrThrow(id)
         validateCurrentUserIsAllowedToManageKayttaja(principal, id)
 
@@ -317,7 +316,7 @@ open class KayttajahallintaResource(
     @PutMapping("/erikoistuvat-laakarit/{id}/kutsu")
     fun resendErikoistuvaLaakariInvitation(
         @PathVariable id: Long, principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val erikoistuvaLaakari = getErikoistuvaLaakariByIdOrThrow(id)
         validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
             principal,
@@ -330,7 +329,7 @@ open class KayttajahallintaResource(
     @PatchMapping("/kayttajat/{id}/aktivoi")
     fun activateKayttaja(
         @PathVariable id: Long, principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val erikoistuvaLaakari = tryToGetErikoistuvaLaakariByKayttajaId(id)
         if (erikoistuvaLaakari != null) {
             validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
@@ -349,7 +348,7 @@ open class KayttajahallintaResource(
     fun passivateKayttaja(
         @PathVariable id: Long, principal: Principal?,
         @Valid @RequestBody kayttajahallintaReassignedKouluttajaDTO: KayttajahallintaReassignedKouluttajaDTO
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val erikoistuvaLaakari = tryToGetErikoistuvaLaakariByKayttajaId(id)
         if (erikoistuvaLaakari != null) {
             validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
@@ -384,7 +383,7 @@ open class KayttajahallintaResource(
 
     @PatchMapping("/erikoistuvat-laakarit/{userId}")
     fun patchErikoistuvaLaakari(@PathVariable userId: String,
-        @Valid @RequestBody updateErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariUpdateDTO, principal: Principal?): ResponseEntity<Void> {
+        @Valid @RequestBody updateErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariUpdateDTO, principal: Principal?): ResponseEntity<Unit> {
         val erikoistuvaLaakariDTO = getErikoistuvaLaakariByUserIdOrThrow(userId)
         validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
             principal,
@@ -402,7 +401,7 @@ open class KayttajahallintaResource(
 
     @PatchMapping("/kouluttajat/{kayttajaId}")
     fun patchKouluttaja(@PathVariable kayttajaId: Long, @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
-        principal: Principal?): ResponseEntity<Void> {
+        principal: Principal?): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
         validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
 
@@ -417,7 +416,7 @@ open class KayttajahallintaResource(
 
     @PutMapping("/kouluttajat/{kayttajaId}/kutsu")
     fun resendKouluttajaInvitation(@PathVariable kayttajaId: Long, principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
         validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
 
@@ -490,7 +489,7 @@ open class KayttajahallintaResource(
         @PathVariable kayttajaId: Long,
         @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
         validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
 
@@ -507,7 +506,7 @@ open class KayttajahallintaResource(
 
     @PatchMapping("/virkailijat/{kayttajaId}")
     fun patchVirkailija(@PathVariable kayttajaId: Long, @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
-        principal: Principal?): ResponseEntity<Void> {
+        principal: Principal?): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
         validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
 

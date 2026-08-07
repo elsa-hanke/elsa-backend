@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.dto.koulutus
 
 import fi.elsapalvelu.elsa.domain.arviointi.ArviointiasteikkoTyyppi
 import java.io.Serializable
-import java.time.LocalDate
 import jakarta.validation.constraints.NotNull
 
 import fi.elsapalvelu.elsa.service.dto.perustiedot.ErikoisalaDTO

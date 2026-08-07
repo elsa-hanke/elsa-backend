@@ -37,8 +37,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.security.Principal
-import java.time.LocalDate
 import java.util.*
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
@@ -190,7 +188,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
     fun updateOpintooikeusKaytossa(
         @PathVariable(value = "id", required = true) id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         opintooikeusService.setOpintooikeusKaytossa(user.id!!, id)
         return ResponseEntity.ok().build()
@@ -200,7 +198,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
     fun updateMuokkausoikeudet(
         principal: Principal?,
         @RequestParam muokkausoikeudet: Boolean
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         opintooikeusService.updateMuokkausoikeudet(user.id!!, muokkausoikeudet)
         return ResponseEntity.ok().build()

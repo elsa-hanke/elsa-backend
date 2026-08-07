@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
-import java.time.LocalDate
 
 @Entity
 @Table(name = "erikoistuva_laakari")

@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.mapper.kayttaja
 
-import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.service.dto.kayttaja.OpintooikeusDTO
 import org.mapstruct.*
 

@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.valmistuminen
 
 import java.io.Serializable
-import java.time.LocalDate
 
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksotKoulutustyypitDTO

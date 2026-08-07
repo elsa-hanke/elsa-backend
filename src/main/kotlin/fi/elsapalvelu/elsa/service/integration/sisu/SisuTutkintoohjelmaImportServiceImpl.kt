@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.integration.sisu
 
 import fi.elsapalvelu.elsa.domain.koulutus.ErikoisalaSisuTutkintoohjelma
 import fi.elsapalvelu.elsa.repository.perustiedot.ErikoisalaRepository
-import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaImportService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

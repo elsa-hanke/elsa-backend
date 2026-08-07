@@ -18,7 +18,6 @@ import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonKehittamistoimenpite
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
 import jakarta.persistence.EntityNotFoundException

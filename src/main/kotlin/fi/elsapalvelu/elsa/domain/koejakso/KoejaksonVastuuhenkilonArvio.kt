@@ -7,12 +7,10 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
-import java.time.LocalDate
 import java.time.ZoneId
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
-import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 @Entity
 @Audited
 @Table(name = "koejakson_vastuuhenkilon_arvio")

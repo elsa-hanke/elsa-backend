@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.dto.kayttaja
 
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import java.io.Serializable
-import java.time.LocalDate
 import java.util.*
 
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksotTilastotDTO

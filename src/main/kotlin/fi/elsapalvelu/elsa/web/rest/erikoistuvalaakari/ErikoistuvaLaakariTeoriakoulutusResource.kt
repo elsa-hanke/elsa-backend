@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.security.Principal
 import java.util.*
 import jakarta.validation.Valid
 
@@ -151,7 +150,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     fun deleteTeoriakoulutus(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
 
         validateMuokkausoikeudet(principal, user.id!!)

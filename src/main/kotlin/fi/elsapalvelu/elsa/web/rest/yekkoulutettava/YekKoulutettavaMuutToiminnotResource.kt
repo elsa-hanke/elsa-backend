@@ -13,8 +13,6 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
-import java.security.Principal
-import java.time.LocalDate
 
 private const val ERIKOISTUVA_LAAKARI_ENTITY_NAME = "erikoistuvaLaakari"
 

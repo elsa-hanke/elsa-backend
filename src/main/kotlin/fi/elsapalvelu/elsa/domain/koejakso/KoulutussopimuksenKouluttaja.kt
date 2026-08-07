@@ -5,7 +5,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
-import java.time.LocalDate
 import jakarta.persistence.*
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja

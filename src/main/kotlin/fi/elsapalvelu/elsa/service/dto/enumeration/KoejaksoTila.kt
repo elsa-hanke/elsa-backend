@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.dto.enumeration
 
-import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.koejakso.*
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.*

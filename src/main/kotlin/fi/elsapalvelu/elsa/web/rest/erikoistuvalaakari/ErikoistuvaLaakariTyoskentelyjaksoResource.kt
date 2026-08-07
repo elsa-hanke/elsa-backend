@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
 import fi.elsapalvelu.elsa.service.tyoskentely.*
@@ -37,8 +36,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.security.Principal
-import java.time.LocalDate
 import kotlin.jvm.optionals.getOrNull
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
@@ -256,7 +253,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun deleteTyoskentelyjakso(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
 
         tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id!!, TYOSKENTELYJAKSO_ENTITY_NAME, "erikoistujan")
@@ -422,7 +419,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun deleteKeskeytysaika(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
 
         tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id!!, KESKEYTYSAIKA_ENTITY_NAME, "erikoistujan")

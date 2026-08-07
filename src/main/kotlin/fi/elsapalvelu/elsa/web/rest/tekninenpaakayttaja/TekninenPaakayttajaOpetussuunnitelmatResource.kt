@@ -29,7 +29,6 @@ import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URI
 import jakarta.validation.Valid
-import java.security.Principal
 
 private const val OPINTOOPAS_ENTITY_NAME = "opintoopas"
 private const val ERIKOISALA_ENTITY_NAME = "erikoisala"
@@ -198,7 +197,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     @DeleteMapping("/arvioitavatkokonaisuudet/{id}")
     fun deleteArvioitavaKokonaisuus(
         @PathVariable id: Long
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         arvioitavaKokonaisuusService.delete(id)
         return ResponseEntity
             .noContent()
@@ -286,7 +285,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     @DeleteMapping("/suoritteet/{id}")
     fun deleteSuorite(
         @PathVariable id: Long
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         suoriteService.delete(id)
         return ResponseEntity
             .noContent()

@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
 import fi.elsapalvelu.elsa.service.kayttaja.PalauteService
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.PalauteDTO
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import java.security.Principal
 import jakarta.validation.Valid
 
 @RestController
@@ -26,7 +24,7 @@ class PalauteResource(
     fun sendPalaute(
         @Valid @RequestBody palauteDTO: PalauteDTO,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         try {
             palauteService.send(palauteDTO, user.id!!)

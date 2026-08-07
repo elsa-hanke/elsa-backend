@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.scheduler.jobs
 
 import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
 import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingService
-import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaImportService
 import kotlinx.coroutines.runBlocking
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled

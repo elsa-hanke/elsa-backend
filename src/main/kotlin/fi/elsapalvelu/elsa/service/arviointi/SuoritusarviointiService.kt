@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.arviointi
 
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.arviointi.SuoritusarviointiDTO
-import java.time.LocalDate
 import java.util.*
 
 interface SuoritusarviointiService {

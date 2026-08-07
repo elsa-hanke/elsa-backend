@@ -9,7 +9,6 @@ import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetDTO
 import fi.elsapalvelu.elsa.service.mapper.koulutus.OpintosuoritusMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 
 @Service
 class OpintosuoritusServiceImpl(

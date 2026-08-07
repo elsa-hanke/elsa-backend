@@ -22,14 +22,12 @@ import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.security.Principal
 
 private const val ENTITY_NAME = "suoritemerkinta"
 
@@ -110,7 +108,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     fun deleteSuoritemerkinta(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         suoritemerkintaService.delete(id, user.id!!)
         return ResponseEntity

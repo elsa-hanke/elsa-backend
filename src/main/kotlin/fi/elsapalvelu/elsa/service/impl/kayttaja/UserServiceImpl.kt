@@ -23,7 +23,6 @@ import fi.elsapalvelu.elsa.repository.seuranta.*
 import fi.elsapalvelu.elsa.repository.valmistuminen.*
 import fi.elsapalvelu.elsa.repository.kayttaja.*
 import fi.elsapalvelu.elsa.repository.perustiedot.*
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.kayttaja.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
@@ -40,7 +39,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import java.security.Principal
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKey

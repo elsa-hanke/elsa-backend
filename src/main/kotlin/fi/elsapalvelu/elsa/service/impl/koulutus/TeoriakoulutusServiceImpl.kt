@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.impl.koulutus
 
-import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
@@ -13,7 +12,6 @@ import fi.elsapalvelu.elsa.service.mapper.koulutus.TeoriakoulutusMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Service

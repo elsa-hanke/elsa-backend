@@ -8,12 +8,10 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.io.Serializable
-import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
-import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutusjakso
 @Entity
 @Audited

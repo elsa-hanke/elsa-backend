@@ -25,7 +25,6 @@ import fi.elsapalvelu.elsa.web.rest.kouluttaja.*
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.security.Principal
 
 private const val ENTITY_KOEJAKSON_ALOITUSKESKUSTELU = "koejakson_aloituskeskustelu"
 private const val ENTITY_KOEJAKSON_VALIARVIOINTI = "koejakson_valiarviointi"

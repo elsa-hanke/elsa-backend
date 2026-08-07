@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.service.seuranta
 import fi.elsapalvelu.elsa.service.dto.seuranta.EtusivuSeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksonTiedotDTO
-import java.time.LocalDate
 
 interface SeurantajaksoService {
 

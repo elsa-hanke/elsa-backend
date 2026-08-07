@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.dto.koejakso
 
 import fi.elsapalvelu.elsa.domain.koejakso.KehittamistoimenpideKategoria
 import java.io.Serializable
-import java.time.LocalDate
 import jakarta.validation.constraints.NotNull
 
 data class KoejaksonLoppukeskusteluDTO(

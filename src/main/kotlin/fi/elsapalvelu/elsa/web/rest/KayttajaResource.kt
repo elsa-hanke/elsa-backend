@@ -29,7 +29,6 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority
 import org.springframework.web.bind.annotation.*
-import java.security.Principal
 import jakarta.validation.Valid
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 
@@ -156,7 +155,7 @@ class KayttajaResource(
     fun vaihdaRooli(
         @Valid @RequestParam rooli: String,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val userId = userService.getAuthenticatedUser(principal).id!!
         val user = userService.getUser(userId)
 

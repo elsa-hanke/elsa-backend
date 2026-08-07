@@ -9,7 +9,6 @@ import org.hibernate.envers.NotAudited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.Instant
-import java.time.LocalDate
 
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.domain.koulutus.Opintoopas

@@ -37,8 +37,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.security.Principal
-import java.time.LocalDate
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
@@ -238,7 +236,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     fun deleteTyoskentelyjakso(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
 
         tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id!!, TYOSKENTELYJAKSO_ENTITY_NAME, "yek koulutettavan")
@@ -404,7 +402,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     fun deleteKeskeytysaika(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
 
         tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id!!, KESKEYTYSAIKA_ENTITY_NAME, "yek koulutettavan")

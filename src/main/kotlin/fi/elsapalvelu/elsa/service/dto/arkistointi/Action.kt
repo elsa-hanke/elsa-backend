@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.dto.arkistointi
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
-import java.time.LocalDate
 
 class Action {
 

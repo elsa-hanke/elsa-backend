@@ -27,16 +27,13 @@ import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.web.rest.ENTITY_KOEJAKSON_SOPIMUS
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.security.Principal
 import jakarta.validation.Valid
 import org.springframework.web.multipart.MultipartFile
-import java.util.Date
 
 private const val ENTITY_KOEJAKSON_ALOITUSKESKUSTELU = "koejakson_aloituskeskustelu"
 private const val ENTITY_KOEJAKSON_VALIARVIOINTI = "koejakson_valiarviointi"
@@ -226,7 +223,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     fun deleteKoulutussopimus(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         koejaksonKoulutussopimusService.delete(id, user.id!!)
         return ResponseEntity
@@ -325,7 +322,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     fun deleteAloituskeskustelu(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         koejaksonAloituskeskusteluService.delete(id, user.id!!)
         return ResponseEntity
@@ -381,7 +378,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     fun deleteValiarviointi(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         koejaksonValiarviointiService.delete(id, user.id!!)
         return ResponseEntity
@@ -440,7 +437,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     fun deleteKehittamistoimenpiteet(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         koejaksonKehittamistoimenpiteetService.delete(id, user.id!!)
         return ResponseEntity
@@ -504,7 +501,7 @@ class ErikoistuvaLaakariKoejaksoResource(
     fun deleteLoppukeskustelu(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         koejaksonLoppukeskusteluService.delete(id, user.id!!)
         return ResponseEntity

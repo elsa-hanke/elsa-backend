@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.kayttaja
 
 import java.io.Serializable
-import java.time.LocalDate
 
 data class KatseluoikeusDTO(
 

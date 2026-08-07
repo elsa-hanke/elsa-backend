@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksonTiedotDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -12,8 +11,6 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.security.Principal
-import java.time.LocalDate
 import java.util.*
 import jakarta.validation.Valid
 
@@ -137,7 +134,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
     fun deleteSeurantajakso(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 

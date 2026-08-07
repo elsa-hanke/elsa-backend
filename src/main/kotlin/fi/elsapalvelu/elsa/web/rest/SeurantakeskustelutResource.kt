@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest
 
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksonTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.SeurantajaksoTila
@@ -11,7 +10,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
-import java.security.Principal
 import java.util.*
 
 private const val ENTITY_NAME = "seurantajakso"

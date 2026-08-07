@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import tech.jhipster.service.filter.LongFilter
-import java.security.Principal
 
 @RestController
 @RequestMapping("/api/vastuuhenkilo/etusivu")
