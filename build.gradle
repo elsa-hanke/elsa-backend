@@ -209,6 +209,10 @@ detekt {
     config.setFrom(files("$rootDir/detekt-config.yml"))
 }
 
+tasks.check {
+    dependsOn(tasks.named("detektMain"))
+}
+
 testlogger {
     theme = ThemeType.STANDARD
     showExceptions = true
