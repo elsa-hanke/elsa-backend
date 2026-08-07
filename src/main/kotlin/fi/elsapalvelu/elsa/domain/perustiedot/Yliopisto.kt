@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain.perustiedot
 
-import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited

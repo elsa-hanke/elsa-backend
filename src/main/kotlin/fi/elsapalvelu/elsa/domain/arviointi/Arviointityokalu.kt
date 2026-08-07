@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain.arviointi
 
-import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokalunTila
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache

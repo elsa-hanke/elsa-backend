@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain.kayttaja
 
-import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
