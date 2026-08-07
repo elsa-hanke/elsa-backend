@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.arviointi
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.domain.arviointi.Arviointityokalu
 import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokaluKysymys
 import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokaluKysymysVaihtoehto
@@ -42,7 +44,7 @@ class ArviointityokaluServiceImpl(
         arviointityokalu.muokkausaika = now
         arviointityokalu.kayttaja = null
         arviointityokalu.kategoria = arviointityokalu.kategoria?.let {
-            arviointityokaluKategoriaRepository.findById(it.id!!).orElse(null)
+            arviointityokaluKategoriaRepository.findById(it.id.required()).orElse(null)
         }
         arviointityokalu.kysymykset.forEach { kysymys ->
             kysymys.arviointityokalu = arviointityokalu
@@ -56,7 +58,7 @@ class ArviointityokaluServiceImpl(
             arviointityokalu.liitetiedostonTyyppi = liiteData.contentType
         }
         arviointityokalu = arviointityokaluRepository.save(arviointityokalu)
-        arviointityokalu.alkuperainenId = arviointityokalu.id!!
+        arviointityokalu.alkuperainenId = arviointityokalu.id.required()
         arviointityokalu = arviointityokaluRepository.save(arviointityokalu)
         return arviointityokaluMapper.toDto(arviointityokalu)
     }
@@ -65,14 +67,14 @@ class ArviointityokaluServiceImpl(
         arviointityokaluDTO: ArviointityokaluDTO,
         liiteData: MultipartFile?
     ): ArviointityokaluDTO? {
-        return arviointityokaluRepository.findById(arviointityokaluDTO.id!!)
+        return arviointityokaluRepository.findById(arviointityokaluDTO.id.required())
             .orElse(null)?.let { vanhaArviointityokalu ->
                 vanhaArviointityokalu.kaytossa = false
                 arviointityokaluRepository.save(vanhaArviointityokalu)
                 val now = Instant.now()
                 val uusiArviointityokalu = Arviointityokalu(
                     id = null,
-                    alkuperainenId = vanhaArviointityokalu.alkuperainenId ?: vanhaArviointityokalu.id!!,
+                    alkuperainenId = vanhaArviointityokalu.alkuperainenId ?: vanhaArviointityokalu.id.required(),
                     versio = vanhaArviointityokalu.versio + 1,
                     nimi = arviointityokaluDTO.nimi,
                     ohjeteksti = arviointityokaluDTO.ohjeteksti,
@@ -82,7 +84,7 @@ class ArviointityokaluServiceImpl(
                     muokkausaika = now,
                     kayttaja = null,
                     kategoria = arviointityokaluDTO.kategoria?.let {
-                        arviointityokaluKategoriaRepository.findById(it.id!!).orElse(null)
+                        arviointityokaluKategoriaRepository.findById(it.id.required()).orElse(null)
                     }
                 )
                 val updatedKysymykset = arviointityokaluDTO.kysymykset?.map { kysymysDTO ->
@@ -176,7 +178,7 @@ class ArviointityokaluServiceImpl(
             .asSequence()
             .filter { it.alkuperainenId !in aktiivisetIds }
             .groupBy { it.alkuperainenId }
-            .map { (_, versiot) -> versiot.maxByOrNull { it.versio }!! }
+            .map { (_, versiot) -> versiot.maxByOrNull { it.versio }.required() }
             .map(arviointityokaluMapper::toDto)
             .toList()
     }

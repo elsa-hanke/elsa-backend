@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.arviointi
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarvioinninKommenttiRepository
 import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
@@ -48,7 +50,7 @@ class SuoritusarvioinninKommenttiServiceImpl(
         }
 
         val suoritusarviointi = suoritusarviointiRepository
-            .findOneById(suoritusarvioinninKommentti.suoritusarviointi?.id!!).get()
+            .findOneById(suoritusarvioinninKommentti.suoritusarviointi?.id.required()).get()
         require(
             kayttaja == suoritusarviointi.arvioinninAntaja ||
                 kayttaja == suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja
@@ -58,15 +60,15 @@ class SuoritusarvioinninKommenttiServiceImpl(
             suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
         val user =
             if (kayttaja == suoritusarviointi.arvioinninAntaja) kayttajaRepository.findById(
-                suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!
-            ).get().user!!
-            else kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!)
-                .get().user!!
+                suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required()
+            ).get().user.required()
+            else kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id.required())
+                .get().user.required()
         mailService.sendEmailFromTemplate(
             user,
             templateName = "suoritusarvioinninKommenttiEmail.html",
             titleKey = "email.suoritusarvioinninkommentti.title",
-            properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
+            properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id.required().toString()))
         )
         return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
     }

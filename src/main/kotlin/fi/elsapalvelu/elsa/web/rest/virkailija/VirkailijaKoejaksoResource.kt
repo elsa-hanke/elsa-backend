@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
@@ -44,7 +46,7 @@ class VirkailijaKoejaksoResource(
     ): ResponseEntity<Page<KoejaksonVaiheDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val koejaksonVaiheet =
-            koejaksonVaiheetService.findAllByVirkailijaKayttajaUserId(user.id!!, criteria, pageable)
+            koejaksonVaiheetService.findAllByVirkailijaKayttajaUserId(user.id.required(), criteria, pageable)
         return ResponseEntity.ok(koejaksonVaiheet)
     }
 
@@ -55,7 +57,7 @@ class VirkailijaKoejaksoResource(
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val vastuuhenkilonArvioDTO =
-            koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id!!)
+            koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id.required())
         return ResponseUtil.wrapOrNotFound(vastuuhenkilonArvioDTO)
     }
 
@@ -65,11 +67,11 @@ class VirkailijaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!)
+        val kayttaja = kayttajaService.findByUserId(user.id.required())
         val asiakirja = asiakirjaService
             .findByIdAndLiitettykoejaksoonByYliopisto(
                 id,
-                kayttaja.orElse(null)?.yliopistot?.map { it.id!! })
+                kayttaja.orElse(null)?.yliopistot?.map { it.id.required() })
 
         return asiakirja?.asiakirjaData?.fileInputStream
             ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
@@ -83,11 +85,11 @@ class VirkailijaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        return koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id!!)
+        return koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id.required())
             .orElse(null)
             ?.asiakirjat?.firstOrNull { asiakirja -> asiakirja.id == asiakirjaId }
             ?.let { asiakirja ->
-                asiakirjaService.findById(asiakirja.id!!)
+                asiakirjaService.findById(asiakirja.id.required())
                     ?.asiakirjaData?.fileInputStream
                     ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             }
@@ -111,8 +113,8 @@ class VirkailijaKoejaksoResource(
 
         val vastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(
-                vastuuhenkilonArvioDTO.id!!,
-                user.id!!
+                vastuuhenkilonArvioDTO.id.required(),
+                user.id.required()
             )
 
         if (!vastuuhenkilonArvio.isPresent) {
@@ -139,7 +141,7 @@ class VirkailijaKoejaksoResource(
             )
         }
 
-        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id!!)
+        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id.required())
         return ResponseEntity.ok(result)
     }
 }

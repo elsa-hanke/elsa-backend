@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.peppi.turku
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
@@ -19,7 +21,7 @@ class PeppiTurkuOpintotietodataFetchingServiceImpl(
 ) : AbstractOpintotietodataFetchingService(yliopistoRepository, YliopistoEnum.TURUN_YLIOPISTO) {
 
     override suspend fun fetchOpintotietodata(hetu: String): OpintotietodataDTO? {
-        val endpointBaseUrl = "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl!!}/student"
+        val endpointBaseUrl = "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl.required()}/student"
         return commonOpintotietodataFetchingServiceImpl.fetchOpintotietodata(
             endpointBaseUrl,
             peppiTurkuClientBuilder.okHttpClient(),

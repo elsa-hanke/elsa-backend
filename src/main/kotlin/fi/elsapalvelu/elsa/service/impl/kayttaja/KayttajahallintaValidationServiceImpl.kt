@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
@@ -51,7 +53,7 @@ class KayttajahallintaValidationServiceImpl(
             // tehtävien olla määritetty tälle.
             if (assignedTehtavatForErikoisala.isEmpty()) {
                 val erikoisalaTehtavat =
-                    getAllTehtavatForErikoisala(kayttajaYliopistoErikoisalaDTO.erikoisala?.id!!)
+                    getAllTehtavatForErikoisala(kayttajaYliopistoErikoisalaDTO.erikoisala?.id.required())
                 if (kayttajaYliopistoErikoisalaDTO.vastuuhenkilonTehtavat.size != erikoisalaTehtavat.size) {
                     isValid = false
                     return@yliopistotErikoisalat
@@ -61,7 +63,7 @@ class KayttajahallintaValidationServiceImpl(
             kayttajaYliopistoErikoisalaDTO.vastuuhenkilonTehtavat.forEach {
                 if (persistedTehtavatContains(assignedTehtavatForErikoisala, it.id) && !isReassignedTehtava(
                             kayttajahallintaKayttajaDTO.reassignedTehtavat,
-                            kayttajaYliopistoErikoisalaDTO.erikoisala?.id!!,
+                            kayttajaYliopistoErikoisalaDTO.erikoisala?.id.required(),
                             it.id,
                             ReassignedVastuuhenkilonTehtavaTyyppi.REMOVE
                         )) {
@@ -110,7 +112,7 @@ class KayttajahallintaValidationServiceImpl(
         virkailijaUserDTO: UserDTO,
         yliopistoId: Long
     ): Boolean {
-        val virkailijaKayttaja = findKayttajaByUserId(virkailijaUserDTO.id!!)
+        val virkailijaKayttaja = findKayttajaByUserId(virkailijaUserDTO.id.required())
         val virkailijaYliopisto = getVirkailijaYliopisto(virkailijaKayttaja)
         return virkailijaYliopisto.id == yliopistoId
     }
@@ -120,7 +122,7 @@ class KayttajahallintaValidationServiceImpl(
         virkailijaUserDTO: UserDTO,
         kayttajaId: Long
     ): Boolean {
-        val virkailijaKayttaja = findKayttajaByUserId(virkailijaUserDTO.id!!)
+        val virkailijaKayttaja = findKayttajaByUserId(virkailijaUserDTO.id.required())
         val virkailijaYliopisto = getVirkailijaYliopisto(virkailijaKayttaja)
         val erikoistuvaLaakari = findErikoistuvaLaakariByKayttajaId(kayttajaId)
         return erikoistuvaLaakari.opintooikeudet.map { it.yliopisto?.id }.contains(virkailijaYliopisto.id)
@@ -133,7 +135,7 @@ class KayttajahallintaValidationServiceImpl(
             return false
         }
 
-        val virkailijaKayttaja = findKayttajaByUserId(virkailijaUserDTO.id!!)
+        val virkailijaKayttaja = findKayttajaByUserId(virkailijaUserDTO.id.required())
         val virkailijaYliopisto = getVirkailijaYliopisto(virkailijaKayttaja)
         val kayttajaYliopistot = kayttaja.yliopistot
         val kayttajaYliopistotAndErikoisalat = kayttaja.yliopistotAndErikoisalat
@@ -155,7 +157,7 @@ class KayttajahallintaValidationServiceImpl(
             newErikoisalaDTO.vastuuhenkilonTehtavat.forEach {
                 if (persistedTehtavatContains(assignedTehtavatForErikoisala, it.id) && !isReassignedTehtava(
                         reassignedTehtavat,
-                        newErikoisalaDTO.erikoisala?.id!!,
+                        newErikoisalaDTO.erikoisala?.id.required(),
                         it.id,
                         ReassignedVastuuhenkilonTehtavaTyyppi.REMOVE
                     )
@@ -180,7 +182,7 @@ class KayttajahallintaValidationServiceImpl(
             removedErikoisalaDTO.vastuuhenkilonTehtavat.forEach {
                 if (!persistedTehtavatContains(assignedTehtavatForErikoisala, it.id) && !isReassignedTehtava(
                         reassignedTehtavat,
-                        removedErikoisalaDTO.id!!,
+                        removedErikoisalaDTO.id.required(),
                         it.id,
                         ReassignedVastuuhenkilonTehtavaTyyppi.ADD
                     )
@@ -200,7 +202,7 @@ class KayttajahallintaValidationServiceImpl(
     ): Boolean {
         var isValid = true
         erikoisalat.forEach yliopistotErikoisalat@{ kayttajaYliopistoErikoisalaDTO ->
-            val allTehtavatForErikoisala = getAllTehtavatForErikoisala(kayttajaYliopistoErikoisalaDTO.erikoisala?.id!!)
+            val allTehtavatForErikoisala = getAllTehtavatForErikoisala(kayttajaYliopistoErikoisalaDTO.erikoisala?.id.required())
             val assignedTehtavatForErikoisala =
                 getAssignedTehtavatForErikoisala(kayttajaYliopistoErikoisalaDTO, kayttajaYliopistoErikoisalaDTO.id)
             val persistedErikoisalaTehtavat =
@@ -212,7 +214,7 @@ class KayttajahallintaValidationServiceImpl(
                 ) {
                     if (assignedTehtavatForErikoisala.contains(it) && !isReassignedTehtava(
                             reassignedTehtavat,
-                            kayttajaYliopistoErikoisalaDTO.erikoisala?.id!!,
+                            kayttajaYliopistoErikoisalaDTO.erikoisala?.id.required(),
                             it.id,
                             ReassignedVastuuhenkilonTehtavaTyyppi.REMOVE
                         )
@@ -227,7 +229,7 @@ class KayttajahallintaValidationServiceImpl(
                 ) {
                     if (!assignedTehtavatForErikoisala.contains(it) && !isReassignedTehtava(
                             reassignedTehtavat,
-                            kayttajaYliopistoErikoisalaDTO.erikoisala?.id!!,
+                            kayttajaYliopistoErikoisalaDTO.erikoisala?.id.required(),
                             it.id,
                             ReassignedVastuuhenkilonTehtavaTyyppi.ADD
                     )) {
@@ -269,8 +271,8 @@ class KayttajahallintaValidationServiceImpl(
         excludedId: Long? = null
     ): Set<VastuuhenkilonTehtavatyyppi> {
         var kayttajaYliopistoErikoisalatList = kayttajaYliopistoErikoisalaRepository.findAllByYliopistoIdAndErikoisalaId(
-            kayttajaYliopistoErikoisalaDTO.yliopisto?.id!!,
-            kayttajaYliopistoErikoisalaDTO.erikoisala?.id!!
+            kayttajaYliopistoErikoisalaDTO.yliopisto?.id.required(),
+            kayttajaYliopistoErikoisalaDTO.erikoisala?.id.required()
         )
         excludedId?.let { id ->
             kayttajaYliopistoErikoisalatList = kayttajaYliopistoErikoisalatList.filter { it.id != id }

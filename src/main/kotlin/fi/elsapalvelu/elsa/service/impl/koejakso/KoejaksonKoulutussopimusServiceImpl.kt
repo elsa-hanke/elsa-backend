@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
@@ -117,14 +119,14 @@ class KoejaksonKoulutussopimusServiceImpl(
             if (koulutussopimus.lahetetty) {
                 koulutussopimus.kouluttajat?.forEach { kouluttaja ->
                     kouluttajavaltuutusService.lisaaValtuutus(
-                        it.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-                        kouluttaja.kouluttaja?.id!!
+                        it.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
+                        kouluttaja.kouluttaja?.id.required()
                     )
                     mailService.sendEmailFromTemplate(
-                        kayttajaRepository.findById(kouluttaja.kouluttaja?.id!!).get().user!!,
+                        kayttajaRepository.findById(kouluttaja.kouluttaja?.id.required()).get().user.required(),
                         templateName = "koulutussopimusKouluttajalle.html",
                         titleKey = "email.koulutussopimuskouluttajalle.title",
-                        properties = mapOf(Pair(MailProperty.ID, koulutussopimus.id!!.toString()))
+                        properties = mapOf(Pair(MailProperty.ID, koulutussopimus.id.required().toString()))
                     )
                 }
             }
@@ -135,7 +137,8 @@ class KoejaksonKoulutussopimusServiceImpl(
 
     override fun update(koulutussopimusDTO: KoejaksonKoulutussopimusDTO, userId: String): KoejaksonKoulutussopimusDTO {
         try {
-            var koulutussopimus = koejaksonKoulutussopimusRepository.findById(koulutussopimusDTO.id!!).orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
+            var koulutussopimus = koejaksonKoulutussopimusRepository.findById(koulutussopimusDTO.id.required())
+                .orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
             val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
             val updatedKoulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koulutussopimusDTO)
 
@@ -179,7 +182,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                 logger.info("Kasitellaan sopimus hyvaksytty KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
                 val asiakirja = luoPdf(dto, koulutussopimus)
                 logger.info("Luotu koulutussopimuksesta pdf: $asiakirja.id")
-                val yliopisto = koulutussopimus.opintooikeus?.yliopisto?.nimi!!
+                val yliopisto = koulutussopimus.opintooikeus?.yliopisto?.nimi.required()
 
                 if (arkistointiService.onKaytossa(yliopisto, CaseType.SOPIMUS)) {
                     arkistoiKoulutussopimus(koulutussopimus.opintooikeus, asiakirja, koulutussopimus, yliopisto)
@@ -198,8 +201,8 @@ class KoejaksonKoulutussopimusServiceImpl(
         koulutussopimusDTO: KoejaksonKoulutussopimusDTO,
         userId: String
     ) {
-        val kayttaja = kouluttajaEntity.kouluttaja!!
-        val user = kouluttajaEntity.kouluttaja?.user!!
+        val kayttaja = kouluttajaEntity.kouluttaja.required()
+        val user = kouluttajaEntity.kouluttaja?.user.required()
         val kouluttaja = koulutussopimusDTO.kouluttajat?.first { kouluttajaDTO ->
             kouluttajaDTO.kayttajaUserId == userId
         }
@@ -220,7 +223,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         val result = arkistointiService.muodostaSahke(
             opintooikeus,
             listOf(RecordProperties(asiakirja, RecordType.SOPIMUS)),
-            caseId = koulutussopimus.id!!.toString(),
+            caseId = koulutussopimus.id.required().toString(),
             tarkastaja = "",
             tarkastusPaiva = null,
             hyvaksyja = koulutussopimus.vastuuhenkilo?.user?.getName(),
@@ -230,16 +233,16 @@ class KoejaksonKoulutussopimusServiceImpl(
         )
         logger.info("Koulutussopimuksesta pdf arkistointi onnistui, tuloste: ${result.zipFilePath}")
 
-        val erikoisala = opintooikeus?.erikoisala!!
+        val erikoisala = opintooikeus?.erikoisala.required()
         val yek = erikoisala.id == YEK_ERIKOISALA_ID
-        val erikoistujanNimi = opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.getName()
+        val erikoistujanNimi = requireNotNull(opintooikeus).erikoistuvaLaakari?.kayttaja?.user?.getName()
         logger.info("Lahetetaan arkistopyynto: ${result.zipFilePath}")
         arkistointiService.laheta(
             yliopisto = yliopisto,
             filePath = result.zipFilePath,
             caseType = CaseType.SOPIMUS,
             yek = yek,
-            caseId = koulutussopimus.id!!.toString(),
+            caseId = koulutussopimus.id.required().toString(),
             erikoistujanNimi = erikoistujanNimi
         )
         logger.info("Lahetettiin arkistopyynto")
@@ -276,14 +279,14 @@ class KoejaksonKoulutussopimusServiceImpl(
         if (updated.lahetetty) {
             result.kouluttajat?.forEach {
                 kouluttajavaltuutusService.lisaaValtuutus(
-                    koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-                    it.kouluttaja?.id!!
+                    koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
+                    it.kouluttaja?.id.required()
                 )
                 mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
+                    kayttajaRepository.findById(it.kouluttaja?.id.required()).get().user.required(),
                     templateName = "koulutussopimusKouluttajalle.html",
                     titleKey = "email.koulutussopimuskouluttajalle.title",
-                    properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                    properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
                 )
             }
         }
@@ -328,27 +331,27 @@ class KoejaksonKoulutussopimusServiceImpl(
                     VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN)
             vastuuhenkilo?.user?.let {
                 mailService.sendEmailFromTemplate(it, templateName = "koulutussopimusVastuuhenkilolle.html", titleKey = "email.koulutussopimusvastuuhenkilolle.title",
-                    properties = mapOf(Pair(MailProperty.ID, result.id!!.toString())))
+                    properties = mapOf(Pair(MailProperty.ID, result.id.required().toString())))
             }
         }
 
         // Sähköposti erikoistuvalle ja toiselle kouluttajalle palautetusta sopimuksesta
         else if (result.korjausehdotus != null) {
-            val erikoistuvaLaakari = kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!).get().user!!
+            val erikoistuvaLaakari = kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required()).get().user.required()
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
                 templateName = "koulutussopimusPalautettu.html",
                 titleKey = "email.koulutussopimuspalautettu.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
 
             result.kouluttajat?.forEach {
                 if (it.id != kouluttaja.id) {
                     mailService.sendEmailFromTemplate(
-                        kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
+                        kayttajaRepository.findById(it.kouluttaja?.id.required()).get().user.required(),
                         templateName = "koulutussopimusPalautettuKouluttaja.html",
                         titleKey = "email.koulutussopimuspalautettu.title",
-                        properties = mapOf(Pair(MailProperty.NAME, erikoistuvaLaakari.getName()), Pair(MailProperty.TEXT, result.korjausehdotus!!))
+                        properties = mapOf(Pair(MailProperty.NAME, erikoistuvaLaakari.getName()), Pair(MailProperty.TEXT, result.korjausehdotus.required()))
                     )
                 }
             }
@@ -385,35 +388,35 @@ class KoejaksonKoulutussopimusServiceImpl(
         // Sähköposti erikoistujalle hyväksytystä sopimuksesta
         if (result.vastuuhenkiloHyvaksynyt) {
             val erikoistuvaLaakari =
-                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required())
+                    .get().user.required()
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
                 templateName = "koulutussopimusHyvaksytty.html",
                 titleKey = "email.koulutussopimushyvaksytty.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
         }
         // Sähköposti erikoistujalle ja kouluttajille palautetusta sopimuksesta
         else {
             val erikoistuvaLaakari =
-                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required())
+                    .get().user.required()
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
                 templateName = "koulutussopimusPalautettu.html",
                 titleKey = "email.koulutussopimuspalautettu.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
 
             result.kouluttajat?.forEach {
                 mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(it.kouluttaja?.id!!).get().user!!,
+                    kayttajaRepository.findById(it.kouluttaja?.id.required()).get().user.required(),
                     templateName = "koulutussopimusPalautettuKouluttaja.html",
                     titleKey = "email.koulutussopimuspalautettu.title",
                     properties = mapOf(
                         Pair(MailProperty.NAME, erikoistuvaLaakari.getName()),
-                        Pair(MailProperty.TEXT, result.vastuuhenkilonKorjausehdotus!!)
+                        Pair(MailProperty.TEXT, result.vastuuhenkilonKorjausehdotus.required())
                     )
                 )
             }

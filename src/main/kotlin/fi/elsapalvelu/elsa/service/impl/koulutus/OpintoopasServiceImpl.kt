@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koulutus
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.domain.koulutus.Opintoopas
 import fi.elsapalvelu.elsa.extensions.toMonths
 import fi.elsapalvelu.elsa.extensions.toYears
@@ -49,12 +51,12 @@ class OpintoopasServiceImpl(
 
     override fun update(opintoopasDTO: OpintoopasDTO): OpintoopasDTO? {
         val uusinOpas =
-            opintoopasRepository.findFirstByErikoisalaIdOrderByVoimassaoloAlkaaDesc(opintoopasDTO.erikoisala!!.id!!)
-        if (uusinOpas != null && uusinOpas.id != opintoopasDTO.id && opintoopasDTO.voimassaoloAlkaa!!.isAfter(
+            opintoopasRepository.findFirstByErikoisalaIdOrderByVoimassaoloAlkaaDesc(opintoopasDTO.erikoisala.required().id.required())
+        if (uusinOpas != null && uusinOpas.id != opintoopasDTO.id && opintoopasDTO.voimassaoloAlkaa.required().isAfter(
                 uusinOpas.voimassaoloAlkaa
             ) && uusinOpas.voimassaoloPaattyy == null
         ) {
-            uusinOpas.voimassaoloPaattyy = opintoopasDTO.voimassaoloAlkaa!!.minusDays(1)
+            uusinOpas.voimassaoloPaattyy = opintoopasDTO.voimassaoloAlkaa.required().minusDays(1)
             opintoopasRepository.save(uusinOpas)
         }
         val opintoopas = opintoopasMapper.toEntity(opintoopasDTO)

@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonLoppukeskustelu
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
@@ -62,20 +64,20 @@ class KoejaksonLoppukeskusteluServiceImpl(
             loppukeskustelu = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
 
             kouluttajavaltuutusService.lisaaValtuutus(
-                loppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-                loppukeskustelu.lahikouluttaja?.id!!
+                loppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
+                loppukeskustelu.lahikouluttaja?.id.required()
             )
             kouluttajavaltuutusService.lisaaValtuutus(
-                loppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-                loppukeskustelu.lahiesimies?.id!!
+                loppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
+                loppukeskustelu.lahiesimies?.id.required()
             )
 
             // Sähköposti kouluttajalle
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!).get().user!!,
+                kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id.required()).get().user.required(),
                 templateName = "loppukeskusteluKouluttajalle.html",
                 titleKey = "email.loppukeskustelukouluttajalle.title",
-                properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id.required().toString()))
             )
 
             koejaksonLoppukeskusteluMapper.toDto(loppukeskustelu)
@@ -87,7 +89,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
         userId: String
     ): KoejaksonLoppukeskusteluDTO {
         var loppukeskustelu =
-            koejaksonLoppukeskusteluRepository.findById(koejaksonLoppukeskusteluDTO.id!!)
+            koejaksonLoppukeskusteluRepository.findById(koejaksonLoppukeskusteluDTO.id.required())
                 .orElseThrow { EntityNotFoundException("Loppukeskustelua ei löydy") }
 
         val updatedLoppukeskustelu =
@@ -118,10 +120,10 @@ class KoejaksonLoppukeskusteluServiceImpl(
 
         // Sähköposti esimiehelle kouluttajan hyväksymästä loppukeskustelusta
         mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id!!).get().user!!,
+            kayttajaRepository.findById(loppukeskustelu.lahiesimies?.id.required()).get().user.required(),
             templateName = "loppukeskusteluKuitattava.html",
             titleKey = "email.loppukeskustelukuitattava.title",
-            properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
+            properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id.required().toString()))
         )
 
         return result
@@ -149,24 +151,24 @@ class KoejaksonLoppukeskusteluServiceImpl(
         // Sähköposti erikoistuvalle esimiehen hyväksymästä loppukeskustelusta
         if (loppukeskustelu.lahikouluttajaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(loppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!,
+                kayttajaRepository.findById(loppukeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required())
+                    .get().user.required(),
                 templateName = "loppukeskusteluKuitattava.html",
                 titleKey = "email.loppukeskustelukuitattava.title",
-                properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, loppukeskustelu.id.required().toString()))
             )
         }
         // Sähköposti kouluttajalle korjattavasta loppukeskustelusta
         else {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id!!)
-                    .get().user!!,
+                kayttajaRepository.findById(loppukeskustelu.lahikouluttaja?.id.required())
+                    .get().user.required(),
                 templateName = "loppukeskusteluPalautettu.html",
                 titleKey = "email.loppukeskustelupalautettu.title",
                 properties = mapOf(
                     Pair(
                         MailProperty.ID,
-                        loppukeskustelu.id!!.toString()
+                        loppukeskustelu.id.required().toString()
                     )
                 )
             )
@@ -246,7 +248,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
 
     private fun mapLoppukeskustelu(loppukeskustelu: KoejaksonLoppukeskustelu): KoejaksonLoppukeskusteluDTO {
         val result = koejaksonLoppukeskusteluMapper.toDto(loppukeskustelu)
-        val opintoOikeusId = loppukeskustelu.opintooikeus?.id!!
+        val opintoOikeusId = loppukeskustelu.opintooikeus?.id.required()
         result.koejaksonOsaamistavoitteet =
             koejaksonAloituskeskusteluRepository.findByOpintooikeusId(opintoOikeusId)
                 .get().koejaksonOsaamistavoitteet

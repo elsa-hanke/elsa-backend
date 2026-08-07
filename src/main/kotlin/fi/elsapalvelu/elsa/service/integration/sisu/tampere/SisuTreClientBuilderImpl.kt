@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.sisu.tampere
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
 import fi.elsapalvelu.elsa.security.AccessTokenAuthenticator
@@ -33,7 +35,7 @@ class SisuTreClientBuilderImpl(
                     OkHttp3RequestInterceptor(
                         mapOf(
                             "Ocp-Apim-Subscription-Key" to applicationProperties.getSecurity()
-                                .getSisuTre().subscriptionKey!!,
+                                .getSisuTre().subscriptionKey.required(),
                             "Content-Type" to "application/json"
                         )
                     )

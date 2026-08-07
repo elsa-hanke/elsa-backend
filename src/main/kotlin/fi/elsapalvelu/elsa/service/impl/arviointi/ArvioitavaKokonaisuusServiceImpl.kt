@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.arviointi
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.arviointi.ArvioitavaKokonaisuusRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
@@ -32,7 +34,7 @@ class ArvioitavaKokonaisuusServiceImpl(
 
         // Korvataan edellinen
         if (arvioitavaKokonaisuusDTO.id != null) {
-            arvioitavaKokonaisuusRepository.findById(arvioitavaKokonaisuusDTO.id!!).orElse(null)
+            arvioitavaKokonaisuusRepository.findById(arvioitavaKokonaisuusDTO.id.required()).orElse(null)
                 ?.let {
                     it.voimassaoloLoppuu = arvioitavaKokonaisuusDTO.voimassaoloAlkaa?.minusDays(1)
                     arvioitavaKokonaisuusRepository.save(it)
@@ -46,7 +48,7 @@ class ArvioitavaKokonaisuusServiceImpl(
     }
 
     override fun update(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO? {
-        return arvioitavaKokonaisuusRepository.findById(arvioitavaKokonaisuusDTO.id!!).orElse(null)
+        return arvioitavaKokonaisuusRepository.findById(arvioitavaKokonaisuusDTO.id.required()).orElse(null)
             ?.let {
                 it.nimi = arvioitavaKokonaisuusDTO.nimi
                 it.nimiSv = arvioitavaKokonaisuusDTO.nimiSv
@@ -102,7 +104,7 @@ class ArvioitavaKokonaisuusServiceImpl(
         result.ifPresent {
             it.voiPoistaa =
                 !suoritusarviointiRepository.existsByArvioitavatKokonaisuudetArvioitavaKokonaisuusId(
-                    it.id!!
+                    it.id.required()
                 )
         }
         return result

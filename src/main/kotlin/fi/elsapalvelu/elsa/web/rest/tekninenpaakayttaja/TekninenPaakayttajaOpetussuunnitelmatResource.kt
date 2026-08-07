@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.extensions.isInRange
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
@@ -300,7 +302,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
                 "dataillegal.opinto-oppaalta-puuttuu-erikoisala"
             )
 
-        if (opintoopasDTO.voimassaoloPaattyy != null && opintoopasDTO.voimassaoloPaattyy!!.isBefore(
+        if (opintoopasDTO.voimassaoloPaattyy != null && opintoopasDTO.voimassaoloPaattyy.required().isBefore(
                 opintoopasDTO.voimassaoloAlkaa
             )
         ) {
@@ -314,16 +316,16 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
         val opintooppaat =
             opintoopasService.findAllByErikoisala(erikoisalaId).filter { it.id != opintoopasDTO.id }
 
-        val uusin = opintooppaat.maxByOrNull { it.voimassaoloAlkaa!! } ?: return
+        val uusin = opintooppaat.maxByOrNull { it.voimassaoloAlkaa.required() } ?: return
 
         if (opintoopasDTO.voimassaoloPaattyy == null) {
-            if (opintoopasDTO.voimassaoloAlkaa!!.isBefore(uusin.voimassaoloAlkaa)) {
+            if (opintoopasDTO.voimassaoloAlkaa.required().isBefore(uusin.voimassaoloAlkaa)) {
                 throw BadRequestAlertException(
                     "Opinto-oppaalle on annettava päättymispäivä, jos se ei ole uusin",
                     OPINTOOPAS_ENTITY_NAME,
                     "dataillegal.opinto-oppaalle-annettava-paattymispaiva"
                 )
-            } else if (uusin.voimassaoloPaattyy != null && opintoopasDTO.voimassaoloAlkaa!!.isBefore(
+            } else if (uusin.voimassaoloPaattyy != null && opintoopasDTO.voimassaoloAlkaa.required().isBefore(
                     uusin.voimassaoloPaattyy
                 )
             ) {
@@ -337,12 +339,12 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
 
         val voimassaoloPaattyy = opintoopasDTO.voimassaoloPaattyy ?: return
 
-        if (opintoopasDTO.voimassaoloAlkaa!!.isAfter(uusin.voimassaoloAlkaa) && uusin.voimassaoloPaattyy == null) {
+        if (opintoopasDTO.voimassaoloAlkaa.required().isAfter(uusin.voimassaoloAlkaa) && uusin.voimassaoloPaattyy == null) {
             return
         }
 
-        for (date in opintoopasDTO.voimassaoloAlkaa!!.datesUntil(voimassaoloPaattyy.plusDays(1))) {
-            if (opintooppaat.any { date.isInRange(it.voimassaoloAlkaa!!, it.voimassaoloPaattyy) }) {
+        for (date in opintoopasDTO.voimassaoloAlkaa.required().datesUntil(voimassaoloPaattyy.plusDays(1))) {
+            if (opintooppaat.any { date.isInRange(it.voimassaoloAlkaa.required(), it.voimassaoloPaattyy) }) {
                 throw BadRequestAlertException(
                     "Opinto-oppaan voimassaolo ei saa olla päällekkäinen toisen opinto-oppaan kanssa",
                     OPINTOOPAS_ENTITY_NAME,
@@ -353,7 +355,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     private fun validateArvioitavaKokonaisuusVoimassaolo(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO) {
-        if (arvioitavaKokonaisuusDTO.voimassaoloLoppuu != null && arvioitavaKokonaisuusDTO.voimassaoloLoppuu!!.isBefore(
+        if (arvioitavaKokonaisuusDTO.voimassaoloLoppuu != null && arvioitavaKokonaisuusDTO.voimassaoloLoppuu.required().isBefore(
                 arvioitavaKokonaisuusDTO.voimassaoloAlkaa
             )
         ) {
@@ -366,9 +368,9 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     private fun validateArvioitavaKokonaisuusArvioinnit(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO) {
-        if (suoritusarviointiService.existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusDTO.id!!)) {
-            arvioitavaKokonaisuusService.findOne(arvioitavaKokonaisuusDTO.id!!).orElse(null)?.let {
-                if (arvioitavaKokonaisuusDTO.voimassaoloAlkaa!!.isAfter(it.voimassaoloAlkaa)
+        if (suoritusarviointiService.existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusDTO.id.required())) {
+            arvioitavaKokonaisuusService.findOne(arvioitavaKokonaisuusDTO.id.required()).orElse(null)?.let {
+                if (arvioitavaKokonaisuusDTO.voimassaoloAlkaa.required().isAfter(it.voimassaoloAlkaa)
                     || (it.voimassaoloLoppuu != null && arvioitavaKokonaisuusDTO.voimassaoloLoppuu?.isBefore(
                         it.voimassaoloLoppuu
                     ) == true)
@@ -384,7 +386,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     private fun validateSuoritteenVoimassaolo(suoriteDTO: SuoriteWithErikoisalaDTO) {
-        if (suoriteDTO.voimassaolonPaattymispaiva != null && suoriteDTO.voimassaolonPaattymispaiva!!.isBefore(
+        if (suoriteDTO.voimassaolonPaattymispaiva != null && suoriteDTO.voimassaolonPaattymispaiva.required().isBefore(
                 suoriteDTO.voimassaolonAlkamispaiva
             )
         ) {
@@ -397,9 +399,9 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     private fun validateSuoritemerkinnat(suoriteDTO: SuoriteWithErikoisalaDTO) {
-        if (suoritemerkintaService.existsBySuoriteId(suoriteDTO.id!!)) {
-            suoriteService.findOne(suoriteDTO.id!!).orElse(null)?.let {
-                if (suoriteDTO.voimassaolonAlkamispaiva!!.isAfter(it.voimassaolonAlkamispaiva)
+        if (suoritemerkintaService.existsBySuoriteId(suoriteDTO.id.required())) {
+            suoriteService.findOne(suoriteDTO.id.required()).orElse(null)?.let {
+                if (suoriteDTO.voimassaolonAlkamispaiva.required().isAfter(it.voimassaolonAlkamispaiva)
                     || (it.voimassaolonPaattymispaiva != null && suoriteDTO.voimassaolonPaattymispaiva?.isBefore(
                         it.voimassaolonPaattymispaiva
                     ) == true)

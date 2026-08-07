@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonValiarviointi
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
@@ -54,20 +56,20 @@ class KoejaksonValiarviointiServiceImpl(
             valiarviointi = koejaksonValiarviointiRepository.save(valiarviointi)
 
             kouluttajavaltuutusService.lisaaValtuutus(
-                valiarviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-                valiarviointi.lahikouluttaja?.id!!
+                valiarviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
+                valiarviointi.lahikouluttaja?.id.required()
             )
             kouluttajavaltuutusService.lisaaValtuutus(
-                valiarviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-                valiarviointi.lahiesimies?.id!!
+                valiarviointi.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
+                valiarviointi.lahiesimies?.id.required()
             )
 
             // Sähköposti kouluttajalle
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(valiarviointi.lahikouluttaja?.id!!).get().user!!,
+                kayttajaRepository.findById(valiarviointi.lahikouluttaja?.id.required()).get().user.required(),
                 templateName = "valiarviointiKouluttajalle.html",
                 titleKey = "email.valiarviointikouluttajalle.title",
-                properties = mapOf(Pair(MailProperty.ID, valiarviointi.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, valiarviointi.id.required().toString()))
             )
 
             koejaksonValiarviointiMapper.toDto(valiarviointi)
@@ -79,7 +81,7 @@ class KoejaksonValiarviointiServiceImpl(
         userId: String
     ): KoejaksonValiarviointiDTO {
         var valiarviointi =
-            koejaksonValiarviointiRepository.findById(koejaksonValiarviointiDTO.id!!)
+            koejaksonValiarviointiRepository.findById(koejaksonValiarviointiDTO.id.required())
                 .orElseThrow { EntityNotFoundException("Väliarviointia ei löydy") }
 
         val updatedValiarviointi = koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
@@ -113,10 +115,10 @@ class KoejaksonValiarviointiServiceImpl(
         if (result.lahikouluttajaHyvaksynyt) {
             // Sähköposti esimiehelle kouluttajan hyväksymästä väliarvioinnista
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahiesimies?.id.required()).get().user.required(),
                 templateName = "valiarviointiKuitattava.html",
                 titleKey = "email.valiarviointikuitattava.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
         }
 
@@ -144,21 +146,21 @@ class KoejaksonValiarviointiServiceImpl(
         // Sähköposti erikoistuvalle esimiehen hyväksymästä väliarvioinnista
         if (result.lahikouluttajaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!,
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required())
+                    .get().user.required(),
                 templateName = "valiarviointiKuitattava.html",
                 titleKey = "email.valiarviointikuitattava.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
         }
         // Sähköposti kouluttajalle korjattavasta väliarvioinnista
         else {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahikouluttaja?.id!!)
-                    .get().user!!,
+                kayttajaRepository.findById(result.lahikouluttaja?.id.required())
+                    .get().user.required(),
                 templateName = "valiarviointiPalautettu.html",
                 titleKey = "email.valiarviointipalautettu.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
         }
 
@@ -239,7 +241,7 @@ class KoejaksonValiarviointiServiceImpl(
     private fun mapValiarviointi(valiarviointi: KoejaksonValiarviointi): KoejaksonValiarviointiDTO {
         val result = koejaksonValiarviointiMapper.toDto(valiarviointi)
         result.koejaksonOsaamistavoitteet =
-            koejaksonAloituskeskusteluRepository.findByOpintooikeusId(valiarviointi.opintooikeus?.id!!)
+            koejaksonAloituskeskusteluRepository.findByOpintooikeusId(valiarviointi.opintooikeus?.id.required())
                 .get().koejaksonOsaamistavoitteet
         return result
     }

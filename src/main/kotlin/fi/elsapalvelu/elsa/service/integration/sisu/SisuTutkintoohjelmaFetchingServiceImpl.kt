@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.sisu
 
+import fi.elsapalvelu.elsa.required
+
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -22,7 +24,7 @@ class SisuTutkintoohjelmaFetchingServiceImpl(
     private val log = LoggerFactory.getLogger(javaClass)
 
     override suspend fun fetch(): Qualifications? {
-        val endpointUrl = applicationProperties.getSecurity().getSisuHy().tutkintoohjelmaExportUrl!!
+        val endpointUrl = applicationProperties.getSecurity().getSisuHy().tutkintoohjelmaExportUrl.required()
         val request = Request.Builder().url(endpointUrl).build()
         try {
             log.info("Haetaan erikoisalojen Sisu tutkinto-ohjelma id:t rajapinnasta $endpointUrl")

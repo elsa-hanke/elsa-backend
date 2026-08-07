@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.service.kayttaja.EtusivuService
@@ -22,7 +24,7 @@ class YekKoulutettavaEtusivuResource(
         principal: Principal?
     ): ResponseEntity<List<AvoinAsiaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(etusivuService.getAvoimetAsiatForYekKoulutettava(user.id!!))
+        return ResponseEntity.ok(etusivuService.getAvoimetAsiatForYekKoulutettava(user.id.required()))
     }
 
     @GetMapping("/erikoistumisen-edistyminen")
@@ -30,6 +32,6 @@ class YekKoulutettavaEtusivuResource(
         principal: Principal?
     ): ResponseEntity<ErikoistumisenEdistyminenDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(etusivuService.getErikoistumisenSeurantaForErikoistuja(user.id!!))
+        return ResponseEntity.ok(etusivuService.getErikoistumisenSeurantaForErikoistuja(user.id.required()))
     }
 }

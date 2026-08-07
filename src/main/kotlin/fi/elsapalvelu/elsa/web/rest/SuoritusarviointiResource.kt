@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import org.springframework.web.bind.annotation.RequestParam
 import java.security.Principal
@@ -58,7 +60,7 @@ open class SuoritusarviointiResource(
     ): ResponseEntity<List<SuoritusarviointiDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val suoritusarvioinnit =
-            suoritusarviointiQueryService.findByKouluttajaOrVastuuhenkiloUserId(user.id!!)
+            suoritusarviointiQueryService.findByKouluttajaOrVastuuhenkiloUserId(user.id.required())
         val avoimet = suoritusarvioinnit.filter { it.arviointiAika == null }
         val muut = suoritusarvioinnit.filter { it.arviointiAika != null }
         val sortedSuoritusarvioinnit =
@@ -73,7 +75,7 @@ open class SuoritusarviointiResource(
     ): ResponseEntity<List<EtusivuArviointipyyntoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val arviointipyynnot =
-            suoritusarviointiService.findAvoimetByKouluttajaOrVastuuhenkiloUserId(user.id!!)
+            suoritusarviointiService.findAvoimetByKouluttajaOrVastuuhenkiloUserId(user.id.required())
                 .sortedBy { it.tapahtumanAjankohta }.map {
                     EtusivuArviointipyyntoDTO(
                         id = it.id,
@@ -92,7 +94,7 @@ open class SuoritusarviointiResource(
     ): ResponseEntity<SuoritusarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val suoritusarviointiDTO =
-            suoritusarviointiService.findOneByIdAndArvioinninAntajauserId(id, user.id!!)
+            suoritusarviointiService.findOneByIdAndArvioinninAntajauserId(id, user.id.required())
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
     }
 
@@ -104,7 +106,7 @@ open class SuoritusarviointiResource(
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
         val asiakirja = suoritusarviointiService
-            .findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(id, user.id!!, asiakirjaId)
+            .findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(id, user.id.required(), asiakirjaId)
 
         return asiakirja?.asiakirjaData?.fileInputStream
             ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
@@ -131,7 +133,7 @@ open class SuoritusarviointiResource(
                 suoritusarviointiDTO,
                 newAsiakirjat,
                 deletedAsiakirjaIds,
-                user.id!!
+                user.id.required()
             )
             ResponseEntity.ok(result)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -142,7 +144,7 @@ open class SuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<List<ErikoisalaDTO?>> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!).get()
+        val kayttaja = kayttajaService.findByUserId(user.id.required()).get()
         return ResponseEntity.ok(kayttaja.yliopistotAndErikoisalat?.map { it.erikoisala })
     }
 
@@ -153,7 +155,7 @@ open class SuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<Page<ArvioitavaKokonaisuusDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!).get()
+        val kayttaja = kayttajaService.findByUserId(user.id.required()).get()
         if (kayttaja.yliopistotAndErikoisalat?.map { it.erikoisala?.id }
                 ?.contains(criteria.erikoisalaId) == false) {
             throw BadRequestAlertException(

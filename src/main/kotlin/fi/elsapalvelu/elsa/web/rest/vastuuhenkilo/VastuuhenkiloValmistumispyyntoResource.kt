@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
@@ -39,7 +41,7 @@ class VastuuhenkiloValmistumispyyntoResource(
     ): ResponseEntity<Page<ValmistumispyyntoListItemDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val valmistumispyynnot =
-            valmistumispyyntoService.findAllForVastuuhenkiloByCriteria(user.id!!, criteria, pageable)
+            valmistumispyyntoService.findAllForVastuuhenkiloByCriteria(user.id.required(), criteria, pageable)
 
         return ResponseEntity.ok(valmistumispyynnot)
     }
@@ -51,7 +53,7 @@ class VastuuhenkiloValmistumispyyntoResource(
     ): ResponseEntity<ValmistumispyyntoOsaamisenArviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val valmistumispyynto =
-            valmistumispyyntoService.findOneByIdAndVastuuhenkiloOsaamisenArvioijaUserId(id, user.id!!)
+            valmistumispyyntoService.findOneByIdAndVastuuhenkiloOsaamisenArvioijaUserId(id, user.id.required())
 
         return ResponseEntity.ok(valmistumispyynto)
     }
@@ -63,7 +65,7 @@ class VastuuhenkiloValmistumispyyntoResource(
     ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val valmistumispyynto =
-            valmistumispyyntoService.findOneByIdAndVastuuhenkiloHyvaksyjaUserId(id, user.id!!)
+            valmistumispyyntoService.findOneByIdAndVastuuhenkiloHyvaksyjaUserId(id, user.id.required())
 
         return ResponseEntity.ok(valmistumispyynto)
     }
@@ -75,7 +77,7 @@ class VastuuhenkiloValmistumispyyntoResource(
     ): ResponseEntity<ValmistumispyyntoArviointienTilaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val arviointienTila =
-            valmistumispyyntoService.findArviointienTilaByIdAndOsaamisenArvioijaUserId(id, user.id!!)
+            valmistumispyyntoService.findArviointienTilaByIdAndOsaamisenArvioijaUserId(id, user.id.required())
 
         return ResponseEntity.ok(arviointienTila)
     }
@@ -90,7 +92,7 @@ class VastuuhenkiloValmistumispyyntoResource(
 
         val user = userService.getAuthenticatedUser(principal)
 
-        if (!valmistumispyyntoService.onkoAvoinOsaamisenTarkistaminen(user.id!!, id)) {
+        if (!valmistumispyyntoService.onkoAvoinOsaamisenTarkistaminen(user.id.required(), id)) {
             throw BadRequestAlertException(
                 "Valmistumispyyntö ei ole muokattavissa.",
                 VALMISTUMISPYYNTO_ENTITY_NAME,
@@ -100,7 +102,7 @@ class VastuuhenkiloValmistumispyyntoResource(
         val valmistumispyynto =
             valmistumispyyntoService.updateOsaamisenArviointiByOsaamisenArvioijaUserId(
                 id,
-                user.id!!,
+                user.id.required(),
                 osaamisenArviointiDTO
             )
 
@@ -117,7 +119,7 @@ class VastuuhenkiloValmistumispyyntoResource(
         val user = userService.getAuthenticatedUser(principal)
         AuditLoggingWrapper.info("PUT request for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id")
 
-        if (!valmistumispyyntoService.onkoAvoinHyvaksyja(user.id!!, id)) {
+        if (!valmistumispyyntoService.onkoAvoinHyvaksyja(user.id.required(), id)) {
             throw BadRequestAlertException(
                 "Valmistumispyyntö ei ole muokattavissa.",
                 VALMISTUMISPYYNTO_ENTITY_NAME,
@@ -128,7 +130,7 @@ class VastuuhenkiloValmistumispyyntoResource(
             val valmistumispyynto =
                 valmistumispyyntoService.updateValmistumispyyntoByHyvaksyjaUserId(
                     id,
-                    user.id!!,
+                    user.id.required(),
                     hyvaksyntaFormDTO
                 )
             AuditLoggingWrapper.info("PUT request completed for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id")
@@ -146,7 +148,7 @@ class VastuuhenkiloValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirja(user.id!!, valmistumispyyntoId, asiakirjaId)
+        val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirja(user.id.required(), valmistumispyyntoId, asiakirjaId)
 
         return asiakirja?.asiakirjaData?.fileInputStream
             ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
@@ -160,7 +162,7 @@ class VastuuhenkiloValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirja = valmistumispyyntoService.getValmistumispyynnonTyoskentelyjaksoAsiakirja(user.id!!, valmistumispyyntoId, asiakirjaId)
+        val asiakirja = valmistumispyyntoService.getValmistumispyynnonTyoskentelyjaksoAsiakirja(user.id.required(), valmistumispyyntoId, asiakirjaId)
 
         return asiakirja?.asiakirjaData?.fileInputStream
             ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())

@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.service.arviointi.SuoritusarvioinninKommenttiService
@@ -41,7 +43,7 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
         suoritusarvioinninKommenttiDTO.muokkausaika = now
         suoritusarvioinninKommenttiDTO.suoritusarviointiId = id
         val result = suoritusarvioinninKommenttiService
-            .save(suoritusarvioinninKommenttiDTO, user.id!!)
+            .save(suoritusarvioinninKommenttiDTO, user.id.required())
 
         return ResponseEntity.created(URI("/api/suoritusarvioinnit/$id/kommentti/${result.id}"))
             .body(result)
@@ -58,7 +60,7 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
         val user = userService.getAuthenticatedUser(principal)
         suoritusarvioinninKommenttiDTO.muokkausaika = Instant.now()
         val result =
-            suoritusarvioinninKommenttiService.save(suoritusarvioinninKommenttiDTO, user.id!!)
+            suoritusarvioinninKommenttiService.save(suoritusarvioinninKommenttiDTO, user.id.required())
         return ResponseEntity.ok(result)
     }
 }

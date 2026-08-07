@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.repository.koulutus.KoulutusjaksoRepository
@@ -48,7 +50,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         if (koulutusjaksoDTO.id != null) {
             throw BadRequestAlertException(
@@ -71,7 +73,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         if (koulutusjaksoDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
@@ -103,7 +105,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<List<KoulutusjaksoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         return ResponseEntity.ok(
             koulutusjaksoService
@@ -117,7 +119,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         return koulutusjaksoService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
@@ -130,7 +132,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         if (koulutusjaksoService.findOne(id, opintooikeusId)?.lukittu == true) {
             throw BadRequestAlertException(
@@ -151,7 +153,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val form = KoulutusjaksoFormDTO()
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService

@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.peppi.oulu
 
+import fi.elsapalvelu.elsa.required
+
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.network.okHttpClient
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -33,7 +35,7 @@ class PeppiOuluClientBuilderImpl(
                 .addInterceptor(
                     OkHttp3RequestInterceptor(
                         mapOf(
-                            "Token" to applicationProperties.getSecurity().getPeppiOulu().token!!
+                            "Token" to applicationProperties.getSecurity().getPeppiOulu().token.required()
                         )
                     )
                 )
@@ -45,7 +47,7 @@ class PeppiOuluClientBuilderImpl(
 
         val apolloClient: ApolloClient by lazy {
             ApolloClient.Builder()
-                .serverUrl(applicationProperties.getSecurity().getPeppiOulu().graphqlEndpointUrl!!)
+                .serverUrl(applicationProperties.getSecurity().getPeppiOulu().graphqlEndpointUrl.required())
                 .okHttpClient(okHttpClient)
                 .build()
         }

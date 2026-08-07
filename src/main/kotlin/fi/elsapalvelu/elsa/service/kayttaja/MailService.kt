@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.kayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
@@ -96,7 +98,7 @@ class MailService(
         }
 
         sendEmailFromTemplate(
-            user.email!!,
+            user.email.required(),
             cc,
             templateName,
             titleKey,

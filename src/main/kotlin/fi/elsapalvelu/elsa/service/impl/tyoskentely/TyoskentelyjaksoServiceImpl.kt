@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -59,7 +61,7 @@ class TyoskentelyjaksoServiceImpl(
             tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO).apply {
                 this.opintooikeus = opintooikeus
                 tyoskentelypaikka?.kunta =
-                    tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId?.let { kuntaId -> kuntaRepository.findByIdOrNull(kuntaId) }
+                    tyoskentelyjaksoDTO.tyoskentelypaikka.required().kuntaId?.let { kuntaId -> kuntaRepository.findByIdOrNull(kuntaId) }
                 omaaErikoisalaaTukeva =
                     tyoskentelyjaksoDTO.omaaErikoisalaaTukeva.takeIf {
                         kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
@@ -90,7 +92,7 @@ class TyoskentelyjaksoServiceImpl(
         deletedAsiakirjaIds: MutableSet<Int>?
     ): TyoskentelyjaksoDTO? {
         tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(
-            tyoskentelyjaksoDTO.id!!,
+            tyoskentelyjaksoDTO.id.required(),
             opintooikeusId
         )?.let { tyoskentelyjakso ->
             if (tyoskentelyjakso.liitettyTerveyskeskuskoulutusjaksoon) {
@@ -127,7 +129,7 @@ class TyoskentelyjaksoServiceImpl(
                 tyoskentelyjakso,
                 newAsiakirjat,
                 deletedAsiakirjaIds,
-                tyoskentelyjakso.opintooikeus!!
+                tyoskentelyjakso.opintooikeus.required()
             )
         }?.let { updated ->
             return tyoskentelyjaksoMapper.toDto(updated)
@@ -169,21 +171,21 @@ class TyoskentelyjaksoServiceImpl(
 
         // Tarkistetaan päättymispäivä suoritusarvioinneille
         tyoskentelyjakso.suoritusarvioinnit.forEach {
-            if (it.tapahtumanAjankohta!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+            if (it.tapahtumanAjankohta.required().isAfter(tyoskentelyjakso.paattymispaiva)) {
                 return false
             }
         }
 
         // Tarkistetaan päättymispäivä suoritemerkinnöille
         tyoskentelyjakso.suoritemerkinnat.forEach {
-            if (it.suorituspaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+            if (it.suorituspaiva.required().isAfter(tyoskentelyjakso.paattymispaiva)) {
                 return false
             }
         }
 
         // Tarkistetaan päättymispäivä keskeytyksille
         tyoskentelyjakso.keskeytykset.forEach {
-            if (it.paattymispaiva!!.isAfter(tyoskentelyjakso.paattymispaiva)) {
+            if (it.paattymispaiva.required().isAfter(tyoskentelyjakso.paattymispaiva)) {
                 return false
             }
         }
@@ -260,7 +262,7 @@ class TyoskentelyjaksoServiceImpl(
     override fun delete(id: Long, opintooikeusId: Long): Boolean {
         tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
             if (!it.hasTapahtumia() && !it.liitettyTerveyskeskuskoulutusjaksoon) {
-                tyoskentelyjaksoRepository.deleteById(it.id!!)
+                tyoskentelyjaksoRepository.deleteById(it.id.required())
                 return true
             }
         }
@@ -274,7 +276,7 @@ class TyoskentelyjaksoServiceImpl(
     }
 
     override fun getTilastot(opintooikeus: Opintooikeus): TyoskentelyjaksotTilastotDTO {
-        val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeus.id!!)
+        val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeus.id.required())
         val tilastotCounter = TilastotCounter()
         val kaytannonKoulutusSuoritettuMap = KaytannonKoulutusTyyppi.entries.associateWith { 0.0 }.toMutableMap()
         val tyoskentelyjaksotSuoritettu = mutableSetOf<TyoskentelyjaksotTilastotTyoskentelyjaksotDTO>()
@@ -364,7 +366,7 @@ class TyoskentelyjaksoServiceImpl(
         if (tyoskentelyjaksonPituus > 0) {
             // Summataan suoritettu aika koulutustyypettäin
             if (isYek) {
-                when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
+                when (tyoskentelyjakso.tyoskentelypaikka.required().tyyppi.required()) {
                     TERVEYSKESKUS -> {
                         // Yli maksimin menevät pituudet jätetään huomiotta
                         if (terveyskeskusMaksimi != null && terveyskeskusMaksimi != 0.0) {
@@ -392,7 +394,7 @@ class TyoskentelyjaksoServiceImpl(
                     }
                 }
             } else {
-                when (tyoskentelyjakso.tyoskentelypaikka!!.tyyppi!!) {
+                when (tyoskentelyjakso.tyoskentelypaikka.required().tyyppi.required()) {
                     TERVEYSKESKUS -> {
                         // Yli maksimin menevät pituudet jätetään huomiotta
                         if (terveyskeskusMaksimi != null && terveyskeskusMaksimi != 0.0) {
@@ -411,7 +413,7 @@ class TyoskentelyjaksoServiceImpl(
             }
 
             // Summataan suoritettu aika käytännön koulutuksettain
-            when (tyoskentelyjakso.kaytannonKoulutus!!) {
+            when (tyoskentelyjakso.kaytannonKoulutus.required()) {
                 OMAN_ERIKOISALAN_KOULUTUS ->
                     kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS] =
                         kaytannonKoulutusSuoritettuMap.getValue(OMAN_ERIKOISALAN_KOULUTUS) + tyoskentelyjaksonPituus
@@ -440,7 +442,7 @@ class TyoskentelyjaksoServiceImpl(
             tilastotCounter.tyoskentelyaikaYhteensa += tutkintoonHyvaksyttavaPituus
 
             // Kootaan työskentelyjaksojen suoritetut työskentelyajat
-            tyoskentelyjaksotSuoritettu.add(TyoskentelyjaksotTilastotTyoskentelyjaksotDTO(id = tyoskentelyjakso.id!!, suoritettu = tyoskentelyjaksonPituus))
+            tyoskentelyjaksotSuoritettu.add(TyoskentelyjaksotTilastotTyoskentelyjaksotDTO(id = tyoskentelyjakso.id.required(), suoritettu = tyoskentelyjaksonPituus))
         }
     }
 
@@ -456,7 +458,7 @@ class TyoskentelyjaksoServiceImpl(
         tyoskentelyjaksot.map { it.keskeytykset }.flatten()
             .sortedBy { it.alkamispaiva }.forEach {
                 val tyoskentelyjaksoFactor =
-                    it.tyoskentelyjakso?.osaaikaprosentti!!.toDouble() / 100.0
+                    it.tyoskentelyjakso?.osaaikaprosentti.required().toDouble() / 100.0
                 val endDate = it.tyoskentelyjakso?.paattymispaiva ?: now
                 val amountOfReducedDays =
                     tyoskentelyjaksonPituusCounterService.calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
@@ -465,9 +467,9 @@ class TyoskentelyjaksoServiceImpl(
                         hyvaksiluettavatCounter,
                         if (endDate.isAfter(now)) now else endDate
                     )
-                result.putIfAbsent(it.tyoskentelyjakso!!.id!!, 0.0)
-                result[it.tyoskentelyjakso!!.id!!] =
-                    result.getValue(it.tyoskentelyjakso!!.id!!) + amountOfReducedDays
+                result.putIfAbsent(it.tyoskentelyjakso.required().id.required(), 0.0)
+                result[it.tyoskentelyjakso.required().id.required()] =
+                    result.getValue(it.tyoskentelyjakso.required().id.required()) + amountOfReducedDays
             }
         return result
     }
@@ -526,7 +528,7 @@ class TyoskentelyjaksoServiceImpl(
                 it,
                 addedFiles.orEmpty(),
                 deletedFiles,
-                it.opintooikeus!!
+                it.opintooikeus.required()
             )
             val result = tyoskentelyjaksoRepository.save(it)
             return tyoskentelyjaksoMapper.toDto(result)

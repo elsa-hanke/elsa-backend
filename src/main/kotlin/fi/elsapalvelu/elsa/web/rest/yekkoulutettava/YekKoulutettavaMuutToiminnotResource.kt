@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import org.springframework.web.bind.annotation.RequestParam
 import java.security.Principal
@@ -37,10 +39,10 @@ class YekKoulutettavaMuutToiminnotResource(
     ) {
         val user = userService.getAuthenticatedUser(principal)
 
-        validateMuokkausoikeudet(principal, user.id!!, ERIKOISTUVA_LAAKARI_ENTITY_NAME)
+        validateMuokkausoikeudet(principal, user.id.required(), ERIKOISTUVA_LAAKARI_ENTITY_NAME)
 
         erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id!!,
+            user.id.required(),
             laillistamispaiva,
             laillistamispaivanLiite?.bytes,
             laillistamispaivanLiite?.originalFilename,
@@ -48,7 +50,7 @@ class YekKoulutettavaMuutToiminnotResource(
         )
 
         erikoistuvaLaakariService.updateLaakarikoulutusSuoritettuSuomiTaiBelgia(
-            user.id!!, laakarikoulutusSuoritettuSuomiTaiBelgia, laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
+            user.id.required(), laakarikoulutusSuoritettuSuomiTaiBelgia, laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
         )
     }
 
@@ -57,7 +59,7 @@ class YekKoulutettavaMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<LaillistamispaivaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return erikoistuvaLaakariService.getLaillistamispaiva(user.id!!)?.let {
+        return erikoistuvaLaakariService.getLaillistamispaiva(user.id.required())?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }

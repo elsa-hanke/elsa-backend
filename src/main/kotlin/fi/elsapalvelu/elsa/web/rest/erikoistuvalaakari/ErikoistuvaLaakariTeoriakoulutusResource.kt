@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import org.springframework.web.bind.annotation.RequestParam
@@ -58,7 +60,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         if (teoriakoulutusDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi teoriakoulutus ei saa sisältää ID:tä",
@@ -67,7 +69,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
             )
         }
 
-        validateMuokkausoikeudet(principal, user.id!!)
+        validateMuokkausoikeudet(principal, user.id.required())
 
         val todistukset = getMappedFiles(todistusFiles, opintooikeusId) ?: mutableSetOf()
         return teoriakoulutusService.save(teoriakoulutusDTO, todistukset, null, opintooikeusId)
@@ -88,9 +90,9 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
-        validateMuokkausoikeudet(principal, user.id!!)
+        validateMuokkausoikeudet(principal, user.id.required())
 
         if (teoriakoulutusDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
@@ -123,9 +125,9 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     ): ResponseEntity<TeoriakoulutuksetDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeus =
-            opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
-        val teoriakoulutukset = teoriakoulutusService.findAll(opintooikeus.id!!)
-        val opintoopas = opintoopasService.findOne(opintooikeus.opintoopasId!!)
+            opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
+        val teoriakoulutukset = teoriakoulutusService.findAll(opintooikeus.id.required())
+        val opintoopas = opintoopasService.findOne(opintooikeus.opintoopasId.required())
 
         return ResponseEntity.ok(
             TeoriakoulutuksetDTO(
@@ -143,7 +145,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     ): ResponseEntity<TeoriakoulutusDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         return teoriakoulutusService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -156,10 +158,10 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
 
-        validateMuokkausoikeudet(principal, user.id!!)
+        validateMuokkausoikeudet(principal, user.id.required())
 
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         teoriakoulutusService.delete(id, opintooikeusId)
         return ResponseEntity.noContent().build()
     }

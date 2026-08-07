@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koulutus
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusKurssikoodiRepository
@@ -26,8 +28,8 @@ class OpintosuoritusKurssikoodiServiceImpl(
 
         if (opintosuoritusKurssikoodiDTO.id != null) {
             opintosuoritusKurssikoodiRepository.findByIdAndYliopistoNimi(
-                opintosuoritusKurssikoodiDTO.id!!,
-                yliopisto?.nimi!!
+                opintosuoritusKurssikoodiDTO.id.required(),
+                yliopisto?.nimi.required()
             )?.let {
                 it.tunniste = opintosuoritusKurssikoodiDTO.tunniste
                 opintosuoritusKurssikoodiRepository.save(it)
@@ -46,7 +48,7 @@ class OpintosuoritusKurssikoodiServiceImpl(
 
     override fun findAllForVirkailija(userId: String): List<OpintosuoritusKurssikoodiDTO>? {
         getYliopisto(userId)?.let {
-            val result = opintosuoritusKurssikoodiRepository.findAllByYliopistoNimi(it.nimi!!)
+            val result = opintosuoritusKurssikoodiRepository.findAllByYliopistoNimi(it.nimi.required())
             return result.map(opintosuoritusKurssikoodiMapper::toDto)
         }
         return null
@@ -54,7 +56,7 @@ class OpintosuoritusKurssikoodiServiceImpl(
 
     override fun findOne(id: Long, userId: String): Optional<OpintosuoritusKurssikoodiDTO> {
         getYliopisto(userId)?.let { yliopisto ->
-            opintosuoritusKurssikoodiRepository.findByIdAndYliopistoNimi(id, yliopisto.nimi!!)
+            opintosuoritusKurssikoodiRepository.findByIdAndYliopistoNimi(id, yliopisto.nimi.required())
                 ?.let {
                     return Optional.of(opintosuoritusKurssikoodiMapper.toDto(it))
                 }
@@ -64,9 +66,9 @@ class OpintosuoritusKurssikoodiServiceImpl(
 
     override fun delete(id: Long, userId: String) {
         getYliopisto(userId)?.let { yliopisto ->
-            opintosuoritusKurssikoodiRepository.findByIdAndYliopistoNimi(id, yliopisto.nimi!!)
+            opintosuoritusKurssikoodiRepository.findByIdAndYliopistoNimi(id, yliopisto.nimi.required())
                 ?.let {
-                    opintosuoritusKurssikoodiRepository.deleteById(it.id!!)
+                    opintosuoritusKurssikoodiRepository.deleteById(it.id.required())
                 }
         }
     }

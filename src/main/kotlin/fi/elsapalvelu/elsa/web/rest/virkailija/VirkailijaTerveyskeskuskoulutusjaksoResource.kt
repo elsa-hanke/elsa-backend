@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.time.LocalDate
 import org.springframework.web.bind.annotation.RequestParam
@@ -41,7 +43,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
     ): ResponseEntity<Page<TerveyskeskuskoulutusjaksoSimpleDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findByVirkailijaUserId(user.id!!, criteria, pageable)
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByVirkailijaUserId(user.id.required(), criteria, pageable)
         )
     }
 
@@ -51,8 +53,8 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!).get()
-        val yliopistoIds = kayttaja.yliopistot?.map { it.id!! }.orEmpty().toList()
+        val kayttaja = kayttajaService.findByUserId(user.id.required()).get()
+        val yliopistoIds = kayttaja.yliopistot?.map { it.id.required() }.orEmpty().toList()
         return withTerveyskeskusExceptionHandling {
             terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndYliopistoIdVirkailija(id, yliopistoIds)
                 ?.let { ResponseEntity.ok(it) }
@@ -66,12 +68,12 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!)
+        val kayttaja = kayttajaService.findByUserId(user.id.required())
         return buildAsiakirjaDownloadResponse(
             asiakirjaService.findByIdAndTyoskentelyjaksoTyyppi(
                 id,
                 TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
-                kayttaja.orElse(null)?.yliopistot?.map { it.id!! }
+                kayttaja.orElse(null)?.yliopistot?.map { it.id.required() }
             )
         )
     }
@@ -87,7 +89,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             terveyskeskuskoulutusjaksonHyvaksyntaService.update(
-                user.id!!,
+                user.id.required(),
                 true,
                 id,
                 dto?.korjausehdotus,

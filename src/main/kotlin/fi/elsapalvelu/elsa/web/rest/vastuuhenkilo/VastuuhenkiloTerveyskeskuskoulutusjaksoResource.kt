@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
@@ -38,7 +40,7 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
     ): ResponseEntity<Page<TerveyskeskuskoulutusjaksoSimpleDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findByVastuuhenkiloUserId(user.id!!, criteria, pageable)
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByVastuuhenkiloUserId(user.id.required(), criteria, pageable)
         )
     }
 
@@ -49,7 +51,7 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         return withTerveyskeskusExceptionHandling {
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndVastuuhenkiloUserId(id, user.id!!)
+            terveyskeskuskoulutusjaksonHyvaksyntaService.findByIdAndVastuuhenkiloUserId(id, user.id.required())
                 ?.let { ResponseEntity.ok(it) }
                 ?: ResponseEntity.notFound().build()
         }
@@ -61,7 +63,7 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!).orElse(null)
+        val kayttaja = kayttajaService.findByUserId(user.id.required()).orElse(null)
         return buildAsiakirjaDownloadResponse(
             asiakirjaService.findByIdAndTyoskentelyjaksoTyyppiForVastuuhenkilo(
                 id,
@@ -80,7 +82,7 @@ class VastuuhenkiloTerveyskeskuskoulutusjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             terveyskeskuskoulutusjaksonHyvaksyntaService.update(
-                user.id!!,
+                user.id.required(),
                 false,
                 id,
                 dto?.korjausehdotus,

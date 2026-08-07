@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.scheduler.jobs
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
@@ -57,19 +59,19 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
                         "TerveyskeskuskoulutusjaksoSuoritusmerkinta: käsitellään " +
                             "${index + 1}/${opintooikeudet.size}: opintooikeusId=${opintooikeus.id}"
                     )
-                    if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(opintooikeus.id!!, opintooikeus.erikoistuvaLaakari?.id!!)) {
+                    if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(opintooikeus.id.required(), opintooikeus.erikoistuvaLaakari?.id.required())) {
                         opintooikeus.terveyskoulutusjaksoSuoritettu = true
                         opintooikeusRepository.save(opintooikeus)
                     } else if (terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(
-                            opintooikeus.id!!
+                            opintooikeus.id.required()
                         )
                     ) {
                         opintooikeus.terveyskoulutusjaksoSuoritettu = true
                         opintooikeusRepository.save(opintooikeus)
 
                         mailService.sendEmailFromTemplate(
-                            kayttajaRepository.findById(opintooikeus.erikoistuvaLaakari?.kayttaja?.id!!)
-                                .get().user!!,
+                            kayttajaRepository.findById(opintooikeus.erikoistuvaLaakari?.kayttaja?.id.required())
+                                .get().user.required(),
                             templateName = "tkkjaksonSuoritusmerkintaHaettavissa.html",
                             titleKey = "email.tkkjaksonsuoritusmerkintahaettavissa.title",
                             properties = mapOf()

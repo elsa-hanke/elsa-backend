@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.arviointi
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
@@ -60,37 +62,37 @@ class SuoritusarviointiQueryService(
         var specification: Specification<Suoritusarviointi?> = spec ?: Specification.unrestricted()
         if (criteria != null) {
             if (criteria.id != null) {
-                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.id), criteria.id!!.equals) }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.id), criteria.id.required().equals) }
             }
             if (criteria.tapahtumanAjankohta != null) {
-                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.tapahtumanAjankohta), criteria.tapahtumanAjankohta!!.equals) }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.tapahtumanAjankohta), criteria.tapahtumanAjankohta.required().equals) }
             }
             if (criteria.arvioitavaTapahtuma != null) {
-                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.arvioitavaTapahtuma), criteria.arvioitavaTapahtuma!!.equals) }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.arvioitavaTapahtuma), criteria.arvioitavaTapahtuma.required().equals) }
             }
             if (criteria.pyynnonAika != null) {
-                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.pyynnonAika), criteria.pyynnonAika!!.equals) }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.pyynnonAika), criteria.pyynnonAika.required().equals) }
             }
             if (criteria.vaativuustaso != null) {
-                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.vaativuustaso), criteria.vaativuustaso!!.equals) }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.vaativuustaso), criteria.vaativuustaso.required().equals) }
             }
             if (criteria.sanallinenArviointi != null) {
-                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.sanallinenArviointi), criteria.sanallinenArviointi!!.equals) }
+                specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.sanallinenArviointi), criteria.sanallinenArviointi.required().equals) }
             }
             if (criteria.arviointiAika != null) {
                 specification = specification.and { root, _, cb ->
-                        if (criteria.arviointiAika!!.specified != null) {
-                            if (criteria.arviointiAika!!.specified) cb.isNotNull(
+                        if (criteria.arviointiAika.required().specified != null) {
+                            if (criteria.arviointiAika.required().specified) cb.isNotNull(
                                 root.get(Suoritusarviointi_.arviointiAika)
                             ) else cb.isNull(root.get(Suoritusarviointi_.arviointiAika))
                         } else {
-                            cb.equal(root.get(Suoritusarviointi_.arviointiAika), criteria.arviointiAika!!.equals)
+                            cb.equal(root.get(Suoritusarviointi_.arviointiAika), criteria.arviointiAika.required().equals)
                         }
                     }
             }
             if (criteria.tyoskentelyjaksoId != null) {
                 specification = specification.and { root, _, cb ->
-                        cb.equal(root.join(Suoritusarviointi_.tyoskentelyjakso, JoinType.INNER).get(Tyoskentelyjakso_.id), criteria.tyoskentelyjaksoId!!.equals)
+                        cb.equal(root.join(Suoritusarviointi_.tyoskentelyjakso, JoinType.INNER).get(Tyoskentelyjakso_.id), criteria.tyoskentelyjaksoId.required().equals)
                     }
             }
             if (criteria.arvioitavaKokonaisuusId != null) {
@@ -103,7 +105,7 @@ class SuoritusarviointiQueryService(
             }
             if (criteria.arvioinninAntajaId != null) {
                 specification = specification.and { root, _, cb ->
-                        cb.equal(root.join(Suoritusarviointi_.arvioinninAntaja, JoinType.INNER).get(Kayttaja_.id), criteria.arvioinninAntajaId!!.equals)
+                        cb.equal(root.join(Suoritusarviointi_.arvioinninAntaja, JoinType.INNER).get(Kayttaja_.id), criteria.arvioinninAntajaId.required().equals)
                     }
             }
         }

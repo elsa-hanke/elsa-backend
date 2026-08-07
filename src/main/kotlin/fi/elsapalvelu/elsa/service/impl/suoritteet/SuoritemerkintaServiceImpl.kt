@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.suoritteet
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoritemerkintaRepository
@@ -24,7 +26,7 @@ class SuoritemerkintaServiceImpl(
         uusiSuoritemerkintaDTO: UusiSuoritemerkintaDTO,
         userId: String
     ): List<SuoritemerkintaDTO>? {
-        tyoskentelyjaksoRepository.findByIdOrNull(uusiSuoritemerkintaDTO.tyoskentelyjaksoId!!)
+        tyoskentelyjaksoRepository.findByIdOrNull(uusiSuoritemerkintaDTO.tyoskentelyjaksoId.required())
             ?.let { tyoskentelyjakso ->
                 val kirjautunutErikoistuvaLaakari =
                     erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
@@ -53,7 +55,7 @@ class SuoritemerkintaServiceImpl(
     }
 
     override fun save(suoritemerkintaDTO: SuoritemerkintaDTO, userId: String): SuoritemerkintaDTO? {
-        tyoskentelyjaksoRepository.findByIdOrNull(suoritemerkintaDTO.tyoskentelyjaksoId!!)
+        tyoskentelyjaksoRepository.findByIdOrNull(suoritemerkintaDTO.tyoskentelyjaksoId.required())
             ?.let { tyoskentelyjakso ->
                 val kirjautunutErikoistuvaLaakari =
                     erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
@@ -64,7 +66,7 @@ class SuoritemerkintaServiceImpl(
                     // Jos päivitetään olemassa olevaa, tarkistetaan että suoritemerkintä ei ole lukittu
                     if (suoritemerkinta.id != null) {
                         val suoritemerkintaOptional =
-                            suoritemerkintaRepository.findOneById(suoritemerkinta.id!!)
+                            suoritemerkintaRepository.findOneById(suoritemerkinta.id.required())
                         if (suoritemerkintaOptional.isPresent && !suoritemerkintaOptional.get().lukittu) {
                             suoritemerkinta.arviointiasteikko =
                                 suoritemerkintaOptional.get().arviointiasteikko

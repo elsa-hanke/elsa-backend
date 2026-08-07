@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
@@ -161,8 +163,8 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyynto = valmistumispyyntoRepository.findByOpintooikeusId(opintooikeusId)
         val tila = fromValmistumispyyntoErikoistuja(valmistumispyynto)
         val opintooikeus = getOpintooikeus(opintooikeusId)
-        val yliopistoId = opintooikeus.yliopisto?.id!!
-        val erikoisalaId = opintooikeus.erikoisala?.id!!
+        val yliopistoId = opintooikeus.yliopisto?.id.required()
+        val erikoisalaId = opintooikeus.erikoisala?.id.required()
         val vastuuhenkiloOsaamisenarvioija =
             if (erikoisalaId != YEK_ERIKOISALA_ID) getVastuuhenkiloOsaamisenArvioija(
                 yliopistoId,
@@ -185,7 +187,7 @@ class ValmistumispyyntoServiceImpl(
             vastuuhenkiloOsaamisenArvioijaNimike = vastuuhenkiloOsaamisenarvioija?.nimike
             vastuuhenkiloHyvaksyjaNimi = vastuuhenkiloHyvaksyja.getNimi()
             vastuuhenkiloHyvaksyjaNimike = vastuuhenkiloHyvaksyja.nimike
-            arkistoitava = arkistointiService.onKaytossa(opintooikeus.yliopisto?.nimi!!, CaseType.VALMISTUMINEN)
+            arkistoitava = arkistointiService.onKaytossa(opintooikeus.yliopisto?.nimi.required(), CaseType.VALMISTUMINEN)
         }
     }
 
@@ -237,14 +239,14 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyyntoRepository.save(valmistumispyynto).let { saved ->
                 if (saved.opintooikeus?.erikoisala?.id != YEK_ERIKOISALA_ID) {
                     val vastuuhenkiloOsaamisenArvioijaUser = getVastuuhenkiloOsaamisenArvioija(
-                        opintooikeus.yliopisto?.id!!,
-                        opintooikeus.erikoisala?.id!!
-                    ).user!!
+                        opintooikeus.yliopisto?.id.required(),
+                        opintooikeus.erikoisala?.id.required()
+                    ).user.required()
                     sendMailNotificationUusiValmistumispyynto(vastuuhenkiloOsaamisenArvioijaUser, saved)
                 } else {
                     sendMailNotificationOdottaaVirkailijanTarkastustaYek(
-                        opintooikeus.yliopisto!!.nimi!!,
-                        saved.id!!
+                        opintooikeus.yliopisto.required().nimi.required(),
+                        saved.id.required()
                     )
                 }
                 return valmistumispyyntoMapper.toDto(saved)
@@ -274,23 +276,23 @@ class ValmistumispyyntoServiceImpl(
                 } else if (vastuuhenkiloOsaamisenArvioijaKuittausaika != null) {
                     virkailijanPalautusaika = null
                     sendMailNotificationOdottaaVirkailijanTarkastusta(
-                        opintooikeus.yliopisto!!.nimi!!,
-                        id!!
+                        opintooikeus.yliopisto.required().nimi.required(),
+                        id.required()
                     )
                 }
             }.let {
                 valmistumispyyntoRepository.save(it).let { saved ->
                     if (it.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
                         sendMailNotificationOdottaaVirkailijanTarkastustaYek(
-                            opintooikeus.yliopisto!!.nimi!!,
-                            saved.id!!
+                            opintooikeus.yliopisto.required().nimi.required(),
+                            saved.id.required()
                         )
                     } else if (saved.vastuuhenkiloOsaamisenArvioijaKuittausaika == null) {
                         val vastuuhenkiloOsaamisenArvioijaUser =
                             getVastuuhenkiloOsaamisenArvioija(
-                                opintooikeus.yliopisto?.id!!,
-                                opintooikeus.erikoisala?.id!!
-                            ).user!!
+                                opintooikeus.yliopisto?.id.required(),
+                                opintooikeus.erikoisala?.id.required()
+                            ).user.required()
                         sendMailNotificationUusiValmistumispyynto(vastuuhenkiloOsaamisenArvioijaUser, saved)
                     }
                     return valmistumispyyntoMapper.toDto(saved)
@@ -312,7 +314,7 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
             id,
             kayttaja,
-            yliopisto.id!!,
+            yliopisto.id.required(),
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI
         )
 
@@ -322,8 +324,8 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika = LocalDate.now()
             valmistumispyynto.virkailijanPalautusaika = null
             sendMailNotificationOdottaaVirkailijanTarkastusta(
-                yliopisto.nimi!!,
-                valmistumispyynto.id!!
+                yliopisto.nimi.required(),
+                valmistumispyynto.id.required()
             )
         } else {
             valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika = LocalDate.now()
@@ -344,7 +346,7 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = getYliopisto(kayttaja)
         log.info("Kayttaja ja yliopisto haettu [valmistumispyyntoId=$id, yliopistoId=${yliopisto.id}]")
 
-        val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(id, kayttaja, yliopisto.id!!, VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA)
+        val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(id, kayttaja, yliopisto.id.required(), VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA)
         log.info("Valmistumispyynto haettu [valmistumispyyntoId=$id]")
 
         kayttaja?.user?.let { user ->
@@ -389,7 +391,7 @@ class ValmistumispyyntoServiceImpl(
                 }
 
                 log.info("Tarkistetaan arkistointi [valmistumispyyntoId=$id, yliopisto=${yliopisto.nimi}]")
-                if (arkistointiService.onKaytossa(yliopisto.nimi!!, CaseType.VALMISTUMINEN)) {
+                if (arkistointiService.onKaytossa(yliopisto.nimi.required(), CaseType.VALMISTUMINEN)) {
                     arkistoiValmistumispyynto(id, valmistumispyynto, yliopisto.nimi)
                 } else {
                     log.info("Arkistointi ei kaytossa [valmistumispyyntoId=$id, yliopisto=${yliopisto.nimi}]")
@@ -397,10 +399,10 @@ class ValmistumispyyntoServiceImpl(
             }
         }
 
-        val valmistumispyynnonTarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoId(valmistumispyynto.id!!)
+        val valmistumispyynnonTarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoId(valmistumispyynto.id.required())
 
         log.info("Hyvaksynta-operaatio valmis [valmistumispyyntoId=$id]")
-        return valmistumispyynnonTarkistusMapper.toDto(valmistumispyynnonTarkistus!!).apply {
+        return valmistumispyynnonTarkistusMapper.toDto(valmistumispyynnonTarkistus.required()).apply {
             this.kommentitVirkailijoille = null
             this.valmistumispyynto?.tila = getValmistumispyynnonTilaForHyvaksyja(valmistumispyynto)
         }
@@ -410,8 +412,8 @@ class ValmistumispyyntoServiceImpl(
         log.info("Arkistointi kaytossa, muodostetaan sahke [valmistumispyyntoId=$id]")
         val result = arkistointiService.muodostaSahke(
             valmistumispyynto.opintooikeus,
-            listOf(RecordProperties(valmistumispyynto.yhteenvetoAsiakirja!!, YHTEENVETO), RecordProperties(valmistumispyynto.liitteetAsiakirja!!, LIITE)),
-            caseId = valmistumispyynto.id!!.toString(),
+            listOf(RecordProperties(valmistumispyynto.yhteenvetoAsiakirja.required(), YHTEENVETO), RecordProperties(valmistumispyynto.liitteetAsiakirja.required(), LIITE)),
+            caseId = valmistumispyynto.id.required().toString(),
             tarkastaja = valmistumispyynto.virkailija?.user?.getName(),
             tarkastusPaiva = valmistumispyynto.virkailijanKuittausaika,
             hyvaksyja = valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.getName(),
@@ -419,11 +421,11 @@ class ValmistumispyyntoServiceImpl(
             yliopisto = nimi,
             caseType = CaseType.VALMISTUMINEN
         )
-        val erikoisala = valmistumispyynto.opintooikeus?.erikoisala!!
+        val erikoisala = valmistumispyynto.opintooikeus?.erikoisala.required()
         val yek = erikoisala.id == YEK_ERIKOISALA_ID
         val erikoistujanNimi = valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
         arkistointiService.laheta(
-            yliopisto = nimi!!,
+            yliopisto = nimi.required(),
             filePath = result.zipFilePath,
             caseType = CaseType.VALMISTUMINEN,
             yek = yek,
@@ -437,7 +439,7 @@ class ValmistumispyyntoServiceImpl(
         laillistamistodistus: MultipartFile?): ValmistumispyynnonTarkistusDTO? {
         val kayttaja = getKayttaja(userId)
         val yliopisto = kayttaja.yliopistot.first()
-        var tarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdAndValmistumispyyntoOpintooikeusYliopistoId(id, yliopisto.id!!)
+        var tarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdAndValmistumispyyntoOpintooikeusYliopistoId(id, yliopisto.id.required())
 
         if (tarkistus != null) {
             tarkistus.yekSuoritettu = valmistumispyynnonTarkistusDTO.yekSuoritettu
@@ -457,7 +459,7 @@ class ValmistumispyyntoServiceImpl(
             tarkistus.virkailijanYhteenveto = valmistumispyynnonTarkistusDTO.virkailijanYhteenveto
             tarkistus.koejaksoEiVaadittu = valmistumispyynnonTarkistusDTO.koejaksoEiVaadittu
         } else {
-            valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)?.let {
+            valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id.required())?.let {
                     tarkistus = valmistumispyynnonTarkistusUpdateMapper.toEntity(valmistumispyynnonTarkistusDTO)
                     tarkistus.id = null
                     tarkistus.valmistumispyynto = it
@@ -468,7 +470,7 @@ class ValmistumispyyntoServiceImpl(
             valmistumispyynnonTarkistusRepository.save(it)
 
             if (laillistamistodistus != null || valmistumispyynnonTarkistusDTO.laillistamispaiva != null) {
-                erikoistuvaLaakariService.updateLaillistamispaiva(it.valmistumispyynto?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                erikoistuvaLaakariService.updateLaillistamispaiva(it.valmistumispyynto?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
                     valmistumispyynnonTarkistusDTO.laillistamispaiva, laillistamistodistus?.bytes, laillistamistodistus?.originalFilename, laillistamistodistus?.contentType)
             }
 
@@ -479,7 +481,7 @@ class ValmistumispyyntoServiceImpl(
                     it.valmistumispyynto?.virkailijanKorjausehdotus = valmistumispyynnonTarkistusDTO.korjausehdotus
                     it.valmistumispyynto?.virkailijanPalautusaika = LocalDate.now(clock)
                     it.valmistumispyynto?.erikoistujanKuittausaika = null
-                    sendMailNotificationVirkailijaPalauttanut(it.valmistumispyynto!!)
+                    sendMailNotificationVirkailijaPalauttanut(it.valmistumispyynto.required())
                 } else {
                     it.valmistumispyynto?.virkailijanSaate = valmistumispyynnonTarkistusDTO.lisatiedotVastuuhenkilolle
                     it.valmistumispyynto?.virkailijanKuittausaika = LocalDate.now(clock)
@@ -487,9 +489,9 @@ class ValmistumispyyntoServiceImpl(
                     it.valmistumispyynto?.vastuuhenkiloHyvaksyjaPalautusaika = null
                     it.valmistumispyynto?.virkailijanKorjausehdotus = null
                     if (it.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
-                        sendMailNotificationOdottaaHyvaksyntaaYek(it.valmistumispyynto!!)
+                        sendMailNotificationOdottaaHyvaksyntaaYek(it.valmistumispyynto.required())
                     } else {
-                        sendMailNotificationOdottaaHyvaksyntaa(it.valmistumispyynto!!)
+                        sendMailNotificationOdottaaHyvaksyntaa(it.valmistumispyynto.required())
                     }
                 }
 
@@ -512,12 +514,12 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = getYliopisto(kayttaja)
         val yek = valmistumispyyntoCriteria.erikoisalaId?.equals == YEK_ERIKOISALA_ID
         val hyvaksyjaRole = getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja, yek)
-        arkistointiService.onKaytossa(yliopisto.nimi!!, CaseType.VALMISTUMINEN)
+        arkistointiService.onKaytossa(yliopisto.nimi.required(), CaseType.VALMISTUMINEN)
         return valmistumispyyntoQueryService.findValmistumispyynnotByCriteria(
             valmistumispyyntoCriteria,
             hyvaksyjaRole,
             pageable,
-            yliopisto.id!!,
+            yliopisto.id.required(),
             if (yek) listOf(YEK_ERIKOISALA_ID) else getErikoisalaIds(kayttaja),
             kayttaja.user?.langKey
         ).map {
@@ -537,7 +539,7 @@ class ValmistumispyyntoServiceImpl(
         return valmistumispyyntoQueryService.findValmistumispyynnotByCriteriaForVirkailija(
             valmistumispyyntoCriteria,
             pageable,
-            kayttaja.yliopistot.first().id!!,
+            kayttaja.yliopistot.first().id.required(),
             erikoisalaIds,
             excludedErikoisalaIds,
             kayttaja.user?.langKey
@@ -557,7 +559,7 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
             id,
             kayttaja,
-            yliopisto.id!!,
+            yliopisto.id.required(),
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI
         )
 
@@ -574,7 +576,7 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = kayttaja.yliopistot.first()
         valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdAndValmistumispyyntoOpintooikeusYliopistoId(
             id,
-            yliopisto.id!!
+            yliopisto.id.required()
         )?.let {
             val result = mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it))
             it.valmistumispyynto?.let { pyynto ->
@@ -584,7 +586,7 @@ class ValmistumispyyntoServiceImpl(
         }
 
         val valmistumispyynto =
-            valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id!!)
+            valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(id, yliopisto.id.required())
                 ?: throw getValmistumispyyntoNotFoundException()
 
         return mapValmistumispyynnonTarkistus(ValmistumispyynnonTarkistusDTO(
@@ -600,7 +602,7 @@ class ValmistumispyyntoServiceImpl(
     ): ValmistumispyynnonTarkistusDTO? {
         val kayttaja = getKayttaja(userId)
         val yliopisto = getYliopisto(kayttaja)
-        val tarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdForHyvaksyja(id, yliopisto.id!!)
+        val tarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdForHyvaksyja(id, yliopisto.id.required())
             ?: throw getValmistumispyyntoNotFoundException()
         val yek = tarkistus.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
         if (getValmistumispyynnonHyvaksyjaRoleForVastuuhenkilo(kayttaja, yek).isEmpty()) {
@@ -619,7 +621,7 @@ class ValmistumispyyntoServiceImpl(
         result.kommentitVirkailijoille = null
         tarkistus.valmistumispyynto?.let { pyynto ->
             result.valmistumispyynto?.tila = getValmistumispyynnonTilaForHyvaksyja(pyynto)
-            result.valmistumispyynto?.arkistoitava = arkistointiService.onKaytossa(yliopisto.nimi!!, CaseType.VALMISTUMINEN)
+            result.valmistumispyynto?.arkistoitava = arkistointiService.onKaytossa(yliopisto.nimi.required(), CaseType.VALMISTUMINEN)
         }
         return result
     }
@@ -639,7 +641,7 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
             id,
             kayttaja,
-            yliopisto.id!!,
+            yliopisto.id.required(),
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI
         )
 
@@ -647,21 +649,22 @@ class ValmistumispyyntoServiceImpl(
         val erikoistujanArvioivatKokonaisuudet = arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
             opintooikeus?.erikoisala?.id, opintooikeus?.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
         )
-        val erikoistujanTyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeus?.id!!)
+        val erikoistujanTyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeus?.id.required())
+        val opintooikeusId = opintooikeus?.id.required()
         val erikoistujanArvioinnit = erikoistujanTyoskentelyjaksot.map {
-            suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeus.id!!)
+            suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
         }.flatten()
         val erikoistujanArviointienArvioitavaKokonaisuusIds =
-            erikoistujanArvioinnit.flatMap { it.arvioitavatKokonaisuudet.map { k -> k.arvioitavaKokonaisuus?.id!! } }
+            erikoistujanArvioinnit.flatMap { it.arvioitavatKokonaisuudet.map { k -> k.arvioitavaKokonaisuus?.id.required() } }
                 .distinct()
         val arviointienTilaDTO = ValmistumispyyntoArviointienTilaDTO(
             hasArvioitaviaKokonaisuuksiaWithArviointiLowerThanFour = erikoistujanArvioinnit.flatMap { it.arvioitavatKokonaisuudet }
                 .filter { it.arviointiasteikonTaso != null }
                 .any {
-                    it.arviointiasteikonTaso!! < ARVIOINTI_VAHINTAAN
+                    it.arviointiasteikonTaso.required() < ARVIOINTI_VAHINTAAN
                 },
             hasArvioitaviaKokonaisuuksiaWithoutArviointi = erikoistujanArvioivatKokonaisuudet.any {
-                it.id!! !in erikoistujanArviointienArvioitavaKokonaisuusIds
+                it.id.required() !in erikoistujanArviointienArvioitavaKokonaisuusIds
             }
         )
 
@@ -753,7 +756,7 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
             id,
             kayttaja,
-            yliopisto.id!!,
+            yliopisto.id.required(),
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI
         )
 
@@ -767,12 +770,12 @@ class ValmistumispyyntoServiceImpl(
         val tarkistus =
             valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdAndValmistumispyyntoOpintooikeusYliopistoId(
                 id,
-                yliopisto.id!!
+                yliopisto.id.required()
             )
         val valmistumispyynto =
             tarkistus?.valmistumispyynto ?: valmistumispyyntoRepository.findByIdAndOpintooikeusYliopistoId(
                 id,
-                yliopisto.id!!
+                yliopisto.id.required()
             )
         return valmistumispyynto?.erikoistujanKuittausaika != null
             && (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID || valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika != null)
@@ -785,7 +788,7 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyynto = getValmistumispyyntoByYliopistoIdOrThrow(
             id,
             kayttaja,
-            yliopisto.id!!,
+            yliopisto.id.required(),
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         )
 
@@ -804,7 +807,7 @@ class ValmistumispyyntoServiceImpl(
             KAYTTAJA_YLIOPISTO_ERIKOISALA_NOT_FOUND_ERROR
         )
 
-    private fun getErikoisalaIds(kayttaja: Kayttaja) = kayttaja.yliopistotAndErikoisalat.map { it.erikoisala?.id!! }
+    private fun getErikoisalaIds(kayttaja: Kayttaja) = kayttaja.yliopistotAndErikoisalat.map { it.erikoisala?.id.required() }
 
     private fun getValmistumispyyntoByYliopistoIdOrThrow(
         id: Long,
@@ -953,19 +956,19 @@ class ValmistumispyyntoServiceImpl(
             ) {
                 roles.add(
                     Pair(
-                        it.erikoisala?.id!!,
+                        it.erikoisala?.id.required(),
                         ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA_HYVAKSYJA
                     )
                 )
             } else if (vastuuhenkilonTehtavat.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI)) {
                 roles.add(
                     Pair(
-                        it.erikoisala?.id!!,
+                        it.erikoisala?.id.required(),
                         ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_OSAAMISEN_ARVIOIJA
                     )
                 )
             } else if (vastuuhenkilonTehtavat.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA)) {
-                roles.add(Pair(it.erikoisala?.id!!, ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA))
+                roles.add(Pair(it.erikoisala?.id.required(), ValmistumispyynnonHyvaksyjaRole.VASTUUHENKILO_HYVAKSYJA))
             }
         }
         return roles
@@ -1007,7 +1010,7 @@ class ValmistumispyyntoServiceImpl(
                 Pair(
                     MailProperty.NAME,
                     valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName().toString()
-                ), Pair(MailProperty.ID, valmistumispyynto.id!!.toString())
+                ), Pair(MailProperty.ID, valmistumispyynto.id.required().toString())
             )
         )
     }
@@ -1041,7 +1044,7 @@ class ValmistumispyyntoServiceImpl(
     ) {
         val opintooikeus = valmistumispyynto.opintooikeus
         transactionalMailService.sendEmailFromTemplate(
-            getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!,
+            getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id.required(), requireNotNull(opintooikeus).erikoisala?.id.required()).user.required(),
             templateName = "valmistumispyyntoTarkastettavissaVastuuhenkilo.html",
             titleKey = "email.valmistumispyyntoTarkastettavissaVastuuhenkilo.title",
             properties = mapOf(Pair(MailProperty.ID, valmistumispyynto.id.toString()))
@@ -1053,7 +1056,7 @@ class ValmistumispyyntoServiceImpl(
     ) {
         val opintooikeus = valmistumispyynto.opintooikeus
         transactionalMailService.sendEmailFromTemplate(
-            getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id!!, opintooikeus.erikoisala?.id!!).user!!,
+            getVastuuhenkiloHyvaksyja(opintooikeus?.yliopisto?.id.required(), requireNotNull(opintooikeus).erikoisala?.id.required()).user.required(),
             templateName = "valmistumispyyntoTarkastettavissaYek.html",
             titleKey = "email.yekValmistumispyyntoTarkastettavissa.title",
             properties = mapOf(Pair(MailProperty.ID, valmistumispyynto.id.toString()))
@@ -1064,7 +1067,7 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto: Valmistumispyynto
     ) {
         transactionalMailService.sendEmailFromTemplate(
-            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
+            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user.required(),
             templateName = "valmistumispyyntoPalautettuErikoistuja.html",
             titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
             properties = mapOf()
@@ -1075,7 +1078,7 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto: Valmistumispyynto
     ) {
         transactionalMailService.sendEmailFromTemplate(
-            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
+            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user.required(),
             templateName = "valmistumispyyntoPalautettuErikoistuja.html",
             titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
             properties = mapOf()
@@ -1086,7 +1089,7 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto: Valmistumispyynto
     ) {
         transactionalMailService.sendEmailFromTemplate(
-            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
+            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user.required(),
             templateName = "valmistumispyyntoPalautettuErikoistuja.html",
             titleKey = "email.valmistumispyyntoPalautettuErikoistuja.title",
             properties = mapOf()
@@ -1117,7 +1120,7 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto: Valmistumispyynto
     ) {
         transactionalMailService.sendEmailFromTemplate(
-            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
+            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user.required(),
             templateName = "valmistumispyyntoHyvaksytty.html",
             titleKey = "email.valmistumispyyntoHyvaksytty.title",
             properties = mapOf()
@@ -1137,7 +1140,7 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto: Valmistumispyynto
     ) {
         transactionalMailService.sendEmailFromTemplate(
-            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user!!,
+            valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user.required(),
             templateName = "valmistumispyyntoHyvaksyttyYek.html",
             titleKey = "email.yekValmistumispyyntoHyvaksytty.title",
             properties = mapOf()
@@ -1168,8 +1171,8 @@ class ValmistumispyyntoServiceImpl(
             val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it).filter { suoritus ->
                 if (yekOikeus) yekTyypit.contains(suoritus.tyyppi?.nimi) else !yekTyypit.contains(suoritus.tyyppi?.nimi)
             }
-            val yekSuoritukset = if (!yekOikeus) opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(opintooikeus.erikoistuvaLaakari?.id!!, YEK_ERIKOISALA_ID
-            ) else listOf()
+            val yekSuoritukset = if (!yekOikeus) opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(opintooikeus.erikoistuvaLaakari?.id.required(),
+                YEK_ERIKOISALA_ID) else listOf()
             (opintosuoritukset + yekSuoritukset)
                 .firstOrNull { suoritus -> suoritus.tyyppi?.nimi == TERVEYSKESKUSKOULUTUSJAKSO || suoritus.tyyppi?.nimi == YEK_TERVEYSKESKUSKOULUTUSJAKSO }
                 ?.let { suoritus -> dto.terveyskeskustyoOpintosuoritusId = suoritus.id }
@@ -1183,13 +1186,14 @@ class ValmistumispyyntoServiceImpl(
                     if (opintosuoritukset.count { suoritus -> suoritus.tyyppi?.nimi == YEK_TEORIAKOULUTUS } > 0)
                         opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara else 0.0
                 } else teoriakoulutukset.filter { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara != null }
-                    .sumOf { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara!! }
+                    .sumOf { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara.required() }
             dto.teoriakoulutusVaadittu = opintooikeus.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara
             val sateilysuojakoulutukset = opintosuoritukset.filter { suoritus -> suoritus.tyyppi?.nimi == SATEILYSUOJAKOULUTUS }
-            dto.sateilusuojakoulutusSuoritettu = sateilysuojakoulutukset.filter { suoritus -> suoritus.opintopisteet != null }.sumOf { koulutus -> koulutus.opintopisteet!! }
+            dto.sateilusuojakoulutusSuoritettu = sateilysuojakoulutukset.filter { suoritus -> suoritus.opintopisteet != null }
+                .sumOf { koulutus -> koulutus.opintopisteet.required() }
             dto.sateilusuojakoulutusVaadittu = opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
             val johtamisopinnot = opintosuoritukset.filter { suoritus -> suoritus.tyyppi?.nimi == JOHTAMISOPINTO }
-            dto.johtamiskoulutusSuoritettu = johtamisopinnot.filter { suoritus -> suoritus.opintopisteet != null }.sumOf { suoritus -> suoritus.opintopisteet!! }
+            dto.johtamiskoulutusSuoritettu = johtamisopinnot.filter { suoritus -> suoritus.opintopisteet != null }.sumOf { suoritus -> suoritus.opintopisteet.required() }
             dto.johtamiskoulutusVaadittu = opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara
             dto.kuulustelut = opintosuoritukset.filter { suoritus -> suoritus.tyyppi?.nimi == VALTAKUNNALLINEN_KUULUSTELU }.map(opintosuoritusMapper::toDto)
             opintosuoritukset.firstOrNull { s -> s.tyyppi?.nimi == KOEJAKSO && s.hyvaksytty }?.let { o -> dto.koejaksoHyvaksyttyPvm = o.suorituspaiva }
@@ -1274,17 +1278,17 @@ class ValmistumispyyntoServiceImpl(
                     }
                 }
 
-                setVariable("tyoskentelyjaksot", tyoskentelyjaksoService.findAllByOpintooikeusId(it.id!!).sortedByDescending { jakso -> jakso.alkamispaiva })
+                setVariable("tyoskentelyjaksot", tyoskentelyjaksoService.findAllByOpintooikeusId(it.id.required()).sortedByDescending { jakso -> jakso.alkamispaiva })
                 setVariable("tyoskentelyjaksotSuoritettu", tyoskentelyjaksotTilastot.tyoskentelyjaksot.groupBy { jakso -> jakso.id }
                         .mapValues { jakso -> daysToPeriod(jakso.value.sumOf { value -> value.suoritettu }).format() })
 
-                val teoriakoulutukset = teoriakoulutusService.findAll(it.id!!)
+                val teoriakoulutukset = teoriakoulutusService.findAll(it.id.required())
                 setVariable("teoriakoulutukset", teoriakoulutukset)
                 setVariable("teoriakoulutusSuoritettuYhteensa", teoriakoulutukset.filter { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara != null }
-                        .sumOf { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara!! })
+                        .sumOf { koulutus -> koulutus.erikoistumiseenHyvaksyttavaTuntimaara.required() })
                 setVariable("teoriakoulutusVaadittu", it.opintoopas?.erikoisalanVaatimaTeoriakoulutustenVahimmaismaara)
-                setVariable("arvioinninKategoriat", getArviointiKategoriat(it.id!!, true))
-                setVariable("arviointiasteikonTasot", arviointiasteikkoService.findByOpintooikeusId(it.id!!)?.tasot)
+                setVariable("arvioinninKategoriat", getArviointiKategoriat(it.id.required(), true))
+                setVariable("arviointiasteikonTasot", arviointiasteikkoService.findByOpintooikeusId(it.id.required())?.tasot)
             }
         }
     }
@@ -1310,13 +1314,13 @@ class ValmistumispyyntoServiceImpl(
                 setVariable("yhteensaSuoritettu", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yhteensaSuoritettu).format())
                 setVariable("yhteensaVaadittuVahintaan", daysToPeriod(tyoskentelyjaksotTilastot.koulutustyypit.yhteensaVaadittuVahintaan).format())
 
-                val tyoskentelyjaksot = tyoskentelyjaksoService.findAllByOpintooikeusId(it.id!!)
+                val tyoskentelyjaksot = tyoskentelyjaksoService.findAllByOpintooikeusId(it.id.required())
                 setVariable("tyoskentelyjaksot", tyoskentelyjaksot.sortedByDescending { jakso -> jakso.alkamispaiva })
                 setVariable("tyoskentelyjaksotSuoritettu", tyoskentelyjaksotTilastot.tyoskentelyjaksot.groupBy { jakso -> jakso.id }
                         .mapValues { jakso -> daysToPeriod(jakso.value.sumOf { value -> value.suoritettu }).format() })
                 setVariable("laakarikoulutusSuoritettuSuomiTaiBelgia", valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.laakarikoulutusSuoritettuSuomiTaiBelgia)
 
-                val opintosuoritukset = opintosuoritusService.getOpintosuorituksetByOpintooikeusIdAndTyyppi(it.id!!, OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS)
+                val opintosuoritukset = opintosuoritusService.getOpintosuorituksetByOpintooikeusIdAndTyyppi(it.id.required(), OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS)
                 setVariable("teoriakoulutukset", opintosuoritukset.opintosuoritukset)
             }
         }
@@ -1340,7 +1344,7 @@ class ValmistumispyyntoServiceImpl(
 
     private fun luoLiitteetPdf(valmistumispyynto: Valmistumispyynto) {
         valmistumispyynto.opintooikeus?.let {
-            val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(it.id!!)
+            val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(it.id.required())
 
             val outputStream = ByteArrayOutputStream()
             try {
@@ -1369,7 +1373,7 @@ class ValmistumispyyntoServiceImpl(
         if (valmistumispyynto.opintooikeus == null) {
             return
         }
-        val opintooikeusId = valmistumispyynto.opintooikeus!!.id!!
+        val opintooikeusId = valmistumispyynto.opintooikeus.required().id.required()
 
         val outputStream = ByteArrayOutputStream()
         lisaaKoulutussuunnitelma(opintooikeusId, outputStream)
@@ -1441,8 +1445,8 @@ class ValmistumispyyntoServiceImpl(
         suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
             .sortedWith(
                 compareBy<Suoritusarviointi>(
-                    { a -> a.arvioitavatKokonaisuudet.minOf { k -> k.arvioitavaKokonaisuus?.kategoria?.nimi!! } },
-                    { a -> a.arvioitavatKokonaisuudet.minOf { k -> k.arvioitavaKokonaisuus?.nimi!! } }).thenByDescending { a -> a.tapahtumanAjankohta })
+                    { a -> a.arvioitavatKokonaisuudet.minOf { k -> k.arvioitavaKokonaisuus?.kategoria?.nimi.required() } },
+                    { a -> a.arvioitavatKokonaisuudet.minOf { k -> k.arvioitavaKokonaisuus?.nimi.required() } }).thenByDescending { a -> a.tapahtumanAjankohta })
             .forEach { a ->
                 val arviointiStream = ByteArrayOutputStream()
                 pdfService.luoPdf(
@@ -1500,7 +1504,7 @@ class ValmistumispyyntoServiceImpl(
         val arviointiasteikonTasot = arviointiasteikko?.tasot?.associateBy { it.taso }
         val suoritemerkinnat = suoritemerkintaRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).groupBy { it.suorite?.id }
         val suoritteenKategoriat =
-            suoritteenKategoriaRepository.findAllByErikoisalaId(valmistumispyynto.opintooikeus?.erikoisala?.id!!)
+            suoritteenKategoriaRepository.findAllByErikoisalaId(valmistumispyynto.opintooikeus?.erikoisala?.id.required())
                 .sortedBy { it.nimi }.map {
                     SuoritteenKategoriaWithSuoritemerkinnatDTO(
                         id = it.id,
@@ -1585,10 +1589,10 @@ class ValmistumispyyntoServiceImpl(
 
         seurantajaksot.forEach {
             val jaksonTiedot = seurantajaksoService.findSeurantajaksonTiedot(
-                it.opintooikeusId!!,
-                it.alkamispaiva!!,
-                it.paattymispaiva!!,
-                it.koulutusjaksot?.map { k -> k.id!! }.orEmpty()
+                it.opintooikeusId.required(),
+                it.alkamispaiva.required(),
+                it.paattymispaiva.required(),
+                it.koulutusjaksot?.map { k -> k.id.required() }.orEmpty()
             )
             val seurantajaksoStream = ByteArrayOutputStream()
             pdfService.luoPdf(
@@ -1644,14 +1648,14 @@ class ValmistumispyyntoServiceImpl(
                         voimassaoloAlkaa = k?.voimassaoloAlkaa,
                         voimassaoloLoppuu = k?.voimassaoloLoppuu,
                         suoritusarvioinnit = if (korkeinArviointi) listOf(kokonaisuudetMap[k]?.sortedByDescending { a -> a.suoritusarviointi?.tapahtumanAjankohta }
-                            ?.maxByOrNull { a -> a.arviointiasteikonTaso!! }).map { a ->
+                            ?.maxByOrNull { a -> a.arviointiasteikonTaso.required() }).map { a ->
                             SuoritusarviointiByKokonaisuusDTO(
                                 id = a?.suoritusarviointi?.id,
                                 tapahtumanAjankohta = a?.suoritusarviointi?.tapahtumanAjankohta,
                                 arvioitavaTapahtuma = a?.suoritusarviointi?.arvioitavaTapahtuma,
                                 arviointiasteikonTaso = a?.arviointiasteikonTaso,
-                                arvioinninAntaja = kayttajaMapper.toDto(a?.suoritusarviointi?.arvioinninAntaja!!),
-                                tyoskentelyjakso = tyoskentelyjaksoMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso!!)
+                                arvioinninAntaja = kayttajaMapper.toDto(a?.suoritusarviointi?.arvioinninAntaja.required()),
+                                tyoskentelyjakso = tyoskentelyjaksoMapper.toDto(requireNotNull(a).suoritusarviointi?.tyoskentelyjakso.required())
                             )
                         } else kokonaisuudetMap[k]?.sortedByDescending { a -> a.suoritusarviointi?.tapahtumanAjankohta }
                             ?.map { a ->
@@ -1661,9 +1665,9 @@ class ValmistumispyyntoServiceImpl(
                                     arvioitavaTapahtuma = a.suoritusarviointi?.arvioitavaTapahtuma,
                                     arviointiasteikonTaso = a.arviointiasteikonTaso,
                                     itsearviointiArviointiasteikonTaso = a.itsearviointiArviointiasteikonTaso,
-                                    arvioinninAntaja = kayttajaMapper.toDto(a.suoritusarviointi?.arvioinninAntaja!!),
-                                    arvioinninSaaja = kayttajaMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja!!),
-                                    tyoskentelyjakso = tyoskentelyjaksoMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso!!),
+                                    arvioinninAntaja = kayttajaMapper.toDto(a.suoritusarviointi?.arvioinninAntaja.required()),
+                                    arvioinninSaaja = kayttajaMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja.required()),
+                                    tyoskentelyjakso = tyoskentelyjaksoMapper.toDto(a.suoritusarviointi?.tyoskentelyjakso.required()),
                                     arviointiAsiakirjat = a.suoritusarviointi?.arviointiAsiakirjat?.map { asiakirja ->
                                         asiakirjaMapper.toDto(
                                             asiakirja

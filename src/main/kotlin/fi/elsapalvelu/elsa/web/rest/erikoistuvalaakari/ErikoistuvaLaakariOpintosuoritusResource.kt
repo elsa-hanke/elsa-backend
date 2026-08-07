@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
@@ -21,7 +23,7 @@ class ErikoistuvaLaakariOpintosuoritusResource(
     @GetMapping("/opintosuoritukset")
     fun getOpintosuoritukset(principal: Principal?): ResponseEntity<OpintosuorituksetDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val opintosuoritukset = opintosuoritusService.getOpintosuorituksetByOpintooikeusId(opintooikeusId)
 
         return ResponseEntity.ok(opintosuoritukset)

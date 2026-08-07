@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -54,9 +56,10 @@ class ArkistointiServiceImpl(
         //val title = "${case.type} $name"
         val metadata = ArkistointiMetadata()
 
-        val metadataProperties = getMetadataForYliopisto(yliopisto!!)
+        val yliopistoValue = requireNotNull(yliopisto)
+        val metadataProperties = getMetadataForYliopisto(yliopistoValue)
         val case = metadataProperties?.getCaseMetadata(caseType) ?: throw IllegalArgumentException(
-            "Arkistointia ${caseType.value} ei ole määritelty yliopistolle ${yliopisto.name}"
+            "Arkistointia ${caseType.value} ei ole määritelty yliopistolle ${yliopistoValue.name}"
         )
 
         buildTransferInformation(metadata.transferInformation, metadataProperties, opintooikeus?.id)
@@ -182,7 +185,7 @@ class ArkistointiServiceImpl(
         val resourceBundle = ResourceBundle.getBundle("i18n/messages")
 
         asiakirjat.forEach { recordProperties ->
-            val documentMetadata = arkistointiProperties.getDocumentMetadata(recordProperties.type, case)!!
+            val documentMetadata = arkistointiProperties.getDocumentMetadata(recordProperties.type, case).required()
 
             val asiakirja = recordProperties.asiakirja
             val record = Record()

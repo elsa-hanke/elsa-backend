@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.time.LocalDate
 import org.springframework.web.bind.annotation.RequestParam
@@ -32,7 +34,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
     @GetMapping("/seurantajaksot")
     fun getSeurantajaksot(principal: Principal?): ResponseEntity<List<SeurantajaksoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         return ResponseEntity.ok(
             seurantajaksoService.findByOpintooikeusId(opintooikeusId)
         )
@@ -44,7 +46,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
         principal: Principal?
     ): ResponseEntity<SeurantajaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         return seurantajaksoService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -58,7 +60,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
         @RequestParam koulutusjaksot: List<Long>
     ): ResponseEntity<SeurantajaksonTiedotDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         return ResponseEntity.ok(
             seurantajaksoService.findSeurantajaksonTiedot(
                 opintooikeusId,
@@ -75,7 +77,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
         principal: Principal?
     ): ResponseEntity<SeurantajaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         validateNewSeurantajaksoDTO(seurantajaksoDTO)
 
         return seurantajaksoService.create(seurantajaksoDTO, opintooikeusId)?.let {
@@ -92,7 +94,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
         principal: Principal?
     ): ResponseEntity<SeurantajaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         if (seurantajaksoDTO.id == null) {
             throw BadRequestAlertException(
@@ -130,7 +132,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
             )
         }
 
-        val result = seurantajaksoService.update(seurantajaksoDTO, user.id!!)
+        val result = seurantajaksoService.update(seurantajaksoDTO, user.id.required())
         return ResponseEntity.ok(result)
     }
 
@@ -140,7 +142,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
         principal: Principal?
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         val seurantajakso = seurantajaksoService.findOne(id, opintooikeusId)
 

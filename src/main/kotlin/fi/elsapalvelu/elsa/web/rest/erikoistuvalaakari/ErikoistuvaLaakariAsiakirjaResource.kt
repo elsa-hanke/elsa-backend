@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import org.springframework.web.bind.annotation.RequestParam
@@ -48,7 +50,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         if (!fileValidationService.validate(files, opintooikeusId)) {
             throw BadRequestAlertException(
@@ -72,7 +74,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         var asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId)
 
         val authorities =
@@ -95,9 +97,9 @@ class ErikoistuvaLaakariAsiakirjaResource(
     ): ResponseEntity<List<String>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map {
-            it.nimi!!
+            it.nimi.required()
         }
 
         return ResponseEntity.ok(asiakirjat)
@@ -110,7 +112,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val asiakirja = asiakirjaService.findOne(id, opintooikeusId)
 
         val authorities =
@@ -138,7 +140,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         asiakirjaService.delete(id, opintooikeusId)
         return ResponseEntity
             .noContent()

@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -65,9 +67,9 @@ open class KayttajahallintaResource(
     ): ResponseEntity<Page<KayttajahallintaKayttajaListItemDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val erikoistujat = if (hasVirkailijaRole(user)) {
-            erikoistuvaLaakariService.findAllFromSameYliopisto(user.id!!, criteria, pageable)
+            erikoistuvaLaakariService.findAllFromSameYliopisto(user.id.required(), criteria, pageable)
         } else {
-            erikoistuvaLaakariService.findAll(user.id!!, criteria, pageable)
+            erikoistuvaLaakariService.findAll(user.id.required(), criteria, pageable)
         }
         return ResponseEntity.ok(erikoistujat)
     }
@@ -79,11 +81,11 @@ open class KayttajahallintaResource(
         val user = userService.getAuthenticatedUser(principal)
         val vastuuhenkilot = if (hasVirkailijaRole(user)) {
             kayttajaService.findByKayttajahallintaCriteriaFromSameYliopisto(
-                user.id!!, VASTUUHENKILO, criteria, pageable
+                user.id.required(), VASTUUHENKILO, criteria, pageable
             )
         } else {
             kayttajaService.findByKayttajahallintaCriteria(
-                user.id!!, VASTUUHENKILO, criteria, pageable
+                user.id.required(), VASTUUHENKILO, criteria, pageable
             )
         }
         return ResponseEntity.ok(vastuuhenkilot)
@@ -96,11 +98,11 @@ open class KayttajahallintaResource(
         val user = userService.getAuthenticatedUser(principal)
         val kouluttajat = if (hasVirkailijaRole(user)) {
             kayttajaService.findByKayttajahallintaCriteriaFromSameYliopisto(
-                user.id!!, KOULUTTAJA, criteria, pageable
+                user.id.required(), KOULUTTAJA, criteria, pageable
             )
         } else {
             kayttajaService.findByKayttajahallintaCriteria(
-                user.id!!, KOULUTTAJA, criteria, pageable
+                user.id.required(), KOULUTTAJA, criteria, pageable
             )
         }
         return ResponseEntity.ok(kouluttajat)
@@ -113,11 +115,11 @@ open class KayttajahallintaResource(
         val user = userService.getAuthenticatedUser(principal)
         val virkailijat = if (hasVirkailijaRole(user)) {
             kayttajaService.findByKayttajahallintaCriteriaFromSameYliopisto(
-                user.id!!, OPINTOHALLINNON_VIRKAILIJA, criteria, pageable
+                user.id.required(), OPINTOHALLINNON_VIRKAILIJA, criteria, pageable
             )
         } else {
             kayttajaService.findByKayttajahallintaCriteria(
-                user.id!!, OPINTOHALLINNON_VIRKAILIJA, criteria, pageable
+                user.id.required(), OPINTOHALLINNON_VIRKAILIJA, criteria, pageable
             )
         }
         return ResponseEntity.ok(virkailijat)
@@ -134,7 +136,7 @@ open class KayttajahallintaResource(
         }
 
         val paakayttajat = kayttajaService.findByKayttajahallintaCriteria(
-            user.id!!, TEKNINEN_PAAKAYTTAJA, criteria, pageable
+            user.id.required(), TEKNINEN_PAAKAYTTAJA, criteria, pageable
         )
         return ResponseEntity.ok(paakayttajat)
     }
@@ -173,7 +175,7 @@ open class KayttajahallintaResource(
         if (kayttaja.authorities?.contains(Authority(name = KOULUTTAJA)) == true
             || kayttaja.authorities?.contains(Authority(name = VASTUUHENKILO)) == true
         ) {
-            avoimiaTehtavia = kayttajaService.avoimiaTehtavia(kayttaja.id!!)
+            avoimiaTehtavia = kayttajaService.avoimiaTehtavia(kayttaja.id.required())
         }
 
         return ResponseEntity.ok(
@@ -215,14 +217,14 @@ open class KayttajahallintaResource(
 
         kayttajahallintaReassignedKouluttajaDTO.reassignedKayttajaId?.let {
             userService.updateKouluttajaReferences(
-                kayttaja.id!!,
+                kayttaja.id.required(),
                 it
             )
         }
 
         val userId = kayttaja.userId
-        kayttajaService.delete(kayttaja.id!!)
-        userService.delete(userId!!)
+        kayttajaService.delete(kayttaja.id.required())
+        userService.delete(userId.required())
 
         return ResponseEntity
             .noContent()
@@ -276,31 +278,31 @@ open class KayttajahallintaResource(
         @Valid @RequestBody kayttajahallintaErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariDTO,
         principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
-        validateEmailNotExists(kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite!!)
+        validateEmailNotExists(kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite.required())
 
-        if (yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).isEmpty) {
+        if (yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId.required()).isEmpty) {
             throw BadRequestAlertException(
                 "Yliopistoa ei löydy.", KAYTTAJA_ENTITY_NAME, "dataillegal.yliopistoa-ei-loydy"
             )
         }
 
         validateCurrentUserIsAllowedToCreateKayttajaByYliopistoId(
-            principal, kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!
+            principal, kayttajahallintaErikoistuvaLaakariDTO.yliopistoId.required()
         )
 
-        if (erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!).isEmpty) {
+        if (erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId.required()).isEmpty) {
             throw BadRequestAlertException(
                 "Erikoisalaa ei löydy.", KAYTTAJA_ENTITY_NAME, "dataillegal.erikoisalaa-ei-loydy"
             )
         }
 
-        if (asetusService.findOne(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!) == null) {
+        if (asetusService.findOne(kayttajahallintaErikoistuvaLaakariDTO.asetusId.required()) == null) {
             throw BadRequestAlertException(
                 "Asetusta ei löydy.", KAYTTAJA_ENTITY_NAME, "dataillegal.asetusta-ei-loydy"
             )
         }
 
-        if (opintoopasService.findOne(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!) == null) {
+        if (opintoopasService.findOne(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId.required()) == null) {
             throw BadRequestAlertException(
                 "Opinto-opasta ei löydy.",
                 KAYTTAJA_ENTITY_NAME,
@@ -322,7 +324,7 @@ open class KayttajahallintaResource(
         val erikoistuvaLaakari = getErikoistuvaLaakariByIdOrThrow(id)
         validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
             principal,
-            erikoistuvaLaakari.kayttajaId!!
+            erikoistuvaLaakari.kayttajaId.required()
         )
         erikoistuvaLaakariService.resendInvitation(id)
         return ResponseEntity.noContent().build()
@@ -336,11 +338,11 @@ open class KayttajahallintaResource(
         if (erikoistuvaLaakari != null) {
             validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
                 principal,
-                erikoistuvaLaakari.kayttajaId!!
+                erikoistuvaLaakari.kayttajaId.required()
             )
         } else {
             val kayttaja = getKayttajaOrThrow(id)
-            validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id!!)
+            validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id.required())
         }
         kayttajaService.activateKayttaja(id)
         return ResponseEntity.ok().build()
@@ -355,7 +357,7 @@ open class KayttajahallintaResource(
         if (erikoistuvaLaakari != null) {
             validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
                 principal,
-                erikoistuvaLaakari.id!!
+                erikoistuvaLaakari.id.required()
             )
         } else {
             val kayttaja = getKayttajaOrThrow(id)
@@ -373,10 +375,10 @@ open class KayttajahallintaResource(
                 throw BadRequestAlertException("Vastuuhenkilöä ei voi passivoida jos siihen liittyy vastuualueita.", KAYTTAJA_ENTITY_NAME,
                     "dataillegal.vastuuhenkiloa-vastuualueilla-ei-voi-passivoida")
             }
-            validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id!!)
+            validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id.required())
 
             kayttajahallintaReassignedKouluttajaDTO.reassignedKayttajaId?.let {
-                userService.updateAvoinKouluttajaReferences(kayttaja.id!!, it)
+                userService.updateAvoinKouluttajaReferences(kayttaja.id.required(), it)
             }
         }
         kayttajaService.passivateKayttaja(id)
@@ -389,7 +391,7 @@ open class KayttajahallintaResource(
         val erikoistuvaLaakariDTO = getErikoistuvaLaakariByUserIdOrThrow(userId)
         validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
             principal,
-            erikoistuvaLaakariDTO.kayttajaId!!
+            erikoistuvaLaakariDTO.kayttajaId.required()
         )
         val sahkoposti = updateErikoistuvaLaakariDTO.sahkoposti
 
@@ -405,10 +407,10 @@ open class KayttajahallintaResource(
     fun patchKouluttaja(@PathVariable kayttajaId: Long, @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
         principal: Principal?): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
-        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id.required())
 
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
-        val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
+        val userDTO = userService.getUser(existingKayttajaDTO.userId.required())
 
         validateEmailNotExists(sahkoposti, userDTO)
 
@@ -420,7 +422,7 @@ open class KayttajahallintaResource(
     fun resendKouluttajaInvitation(@PathVariable kayttajaId: Long, principal: Principal?
     ): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
-        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id.required())
 
         val virkailijaOrPaakayttajaUser = userService.getAuthenticatedUser(principal)
         kayttajaService.resendInvitation(
@@ -493,11 +495,11 @@ open class KayttajahallintaResource(
         principal: Principal?
     ): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
-        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id.required())
 
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
-        val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
+        val userDTO = userService.getUser(existingKayttajaDTO.userId.required())
 
         validateEmailNotExists(sahkoposti, userDTO)
         validateEppnNotExists(eppn, userDTO)
@@ -510,11 +512,11 @@ open class KayttajahallintaResource(
     fun patchVirkailija(@PathVariable kayttajaId: Long, @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
         principal: Principal?): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
-        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id.required())
 
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
-        val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
+        val userDTO = userService.getUser(existingKayttajaDTO.userId.required())
 
         validateEmailNotExists(sahkoposti, userDTO)
         validateEppnNotExists(eppn, userDTO)
@@ -578,7 +580,7 @@ open class KayttajahallintaResource(
 
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
-        val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
+        val userDTO = userService.getUser(existingKayttajaDTO.userId.required())
 
         validateEmailNotExists(sahkoposti, userDTO)
         validateEppnNotExists(eppn, userDTO)
@@ -595,7 +597,7 @@ open class KayttajahallintaResource(
         criteria: KayttajahallintaCriteria, pageable: Pageable, principal: Principal?
     ): ResponseEntity<Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttajat = kayttajaService.findByCriteriaAndAuthorities(user.id!!, criteria, pageable)
+        val kayttajat = kayttajaService.findByCriteriaAndAuthorities(user.id.required(), criteria, pageable)
         return ResponseEntity.ok(kayttajat)
     }
 
@@ -608,7 +610,7 @@ open class KayttajahallintaResource(
 
     private fun getYliopistotByRole(user: UserDTO): MutableSet<YliopistoDTO> {
         if (hasVirkailijaRole(user)) {
-            val kayttaja = getKayttajaByUserIdOrThrow(user.id!!)
+            val kayttaja = getKayttajaByUserIdOrThrow(user.id.required())
             val virkailijaYliopisto = getVirkailijaYliopistoOrThrow(kayttaja)
             return mutableSetOf(virkailijaYliopisto)
         }

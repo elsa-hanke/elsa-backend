@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.*
@@ -98,12 +100,12 @@ class KayttajaServiceImpl(
         kayttajaDTO: KayttajaDTO,
         userDTO: UserDTO
     ): KayttajaDTO {
-        val existingUser = userRepository.findOneByLogin(userDTO.login!!)
+        val existingUser = userRepository.findOneByLogin(userDTO.login.required())
         return if (existingUser.isPresent) {
-            val kayttaja = kayttajaRepository.findOneByUserId(existingUser.get().id!!).get()
+            val kayttaja = kayttajaRepository.findOneByUserId(existingUser.get().id.required()).get()
             kayttajaMapper.toDto(kayttaja)
         } else {
-            var user = userMapper.userDTOToUser(userDTO)!!
+            var user = userMapper.userDTOToUser(userDTO).required()
             user.activeAuthority = user.authorities.first()
             user.firstName = kayttajaDTO.etunimi
             user.lastName = kayttajaDTO.sukunimi
@@ -213,7 +215,7 @@ class KayttajaServiceImpl(
         val kayttaja = kayttajaRepository.findById(id)
             .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
         kayttaja.saadutValtuutukset.forEach {
-            kouluttajavaltuutusRepository.deleteById(it.id!!)
+            kouluttajavaltuutusRepository.deleteById(it.id.required())
         }
         kayttajaRepository.deleteById(id)
     }
@@ -253,10 +255,10 @@ class KayttajaServiceImpl(
                     && it.user?.authorities?.contains(Authority(name = VASTUUHENKILO)) == false
                 ) {
                     it.user?.authorities?.add(Authority(name = KOULUTTAJA))
-                    userRepository.save(it.user!!)
+                    userRepository.save(it.user.required())
 
                     mailService.sendEmailFromTemplate(
-                        it.user!!,
+                        it.user.required(),
                         templateName = "uusiKouluttajaRooli.html",
                         titleKey = "email.uusikouluttajarooli.title",
                         properties = mapOf(
@@ -276,8 +278,8 @@ class KayttajaServiceImpl(
         val kayttaja =
             kayttajaRepository.findById(kayttajaId)
                 .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
-        val yliopistoIds = kayttaja.yliopistotAndErikoisalat.map { it.yliopisto!!.id }
-        val erikoisalaIds = kayttaja.yliopistotAndErikoisalat.map { it.erikoisala!!.id }
+        val yliopistoIds = kayttaja.yliopistotAndErikoisalat.map { it.yliopisto.required().id }
+        val erikoisalaIds = kayttaja.yliopistotAndErikoisalat.map { it.erikoisala.required().id }
 
         return kayttajaRepository.findAllByAuthoritiesAndYliopistotAndErikoisalat(
             listOf(VASTUUHENKILO),
@@ -303,7 +305,7 @@ class KayttajaServiceImpl(
             criteria,
             authority,
             pageable,
-            yliopisto.id!!,
+            yliopisto.id.required(),
             kayttaja.user?.langKey
         )
     }
@@ -438,10 +440,10 @@ class KayttajaServiceImpl(
 
     override fun resendInvitation(id: Long, etunimi: String?, sukunimi: String?) {
         kayttajaRepository.findByIdOrNull(id)?.let { kayttaja ->
-            verificationTokenService.findOne(kayttaja.user?.id!!)
+            verificationTokenService.findOne(kayttaja.user?.id.required())
                 ?.let { token ->
                     mailService.sendEmailFromTemplate(
-                        kayttaja.user!!,
+                        kayttaja.user.required(),
                         templateName = "uusiKouluttaja.html",
                         titleKey = "email.uusikouluttaja.title",
                         properties = mapOf(
@@ -478,7 +480,7 @@ class KayttajaServiceImpl(
             kayttajaRepository.findOneByUserId(userId)
                 .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
 
-        val activeAuthority = kayttaja.user!!.activeAuthority!!.name.toString()
+        val activeAuthority = kayttaja.user.required().activeAuthority.required().name.toString()
         if ((activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name)) {
             val erikoistuvat = kayttajaQueryService.findByCriteriaAndAuthorities(
                 activeAuthority,
@@ -521,7 +523,7 @@ class KayttajaServiceImpl(
         kayttajahallintaKayttajaDTO.yliopistotAndErikoisalat.forEach {
             if (it.id != null) {
                 val existingKayttajaYliopistoErikoisala =
-                    kayttajaYliopistoErikoisalaRepository.findById(it.id!!).orElseThrow {
+                    kayttajaYliopistoErikoisalaRepository.findById(it.id.required()).orElseThrow {
                         getKayttajaYliopistoErikoisalaNotFoundException()
                     }
                 existingKayttajaYliopistoErikoisala.vastuuhenkilonTehtavat =
@@ -547,9 +549,9 @@ class KayttajaServiceImpl(
     private fun saveReassignedTehtavat(reassignedTehtavat: Set<ReassignedVastuuhenkilonTehtavaDTO>) {
         reassignedTehtavat.forEach {
             val kayttajaYliopistoErikoisala =
-                kayttajaYliopistoErikoisalaRepository.findById(it.kayttajaYliopistoErikoisala?.id!!)
+                kayttajaYliopistoErikoisalaRepository.findById(it.kayttajaYliopistoErikoisala?.id.required())
                     .orElseThrow { getKayttajaYliopistoErikoisalaNotFoundException() }
-            val tehtava = vastuuhenkilonTehtavatyyppiRepository.findById(it.tehtavaId!!)
+            val tehtava = vastuuhenkilonTehtavatyyppiRepository.findById(it.tehtavaId.required())
                 .orElseThrow { EntityNotFoundException("Vastuuhenkilön tehtävää ei löydy") }
             if (it.tyyppi == ReassignedVastuuhenkilonTehtavaTyyppi.ADD) {
                 kayttajaYliopistoErikoisala.vastuuhenkilonTehtavat.add(tehtava)
@@ -577,7 +579,7 @@ class KayttajaServiceImpl(
             authorities = authorities,
             activeAuthority = authorities.first()
         )
-        val persistedUser = userRepository.save(userMapper.userDTOToUser(userDTO)!!)
+        val persistedUser = userRepository.save(userMapper.userDTOToUser(userDTO).required())
         val kayttajaDTO = KayttajaDTO(
             tila = KayttajatilinTila.KUTSUTTU,
             yliopistot = kayttajahallintaKayttajaDTO.yliopisto?.let { mutableSetOf(it) }

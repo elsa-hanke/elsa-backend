@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
@@ -100,8 +102,8 @@ class ErikoistuvaLaakariServiceImpl(
         var erikoistuvaLaakari = ErikoistuvaLaakari(kayttaja = kayttaja,)
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        val asetus = asetusRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!)
-        val opintoopas = opintoopasRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!)
+        val asetus = asetusRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.asetusId.required())
+        val opintoopas = opintoopasRepository.findByIdOrNull(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId.required())
 
         // Asetetaan mahdollisesti muille olemassaoleville opinto-oikeuksille kaytossa = false, koska käytössä voi
         // olla vain yksi kerrallaan.
@@ -119,11 +121,11 @@ class ErikoistuvaLaakariServiceImpl(
             osaamisenArvioinninOppaanPvm = kayttajahallintaErikoistuvaLaakariDTO.osaamisenArvioinninOppaanPvm,
             erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = yliopistoMapper.toEntity(
-                yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!)
+                yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId.required())
                     .orElse(null)
             ),
             erikoisala = erikoisalaMapper.toEntity(
-                erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!)
+                erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId.required())
                     .orElse(null)
             ),
             asetus = asetus,
@@ -138,7 +140,7 @@ class ErikoistuvaLaakariServiceImpl(
         erikoistuvaLaakari.aktiivinenOpintooikeus = opintooikeus.id
         erikoistuvaLaakari = erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        val token = verificationTokenService.save(user.id!!)
+        val token = verificationTokenService.save(user.id.required())
         mailService.sendEmailFromTemplate(
             User(email = user.email),
             templateName = "uusiErikoistuvaLaakari.html",
@@ -250,10 +252,10 @@ class ErikoistuvaLaakariServiceImpl(
 
     override fun resendInvitation(id: Long) {
         erikoistuvaLaakariRepository.findByIdOrNull(id)?.let { erikoistuvaLaakari ->
-            verificationTokenService.findOne(erikoistuvaLaakari.kayttaja?.user?.id!!)
+            verificationTokenService.findOne(erikoistuvaLaakari.kayttaja?.user?.id.required())
                 ?.let { token ->
                     mailService.sendEmailFromTemplate(
-                        erikoistuvaLaakari.kayttaja?.user!!,
+                        erikoistuvaLaakari.kayttaja?.user.required(),
                         templateName = "uusiErikoistuvaLaakari.html",
                         titleKey = "email.uusierikoistuvalaakari.title",
                         properties = mapOf(

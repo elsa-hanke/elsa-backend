@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.sisu.tampere
 
+import fi.elsapalvelu.elsa.required
+
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -32,7 +34,7 @@ class SisuTreAuthenticationTokenServiceImpl(
     override fun getCachedTokenOrRequestNew(): String? {
         val sisuTreProperties = applicationProperties.getSecurity().getSisuTre()
 
-        AuthenticationTokenCache.getTokenByClientId(sisuTreProperties.clientId!!)?.let {
+        AuthenticationTokenCache.getTokenByClientId(sisuTreProperties.clientId.required())?.let {
             return it.accessToken
         }
 
@@ -52,8 +54,8 @@ class SisuTreAuthenticationTokenServiceImpl(
         val formBody = FormBody.Builder()
             .add("grant_type", "client_credentials")
             .add("scope", "api://${sisuTreProperties.scopeId}/.default")
-            .add("client_id", sisuTreProperties.clientId!!)
-            .add("client_secret", sisuTreProperties.clientSecret!!)
+            .add("client_id", sisuTreProperties.clientId.required())
+            .add("client_secret", sisuTreProperties.clientSecret.required())
             .build()
         val request = Request.Builder().url(endpointUrl).post(formBody).build()
 
@@ -65,13 +67,13 @@ class SisuTreAuthenticationTokenServiceImpl(
                 }
                 response.body?.string().let { body ->
                     val tokenResponse = objectMapper.readValue(body, TokenResponse::class.java)
-                    validateTokenResponse(tokenResponse, sisuTreProperties.clientId!!)
+                    validateTokenResponse(tokenResponse, sisuTreProperties.clientId.required())
 
                     AuthenticationTokenCache.storeTokenByClientId(
-                        sisuTreProperties.clientId!!, AuthenticationToken(
-                            accessToken = tokenResponse.accessToken!!,
+                        sisuTreProperties.clientId.required(), AuthenticationToken(
+                            accessToken = tokenResponse.accessToken.required(),
                             // Huomioidaan umpeutumisajassa verkkoviive 5 sekuntia.
-                            expires = LocalDateTime.now().plusSeconds(tokenResponse.expiresIn!! - 5)
+                            expires = LocalDateTime.now().plusSeconds(tokenResponse.expiresIn.required() - 5)
                         )
                     )
                     tokenResponse.accessToken

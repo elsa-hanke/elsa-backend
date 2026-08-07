@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.sisu.tampere
 
+import fi.elsapalvelu.elsa.required
+
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -32,7 +34,7 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
 
     override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
         val endpointUrl =
-            "${applicationProperties.getSecurity().getSisuTre().endpointUrl!!}/attainments"
+            "${applicationProperties.getSecurity().getSisuTre().endpointUrl.required()}/attainments"
         val postBody = "{\"id\": \"$hetu\"}"
         val request = Request.Builder().url(endpointUrl).post(postBody.toRequestBody()).build()
         try {

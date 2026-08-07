@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.config
 
+import fi.elsapalvelu.elsa.required
+
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.servlet.ServletContextInitializer
 import org.springframework.context.annotation.Bean
@@ -41,7 +43,7 @@ class WebConfigurer(
     fun corsFilter(): CorsFilter {
         val source = UrlBasedCorsConfigurationSource()
         val config = jHipsterProperties.cors
-        if (config.allowedOriginPatterns != null && config.allowedOriginPatterns!!.isNotEmpty()) {
+        if (config.allowedOriginPatterns != null && config.allowedOriginPatterns.required().isNotEmpty()) {
             log.debug("Registering CORS filter")
             source.apply {
                 registerCorsConfiguration("/api/**", config)

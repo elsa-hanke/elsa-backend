@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import org.springframework.web.bind.annotation.RequestParam
 import java.security.Principal
@@ -48,7 +50,7 @@ class YekKoulutettavaValmistumispyyntoResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
+                user.id.required(), YEK_ERIKOISALA_ID
             )
         return ResponseEntity.ok(valmistumispyyntoService.findOneByOpintooikeusId(opintooikeusId))
     }
@@ -58,7 +60,7 @@ class YekKoulutettavaValmistumispyyntoResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
+                user.id.required(), YEK_ERIKOISALA_ID
             )
         val erikoisalaTyyppi = valmistumispyyntoService.findErikoisalaTyyppiByOpintooikeusId(opintooikeusId)
         val vanhatSuorituksetDTO =
@@ -82,7 +84,7 @@ class YekKoulutettavaValmistumispyyntoResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
+                user.id.required(), YEK_ERIKOISALA_ID
             )
         val erikoisalaTyyppi = valmistumispyyntoService.findErikoisalaTyyppiByOpintooikeusId(opintooikeusId)
         val vanhatSuorituksetDTO =
@@ -94,7 +96,7 @@ class YekKoulutettavaValmistumispyyntoResource(
         validateLaillistamistodistusIfExists(laillistamistodistus)
 
         erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id!!,
+            user.id.required(),
             uusiValmistumispyyntoDTO.laillistamispaiva,
             laillistamistodistus?.bytes,
             laillistamistodistus?.originalFilename,
@@ -116,7 +118,7 @@ class YekKoulutettavaValmistumispyyntoResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
+                user.id.required(), YEK_ERIKOISALA_ID
             )
         val erikoisalaTyyppi = valmistumispyyntoService.findErikoisalaTyyppiByOpintooikeusId(opintooikeusId)
         val vanhatSuorituksetDTO =
@@ -127,7 +129,7 @@ class YekKoulutettavaValmistumispyyntoResource(
         validateLaillistamistodistusIfExists(laillistamistodistus)
 
         erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id!!,
+            user.id.required(),
             uusiValmistumispyyntoDTO.laillistamispaiva,
             laillistamistodistus?.bytes,
             laillistamistodistus?.originalFilename,
@@ -156,7 +158,7 @@ class YekKoulutettavaValmistumispyyntoResource(
     ) {
         if ((uusiValmistumispyyntoDTO.laillistamispaiva == null || laillistamistodistus == null) &&
             !erikoistuvaLaakariService.laillistamispaivaAndTodistusExists(
-                user.id!!
+                user.id.required()
             )
         ) {
             throw BadRequestAlertException(

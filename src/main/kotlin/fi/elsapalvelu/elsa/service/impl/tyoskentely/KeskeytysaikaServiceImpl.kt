@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.repository.tyoskentely.KeskeytysaikaRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.tyoskentely.KeskeytysaikaService
@@ -19,20 +21,20 @@ class KeskeytysaikaServiceImpl(
 
     override fun save(keskeytysaikaDTO: KeskeytysaikaDTO, opintooikeusId: Long): KeskeytysaikaDTO? {
         tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(
-            keskeytysaikaDTO.tyoskentelyjaksoId!!,
+            keskeytysaikaDTO.tyoskentelyjaksoId.required(),
             opintooikeusId
         )
             ?.let { tyoskentelyjakso ->
                 if (tyoskentelyjakso.liitettyTerveyskeskuskoulutusjaksoon) {
                     throw ValidationException("Terveyskeskuskoulutusjaksoon liitetyn työskentelyjakson poissaoloja ei voi päivittää")
                 }
-                if (tyoskentelyjakso.alkamispaiva!!.isBefore(keskeytysaikaDTO.alkamispaiva) || tyoskentelyjakso.alkamispaiva!!.isEqual(
+                if (tyoskentelyjakso.alkamispaiva.required().isBefore(keskeytysaikaDTO.alkamispaiva) || tyoskentelyjakso.alkamispaiva.required().isEqual(
                         keskeytysaikaDTO.alkamispaiva
                     )
                 ) {
                     if (
                         tyoskentelyjakso.paattymispaiva != null &&
-                        tyoskentelyjakso.paattymispaiva!!.isBefore(keskeytysaikaDTO.paattymispaiva)
+                        tyoskentelyjakso.paattymispaiva.required().isBefore(keskeytysaikaDTO.paattymispaiva)
                     ) {
                         return null
                     }
@@ -67,7 +69,7 @@ class KeskeytysaikaServiceImpl(
     override fun delete(id: Long, opintooikeusId: Long) {
         keskeytysaikaRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId)
             ?.let {
-                tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(it.id!!, opintooikeusId)
+                tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(it.id.required(), opintooikeusId)
                     ?.let { tyoskentelyjakso ->
                         if (tyoskentelyjakso.liitettyTerveyskeskuskoulutusjaksoon) {
                             throw ValidationException("Terveyskeskuskoulutusjaksoon liitetyn työskentelyjakson poissaoloja ei voi päivittää")

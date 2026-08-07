@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.scheduler.jobs
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
@@ -65,7 +67,7 @@ class ScheduledOpintotietoImport(
             .distinctBy { Pair(it.erikoistuvaLaakari?.id, it.yliopisto?.id) }
         log.info("OpintotietoImport: löydetty ${opintooikeudet.size} käyttäjää")
         opintooikeudet.forEachIndexed { index, opintooikeus ->
-            val user = opintooikeus.erikoistuvaLaakari?.kayttaja?.user!!
+            val user = opintooikeus.erikoistuvaLaakari?.kayttaja?.user.required()
             val yliopistoNimi = opintooikeus.yliopisto?.nimi
             log.info(
                 "OpintotietoImport: käyttäjä ${index + 1}/${opintooikeudet.size}: " +
@@ -77,14 +79,14 @@ class ScheduledOpintotietoImport(
                         opintotietoServices[yliopistoNimi]?.fetchOpintotietodata(hetu)
                             ?.let { data ->
                                 opintotietodataPersistenceService.createOrUpdateOpintotieto(
-                                    user.id!!,
+                                    user.id.required(),
                                     data
                                 )
                             }
                         opintosuoritusServices[yliopistoNimi]?.fetchOpintosuoritukset(hetu)
                             ?.let { data ->
                                 opintosuorituksetPersistenceService.createOrUpdateIfChanged(
-                                    user.id!!,
+                                    user.id.required(),
                                     data
                                 )
                             }

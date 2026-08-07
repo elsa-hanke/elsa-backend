@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -50,21 +52,21 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
                 koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
 
             kouluttajavaltuutusService.lisaaValtuutus(
-                kehittamistoimenpiteet.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-                kehittamistoimenpiteet.lahikouluttaja?.id!!
+                kehittamistoimenpiteet.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
+                kehittamistoimenpiteet.lahikouluttaja?.id.required()
             )
             kouluttajavaltuutusService.lisaaValtuutus(
-                kehittamistoimenpiteet.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-                kehittamistoimenpiteet.lahiesimies?.id!!
+                kehittamistoimenpiteet.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
+                kehittamistoimenpiteet.lahiesimies?.id.required()
             )
 
             // Sähköposti kouluttajalle
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(kehittamistoimenpiteet.lahikouluttaja?.id!!)
-                    .get().user!!,
+                kayttajaRepository.findById(kehittamistoimenpiteet.lahikouluttaja?.id.required())
+                    .get().user.required(),
                 templateName = "kehittamistoimenpiteetKouluttajalle.html",
                 titleKey = "email.kehittamistoimenpiteetkouluttajalle.title",
-                properties = mapOf(Pair(MailProperty.ID, kehittamistoimenpiteet.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, kehittamistoimenpiteet.id.required().toString()))
             )
 
             koejaksonKehittamistoimenpiteetMapper.toDto(kehittamistoimenpiteet)
@@ -76,7 +78,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         userId: String
     ): KoejaksonKehittamistoimenpiteetDTO {
         var kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetRepository.findById(koejaksonKehittamistoimenpiteetDTO.id!!)
+            koejaksonKehittamistoimenpiteetRepository.findById(koejaksonKehittamistoimenpiteetDTO.id.required())
                 .orElseThrow { EntityNotFoundException("Kehittämistoimenpiteitä ei löydy") }
 
         val updatedKehittamistoimenpiteet =
@@ -114,10 +116,10 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         if (result.lahikouluttajaHyvaksynyt) {
             // Sähköposti esimiehelle kouluttajan hyväksymästä kehittämistoimenpiteestä
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahiesimies?.id.required()).get().user.required(),
                 templateName = "kehittamistoimenpiteetKuitattava.html",
                 titleKey = "email.kehittamistoimenpiteetkuitattava.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
         }
 
@@ -146,14 +148,14 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         // Sähköposti erikoistuvalle esimiehen hyväksymästä kehittämistoimenpiteestä
         if (result.lahikouluttajaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!,
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required())
+                    .get().user.required(),
                 templateName = "kehittamistoimenpiteetKuitattava.html",
                 titleKey = "email.kehittamistoimenpiteetkuitattava.title",
                 properties = mapOf(
                     Pair(
                         MailProperty.ID,
-                        result.id!!.toString()
+                        result.id.required().toString()
                     )
                 )
             )
@@ -161,14 +163,14 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         // Sähköposti kouluttajalle korjattavasta kehittämistoimenpiteestä
         else {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahikouluttaja?.id!!)
-                    .get().user!!,
+                kayttajaRepository.findById(result.lahikouluttaja?.id.required())
+                    .get().user.required(),
                 templateName = "kehittamistoimenpiteetPalautettu.html",
                 titleKey = "email.kehittamistoimenpiteetpalautettu.title",
                 properties = mapOf(
                     Pair(
                         MailProperty.ID,
-                        result.id!!.toString()
+                        result.id.required().toString()
                     )
                 )
             )
@@ -279,7 +281,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
 
     private fun mapKehittamistoimenpiteet(kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet): KoejaksonKehittamistoimenpiteetDTO {
         val result = koejaksonKehittamistoimenpiteetMapper.toDto(kehittamistoimenpiteet)
-        koejaksonValiarviointiRepository.findByOpintooikeusId(kehittamistoimenpiteet.opintooikeus?.id!!)
+        koejaksonValiarviointiRepository.findByOpintooikeusId(kehittamistoimenpiteet.opintooikeus?.id.required())
             .let {
                 result.kehittamistoimenpideKategoriat =
                     it.get().kehittamistoimenpideKategoriat?.toList()

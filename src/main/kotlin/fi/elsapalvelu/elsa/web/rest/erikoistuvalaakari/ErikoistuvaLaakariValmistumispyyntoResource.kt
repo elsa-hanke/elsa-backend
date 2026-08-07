@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import org.springframework.web.bind.annotation.RequestParam
 import java.security.Principal
@@ -45,7 +47,7 @@ class ErikoistuvaLaakariValmistumispyyntoResource(
     @GetMapping("/valmistumispyynto")
     fun getValmistumispyynto(principal: Principal?): ResponseEntity<ValmistumispyyntoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         return ResponseEntity.ok(valmistumispyyntoService.findOneByOpintooikeusId(opintooikeusId))
     }
@@ -53,7 +55,7 @@ class ErikoistuvaLaakariValmistumispyyntoResource(
     @GetMapping("/valmistumispyynto-suoritusten-tila")
     fun getValmistumispyyntoSuoritustenTila(principal: Principal?): ResponseEntity<ValmistumispyyntoSuoritustenTilaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val erikoisalaTyyppi = valmistumispyyntoService.findErikoisalaTyyppiByOpintooikeusId(opintooikeusId)
         val vanhatSuorituksetDTO =
             valmistumispyyntoService.findSuoritustenTila(opintooikeusId, erikoisalaTyyppi)
@@ -73,7 +75,7 @@ class ErikoistuvaLaakariValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ValmistumispyyntoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val erikoisalaTyyppi = valmistumispyyntoService.findErikoisalaTyyppiByOpintooikeusId(opintooikeusId)
         val vanhatSuorituksetDTO =
             valmistumispyyntoService.findSuoritustenTila(opintooikeusId, erikoisalaTyyppi)
@@ -84,7 +86,7 @@ class ErikoistuvaLaakariValmistumispyyntoResource(
         validateLaillistamistodistusIfExists(laillistamistodistus)
 
         erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id!!,
+            user.id.required(),
             uusiValmistumispyyntoDTO.laillistamispaiva,
             laillistamistodistus?.bytes,
             laillistamistodistus?.originalFilename,
@@ -105,7 +107,7 @@ class ErikoistuvaLaakariValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ValmistumispyyntoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val erikoisalaTyyppi = valmistumispyyntoService.findErikoisalaTyyppiByOpintooikeusId(opintooikeusId)
         val vanhatSuorituksetDTO =
             valmistumispyyntoService.findSuoritustenTila(opintooikeusId, erikoisalaTyyppi)
@@ -122,7 +124,7 @@ class ErikoistuvaLaakariValmistumispyyntoResource(
         }
 
         erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id!!,
+            user.id.required(),
             uusiValmistumispyyntoDTO.laillistamispaiva,
             laillistamistodistus?.bytes,
             laillistamistodistus?.originalFilename,
@@ -151,7 +153,7 @@ class ErikoistuvaLaakariValmistumispyyntoResource(
     ) {
         if ((uusiValmistumispyyntoDTO.laillistamispaiva == null || laillistamistodistus == null) &&
             !erikoistuvaLaakariService.laillistamispaivaAndTodistusExists(
-                user.id!!
+                user.id.required()
             )
         ) {
             throw BadRequestAlertException(

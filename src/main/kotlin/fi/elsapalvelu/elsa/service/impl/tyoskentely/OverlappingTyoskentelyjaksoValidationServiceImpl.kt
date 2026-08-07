@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
@@ -38,10 +40,10 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
 
         return validateTyoskentelyaika(
             tyoskentelyjaksoDTO.id,
-            tyoskentelyjaksoDTO.alkamispaiva!!,
+            tyoskentelyjaksoDTO.alkamispaiva.required(),
             tyoskentelyjaksoEndDate,
             tyoskentelyjaksot,
-            tyoskentelyjaksoDTO.osaaikaprosentti!!.toDouble()
+            tyoskentelyjaksoDTO.osaaikaprosentti.required().toDouble()
         )
     }
 
@@ -64,7 +66,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
 
         return validateTyoskentelyaika(
             keskeytysaikaDTO.tyoskentelyjaksoId,
-            keskeytysaikaDTO.tyoskentelyjakso?.alkamispaiva!!,
+            keskeytysaikaDTO.tyoskentelyjakso?.alkamispaiva.required(),
             tyoskentelyjaksoEndDate,
             tyoskentelyjaksot
         )
@@ -80,7 +82,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                 opintooikeusId
             ) ?: return false
 
-        val tyoskentelyjaksoId = keskeytysaika.tyoskentelyjakso?.id!!
+        val tyoskentelyjaksoId = keskeytysaika.tyoskentelyjakso?.id.required()
         val tyoskentelyjaksoEndDate =
             keskeytysaika.tyoskentelyjakso?.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
         val tyoskentelyjaksot =
@@ -92,14 +94,14 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         if (tyoskentelyjaksot.size == 1) return true
 
         removeKeskeytysaikaFromTyoskententelyjakso(
-            keskeytysaika.id!!,
+            keskeytysaika.id.required(),
             tyoskentelyjaksoId,
             tyoskentelyjaksot
         )
 
         return validateTyoskentelyaika(
             tyoskentelyjaksoId,
-            keskeytysaika.tyoskentelyjakso?.alkamispaiva!!,
+            keskeytysaika.tyoskentelyjakso?.alkamispaiva.required(),
             tyoskentelyjaksoEndDate,
             tyoskentelyjaksot
         )
@@ -124,10 +126,10 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         if (tyoskentelyjaksoEndDate < tyoskentelyjaksoStartDate) return true
 
         dates@ for (date in tyoskentelyjaksoStartDate.datesUntil(tyoskentelyjaksoEndDate.plusDays(1))) {
-            val overlappingTyoskentelyjaksotForCurrentDate = tyoskentelyjaksot.filter { date.isInRange(it.alkamispaiva!!, it.paattymispaiva) }
+            val overlappingTyoskentelyjaksotForCurrentDate = tyoskentelyjaksot.filter { date.isInRange(it.alkamispaiva.required(), it.paattymispaiva) }
             if (overlappingTyoskentelyjaksotForCurrentDate.isEmpty()) continue@dates
 
-            var overallTyoskentelyaikaFactorForCurrentDate = overlappingTyoskentelyjaksotForCurrentDate.sumOf { it.osaaikaprosentti!!.toDouble() / 100.0 }
+            var overallTyoskentelyaikaFactorForCurrentDate = overlappingTyoskentelyjaksotForCurrentDate.sumOf { it.osaaikaprosentti.required().toDouble() / 100.0 }
 
             // Jos kyseessä uusi työskentelyjakso, lisätään työskentelyaika päiväkohtaiseen kertymään.
             if (existingTyoskentelyjaksoId == null && osaaikaProsentti != null)
@@ -139,12 +141,12 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
             tyoskentelyjaksot@ for (tyoskentelyjakso in overlappingTyoskentelyjaksotForCurrentDate) {
                 val keskeytyksetForCurrentDate =
                     tyoskentelyjakso.keskeytykset.filter { keskeytysaika ->
-                        date.isInRange(keskeytysaika.alkamispaiva!!, keskeytysaika.paattymispaiva)
+                        date.isInRange(keskeytysaika.alkamispaiva.required(), keskeytysaika.paattymispaiva)
                     }
 
                 keskeytyksetForCurrentDate.forEach {
-                    val keskeytysaikaFactor = it.poissaoloprosentti!!.toDouble() / 100.0 * (tyoskentelyjakso.osaaikaprosentti!!.toDouble() / 100.0)
-                    val vahennetaanKerran = it.poissaolonSyy!!.vahennetaanKerran
+                    val keskeytysaikaFactor = it.poissaoloprosentti.required().toDouble() / 100.0 * (tyoskentelyjakso.osaaikaprosentti.required().toDouble() / 100.0)
+                    val vahennetaanKerran = it.poissaolonSyy.required().vahennetaanKerran
 
                     when (it.poissaolonSyy?.vahennystyyppi) {
                         PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN -> {
@@ -153,7 +155,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                         PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI -> {
                             val counterData = getHyvaksiluettavatCounterData(tyoskentelyjaksot, date.minusDays(1))
                             if (vahennetaanKerran) {
-                                counterData.hyvaksiluettavatDays.putIfAbsent(it.poissaolonSyy!!, HYVAKSILUETTAVAT_DAYS)
+                                counterData.hyvaksiluettavatDays.putIfAbsent(it.poissaolonSyy.required(), HYVAKSILUETTAVAT_DAYS)
                             }
                             if (!counterData.hyvaksiluettavatPerYearMap.keys.contains(date.year)) {
                                 counterData.hyvaksiluettavatPerYearMap[date.year] = HYVAKSILUETTAVAT_DAYS
@@ -165,7 +167,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                             // pystytään ja päivitetään molemmat laskurit.
                             val hyvaksiluettavaFactor = if (vahennetaanKerran) min(
                                 counterData.hyvaksiluettavatPerYearMap.getValue(date.year),
-                                counterData.hyvaksiluettavatDays.getValue(it.poissaolonSyy!!)
+                                counterData.hyvaksiluettavatDays.getValue(it.poissaolonSyy.required())
                             ) else counterData.hyvaksiluettavatPerYearMap.getValue(date.year)
                             val reducedFactor = hyvaksiluettavaFactor - keskeytysaikaFactor
                             if (reducedFactor < 0) overallTyoskentelyaikaFactorForCurrentDate -= abs(
@@ -174,8 +176,8 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                             counterData.hyvaksiluettavatPerYearMap[date.year] =
                                 max(0.0, counterData.hyvaksiluettavatPerYearMap.getValue(date.year) - keskeytysaikaFactor)
                             if (vahennetaanKerran) {
-                                counterData.hyvaksiluettavatDays[it.poissaolonSyy!!] =
-                                    max(0.0, counterData.hyvaksiluettavatDays.getValue(it.poissaolonSyy!!) - keskeytysaikaFactor)
+                                counterData.hyvaksiluettavatDays[it.poissaolonSyy.required()] =
+                                    max(0.0, counterData.hyvaksiluettavatDays.getValue(it.poissaolonSyy.required()) - keskeytysaikaFactor)
                             }
                         }
                         else -> {
@@ -215,7 +217,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         tyoskentelyjaksot: List<Tyoskentelyjakso>
     ) {
         val tyoskentelyjaksoWithUpdatedKeskeytysaika =
-            findTyoskentelyjakso(keskeytysaikaDTO.tyoskentelyjaksoId!!, tyoskentelyjaksot)
+            findTyoskentelyjakso(keskeytysaikaDTO.tyoskentelyjaksoId.required(), tyoskentelyjaksot)
 
         tyoskentelyjaksoWithUpdatedKeskeytysaika?.keskeytykset?.find {
             it.id == keskeytysaikaDTO.id

@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
@@ -97,7 +99,7 @@ class KayttajaQueryService(
                 val rootJoin = root.join(Kayttaja_.yliopistot)
                 cb.`in`(rootJoin.get(Yliopisto_.id)).value(yliopistoId)
             } else {
-                val subquery = query!!.subquery(Long::class.java)
+                val subquery = query.required().subquery(Long::class.java)
                 val subRoot = subquery.from(KayttajaYliopistoErikoisala::class.java)
                 val rootJoin = subRoot.join(KayttajaYliopistoErikoisala_.kayttaja)
                 val yliopistoJoin = subRoot.join(KayttajaYliopistoErikoisala_.yliopisto)
@@ -113,7 +115,7 @@ class KayttajaQueryService(
 
     private fun hasOpintooikeusYliopisto(yliopistoId: Long?): Specification<Kayttaja> {
         return (Specification<Kayttaja> { root, query, cb ->
-            val subquery = query!!.subquery(Long::class.java)
+            val subquery = query.required().subquery(Long::class.java)
             val subRoot = subquery.from(Opintooikeus::class.java)
             val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
             val yliopistoJoin = subRoot.join(Opintooikeus_.yliopisto)
@@ -159,7 +161,7 @@ class KayttajaQueryService(
     private fun hasErikoisala(erikoisalaId: LongFilter?): Specification<Kayttaja> {
         return (Specification<Kayttaja> { root, query, cb ->
             erikoisalaId?.let {
-                val subquery = query!!.subquery(Long::class.java)
+                val subquery = query.required().subquery(Long::class.java)
                 val subRoot = subquery.from(KayttajaYliopistoErikoisala::class.java)
                 val rootJoin = subRoot.join(KayttajaYliopistoErikoisala_.kayttaja)
                 val erikoisalaJoin = subRoot.join(KayttajaYliopistoErikoisala_.erikoisala)
@@ -216,7 +218,7 @@ class KayttajaQueryService(
                     yliopisto = y.nimi
                 )
             },
-            authorities = kayttaja.user?.authorities?.takeIf { it.isNotEmpty() }?.map { a -> a.name!! }?.toList(),
+            authorities = kayttaja.user?.authorities?.takeIf { it.isNotEmpty() }?.map { a -> a.name.required() }?.toList(),
             kayttajatilinTila = kayttaja.tila,
             sahkoposti = kayttaja.user?.email.toString(),
         )

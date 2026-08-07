@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -26,10 +28,10 @@ class YekKoulutettavaTeoriakoulutusResource(
     ): ResponseEntity<List<OpintosuoritusDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeus =
-            opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
 
         val opintosuorituksetDTO = opintosuoritusService.getOpintosuorituksetByOpintooikeusIdAndTyyppi(
-            opintooikeus.id!!, OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS
+            opintooikeus.id.required(), OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS
         )
         return ResponseEntity.ok(opintosuorituksetDTO.opintosuoritukset)
     }

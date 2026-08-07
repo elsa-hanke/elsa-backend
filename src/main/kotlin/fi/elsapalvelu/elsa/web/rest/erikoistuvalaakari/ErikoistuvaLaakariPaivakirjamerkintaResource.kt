@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
@@ -57,7 +59,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     ): ResponseEntity<PaivakirjamerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         if (paivakirjamerkintaDTO.id != null) {
             throw BadRequestAlertException(
                 "A new paivakirjamerkinta cannot already have an ID",
@@ -81,7 +83,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     ): ResponseEntity<PaivakirjamerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         if (paivakirjamerkintaDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
         }
@@ -107,7 +109,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     ): ResponseEntity<Page<PaivakirjamerkintaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
                 .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED)
         ) {
@@ -131,7 +133,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     ): ResponseEntity<PaivakirjamerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         return paivakirjamerkintaService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -144,7 +146,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         paivakirjamerkintaService.delete(id, opintooikeusId)
 
         return ResponseEntity.noContent().build()
@@ -156,7 +158,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     ): ResponseEntity<PaivakirjamerkintaFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val form = PaivakirjamerkintaFormDTO()
         form.aihekategoriat = paivakirjaAihekategoriaService.findAll().toMutableSet()
         form.teoriakoulutukset = teoriakoulutusService.findAll(opintooikeusId).toMutableSet()

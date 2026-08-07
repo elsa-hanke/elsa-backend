@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koulutus
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
@@ -45,7 +47,7 @@ class OpintosuorituksetPersistenceServiceImpl(
         opintosuoritukset.items?.mapNotNull { opintosuoritusDTO ->
             checkKurssikoodiExistsOrLogError(opintosuoritusDTO, userId)?.let {
                 kurssikoodit.find { k ->
-                    opintosuoritusDTO.kurssikoodi!!.match(k.tunniste!!)
+                    opintosuoritusDTO.kurssikoodi.required().match(k.tunniste.required())
                 }?.tyyppi?.let { tyyppi ->
                     opintosuoritusDTO.tyyppi = opintosuoritusTyyppiMapper.toDto(tyyppi)
                     opintosuoritusDTO
@@ -65,8 +67,8 @@ class OpintosuorituksetPersistenceServiceImpl(
             }
 
             opintosuoritusRepository.findOneByOpintooikeusYliopistoOpintooikeusIdAndKurssikoodi(
-                opintosuoritusDTO.yliopistoOpintooikeusId!!,
-                opintosuoritusDTO.kurssikoodi!!
+                opintosuoritusDTO.yliopistoOpintooikeusId.required(),
+                opintosuoritusDTO.kurssikoodi.required()
             )
                 ?.let { opintosuoritus ->
                     updateOpintosuoritusDetailsIfChanged(opintosuoritus, opintosuoritusDTO)
@@ -192,7 +194,7 @@ class OpintosuorituksetPersistenceServiceImpl(
     ) {
         val opintooikeus = findOpintooikeusOrLogError(
             opintosuoritusDTO,
-            erikoistuvaLaakari?.id!!,
+            erikoistuvaLaakari?.id.required(),
             userId
         ) ?: return
 
@@ -334,7 +336,7 @@ class OpintosuorituksetPersistenceServiceImpl(
     ): Opintooikeus? =
         opintooikeusRepository.findOneByErikoistuvaLaakariIdAndYliopistoOpintooikeusId(
             erikoistuvaLaakariId,
-            opintosuoritusDTO.yliopistoOpintooikeusId!!
+            opintosuoritusDTO.yliopistoOpintooikeusId.required()
         ) ?: run {
             log.warn(
                 "${javaClass.name}: user id: $userId. Opinto-oikeutta ei löydy Elsasta" +

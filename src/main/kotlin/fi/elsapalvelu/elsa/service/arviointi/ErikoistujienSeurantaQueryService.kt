@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.arviointi
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -112,13 +114,13 @@ class ErikoistujienSeurantaQueryService(
                     it.nimi == VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN || it.nimi == VastuuhenkilonTehtavatyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO
                 }) {
                     cb.and(
-                        cb.equal(root.get(Opintooikeus_.yliopisto).get(Yliopisto_.id), ye.yliopisto!!.id),
+                        cb.equal(root.get(Opintooikeus_.yliopisto).get(Yliopisto_.id), ye.yliopisto.required().id),
                         cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), YEK_ERIKOISALA_ID)
                     )
                 } else {
                     cb.and(
-                        cb.equal(root.get(Opintooikeus_.yliopisto).get(Yliopisto_.id), ye.yliopisto!!.id),
-                        cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), ye.erikoisala!!.id)
+                        cb.equal(root.get(Opintooikeus_.yliopisto).get(Yliopisto_.id), ye.yliopisto.required().id),
+                        cb.equal(root.get(Opintooikeus_.erikoisala).get(Erikoisala_.id), ye.erikoisala.required().id)
                     )
                 }
             }.toTypedArray()
