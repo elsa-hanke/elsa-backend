@@ -23,7 +23,7 @@ Käynnistä applikaatio dev profiililla:
 ./gradlew
 ```
 
-## Tuotantoversion rakentaminen
+## Tuotantoversion rakentaminen 
 
 Rakenna tuotantoversion jar komennolla:
 
