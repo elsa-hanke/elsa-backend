@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- yek-tyoskentelyjakso e2e test [`#667`](https://github.com/elsa-hanke/elsa-backend/pull/667)(6 August 2026)
+- Enabled detekt UnusedImport rule [`#665`](https://github.com/elsa-hanke/elsa-backend/pull/665)(6 August 2026)
 - Bump fast-uri from 3.1.4 to 3.1.5 in /frontend [`#658`](https://github.com/elsa-hanke/elsa-backend/pull/658)(5 August 2026)
 - Refactors the handling of Terveyskeskuskoulutusjakso-related REST endpoints by introducing a shared base resource class to centralize exception handling and file download logic [`#657`](https://github.com/elsa-hanke/elsa-backend/pull/657)(5 August 2026)
 - file download response standardization + test [`#655`](https://github.com/elsa-hanke/elsa-backend/pull/655)(5 August 2026)
