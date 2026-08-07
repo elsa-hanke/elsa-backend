@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluKategoriaService
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluService
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
@@ -8,7 +9,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 
-abstract class ArviointityokalutResource(
+open class ArviointityokalutResource(
     private val arviointityokaluService: ArviointityokaluService,
     private val arviointityokaluKategoriaService: ArviointityokaluKategoriaService,
 ) {
@@ -30,8 +31,8 @@ abstract class ArviointityokalutResource(
         val asiakirjaData = arviointityokaluService.getAsiakirjaDataDTO(arviointityokalu.liite)
         return asiakirjaData.fileInputStream
             ?.toFileDownloadResponse(
-                arviointityokalu.liitetiedostonNimi ?: "",
-                arviointityokalu.liitetiedostonTyyppi ?: ""
+                arviointityokalu.liitetiedostonNimi.orEmpty(),
+                arviointityokalu.liitetiedostonTyyppi.orEmpty()
             )
             ?: ResponseEntity.notFound().build()
     }

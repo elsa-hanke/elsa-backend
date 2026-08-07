@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain.arviointi
 
+import java.time.LocalDate
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable

@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.time.LocalDate
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.kayttaja.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KouluttajavaltuutusDTO

@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*

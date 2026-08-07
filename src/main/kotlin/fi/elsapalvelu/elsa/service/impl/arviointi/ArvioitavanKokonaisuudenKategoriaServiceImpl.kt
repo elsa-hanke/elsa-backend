@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.arviointi
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.arviointi.ArvioitavanKokonaisuudenKategoriaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.arviointi.ArvioitavanKokonaisuudenKategoriaService
@@ -51,7 +52,7 @@ class ArvioitavanKokonaisuudenKategoriaServiceImpl(
                 it.erikoisala?.id,
                 it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
             ).map(arvioitavanKokonaisuudenKategoriaMapper::toDto)
-        } ?: listOf()
+        }.orEmpty()
     }
 
     override fun findAllByErikoisalaId(erikoisalaId: Long): List<ArvioitavanKokonaisuudenKategoriaSimpleDTO> {

@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.integration.sisu.tampere
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.security.AuthenticationToken
@@ -11,7 +10,6 @@ import fi.elsapalvelu.elsa.service.kayttaja.AuthenticationTokenService
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
-import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR
 import okhttp3.FormBody
 import okhttp3.Request
 import org.slf4j.LoggerFactory
@@ -82,10 +80,6 @@ class SisuTreAuthenticationTokenServiceImpl(
         } catch (e: JsonProcessingException) {
             log.error(
                 "$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}"
-            )
-        } catch (e: JsonMappingException) {
-            log.error(
-                "$JSON_MAPPING_ERROR: $endpointUrl ${e.message} "
             )
         } catch (e: IOException) {
             log.error(

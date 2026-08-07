@@ -87,8 +87,8 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
             )
         }
         validateOpintoopas(opintoopasDTO)
-        opintoopasService.update(opintoopasDTO)?.let {
-            return ResponseEntity
+        return opintoopasService.update(opintoopasDTO)?.let {
+            ResponseEntity
                 .created(URI("/api/tekninen-paakayttaja/opintoopas/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)

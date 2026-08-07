@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.repository.koejakso
 
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query

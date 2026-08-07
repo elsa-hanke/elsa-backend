@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koulutus
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository

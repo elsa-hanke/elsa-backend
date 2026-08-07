@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.enumeration
 
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.koejakso.*
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
@@ -34,7 +35,7 @@ enum class KoejaksoTila {
                     !koejaksonKoulutussopimusDTO.vastuuhenkilonKorjausehdotus.isNullOrBlank())) PALAUTETTU_KORJATTAVAKSI
             else if (koejaksonKoulutussopimusDTO.lahetetty == false) TALLENNETTU_KESKENERAISENA
             else if (koejaksonKoulutussopimusDTO.kouluttajat?.all { it.sopimusHyvaksytty == true } == true) {
-                if (koejaksonKoulutussopimusDTO.kouluttajat?.find { it.kayttajaId == kayttajaId } != null) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
+                if (koejaksonKoulutussopimusDTO.kouluttajat?.any { it.kayttajaId == kayttajaId } == true) ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA
                 else ODOTTAA_HYVAKSYNTAA
             } else if (koejaksonKoulutussopimusDTO.kouluttajat?.find { it.kayttajaId == kayttajaId }?.sopimusHyvaksytty == true) ODOTTAA_TOISEN_KOULUTTAJAN_HYVAKSYNTAA
             else ODOTTAA_HYVAKSYNTAA

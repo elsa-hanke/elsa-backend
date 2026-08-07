@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.kayttaja.EtusivuService
 import fi.elsapalvelu.elsa.service.koejakso.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService

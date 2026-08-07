@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import java.security.Principal
 import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal

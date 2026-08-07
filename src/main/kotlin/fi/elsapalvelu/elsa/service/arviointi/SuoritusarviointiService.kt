@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arviointi
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.arviointi.SuoritusarviointiDTO
 import java.util.*

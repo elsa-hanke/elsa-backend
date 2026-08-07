@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.domain.valmistuminen
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import org.hibernate.annotations.Cache

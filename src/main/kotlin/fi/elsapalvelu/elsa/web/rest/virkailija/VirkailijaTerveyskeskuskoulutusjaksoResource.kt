@@ -1,5 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.time.LocalDate
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.service.kayttaja.KayttajaService

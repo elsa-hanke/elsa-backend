@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.kayttaja.PalauteService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.PalauteDTO
 import org.slf4j.LoggerFactory

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.koejakso
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KehittamistoimenpideKategoria
 import java.io.Serializable
 import jakarta.validation.constraints.NotNull

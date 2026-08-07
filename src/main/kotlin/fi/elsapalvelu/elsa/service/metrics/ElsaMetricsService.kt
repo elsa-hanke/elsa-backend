@@ -5,7 +5,7 @@ import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import java.util.concurrent.atomic.AtomicInteger
 
-abstract class ElsaMetricsService(protected val registry: MeterRegistry) {
+open class ElsaMetricsService(protected val registry: MeterRegistry) {
 
     protected fun atomicGauge(name: String, description: String): AtomicInteger {
         val value = AtomicInteger(0)
@@ -23,4 +23,3 @@ abstract class ElsaMetricsService(protected val registry: MeterRegistry) {
         return Counter.builder(name).description(description).tags(*tags).register(registry)
     }
 }
-

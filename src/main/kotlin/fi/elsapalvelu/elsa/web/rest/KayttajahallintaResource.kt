@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
 import fi.elsapalvelu.elsa.domain.kayttaja.User
@@ -394,7 +396,7 @@ open class KayttajahallintaResource(
         val userDTO = userService.getUser(userId)
         validateEmailNotExists(sahkoposti, userDTO)
         userService.updateEmail(sahkoposti, userId)
-        opintooikeusService.updateOpintooikeudet(userId, updateErikoistuvaLaakariDTO.opintooikeudet ?: listOf())
+        opintooikeusService.updateOpintooikeudet(userId, updateErikoistuvaLaakariDTO.opintooikeudet.orEmpty())
 
         return ResponseEntity.ok().build()
     }

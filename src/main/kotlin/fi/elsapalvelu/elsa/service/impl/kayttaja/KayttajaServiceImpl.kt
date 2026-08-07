@@ -150,13 +150,13 @@ class KayttajaServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findKouluttajatFromSameErikoisala(userId: String): List<KayttajaDTO> {
-        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+        return erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             val opintooikeus = it.getOpintooikeusKaytossa()
-            return kayttajaRepository.findAllByAuthoritiesAndErikoisala(
+            kayttajaRepository.findAllByAuthoritiesAndErikoisala(
                 listOf(KOULUTTAJA),
                 opintooikeus?.erikoisala?.id
             ).map(kayttajaMapper::toDto)
-        } ?: return listOf()
+        }.orEmpty()
     }
 
     @Transactional(readOnly = true)
@@ -187,7 +187,7 @@ class KayttajaServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findKouluttajatAndVastuuhenkilotFromSameYliopisto(userId: String): List<KayttajaDTO> {
-        erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
+        return erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             val opintooikeus = it.getOpintooikeusKaytossa()
             val result = kayttajaRepository.findAllByAuthoritiesAndErikoisala(
                 listOf(KOULUTTAJA),
@@ -198,8 +198,8 @@ class KayttajaServiceImpl(
                     listOf(VASTUUHENKILO), opintooikeus?.yliopisto?.id, opintooikeus?.erikoisala?.id
                 )
             )
-            return result.map(kayttajaMapper::toDto)
-        } ?: return listOf()
+            result.map(kayttajaMapper::toDto)
+        }.orEmpty()
     }
 
     @Transactional(readOnly = true)

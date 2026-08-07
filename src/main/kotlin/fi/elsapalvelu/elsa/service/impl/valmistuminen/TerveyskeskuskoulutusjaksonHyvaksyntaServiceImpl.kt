@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja

@@ -1,6 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository

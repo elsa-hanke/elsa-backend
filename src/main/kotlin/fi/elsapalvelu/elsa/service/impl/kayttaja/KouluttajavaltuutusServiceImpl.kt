@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository

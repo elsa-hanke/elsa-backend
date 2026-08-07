@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.seuranta
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.dto.enumeration.SeurantajaksoTila
 import java.io.Serializable
 

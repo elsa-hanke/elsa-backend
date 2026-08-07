@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.*
@@ -104,7 +107,7 @@ open class SuoritusarviointiResource(
             .findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(id, user.id!!, asiakirjaId)
 
         return asiakirja?.asiakirjaData?.fileInputStream
-            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             ?: ResponseEntity.notFound().build()
     }
 
@@ -116,7 +119,7 @@ open class SuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        suoritusarviointiJson.let {
+        return suoritusarviointiJson.let {
             objectMapper.readValue(it, SuoritusarviointiDTO::class.java)
         }?.let { suoritusarviointiDTO ->
             validateDTO(suoritusarviointiDTO)
@@ -130,7 +133,7 @@ open class SuoritusarviointiResource(
                 deletedAsiakirjaIds,
                 user.id!!
             )
-            return ResponseEntity.ok(result)
+            ResponseEntity.ok(result)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 

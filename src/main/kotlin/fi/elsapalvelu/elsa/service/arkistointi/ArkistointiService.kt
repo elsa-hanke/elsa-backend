@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType

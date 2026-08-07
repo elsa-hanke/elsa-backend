@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluKategoriaService
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluService

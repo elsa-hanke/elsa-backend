@@ -62,13 +62,11 @@ class KoulutussuunnitelmaServiceImpl(
     }
 
     override fun findOneByOpintooikeusId(opintooikeusId: Long): KoulutussuunnitelmaDTO? {
-        koulutussuunnitelmaRepository.findOneByOpintooikeusId(opintooikeusId)?.let {
-            return koulutussuunnitelmaMapper.toDto(it)
-        } ?: run {
-            return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+        return koulutussuunnitelmaRepository.findOneByOpintooikeusId(opintooikeusId)?.let {
+            koulutussuunnitelmaMapper.toDto(it)
+        } ?: opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
                 val koulutussuunnitelma = koulutussuunnitelmaRepository.save(Koulutussuunnitelma(opintooikeus = it))
-                return koulutussuunnitelmaMapper.toDto(koulutussuunnitelma)
-            }
+                koulutussuunnitelmaMapper.toDto(koulutussuunnitelma)
         }
     }
 }

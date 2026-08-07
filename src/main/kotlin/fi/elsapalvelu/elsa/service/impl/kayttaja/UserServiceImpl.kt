@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.config.LoginException
 import fi.elsapalvelu.elsa.domain.*

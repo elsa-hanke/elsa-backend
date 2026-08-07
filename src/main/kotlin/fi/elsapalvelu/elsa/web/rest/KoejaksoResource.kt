@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
 import fi.elsapalvelu.elsa.service.tyoskentely.*

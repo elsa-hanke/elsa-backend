@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.arkistointi
 
+import java.time.LocalDate
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
 class Custom {

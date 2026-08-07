@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.integration.peppi.oulu
 
+import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.OpintotietodataPeppiOuluQuery
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS

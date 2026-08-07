@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
 import fi.elsapalvelu.elsa.service.tyoskentely.*
@@ -175,7 +178,7 @@ class VastuuhenkiloKoejaksoResource(
             val asiakirja = asiakirjaService.findByIdAndLiitettykoejaksoon(asiakirjaId)
 
             asiakirja?.asiakirjaData?.fileInputStream
-                ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+                ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
                 ?.let { return it }
         }
 
@@ -195,7 +198,7 @@ class VastuuhenkiloKoejaksoResource(
             ?.let { asiakirja ->
                 asiakirjaService.findById(asiakirja.id!!)
                     ?.asiakirjaData?.fileInputStream
-                    ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+                    ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             }
             ?: ResponseEntity.notFound().build()
     }

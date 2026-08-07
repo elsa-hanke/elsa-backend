@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.kayttaja
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import java.io.Serializable
 import jakarta.validation.constraints.NotNull
 

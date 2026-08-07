@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.kayttaja
 
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.service.dto.kayttaja.OpintooikeusDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaOpintooikeusDTO

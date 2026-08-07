@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
@@ -90,7 +93,7 @@ class KoejaksonKoulutussopimusServiceImpl(
                     paikka.yliopisto = null
                 }
             }
-            koulutussopimus.kouluttajat?.forEach { it.koulutussopimus = koulutussopimus }
+            koulutussopimus.kouluttajat?.forEach { kouluttaja -> kouluttaja.koulutussopimus = koulutussopimus }
             if (koulutussopimus.lahetetty) koulutussopimus.erikoistuvanAllekirjoitusaika =
                 LocalDate.now()
             koulutussopimus.korjausehdotus = null
@@ -148,14 +151,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             koulutussopimus.kouluttajat?.toTypedArray()?.forEach {
                 if (it.kouluttaja?.user?.id == userId) {
                     koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
-                    val kayttaja = it.kouluttaja!!
-                    val user = it.kouluttaja?.user!!
-                    val kouluttaja = koulutussopimusDTO.kouluttajat?.first { it.kayttajaUserId == userId }
-                    user.phoneNumber = kouluttaja?.puhelin
-                    user.email = kouluttaja?.sahkoposti?.lowercase()
-                    kayttaja.nimike = kouluttaja?.nimike
-                    userRepository.save(user)
-                    kayttajaRepository.save(kayttaja)
+                    updateKouluttajaContact(it, koulutussopimusDTO, userId)
                 }
             }
 
@@ -195,6 +191,23 @@ class KoejaksonKoulutussopimusServiceImpl(
             logger.error("Virhe koulutussopimuksen päivityksessä: ${e.message}", e)
             throw e
         }
+    }
+
+    private fun updateKouluttajaContact(
+        kouluttajaEntity: KoulutussopimuksenKouluttaja,
+        koulutussopimusDTO: KoejaksonKoulutussopimusDTO,
+        userId: String
+    ) {
+        val kayttaja = kouluttajaEntity.kouluttaja!!
+        val user = kouluttajaEntity.kouluttaja?.user!!
+        val kouluttaja = koulutussopimusDTO.kouluttajat?.first { kouluttajaDTO ->
+            kouluttajaDTO.kayttajaUserId == userId
+        }
+        user.phoneNumber = kouluttaja?.puhelin
+        user.email = kouluttaja?.sahkoposti?.lowercase()
+        kayttaja.nimike = kouluttaja?.nimike
+        userRepository.save(user)
+        kayttajaRepository.save(kayttaja)
     }
 
     private fun arkistoiKoulutussopimus(

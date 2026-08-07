@@ -1,5 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.time.LocalDate
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.*
@@ -229,7 +234,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        suoritusarviointiJson.let {
+        return suoritusarviointiJson.let {
             objectMapper.readValue(it, SuoritusarviointiDTO::class.java)
         }?.let { suoritusarviointiDTO ->
             if (suoritusarviointiDTO.id == null) {
@@ -250,7 +255,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
                 deletedAsiakirjaIds,
                 user.id!!
             )
-            return ResponseEntity.ok(result)
+            ResponseEntity.ok(result)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
@@ -284,7 +289,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
             )
 
         return asiakirja?.asiakirjaData?.fileInputStream
-            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             ?: ResponseEntity.notFound().build()
     }
 

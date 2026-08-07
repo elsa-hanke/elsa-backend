@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.domain.tyoskentely
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy

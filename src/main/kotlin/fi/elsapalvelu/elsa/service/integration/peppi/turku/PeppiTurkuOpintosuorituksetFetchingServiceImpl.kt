@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.integration.peppi.turku
 
+import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository

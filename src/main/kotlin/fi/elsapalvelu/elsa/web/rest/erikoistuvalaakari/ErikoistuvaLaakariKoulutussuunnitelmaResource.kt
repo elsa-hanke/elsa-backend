@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.service.kayttaja.FileValidationService
@@ -52,9 +55,9 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
         koulutussuunnitelmaDTO.motivaatiokirjeAsiakirja =
             getMappedFile(motivaatiokirjeFile, opintooikeusId)
 
-        koulutussuunnitelmaService.save(koulutussuunnitelmaDTO, opintooikeusId)
+        return koulutussuunnitelmaService.save(koulutussuunnitelmaDTO, opintooikeusId)
             ?.let {
-                return ResponseEntity.ok(it)
+                ResponseEntity.ok(it)
             } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonValiarviointi
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository

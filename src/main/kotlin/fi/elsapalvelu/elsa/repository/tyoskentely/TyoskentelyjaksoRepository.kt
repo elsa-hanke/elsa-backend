@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.repository.tyoskentely
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi

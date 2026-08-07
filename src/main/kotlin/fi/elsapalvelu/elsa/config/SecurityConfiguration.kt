@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.config
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
 import fi.elsapalvelu.elsa.domain.kayttaja.User
@@ -110,7 +111,8 @@ class SecurityConfiguration(
     private val userRepository: UserRepository,
     private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
     private val env: Environment,
-    private val applicationContext: ApplicationContext
+    private val applicationContext: ApplicationContext,
+    private val ioDispatcher: CoroutineDispatcher
 ) {
 
     private val log = LoggerFactory.getLogger(SecurityConfiguration::class.java)
@@ -540,7 +542,7 @@ class SecurityConfiguration(
     private suspend fun fetchOpintotietodata(hetu: String): List<OpintotietodataDTO> =
         supervisorScope {
             opintotietodataFetchingServices.map { service ->
-                async(Dispatchers.IO) {
+                async(ioDispatcher) {
                     fetchOpintotietodataForService(service, hetu)
                 }
             }.awaitAll().filterNotNull()
@@ -568,7 +570,7 @@ class SecurityConfiguration(
         }
 
     private fun fetchAndHandleOpintosuorituksetNonBlocking(userId: String, hetu: String) {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
         opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
             .forEach { service ->
                 scope.launch {

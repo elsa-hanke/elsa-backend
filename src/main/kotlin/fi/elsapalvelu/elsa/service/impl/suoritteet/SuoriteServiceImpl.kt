@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.suoritteet
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoriteRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoritemerkintaRepository

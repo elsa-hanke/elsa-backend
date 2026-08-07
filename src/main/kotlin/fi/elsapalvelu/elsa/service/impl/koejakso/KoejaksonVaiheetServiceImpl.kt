@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
@@ -229,7 +230,7 @@ class KoejaksonVaiheetServiceImpl(
                 }
             }
 
-            resultMap[opintooikeusId]!!.add(result)
+            resultMap.getValue(opintooikeusId).add(result)
         }
     }
 
@@ -279,7 +280,7 @@ class KoejaksonVaiheetServiceImpl(
                 }
             }
 
-            resultMap[opintooikeusId]!!.add(result)
+            resultMap.getValue(opintooikeusId).add(result)
 
         }
     }
@@ -322,7 +323,7 @@ class KoejaksonVaiheetServiceImpl(
                 }
             }
 
-            resultMap[opintooikeusId]!!.add(result)
+            resultMap.getValue(opintooikeusId).add(result)
         }
     }
 
@@ -352,12 +353,10 @@ class KoejaksonVaiheetServiceImpl(
                 val mappedAloituskeskusteluHyvaksytty =
                     applyAloituskeskustelu(opintooikeusId)
 
-                result.apply {
-                    hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
-                }
+                result.hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
             }
 
-            resultMap[opintooikeusId]!!.add(result)
+            resultMap.getValue(opintooikeusId).add(result)
         }
     }
 
@@ -383,7 +382,7 @@ class KoejaksonVaiheetServiceImpl(
                 return@forEach
             }
             resultMap[opintooikeusId] = mutableListOf()
-            resultMap[opintooikeusId]!!.add(
+            resultMap.getValue(opintooikeusId).add(
                 mapAloituskeskustelu(it.value, kayttajaId)
             )
         }
@@ -408,7 +407,7 @@ class KoejaksonVaiheetServiceImpl(
         }.forEach {
             val opintooikeusId = it.key
             resultMap.putIfAbsent(opintooikeusId, mutableListOf())
-            resultMap[opintooikeusId]!!.add(mapKoulutussopimus(it.value, false, kayttajaId))
+            resultMap.getValue(opintooikeusId).add(mapKoulutussopimus(it.value, false, kayttajaId))
         }
     }
 
@@ -441,7 +440,7 @@ class KoejaksonVaiheetServiceImpl(
         }.forEach {
             val opintooikeusId = it.key
             resultMap.putIfAbsent(opintooikeusId, mutableListOf())
-            resultMap[opintooikeusId]!!.add(mapKoulutussopimus(it.value, true))
+            resultMap.getValue(opintooikeusId).add(mapKoulutussopimus(it.value, true))
         }
     }
 
@@ -471,9 +470,7 @@ class KoejaksonVaiheetServiceImpl(
                 .map(valiarviointiMapper::toDto).get()
         val mappedValiarviointi = mapValiarviointi(valiarviointiDTO, kayttajaId)
         val mappedValiarviointiHyvaksytty = mapValiarviointiHyvaksytty(valiarviointiDTO)
-        mappedValiarviointi.apply {
-            hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
-        }
+        mappedValiarviointi.hyvaksytytVaiheet.add(mappedAloituskeskusteluHyvaksytty)
         return mappedValiarviointiHyvaksytty
     }
 

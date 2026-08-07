@@ -1,5 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
@@ -55,8 +59,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         }
 
         val asiakirjat = files.map { it.mapAsiakirja() }
-        asiakirjaService.create(asiakirjat, opintooikeusId)?.let {
-            return ResponseEntity
+        return asiakirjaService.create(asiakirjat, opintooikeusId)?.let {
+            ResponseEntity
                 .created(URI("/api/asiakirjat"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -123,7 +127,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
         }
 
         return asiakirja?.asiakirjaData?.fileInputStream
-            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             ?: ResponseEntity.notFound().build()
     }
 
@@ -141,4 +145,3 @@ class ErikoistuvaLaakariAsiakirjaResource(
             .build()
     }
 }
-

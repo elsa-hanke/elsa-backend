@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*

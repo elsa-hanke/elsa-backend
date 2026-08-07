@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.arviointi
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.arviointi.ArvioinninPerustuminen
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min

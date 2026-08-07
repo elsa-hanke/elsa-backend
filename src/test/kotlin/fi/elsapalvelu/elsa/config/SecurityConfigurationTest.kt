@@ -17,6 +17,7 @@ import fi.elsapalvelu.elsa.service.koulutus.OpintotietodataPersistenceService
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -26,6 +27,7 @@ import org.springframework.core.env.Environment
 import org.springframework.web.filter.CorsFilter
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.jvm.isAccessible
@@ -137,8 +139,13 @@ class SecurityConfigurationTest {
         mock(UserRepository::class.java),
         mock(KouluttajavaltuutusRepository::class.java),
         mock(Environment::class.java),
-        mock(ApplicationContext::class.java)
+        mock(ApplicationContext::class.java),
+        DirectTestDispatcher
     )
+
+    private object DirectTestDispatcher : CoroutineDispatcher() {
+        override fun dispatch(context: CoroutineContext, block: Runnable) = block.run()
+    }
 
     private class TestOpintotietodataFetchingService(
         private val yliopisto: YliopistoEnum,
@@ -181,4 +188,3 @@ class SecurityConfigurationTest {
         override fun getYliopisto() = yliopisto
     }
 }
-

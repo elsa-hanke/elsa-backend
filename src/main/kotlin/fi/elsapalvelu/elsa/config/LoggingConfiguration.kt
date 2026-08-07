@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.config
 
+import org.springframework.beans.factory.annotation.Value
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.spi.ILoggingEvent

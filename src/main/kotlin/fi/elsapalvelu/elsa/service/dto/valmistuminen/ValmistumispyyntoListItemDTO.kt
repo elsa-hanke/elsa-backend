@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.valmistuminen
 
+import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import java.io.Serializable
 

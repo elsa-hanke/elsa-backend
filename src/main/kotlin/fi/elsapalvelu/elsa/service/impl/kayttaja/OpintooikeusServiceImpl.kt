@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
 import fi.elsapalvelu.elsa.domain.kayttaja.User
@@ -210,7 +213,7 @@ class OpintooikeusServiceImpl(
 
     private fun updateRoles(validOikeudet: List<Opintooikeus>, user: User) {
         val yekOikeus = validOikeudet.map { it.erikoisala?.id }.contains(YEK_ERIKOISALA_ID)
-        val elOikeus = validOikeudet.filter { it.erikoisala?.id != YEK_ERIKOISALA_ID }.isNotEmpty()
+        val elOikeus = validOikeudet.any { it.erikoisala?.id != YEK_ERIKOISALA_ID }
         val authorities = user.authorities
 
         val elAuthority = authorities.find { it.name == ERIKOISTUVA_LAAKARI }
@@ -233,10 +236,10 @@ class OpintooikeusServiceImpl(
 
         val elOikeudet = validOikeudet.filter { it.erikoisala?.id != YEK_ERIKOISALA_ID }
 
-        erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)?.let {
-            if (elOikeus && !elOikeudet.map { it.id }.contains(it.aktiivinenOpintooikeus)) {
-                it.aktiivinenOpintooikeus = elOikeudet.first().id
-                erikoistuvaLaakariRepository.save(it)
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)?.let { erikoistuvaLaakari ->
+            if (elOikeus && elOikeudet.none { it.id == erikoistuvaLaakari.aktiivinenOpintooikeus }) {
+                erikoistuvaLaakari.aktiivinenOpintooikeus = elOikeudet.first().id
+                erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
             }
         }
 

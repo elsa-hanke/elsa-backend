@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
 import fi.elsapalvelu.elsa.service.tyoskentely.*
@@ -57,8 +59,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
 
         uusiSuoritemerkintaDTO.arviointiasteikko =
             arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
-        suoritemerkintaService.create(uusiSuoritemerkintaDTO, user.id!!)?.let {
-            return ResponseEntity
+        return suoritemerkintaService.create(uusiSuoritemerkintaDTO, user.id!!)?.let {
+            ResponseEntity
                 .created(URI("/api/suoritemerkinnat"))
                 .body(it)
         } ?: throw BadRequestAlertException(
@@ -84,8 +86,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         suoritemerkintaDTO.lukittu = false
         val user = userService.getAuthenticatedUser(principal)
 
-        suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
-            return ResponseEntity.ok(it)
+        return suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
+            ResponseEntity.ok(it)
         } ?: throw BadRequestAlertException(
             "Suoritemerkinnän työskentelyjakso täytyy olla oma.",
             ENTITY_NAME,
@@ -99,8 +101,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        suoritemerkintaService.findOne(id, user.id!!)?.let {
-            return ResponseEntity.ok(it)
+        return suoritemerkintaService.findOne(id, user.id!!)?.let {
+            ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 
@@ -180,11 +182,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     }
 
     private fun toSortedSuoritteenKategoriat(suoritteenKategoriat: List<SuoritteenKategoriaDTO>): Set<SuoritteenKategoriaDTO> {
-        return suoritteenKategoriat.map {
-            it.apply {
-                suoritteet = suoritteet?.sortedBy { suoritteet -> suoritteet.nimi }?.toSet()
-            }
-            it
+        return suoritteenKategoriat.onEach {
+            it.suoritteet = it.suoritteet?.sortedBy { suorite -> suorite.nimi }?.toSet()
         }.sortedWith(compareBy({ it.jarjestysnumero }, { it.nimi })).toSet()
     }
 }

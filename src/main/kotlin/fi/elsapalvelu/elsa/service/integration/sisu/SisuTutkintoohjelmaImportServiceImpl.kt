@@ -17,13 +17,13 @@ class SisuTutkintoohjelmaImportServiceImpl(
             ?.mapValues { it.value }
             ?.forEach {
                 it.value
-                    .flatMap { e -> e.requirementCollections ?: listOf() }
-                    .flatMap { r -> r.degreeProgrammeGroupIds?.toSet() ?: listOf() }
+                    .flatMap { e -> e.requirementCollections.orEmpty() }
+                    .flatMap { r -> r.degreeProgrammeGroupIds?.toSet().orEmpty() }
                     .toSet().let { ids ->
                         erikoisalaRepository.findOneByVirtaPatevyyskoodi(it.key!!)?.let { erikoisala ->
                             erikoisala.sisuTutkintoohjelmat.removeIf { s -> s.tutkintoohjelmaId !in ids }
                             ids.map { id ->
-                                if (erikoisala.sisuTutkintoohjelmat.find { s -> s.tutkintoohjelmaId == id } == null) {
+                                if (erikoisala.sisuTutkintoohjelmat.none { s -> s.tutkintoohjelmaId == id }) {
                                     val erikoisalaSisuTutkintoohjelma = ErikoisalaSisuTutkintoohjelma(
                                         tutkintoohjelmaId = id,
                                         erikoisala = erikoisala

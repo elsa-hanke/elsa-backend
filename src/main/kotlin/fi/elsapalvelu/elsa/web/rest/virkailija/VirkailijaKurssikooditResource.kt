@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
 import fi.elsapalvelu.elsa.service.tyoskentely.*
@@ -72,8 +74,8 @@ class VirkailijaKurssikooditResource(
             )
         }
 
-        opintosuoritusKurssikooditService.save(user.id!!, opintosuoritusKurssikoodiDTO)?.let {
-            return ResponseEntity
+        return opintosuoritusKurssikooditService.save(user.id!!, opintosuoritusKurssikoodiDTO)?.let {
+            ResponseEntity
                 .created(URI("/api/virkailija/kurssikoodi/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)

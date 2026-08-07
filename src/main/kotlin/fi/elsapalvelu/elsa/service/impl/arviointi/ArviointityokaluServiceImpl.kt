@@ -152,9 +152,8 @@ class ArviointityokaluServiceImpl(
             .map { arviointityokalu ->
                 arviointityokalu.kysymykset = arviointityokalu.kysymykset
                     .sortedBy { it.jarjestysnumero }
-                    .map { kysymys ->
+                    .onEach { kysymys ->
                         kysymys.vaihtoehdot = kysymys.vaihtoehdot.sortedBy { it.id }.toMutableList()
-                        kysymys
                     }.toMutableList()
                 arviointityokaluMapper.toDto(arviointityokalu)
             }

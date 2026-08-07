@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
 import fi.elsapalvelu.elsa.service.tyoskentely.*

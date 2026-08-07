@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
 import fi.elsapalvelu.elsa.service.tyoskentely.*
@@ -69,7 +72,7 @@ class VirkailijaKoejaksoResource(
                 kayttaja.orElse(null)?.yliopistot?.map { it.id!! })
 
         return asiakirja?.asiakirjaData?.fileInputStream
-            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             ?: ResponseEntity.notFound().build()
     }
 
@@ -86,7 +89,7 @@ class VirkailijaKoejaksoResource(
             ?.let { asiakirja ->
                 asiakirjaService.findById(asiakirja.id!!)
                     ?.asiakirjaData?.fileInputStream
-                    ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+                    ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             }
             ?: ResponseEntity.notFound().build()
     }

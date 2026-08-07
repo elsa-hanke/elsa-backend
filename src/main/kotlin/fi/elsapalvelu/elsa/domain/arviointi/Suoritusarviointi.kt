@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain.arviointi
 
+import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min

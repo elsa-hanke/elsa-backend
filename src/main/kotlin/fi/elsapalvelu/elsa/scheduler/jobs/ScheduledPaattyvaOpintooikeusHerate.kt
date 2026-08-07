@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.scheduler.jobs
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeusHerate
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusHerateRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository

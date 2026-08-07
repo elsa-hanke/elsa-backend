@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyyTyyppi
@@ -108,9 +109,12 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
     private fun validateTyoskentelyaika(existingTyoskentelyjaksoId: Long?, tyoskentelyjaksoStartDate: LocalDate, tyoskentelyjaksoEndDate: LocalDate,
         tyoskentelyjaksot: List<Tyoskentelyjakso>, osaaikaProsentti: Double? = null): Boolean {
         var hyvaksiluettavatCounterData: HyvaksiluettavatCounterData? = null
-        fun getHyvaksiluettavatCounterData(tyoskentelyjaksot: List<Tyoskentelyjakso>, calculateUntilDate: LocalDate): HyvaksiluettavatCounterData {
+        fun getHyvaksiluettavatCounterData(
+            counterTyoskentelyjaksot: List<Tyoskentelyjakso>,
+            calculateUntilDate: LocalDate
+        ): HyvaksiluettavatCounterData {
             if (hyvaksiluettavatCounterData == null) {
-                hyvaksiluettavatCounterData = tyoskentelyjaksonPituusCounterService.calculateHyvaksiluettavatDaysLeft(tyoskentelyjaksot, calculateUntilDate)
+                hyvaksiluettavatCounterData = tyoskentelyjaksonPituusCounterService.calculateHyvaksiluettavatDaysLeft(counterTyoskentelyjaksot, calculateUntilDate)
             }
             return hyvaksiluettavatCounterData
         }
@@ -160,18 +164,18 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                             // poissaolokohtaisesta määrästä. Hyväksiluetaan näistä niin paljon kuin
                             // pystytään ja päivitetään molemmat laskurit.
                             val hyvaksiluettavaFactor = if (vahennetaanKerran) min(
-                                counterData.hyvaksiluettavatPerYearMap[date.year]!!,
-                                counterData.hyvaksiluettavatDays[it.poissaolonSyy]!!
-                            ) else counterData.hyvaksiluettavatPerYearMap[date.year]!!
+                                counterData.hyvaksiluettavatPerYearMap.getValue(date.year),
+                                counterData.hyvaksiluettavatDays.getValue(it.poissaolonSyy!!)
+                            ) else counterData.hyvaksiluettavatPerYearMap.getValue(date.year)
                             val reducedFactor = hyvaksiluettavaFactor - keskeytysaikaFactor
                             if (reducedFactor < 0) overallTyoskentelyaikaFactorForCurrentDate -= abs(
                                 reducedFactor
                             )
                             counterData.hyvaksiluettavatPerYearMap[date.year] =
-                                max(0.0, counterData.hyvaksiluettavatPerYearMap[date.year]!! - keskeytysaikaFactor)
+                                max(0.0, counterData.hyvaksiluettavatPerYearMap.getValue(date.year) - keskeytysaikaFactor)
                             if (vahennetaanKerran) {
                                 counterData.hyvaksiluettavatDays[it.poissaolonSyy!!] =
-                                    max(0.0, counterData.hyvaksiluettavatDays[it.poissaolonSyy!!]!! - keskeytysaikaFactor)
+                                    max(0.0, counterData.hyvaksiluettavatDays.getValue(it.poissaolonSyy!!) - keskeytysaikaFactor)
                             }
                         }
                         else -> {

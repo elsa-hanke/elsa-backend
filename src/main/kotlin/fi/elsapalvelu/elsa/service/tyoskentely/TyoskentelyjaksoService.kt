@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.tyoskentely
 
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO

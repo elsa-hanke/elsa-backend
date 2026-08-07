@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.integration.sisu.tampere
 
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
@@ -12,7 +11,6 @@ import fi.elsapalvelu.elsa.service.integration.LocalizedString
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
-import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
 import okhttp3.Request
@@ -45,10 +43,10 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
                 }
                 response.body?.string().let { body ->
                     objectMapper.readValue(body, AttainmentsResponse::class.java)
-                        ?.let { response ->
+                        ?.let { attainmentsResponse ->
                             OpintosuorituksetPersistenceDTO(
                                 yliopisto = YliopistoEnum.TAMPEREEN_YLIOPISTO,
-                                items = response.attainments.map {
+                                items = attainmentsResponse.attainments.map {
                                     OpintosuoritusDTO(
                                         suorituspaiva = it.attainmentDate?.tryParseToLocalDate(),
                                         opintopisteet = it.credits,
@@ -68,9 +66,6 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
             }
         } catch (e: JsonProcessingException) {
             log.error("$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}", e)
-            throw e
-        } catch (e: JsonMappingException) {
-            log.error("$JSON_MAPPING_ERROR: $endpointUrl ${e.message}", e)
             throw e
         } catch (e: IOException) {
             log.error("$JSON_FETCHING_ERROR: $endpointUrl ${e.message}", e)
@@ -102,4 +97,3 @@ data class Grade(
     val name: LocalizedString?,
     val passed: Boolean
 )
-

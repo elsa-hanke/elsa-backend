@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.repository.tyoskentely
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query

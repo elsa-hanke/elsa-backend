@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
 import fi.elsapalvelu.elsa.service.tyoskentely.*

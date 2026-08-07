@@ -1,5 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.time.LocalDate
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
 import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksoDTO
@@ -74,10 +78,10 @@ class ErikoistuvaLaakariSeurantakeskustelutResource(
         val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
         validateNewSeurantajaksoDTO(seurantajaksoDTO)
 
-        seurantajaksoService.create(seurantajaksoDTO, opintooikeusId)?.let {
-            return ResponseEntity
-            .created(URI("/api/seurantakeskustelut/seurantajakso/${it.id}"))
-            .body(it)
+        return seurantajaksoService.create(seurantajaksoDTO, opintooikeusId)?.let {
+            ResponseEntity
+                .created(URI("/api/seurantakeskustelut/seurantajakso/${it.id}"))
+                .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 

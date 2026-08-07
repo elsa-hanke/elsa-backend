@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.repository.arviointi
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavanKokonaisuudenKategoria
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query

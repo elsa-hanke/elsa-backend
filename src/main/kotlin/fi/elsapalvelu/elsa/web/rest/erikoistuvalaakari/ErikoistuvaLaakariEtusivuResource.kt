@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.kayttaja.EtusivuService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AvoinAsiaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.ErikoistumisenEdistyminenDTO

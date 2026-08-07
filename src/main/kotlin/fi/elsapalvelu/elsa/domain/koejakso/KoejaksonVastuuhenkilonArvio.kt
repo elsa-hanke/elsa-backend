@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.domain.koejakso
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache

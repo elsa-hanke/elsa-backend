@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.PoissaolonSyyRepository
 import fi.elsapalvelu.elsa.service.PoissaolonSyyService

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain.kayttaja
 
+import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache

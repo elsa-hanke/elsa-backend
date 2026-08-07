@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.suoritteet
 
+import java.time.LocalDate
 import jakarta.validation.constraints.NotNull
 import java.io.Serializable
 

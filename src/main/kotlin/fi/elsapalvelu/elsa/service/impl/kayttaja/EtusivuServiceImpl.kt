@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
@@ -95,15 +98,17 @@ class EtusivuServiceImpl(
         val seurantaDTO = ErikoistujienSeurantaDTO()
         kayttaja?.let {
             seurantaDTO.kayttajaYliopistoErikoisalat =
-                kayttaja.yliopistotAndErikoisalat.groupBy { it.yliopisto }.map {
+                kayttaja.yliopistotAndErikoisalat.groupBy { kayttajaYliopistoErikoisala ->
+                    kayttajaYliopistoErikoisala.yliopisto
+                }.map { yliopistoErikoisalat ->
                     KayttajaErikoisalatPerYliopistoDTO(
-                        yliopistoNimi = it.key?.nimi.toString(),
-                        erikoisalat = it.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
+                        yliopistoNimi = yliopistoErikoisalat.key?.nimi.toString(),
+                        erikoisalat = yliopistoErikoisalat.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
                             .sorted()
                     )
                 }
-            seurantaDTO.kayttajaYliopistoErikoisalat?.forEach {
-                seurantaDTO.erikoisalat?.addAll(it.erikoisalat!!)
+            seurantaDTO.kayttajaYliopistoErikoisalat?.forEach { yliopistoErikoisalat ->
+                seurantaDTO.erikoisalat?.addAll(yliopistoErikoisalat.erikoisalat!!)
             }
             seurantaDTO.erikoisalat = seurantaDTO.erikoisalat?.sorted()?.toMutableSet()
         }
@@ -141,15 +146,17 @@ class EtusivuServiceImpl(
         val seurantaDTO = ErikoistujienSeurantaDTO()
         kayttaja?.let {
             seurantaDTO.kayttajaYliopistoErikoisalat =
-                kayttaja.yliopistotAndErikoisalat.groupBy { it.yliopisto }.map {
+                kayttaja.yliopistotAndErikoisalat.groupBy { kayttajaYliopistoErikoisala ->
+                    kayttajaYliopistoErikoisala.yliopisto
+                }.map { yliopistoErikoisalat ->
                     KayttajaErikoisalatPerYliopistoDTO(
-                        yliopistoNimi = it.key?.nimi.toString(),
-                        erikoisalat = it.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
+                        yliopistoNimi = yliopistoErikoisalat.key?.nimi.toString(),
+                        erikoisalat = yliopistoErikoisalat.value.map { kayttajaYliopistoErikoisala -> kayttajaYliopistoErikoisala.erikoisala?.nimi!! }
                             .sorted()
                     )
                 }
-            seurantaDTO.kayttajaYliopistoErikoisalat?.forEach {
-                seurantaDTO.erikoisalat?.addAll(it.erikoisalat!!)
+            seurantaDTO.kayttajaYliopistoErikoisalat?.forEach { yliopistoErikoisalat ->
+                seurantaDTO.erikoisalat?.addAll(yliopistoErikoisalat.erikoisalat!!)
             }
             seurantaDTO.erikoisalat = seurantaDTO.erikoisalat?.sorted()?.toMutableSet()
         }
@@ -195,7 +202,7 @@ class EtusivuServiceImpl(
         // Seurantajaksot
         val seurantajaksot = seurantajaksoRepository.findByOpintooikeusId(opintooikeus.id!!)
         eteneminen.seurantajaksotLkm = seurantajaksot.size
-        eteneminen.seurantajaksonHuoletLkm = seurantajaksot.filter { jakso -> jakso.huolenaiheet != null }.size
+        eteneminen.seurantajaksonHuoletLkm = seurantajaksot.count { jakso -> jakso.huolenaiheet != null }
 
         // Suoritemerkinnät
         val suoritemerkinnatMap = getSuoritemerkinnatMap(opintooikeus.id!!)
@@ -275,7 +282,9 @@ class EtusivuServiceImpl(
                 val suoritemerkinnat = suoritemerkinnatMap.values.flatten()
                 val opintosuoritukset = opintosuoritusRepository.findAllByOpintooikeusId(it.id!!).asSequence()
                 val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(opintooikeus.erikoistuvaLaakari?.id!!, YEK_ERIKOISALA_ID)
-                val arviointiasteikko = it.opintoopas?.arviointiasteikko?.let { arviointiasteikkoMapper.toDto(it) }
+                val arviointiasteikko = it.opintoopas?.arviointiasteikko?.let { asteikko ->
+                    arviointiasteikkoMapper.toDto(asteikko)
+                }
 
                 ErikoistumisenEdistyminenDTO(
                     getArviointienKeskiarvo(suoritusarvioinnitMap),
@@ -390,13 +399,13 @@ class EtusivuServiceImpl(
             arvioitavanKokonaisuudenKategoriaRepository.findAllByErikoisalaIdAndValid(
                 opintooikeus.erikoisala?.id,
                 opintooikeus.osaamisenArvioinninOppaanPvm!!
-            ).map { it.arvioitavatKokonaisuudet }.flatten().filter {
+            ).map { it.arvioitavatKokonaisuudet }.flatten().count {
                 isValidByVoimassaDate(
                     it.voimassaoloAlkaa!!,
                     it.voimassaoloLoppuu,
                     opintooikeus.osaamisenArvioinninOppaanPvm!!
                 )
-            }.size
+            }
 
         // Lisätään arvioitava kokonaisuus mukaan kokonaismäärään voimassaolosta huolimatta, jos siihen kohdistuu arviointi.
         arvioitavatKokonaisuudetWithArviointi.forEach {

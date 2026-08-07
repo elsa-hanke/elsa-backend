@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKehittamistoimenpiteet

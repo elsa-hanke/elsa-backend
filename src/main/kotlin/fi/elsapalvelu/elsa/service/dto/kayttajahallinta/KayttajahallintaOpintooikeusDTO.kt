@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
+import java.time.LocalDate
 import java.io.Serializable
 
 data class KayttajahallintaOpintooikeusDTO(

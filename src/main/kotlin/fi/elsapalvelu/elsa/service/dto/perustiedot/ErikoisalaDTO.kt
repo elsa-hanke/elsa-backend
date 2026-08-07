@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.perustiedot
 
+import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import java.io.Serializable
 import jakarta.validation.constraints.NotNull
 

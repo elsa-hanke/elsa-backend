@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService

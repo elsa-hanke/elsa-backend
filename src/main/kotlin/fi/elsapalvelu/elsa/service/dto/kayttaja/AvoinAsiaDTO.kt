@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.kayttaja
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.AvoinAsiaTyyppiEnum
 import java.io.Serializable
 

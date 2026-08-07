@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
+import java.time.LocalDate
+import java.security.Principal
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO

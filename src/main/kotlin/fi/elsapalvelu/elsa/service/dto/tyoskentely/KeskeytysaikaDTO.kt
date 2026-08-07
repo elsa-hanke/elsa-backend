@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.tyoskentely
 
+import java.time.LocalDate
 import java.io.Serializable
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min

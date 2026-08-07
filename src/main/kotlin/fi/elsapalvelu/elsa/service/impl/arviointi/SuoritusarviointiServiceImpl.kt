@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.arviointi
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.arviointi.SuoritusarvioinninArviointityokalunVastaus
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
 import fi.elsapalvelu.elsa.repository.*
@@ -141,7 +142,7 @@ class SuoritusarviointiServiceImpl(
                         val result = suoritusarvioinninArvioitavaKokonaisuusMapper.toEntity(it)
                         result.suoritusarviointi = suoritusarviointi
                         result
-                    } ?: listOf()
+                    }.orEmpty()
             suoritusarviointi.arvioitavatKokonaisuudet.addAll(uudet)
         }
 

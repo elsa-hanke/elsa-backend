@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
 import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksoDTO
 import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksonTiedotDTO

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.repository.arviointi
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable

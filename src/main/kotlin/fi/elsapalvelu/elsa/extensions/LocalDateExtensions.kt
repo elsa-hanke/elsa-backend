@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.extensions
 
+import java.time.LocalDate
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.YearMonth

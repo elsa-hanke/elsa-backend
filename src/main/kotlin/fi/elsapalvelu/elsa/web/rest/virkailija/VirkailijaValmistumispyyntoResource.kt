@@ -1,5 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.service.kayttaja.KayttajaService
@@ -35,7 +39,7 @@ class VirkailijaValmistumispyyntoResource(
             valmistumispyyntoService.findAllForVirkailijaByCriteria(
                 user.id!!,
                 criteria,
-                criteria.erikoisalaId?.let { listOf(it.equals) } ?: listOf(),
+                criteria.erikoisalaId?.let { listOf(it.equals) }.orEmpty(),
                 if (criteria.erikoisalaId?.equals == YEK_ERIKOISALA_ID) listOf() else listOf(YEK_ERIKOISALA_ID),
                 pageable
             )
@@ -97,7 +101,7 @@ class VirkailijaValmistumispyyntoResource(
         )
 
         return asiakirja?.asiakirjaData?.fileInputStream
-            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             ?: ResponseEntity.notFound().build()
     }
 
@@ -114,7 +118,7 @@ class VirkailijaValmistumispyyntoResource(
                 kayttaja.orElse(null)?.yliopistot?.map { it.id!! })
 
         return asiakirja?.asiakirjaData?.fileInputStream
-            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             ?: ResponseEntity.notFound().build()
     }
 }

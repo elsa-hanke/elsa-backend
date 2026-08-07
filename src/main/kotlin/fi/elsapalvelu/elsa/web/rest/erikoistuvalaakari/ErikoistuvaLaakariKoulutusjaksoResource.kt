@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.repository.koulutus.KoulutusjaksoRepository
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
@@ -55,8 +57,8 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
                 "idexists"
             )
         }
-        koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
-            return ResponseEntity
+        return koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
+            ResponseEntity
                 .created(URI("/api/koulutusjaksot/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -91,8 +93,8 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
             )
         }
 
-        koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
-            return ResponseEntity.ok(it)
+        return koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
+            ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 

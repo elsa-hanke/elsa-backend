@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
@@ -175,8 +178,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        koejaksonKoulutussopimusService.create(koulutussopimusDTO, opintooikeusId)?.let {
-            return ResponseEntity
+        return koejaksonKoulutussopimusService.create(koulutussopimusDTO, opintooikeusId)?.let {
+            ResponseEntity
                 .created(URI("/api/koejakso/koulutussopimus/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -258,8 +261,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             ENTITY_KOEJAKSON_ALOITUSKESKUSTELU
         )
 
-        koejaksonAloituskeskusteluService.create(aloituskeskusteluDTO, opintooikeusId)?.let {
-            return ResponseEntity
+        return koejaksonAloituskeskusteluService.create(aloituskeskusteluDTO, opintooikeusId)?.let {
+            ResponseEntity
                 .created(URI("/api/koejakso/aloituskeskustelu/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -367,8 +370,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        koejaksonValiarviointiService.create(valiarviointiDTO, opintooikeusId)?.let {
-            return ResponseEntity
+        return koejaksonValiarviointiService.create(valiarviointiDTO, opintooikeusId)?.let {
+            ResponseEntity
                 .created(URI("/api/koejakso/valiarviointi/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -425,9 +428,9 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        koejaksonKehittamistoimenpiteetService.create(kehittamistoimenpiteetDTO, opintooikeusId)
+        return koejaksonKehittamistoimenpiteetService.create(kehittamistoimenpiteetDTO, opintooikeusId)
             ?.let {
-                return ResponseEntity
+                ResponseEntity
                     .created(URI("/api/koejakso/kehittamistoimenpiteet/${it.id}"))
                     .body(it)
             } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -490,8 +493,8 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        koejaksonLoppukeskusteluService.create(loppukeskusteluDTO, opintooikeusId)?.let {
-            return ResponseEntity
+        return koejaksonLoppukeskusteluService.create(loppukeskusteluDTO, opintooikeusId)?.let {
+            ResponseEntity
                 .created(URI("/api/koejakso/loppukeskustelu/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -556,7 +559,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        vastuuhenkilonArvioJson.let {
+        return vastuuhenkilonArvioJson.let {
             objectMapper.readValue(it, KoejaksonVastuuhenkilonArvioDTO::class.java)
         }?.let { vastuuhenkilonArvioDTO ->
 
@@ -596,7 +599,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 opintooikeusId,
                 asiakirjat
             )?.let {
-                return ResponseEntity
+                ResponseEntity
                     .created(URI("/api/koejakso/vastuuhenkilonarvio/${it.id}"))
                     .body(it)
             } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -625,7 +628,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        vastuuhenkilonArvioJson.let {
+        return vastuuhenkilonArvioJson.let {
             objectMapper.readValue(it, KoejaksonVastuuhenkilonArvioDTO::class.java)
         }?.let { vastuuhenkilonArvioDTO ->
             if (vastuuhenkilonArvioDTO.id == null) {
@@ -651,7 +654,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 asiakirjat,
                 deletedAsiakirjaIds
             )
-            return ResponseEntity.ok(result)
+            ResponseEntity.ok(result)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 

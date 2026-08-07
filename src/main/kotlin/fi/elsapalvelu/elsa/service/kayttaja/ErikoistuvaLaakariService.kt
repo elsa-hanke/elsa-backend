@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.kayttaja
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.kayttaja.ErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.LaillistamispaivaDTO

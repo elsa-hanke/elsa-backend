@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
+import org.springframework.beans.factory.annotation.Value
 import com.itextpdf.html2pdf.ConverterProperties
 import com.itextpdf.html2pdf.HtmlConverter
 import com.itextpdf.io.exceptions.IOException

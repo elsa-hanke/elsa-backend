@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyyTyyppi.*
@@ -145,9 +146,9 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
                     // poissaolokohtaisesta määrästä. Hyväksiluetaan näistä niin paljon kuin
                     // pystytään ja päivitetään molemmat laskurit.
                     val hyvaksiLuettavatLeft = if (vahennetaanKerran) min(
-                        hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key]!!,
-                        hyvaksiluettavatCounterData.hyvaksiluettavatDays[keskeytysaika.poissaolonSyy]!!
-                    ) else hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key]!!
+                        hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap.getValue(it.key),
+                        hyvaksiluettavatCounterData.hyvaksiluettavatDays.getValue(keskeytysaika.poissaolonSyy!!)
+                    ) else hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap.getValue(it.key)
                     val (amountOfReducedDays, hyvaksiluettavatUsed) = getAmountOfReducedDaysAndHyvaksiluettavatUsed(
                         it.value,
                         hyvaksiLuettavatLeft
@@ -156,13 +157,13 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
                         hyvaksiluettavatCounterData.hyvaksiluettavatDays[keskeytysaika.poissaolonSyy!!] =
                             max(
                                 0.0,
-                                hyvaksiluettavatCounterData.hyvaksiluettavatDays[keskeytysaika.poissaolonSyy!!]!! - hyvaksiluettavatUsed
+                                hyvaksiluettavatCounterData.hyvaksiluettavatDays.getValue(keskeytysaika.poissaolonSyy!!) - hyvaksiluettavatUsed
                             )
                     }
                     hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key] =
                         max(
                             0.0,
-                            hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap[it.key]!! - hyvaksiluettavatUsed
+                            hyvaksiluettavatCounterData.hyvaksiluettavatPerYearMap.getValue(it.key) - hyvaksiluettavatUsed
                         )
                     reducedDaysTotal += amountOfReducedDays
                 }

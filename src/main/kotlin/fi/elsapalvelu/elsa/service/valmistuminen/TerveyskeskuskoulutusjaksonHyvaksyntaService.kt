@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.valmistuminen
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.TerveyskeskuskoulutusjaksoSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.TerveyskeskuskoulutusjaksonHyvaksyntaDTO

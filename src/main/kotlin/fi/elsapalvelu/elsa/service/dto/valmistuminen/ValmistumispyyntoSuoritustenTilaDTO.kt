@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.valmistuminen
 
+import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import java.io.Serializable
 
 data class ValmistumispyyntoSuoritustenTilaDTO(

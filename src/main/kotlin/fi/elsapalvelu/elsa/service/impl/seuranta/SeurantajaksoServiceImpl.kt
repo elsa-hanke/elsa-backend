@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.seuranta
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.seuranta.Seurantajakso
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.repository.koejakso.*

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.tyoskentely
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
 import java.io.Serializable
 import jakarta.validation.constraints.Max
