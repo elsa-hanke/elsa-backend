@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
@@ -27,9 +29,9 @@ class PalauteServiceImpl(
                 applicationProperties.getFeedback().to.toString(),
                 templateName = "mail/palaute.html",
                 properties = mapOf(
-                    Pair(MailProperty.FEEDBACK_TOPIC, palauteDTO.palautteenAihe!!),
-                    Pair(MailProperty.FEEDBACK_YLIOPISTO, palauteDTO.palauteYliopisto!!),
-                    Pair(MailProperty.FEEDBACK, palauteDTO.palaute!!),
+                    Pair(MailProperty.FEEDBACK_TOPIC, palauteDTO.palautteenAihe.required()),
+                    Pair(MailProperty.FEEDBACK_YLIOPISTO, palauteDTO.palauteYliopisto.required()),
+                    Pair(MailProperty.FEEDBACK, palauteDTO.palaute.required()),
                     Pair(MailProperty.FEEDBACK_SENDER, feedbackSender)
                 ),
             )

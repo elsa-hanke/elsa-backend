@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.time.LocalDate
 import org.springframework.web.bind.annotation.RequestParam
@@ -74,14 +76,14 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
 
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id!!, TYOSKENTELYJAKSO_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), TYOSKENTELYJAKSO_ENTITY_NAME, "yek koulutettavan")
 
         return tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
         }?.let {
             it.kaytannonKoulutus = KaytannonKoulutusTyyppi.OMAN_ERIKOISALAN_KOULUTUS
             val opintooikeusId =
-                opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+                opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
             tyoskentelyjaksoResourceSupport.validateNewTyoskentelyjaksoDTO(it)
             tyoskentelyjaksoResourceSupport.validateAlkamisJaPaattymispaiva(opintooikeusId, it)
             tyoskentelyjaksoResourceSupport.validateTyoskentelyaika(opintooikeusId, it)
@@ -106,9 +108,9 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
 
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id!!, TYOSKENTELYJAKSO_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), TYOSKENTELYJAKSO_ENTITY_NAME, "yek koulutettavan")
 
         return tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
@@ -149,7 +151,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<TyoskentelyjaksotTableDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
         val table = TyoskentelyjaksotTableDTO()
 
         table.tyoskentelyjaksot = tyoskentelyjaksoService
@@ -159,7 +161,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
         table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeusId)
 
-        val erikoistuvaLaakariId = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)?.id!!
+        val erikoistuvaLaakariId = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id.required())?.id.required()
         val terveyskeskusSuoritus = opintosuoritusService.getTerveyskoulutusjaksoSuoritusPvm(opintooikeusId, erikoistuvaLaakariId)
         if (terveyskeskusSuoritus != null) {
             table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY
@@ -185,7 +187,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<List<TyoskentelyjaksoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
         val tyoskentelyjaksot =
             tyoskentelyjaksoService.findAllByOpintooikeusId(opintooikeusId)
 
@@ -199,7 +201,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
         return tyoskentelyjaksoService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -215,9 +217,9 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
 
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id!!, ASIAKIRJA_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), ASIAKIRJA_ENTITY_NAME, "yek koulutettavan")
 
         return try {
             tyoskentelyjaksoService.updateAsiakirjat(
@@ -239,10 +241,10 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
 
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id!!, TYOSKENTELYJAKSO_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), TYOSKENTELYJAKSO_ENTITY_NAME, "yek koulutettavan")
 
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
 
         asiakirjaService.removeTyoskentelyjaksoReference(id)
         koulutusjaksoService.removeTyoskentelyjaksoReference(id)
@@ -261,7 +263,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<TyoskentelyjaksoFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
         val form = TyoskentelyjaksoFormDTO()
 
         form.kunnat = kuntaService.findAll().toMutableSet()
@@ -269,7 +271,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         form.erikoisalat = erikoisalaService.findAll().toMutableSet()
 
         form.reservedAsiakirjaNimet =
-            asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map { it.nimi!! }
+            asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map { it.nimi.required() }
                 .toMutableSet()
 
         return ResponseEntity.ok(form)
@@ -281,7 +283,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<KeskeytysaikaFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
         val form = KeskeytysaikaFormDTO()
 
         form.poissaolonSyyt =
@@ -309,10 +311,10 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
 
         tyoskentelyjaksoResourceSupport.validateKeskeytysaikaDTO(keskeytysaikaDTO)
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id!!, KESKEYTYSAIKA_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), KESKEYTYSAIKA_ENTITY_NAME, "yek koulutettavan")
 
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
         if (!overlappingKeskeytysaikaValidationService.validateKeskeytysaika(
                 opintooikeusId,
                 keskeytysaikaDTO
@@ -352,10 +354,10 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
 
         tyoskentelyjaksoResourceSupport.validateKeskeytysaikaDTO(keskeytysaikaDTO)
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id!!, KESKEYTYSAIKA_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), KESKEYTYSAIKA_ENTITY_NAME, "yek koulutettavan")
 
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
         if (!overlappingKeskeytysaikaValidationService.validateKeskeytysaika(
                 opintooikeusId,
                 keskeytysaikaDTO
@@ -392,7 +394,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<KeskeytysaikaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
         return keskeytysaikaService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -405,10 +407,10 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
 
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id!!, KESKEYTYSAIKA_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), KESKEYTYSAIKA_ENTITY_NAME, "yek koulutettavan")
 
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
         if (!overlappingTyoskentelyjaksoValidationService.validateKeskeytysaikaDelete(
                 opintooikeusId,
                 id
@@ -435,7 +437,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<TyoskentelyjaksoDTO?> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
         if (tyoskentelyjaksoDTO.id == null) {
             throw BadRequestAlertException(
                 "Virheellinen id",
@@ -453,12 +455,12 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         }
 
         return tyoskentelyjaksoService.updateLiitettyKoejaksoon(
-            tyoskentelyjaksoDTO.id!!,
+            tyoskentelyjaksoDTO.id.required(),
             opintooikeusId,
-            tyoskentelyjaksoDTO.liitettyKoejaksoon!!
+            tyoskentelyjaksoDTO.liitettyKoejaksoon.required()
         )?.let {
             val response = ResponseEntity.ok()
-            if (tyoskentelyjaksoDTO.liitettyKoejaksoon!!) response.body(it) else response.build()
+            if (tyoskentelyjaksoDTO.liitettyKoejaksoon.required()) response.body(it) else response.build()
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
@@ -466,7 +468,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     fun getTerveyskeskuskoulutusjakso(principal: Principal?): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
         try {
             terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusIdOrCreateNew(
                 opintooikeusId
@@ -497,7 +499,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
 
         if (!terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettuYek(
                 opintooikeusId
@@ -520,7 +522,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         }
 
         erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id!!,
+            user.id.required(),
             laillistamispaiva,
             laillistamispaivanLiite?.bytes,
             laillistamispaivanLiite?.originalFilename,
@@ -541,7 +543,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
 
         val hyvaksynta =
             terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)
@@ -552,7 +554,7 @@ class YekKoulutettavaTyoskentelyjaksoResource(
                 )
 
         erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id!!,
+            user.id.required(),
             laillistamispaiva,
             laillistamispaivanLiite?.bytes,
             laillistamispaivanLiite?.originalFilename,
@@ -560,9 +562,9 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         )
 
         terveyskeskuskoulutusjaksonHyvaksyntaService.update(
-            user.id!!,
+            user.id.required(),
             false,
-            hyvaksynta.id!!,
+            hyvaksynta.id.required(),
             null,
             null
         )
@@ -577,14 +579,14 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id!!, YEK_ERIKOISALA_ID)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
 
         val tyoskentelyjaksot: MutableSet<TyoskentelyjaksoDTO> = tyoskentelyjaksoService
             .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
 
         val ensimmainenTyoskentelyjakso = tyoskentelyjaksot
             .filter { it.id != null }
-            .minByOrNull { it.id!! }
+            .minByOrNull { it.id.required() }
 
         return if (ensimmainenTyoskentelyjakso != null) {
             ResponseEntity.ok(ensimmainenTyoskentelyjakso)

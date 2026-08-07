@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.service.kayttaja.PalauteService
@@ -29,9 +31,9 @@ class PalauteResource(
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         try {
-            palauteService.send(palauteDTO, user.id!!)
+            palauteService.send(palauteDTO, user.id.required())
         } catch (ex: Exception) {
-            log.error("Käyttäjän ${user.id!!} antaman palautteen lähettäminen epäonnistui!")
+            log.error("Käyttäjän ${user.id.required()} antaman palautteen lähettäminen epäonnistui!")
             throw ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE)
         }
         return ResponseEntity.ok().build()

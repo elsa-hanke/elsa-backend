@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
@@ -55,11 +57,11 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     ): ResponseEntity<List<SuoritemerkintaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         uusiSuoritemerkintaDTO.arviointiasteikko =
             arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
-        return suoritemerkintaService.create(uusiSuoritemerkintaDTO, user.id!!)?.let {
+        return suoritemerkintaService.create(uusiSuoritemerkintaDTO, user.id.required())?.let {
             ResponseEntity
                 .created(URI("/api/suoritemerkinnat"))
                 .body(it)
@@ -86,7 +88,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         suoritemerkintaDTO.lukittu = false
         val user = userService.getAuthenticatedUser(principal)
 
-        return suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
+        return suoritemerkintaService.save(suoritemerkintaDTO, user.id.required())?.let {
             ResponseEntity.ok(it)
         } ?: throw BadRequestAlertException(
             "Suoritemerkinnän työskentelyjakso täytyy olla oma.",
@@ -101,7 +103,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return suoritemerkintaService.findOne(id, user.id!!)?.let {
+        return suoritemerkintaService.findOne(id, user.id.required())?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -112,7 +114,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         principal: Principal?
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
-        suoritemerkintaService.delete(id, user.id!!)
+        suoritemerkintaService.delete(id, user.id.required())
         return ResponseEntity
             .noContent()
             .build()
@@ -124,7 +126,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     ): ResponseEntity<SuoritteetTableDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val table = SuoritteetTableDTO()
 
         table.suoritteenKategoriat = suoritteenKategoriaService
@@ -149,7 +151,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     ): ResponseEntity<SuoritemerkinnatOptionsDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val options = SuoritemerkinnatOptionsDTO()
         options.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
@@ -165,7 +167,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     ): ResponseEntity<SuoritemerkintaFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val form = SuoritemerkintaFormDTO()
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService

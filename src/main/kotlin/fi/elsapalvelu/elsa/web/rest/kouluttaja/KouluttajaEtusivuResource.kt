@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.service.kayttaja.EtusivuService
@@ -37,7 +39,7 @@ class KouluttajaEtusivuResource(
         principal: Principal?
     ): ResponseEntity<ErikoistujienSeurantaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaVastuuhenkiloRajaimet(user.id!!))
+        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaVastuuhenkiloRajaimet(user.id.required()))
     }
 
     @GetMapping("/erikoistujien-seuranta")
@@ -47,7 +49,7 @@ class KouluttajaEtusivuResource(
         principal: Principal?
     ): ResponseEntity<Page<ErikoistujanEteneminenDTO>?> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaForKouluttaja(user.id!!, criteria, pageable))
+        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaForKouluttaja(user.id.required(), criteria, pageable))
     }
 
     @GetMapping("/koejaksot")
@@ -57,7 +59,7 @@ class KouluttajaEtusivuResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             koejaksonVaiheetService.findAllByKouluttajaKayttajaUserId(
-                user.id!!,
+                user.id.required(),
                 true
             )
         )
@@ -68,7 +70,7 @@ class KouluttajaEtusivuResource(
         principal: Principal?
     ): ResponseEntity<List<KatseluoikeusDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(etusivuService.getVanhenevatKatseluoikeudetForKouluttaja(user.id!!))
+        return ResponseEntity.ok(etusivuService.getVanhenevatKatseluoikeudetForKouluttaja(user.id.required()))
     }
 
     @GetMapping("/seurantajaksot")
@@ -77,7 +79,7 @@ class KouluttajaEtusivuResource(
     ): ResponseEntity<List<EtusivuSeurantajaksoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
-            seurantajaksoService.findAvoinByKouluttajaUserId(user.id!!)
+            seurantajaksoService.findAvoinByKouluttajaUserId(user.id.required())
         )
     }
 }

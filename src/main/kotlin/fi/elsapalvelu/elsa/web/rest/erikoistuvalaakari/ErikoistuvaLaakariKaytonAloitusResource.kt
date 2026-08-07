@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -38,10 +40,10 @@ class ErikoistuvaLaakariKaytonAloitusResource(
                     "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
                 )
             }
-            userService.updateEmail(it, user.id!!)
+            userService.updateEmail(it, user.id.required())
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
 
-        val validOpintooikeudet = opintooikeusService.findAllValidByErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val validOpintooikeudet = opintooikeusService.findAllValidByErikoistuvaLaakariKayttajaUserId(user.id.required())
         val opintooikeusId = kaytonAloitusDTO.opintooikeusId
         val shouldSelectOpintooikeusKaytossa = validOpintooikeudet.count() > 1
 
@@ -57,11 +59,11 @@ class ErikoistuvaLaakariKaytonAloitusResource(
                 throw ResponseStatusException(HttpStatus.BAD_REQUEST)
             }
             if (validOikeus.erikoisalaId == YEK_ERIKOISALA_ID) {
-                userService.updateRooli(YEK_KOULUTETTAVA, user.id!!)
+                userService.updateRooli(YEK_KOULUTETTAVA, user.id.required())
             } else {
-                userService.updateRooli(ERIKOISTUVA_LAAKARI, user.id!!)
+                userService.updateRooli(ERIKOISTUVA_LAAKARI, user.id.required())
             }
-            opintooikeusService.setOpintooikeusKaytossa(user.id!!, id)
+            opintooikeusService.setOpintooikeusKaytossa(user.id.required(), id)
         }
 
         return ResponseEntity.ok().build()

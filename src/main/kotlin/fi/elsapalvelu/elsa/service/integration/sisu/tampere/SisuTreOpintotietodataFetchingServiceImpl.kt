@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.sisu.tampere
 
+import fi.elsapalvelu.elsa.required
+
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.*
@@ -32,7 +34,7 @@ class SisuTreOpintotietodataFetchingServiceImpl(
     private val log = LoggerFactory.getLogger(javaClass)
 
     override suspend fun fetchOpintotietodata(hetu: String): OpintotietodataDTO? {
-        val endpointUrl = "${applicationProperties.getSecurity().getSisuTre().endpointUrl!!}/study-rights"
+        val endpointUrl = "${applicationProperties.getSecurity().getSisuTre().endpointUrl.required()}/study-rights"
         val postBody = "{\"id\": \"$hetu\"}"
         val request = Request.Builder().url(endpointUrl).post(postBody.toRequestBody()).build()
         try {

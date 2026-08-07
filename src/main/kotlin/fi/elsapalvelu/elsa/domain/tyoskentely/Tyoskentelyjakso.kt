@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.domain.tyoskentely
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
@@ -105,7 +107,7 @@ data class Tyoskentelyjakso(
             .plus(suoritusarvioinnit.map { it.tapahtumanAjankohta })
 
         return dates.maxWithOrNull { o1, o2 ->
-            o1!!.compareTo(o2 ?: LocalDate.MIN)
+            o1.required().compareTo(o2 ?: LocalDate.MIN)
         }
     }
 
@@ -116,7 +118,7 @@ data class Tyoskentelyjakso(
             .plus(suoritusarvioinnit.map { it.tapahtumanAjankohta })
 
         return dates.minWithOrNull { o1, o2 ->
-            o1!!.compareTo(o2 ?: LocalDate.MAX)
+            o1.required().compareTo(o2 ?: LocalDate.MAX)
         }
     }
 

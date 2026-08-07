@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -57,7 +59,7 @@ class VirkailijaEtusivuResource(
         pageable: Pageable,
         principal: Principal?
     ): ResponseEntity<Page<ErikoistujanEteneminenVirkailijaDTO>> {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val erikoistujat =
             etusivuService.getErikoistujienSeurantaForVirkailija(userId, criteria, pageable)
         return ResponseEntity.ok(erikoistujat)
@@ -69,7 +71,7 @@ class VirkailijaEtusivuResource(
         pageable: Pageable,
         principal: Principal?
     ): ResponseEntity<Page<KoulutettavanEteneminenDTO>> {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val koulutettavat =
             etusivuService.getKoulutettavienSeurantaForVirkailija(userId, criteria, pageable)
         return ResponseEntity.ok(koulutettavat)
@@ -77,7 +79,7 @@ class VirkailijaEtusivuResource(
 
     @GetMapping("/yliopisto")
     fun getYliopisto(principal: Principal?): ResponseEntity<String> {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val yliopistoNimi =
             kayttajaService.findByUserId(userId).get().yliopistot?.firstOrNull()?.nimi
         return ResponseEntity.ok(yliopistoNimi)
@@ -90,7 +92,7 @@ class VirkailijaEtusivuResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             koejaksonVaiheetService.findAllAvoinByVirkailijaKayttajaUserId(
-                user.id!!
+                user.id.required()
             )
         )
     }
@@ -102,7 +104,7 @@ class VirkailijaEtusivuResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             valmistumispyyntoService.findAllForVirkailijaByCriteria(
-                user.id!!,
+                user.id.required(),
                 NimiErikoisalaAndAvoinCriteria(avoin = true),
                 listOf(),
                 listOf(YEK_ERIKOISALA_ID),
@@ -118,7 +120,7 @@ class VirkailijaEtusivuResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             valmistumispyyntoService.findAllForVirkailijaByCriteria(
-                user.id!!,
+                user.id.required(),
                 NimiErikoisalaAndAvoinCriteria(avoin = true),
                 listOf(YEK_ERIKOISALA_ID),
                 listOf(),

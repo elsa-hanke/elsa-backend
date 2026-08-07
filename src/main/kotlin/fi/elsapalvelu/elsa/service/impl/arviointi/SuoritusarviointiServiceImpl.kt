@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.arviointi
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.arviointi.SuoritusarvioinninArviointityokalunVastaus
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
@@ -56,10 +58,10 @@ class SuoritusarviointiServiceImpl(
         }
         suoritusarviointi = suoritusarviointiRepository.save(suoritusarviointi)
         mailService.sendEmailFromTemplate(
-            kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id!!).get().user!!,
+            kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id.required()).get().user.required(),
             templateName = "arviointipyyntoKouluttajalleEmail.html",
             titleKey = "email.arviointipyyntokouluttajalle.title",
-            properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
+            properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id.required().toString()))
         )
         return suoritusarviointiMapper.toDto(suoritusarviointi)
     }
@@ -71,7 +73,7 @@ class SuoritusarviointiServiceImpl(
         userId: String
     ): SuoritusarviointiDTO {
         var suoritusarviointi =
-            suoritusarviointiRepository.findOneById(suoritusarviointiDTO.id!!).get()
+            suoritusarviointiRepository.findOneById(suoritusarviointiDTO.id.required()).get()
 
         val kirjautunutErikoistuvaLaakari =
             erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
@@ -210,11 +212,11 @@ class SuoritusarviointiServiceImpl(
             }
 
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!,
+                kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required())
+                    .get().user.required(),
                 templateName = templateName,
                 titleKey = titleKey,
-                properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id.required().toString()))
             )
         }
         return result

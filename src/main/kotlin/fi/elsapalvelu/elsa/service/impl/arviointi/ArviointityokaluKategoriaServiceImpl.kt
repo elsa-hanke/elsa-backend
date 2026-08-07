@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.arviointi
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluKategoriaRepository
 import fi.elsapalvelu.elsa.repository.arviointi.ArviointityokaluRepository
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluKategoriaService
@@ -27,7 +29,7 @@ class ArviointityokaluKategoriaServiceImpl(
     }
 
     override fun update(arviointityokaluKategoriaDTO: ArviointityokaluKategoriaDTO): ArviointityokaluKategoriaDTO? {
-        return arviointityokaluKategoriaRepository.findById(arviointityokaluKategoriaDTO.id!!).orElse(null)
+        return arviointityokaluKategoriaRepository.findById(arviointityokaluKategoriaDTO.id.required()).orElse(null)
             ?.let {
                 it.nimi = arviointityokaluKategoriaDTO.nimi
                 val result = arviointityokaluKategoriaRepository.save(it)

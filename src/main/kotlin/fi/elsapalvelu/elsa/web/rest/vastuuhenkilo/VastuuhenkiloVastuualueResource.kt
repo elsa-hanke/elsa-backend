@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
@@ -20,7 +22,7 @@ class VastuuhenkiloVastuualueResource(
     @GetMapping("/vastuualueet")
     fun getVastuualueet(principal: Principal?): ResponseEntity<VastuuhenkilonVastuualueetDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!).get()
+        val kayttaja = kayttajaService.findByUserId(user.id.required()).get()
         val tkJakso = kayttaja.yliopistotAndErikoisalat?.any {
             it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
                 .contains(VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN)

@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.config
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
@@ -302,13 +304,13 @@ class SecurityConfiguration(
             attr.request.getParameter("RelayState") ?: DEFAULT_RELAY_STATE
         }
         authenticationRequestResolver.setAuthnRequestCustomizer { context: AuthnRequestContext ->
-            if (context.authnRequest.issuer.value != null && context.authnRequest.issuer.value!!.contains(
+            if (context.authnRequest.issuer.value != null && context.authnRequest.issuer.value.required().contains(
                     "haka"
                 )
             ) {
-                context.authnRequest.issuer.value = context.authnRequest.issuer.value!!.substring(
+                context.authnRequest.issuer.value = context.authnRequest.issuer.value.required().substring(
                     0,
-                    context.authnRequest.issuer.value!!.indexOf("haka")
+                    context.authnRequest.issuer.value.required().indexOf("haka")
                 ) + "haka"
             }
         }
@@ -372,7 +374,7 @@ class SecurityConfiguration(
         // Kutsuttu käyttäjä
         if (verificationToken != null && verificationToken != DEFAULT_RELAY_STATE) {
             verificationTokenRepository.findById(verificationToken).ifPresent {
-                tokenUser = userRepository.findByIdWithAuthorities(it.user?.id!!).get()
+                tokenUser = userRepository.findByIdWithAuthorities(it.user?.id.required()).get()
                 userService.createOrUpdateUserWithToken(tokenUser, it, cipher, originalKey, hetu, eppn, firstName, lastName)
             }
         }
@@ -392,12 +394,12 @@ class SecurityConfiguration(
                     existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
                 }
 
-                existingUser?.let { user -> fetchAndHandleOpintosuorituksetNonBlocking(user.id!!, hetu) }
+                existingUser?.let { user -> fetchAndHandleOpintosuorituksetNonBlocking(user.id.required(), hetu) }
             } else {
-                fetchAndUpdateOpintotietodataIfChanged(existingUser.id!!, hetu, firstName, lastName)
-                fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id!!, hetu)
+                fetchAndUpdateOpintotietodataIfChanged(existingUser.id.required(), hetu, firstName, lastName)
+                fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id.required(), hetu)
 
-                existingUser = userRepository.findByIdWithAuthorities(existingUser.id!!).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+                existingUser = userRepository.findByIdWithAuthorities(existingUser.id.required()).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
                 if (hasErikoistuvaLaakariRole(existingUser) || hasYekKoulutettavaRole(existingUser)) {
                     opintooikeusService.checkOpintooikeusAndRoles(existingUser)
                 }
@@ -416,7 +418,7 @@ class SecurityConfiguration(
             }
         }
 
-        val kayttaja = kayttajaRepository.findOneByUserIdWithAuthorities(existingUser.id!!).orElseThrow {
+        val kayttaja = kayttajaRepository.findOneByUserIdWithAuthorities(existingUser.id.required()).orElseThrow {
             Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
         }
 
@@ -425,7 +427,7 @@ class SecurityConfiguration(
             throw Exception(LoginException.TILI_PASSIVOITU.name)
         }
 
-        existingUser = kayttaja.user!!
+        existingUser = kayttaja.user.required()
 
         // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus
         if (hasErikoistuvaLaakariRole(existingUser) && !opintooikeusService.onOikeus(existingUser)) {

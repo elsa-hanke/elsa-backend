@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
@@ -51,8 +53,8 @@ open class KoejaksoResource(
         val user = userService.getAuthenticatedUser(principal)
 
         val aloituskeskustelu = koejaksoResourceSupport.findForUpdateByLahikouluttajaOrLahiesimies(
-            id = aloituskeskusteluDTO.id!!,
-            userId = user.id!!,
+            id = aloituskeskusteluDTO.id.required(),
+            userId = user.id.required(),
             entity = ENTITY_KOEJAKSON_ALOITUSKESKUSTELU,
             notFoundMessage = "Koejakson aloituskeskustelua ei löydy.",
             notFoundErrorKey = "dataillegal.koejakson-aloituskeskustelua-ei-loydy",
@@ -74,7 +76,7 @@ open class KoejaksoResource(
             ENTITY_KOEJAKSON_ALOITUSKESKUSTELU
         )
 
-        val result = koejaksonAloituskeskusteluService.update(aloituskeskusteluDTO, user.id!!)
+        val result = koejaksonAloituskeskusteluService.update(aloituskeskusteluDTO, user.id.required())
         return ResponseEntity.ok(result)
     }
 
@@ -87,8 +89,8 @@ open class KoejaksoResource(
         val user = userService.getAuthenticatedUser(principal)
 
         val valiarviointi = koejaksoResourceSupport.findForUpdateByLahikouluttajaOrLahiesimies(
-            id = valiarviointiDTO.id!!,
-            userId = user.id!!,
+            id = valiarviointiDTO.id.required(),
+            userId = user.id.required(),
             entity = ENTITY_KOEJAKSON_VALIARVIOINTI,
             notFoundMessage = "Koejakson väliarviointia ei löydy.",
             notFoundErrorKey = "dataillegal.koejakson-valiarviointia-ei-loydy",
@@ -105,7 +107,7 @@ open class KoejaksoResource(
             ENTITY_KOEJAKSON_VALIARVIOINTI
         )
 
-        val result = koejaksonValiarviointiService.update(valiarviointiDTO, user.id!!)
+        val result = koejaksonValiarviointiService.update(valiarviointiDTO, user.id.required())
         return ResponseEntity.ok(result)
     }
 
@@ -118,8 +120,8 @@ open class KoejaksoResource(
         val user = userService.getAuthenticatedUser(principal)
 
         val kehittamistoimenpiteet = koejaksoResourceSupport.findForUpdateByLahikouluttajaOrLahiesimies(
-            id = kehittamistoimenpiteetDTO.id!!,
-            userId = user.id!!,
+            id = kehittamistoimenpiteetDTO.id.required(),
+            userId = user.id.required(),
             entity = ENTITY_KOEJAKSON_KEHITTAMISTOIMENPITEET,
             notFoundMessage = "Koejakson kehittämistoimenpiteitä ei löydy.",
             notFoundErrorKey = "dataillegal.koejakson-kehittamistoimenpiteita-ei-loydy",
@@ -137,7 +139,7 @@ open class KoejaksoResource(
         )
 
         val result =
-            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id!!)
+            koejaksonKehittamistoimenpiteetService.update(kehittamistoimenpiteetDTO, user.id.required())
         return ResponseEntity.ok(result)
     }
 
@@ -150,8 +152,8 @@ open class KoejaksoResource(
         val user = userService.getAuthenticatedUser(principal)
 
         val loppukeskustelu = koejaksoResourceSupport.findForUpdateByLahikouluttajaOrLahiesimies(
-            id = loppukeskusteluDTO.id!!,
-            userId = user.id!!,
+            id = loppukeskusteluDTO.id.required(),
+            userId = user.id.required(),
             entity = ENTITY_KOEJAKSON_LOPPUKESKUSTELU,
             notFoundMessage = "Koejakson loppukeskustelua ei löydy.",
             notFoundErrorKey = "dataillegal.koejakson-loppukeskustelua-ei-loydy",
@@ -168,7 +170,7 @@ open class KoejaksoResource(
             ENTITY_KOEJAKSON_LOPPUKESKUSTELU
         )
 
-        val result = koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, user.id!!)
+        val result = koejaksonLoppukeskusteluService.update(loppukeskusteluDTO, user.id.required())
         return ResponseEntity.ok(result)
     }
 

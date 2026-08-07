@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.peppi.turku
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
@@ -30,9 +32,9 @@ class PeppiTurkuClientBuilderImpl(
                             "Accept" to "application/json",
                             "ESP-ScreenName" to "peppi_elsa",
                             "username" to "peppi_elsa",
-                            "X-Api-Key" to applicationProperties.getSecurity().getPeppiTurku().apiKey!!,
+                            "X-Api-Key" to applicationProperties.getSecurity().getPeppiTurku().apiKey.required(),
                             "Authorization" to "Basic ${
-                                applicationProperties.getSecurity().getPeppiTurku().basicAuthEncodedKey!!
+                                applicationProperties.getSecurity().getPeppiTurku().basicAuthEncodedKey.required()
                             }"
                         )
                     )

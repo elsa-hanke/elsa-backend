@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
@@ -42,7 +44,7 @@ class VirkailijaKurssikooditResource(
     @GetMapping("")
     fun getKurssikoodit(principal: Principal?): ResponseEntity<List<OpintosuoritusKurssikoodiDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(opintosuoritusKurssikooditService.findAllForVirkailija(user.id!!))
+        return ResponseEntity.ok(opintosuoritusKurssikooditService.findAllForVirkailija(user.id.required()))
     }
 
     @GetMapping("/tyypit")
@@ -56,7 +58,7 @@ class VirkailijaKurssikooditResource(
         principal: Principal?
     ): ResponseEntity<OpintosuoritusKurssikoodiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseUtil.wrapOrNotFound(opintosuoritusKurssikooditService.findOne(id, user.id!!))
+        return ResponseUtil.wrapOrNotFound(opintosuoritusKurssikooditService.findOne(id, user.id.required()))
     }
 
     @PostMapping("")
@@ -74,7 +76,7 @@ class VirkailijaKurssikooditResource(
             )
         }
 
-        return opintosuoritusKurssikooditService.save(user.id!!, opintosuoritusKurssikoodiDTO)?.let {
+        return opintosuoritusKurssikooditService.save(user.id.required(), opintosuoritusKurssikoodiDTO)?.let {
             ResponseEntity
                 .created(URI("/api/virkailija/kurssikoodi/${it.id}"))
                 .body(it)
@@ -98,7 +100,7 @@ class VirkailijaKurssikooditResource(
 
         return ResponseEntity.ok(
             opintosuoritusKurssikooditService.save(
-                user.id!!,
+                user.id.required(),
                 opintosuoritusKurssikoodiDTO
             )
         )
@@ -110,7 +112,7 @@ class VirkailijaKurssikooditResource(
         principal: Principal?
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
-        opintosuoritusKurssikooditService.delete(id, user.id!!)
+        opintosuoritusKurssikooditService.delete(id, user.id.required())
         return ResponseEntity
             .noContent()
             .build()

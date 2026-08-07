@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
@@ -62,7 +64,7 @@ class OpintooikeusServiceImpl(
         getImpersonatedOpintooikeusId()?.let { return it }
         opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(userId)
             ?.let {
-                return it.id!!
+                return it.id.required()
             }
 
         throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
@@ -72,7 +74,7 @@ class OpintooikeusServiceImpl(
         getImpersonatedOpintooikeusId()?.let { return it }
         opintooikeusRepository.findOneByErikoisalaIdAndErikoistuvaLaakariKayttajaUserId(erikoisalaId, userId)
             ?.let {
-                return it.id!!
+                return it.id.required()
             }
 
         throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
@@ -84,7 +86,7 @@ class OpintooikeusServiceImpl(
         getImpersonatedOpintooikeusId()?.let { return it }
         opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrueAndErikoisalaId(userId, erikoisalaId)
             ?.let {
-                return it.id!!
+                return it.id.required()
             }
 
         throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
@@ -112,7 +114,7 @@ class OpintooikeusServiceImpl(
 
     override fun onOikeus(user: User): Boolean {
         if (opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
-                user.id!!
+                user.id.required()
             ).any()
         ) {
             return true
@@ -126,10 +128,10 @@ class OpintooikeusServiceImpl(
         // ja lisätään väliaikainen ROLE_USER-rooli, mikäli roolia ei ole
         if (user.activeAuthority == null) {
             val authority = user.authorities.firstOrNull() ?: Authority("ROLE_USER")
-            userRepository.setActiveAuthorityIfNull(user.id!!, authority)
+            userRepository.setActiveAuthorityIfNull(user.id.required(), authority)
         }
         val validOikeudet = opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
-            user.id!!
+            user.id.required()
         )
 
         updateRoles(validOikeudet, user)
@@ -139,7 +141,7 @@ class OpintooikeusServiceImpl(
     override fun setOpintooikeusKaytossa(userId: String, opintooikeusId: Long) {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { erikoistuva ->
             opintooikeusRepository.findOneByIdAndErikoistuvaLaakariIdAndBetweenDate(
-                opintooikeusId, erikoistuva.id!!, LocalDate.now(clock)
+                opintooikeusId, erikoistuva.id.required(), LocalDate.now(clock)
             )?.let { preferredOpintooikeus ->
                 erikoistuva.opintooikeudet.forEach { opintooikeus ->
                     opintooikeus.kaytossa = false
@@ -236,7 +238,7 @@ class OpintooikeusServiceImpl(
 
         val elOikeudet = validOikeudet.filter { it.erikoisala?.id != YEK_ERIKOISALA_ID }
 
-        erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)?.let { erikoistuvaLaakari ->
+        erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id.required())?.let { erikoistuvaLaakari ->
             if (elOikeus && elOikeudet.none { it.id == erikoistuvaLaakari.aktiivinenOpintooikeus }) {
                 erikoistuvaLaakari.aktiivinenOpintooikeus = elOikeudet.first().id
                 erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
@@ -248,7 +250,7 @@ class OpintooikeusServiceImpl(
 
     private fun checkOpintooikeusKaytossaValid(validOikeudet: List<Opintooikeus>, user: User) {
         val opintooikeusKaytossa =
-            opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(user.id!!)
+            opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(user.id.required())
                 ?: return
         if (LocalDate.now().isAfter(opintooikeusKaytossa.viimeinenKatselupaiva)
             || opintooikeusKaytossa.tila == OpintooikeudenTila.VANHENTUNUT

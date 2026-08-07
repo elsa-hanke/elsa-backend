@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -122,7 +124,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             return terveyskeskuskoulutusjaksonHyvaksyntaQueryService.findByCriteriaAndYliopistoId(
                 criteria,
                 pageable,
-                k.yliopistot.map { it.id!! },
+                k.yliopistot.map { it.id.required() },
                 true,
                 k.user?.langKey
             ).map { hyvaksynta ->
@@ -153,7 +155,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                             else VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
                         )
                 }
-                    .map { it.yliopisto?.id!! },
+                    .map { it.yliopisto?.id.required() },
                 false,
                 k.user?.langKey
             ).map { hyvaksynta ->
@@ -311,7 +313,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
         if (laillistamistodistus != null || laillistamispaiva != null) {
             erikoistuvaLaakariService.updateLaillistamispaiva(
-                hyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
+                hyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
                 laillistamispaiva,
                 laillistamistodistus?.bytes,
                 laillistamistodistus?.originalFilename,
@@ -364,7 +366,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
             val tyoskentelyjaksot =
                 tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
-                    hyvaksynta.opintooikeus?.id!!,
+                    hyvaksynta.opintooikeus?.id.required(),
                     TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
                     KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
                 )
@@ -420,10 +422,10 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     private fun mapTerveyskeskuskoulutusjakso(hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta): TerveyskeskuskoulutusjaksonHyvaksyntaDTO {
         val tyoskentelyjaksot =
             if (hyvaksynta.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
-                hyvaksynta.opintooikeus?.id!!,
+                hyvaksynta.opintooikeus?.id.required(),
                 TyoskentelyjaksoTyyppi.TERVEYSKESKUS)
             else tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
-                hyvaksynta.opintooikeus?.id!!,
+                hyvaksynta.opintooikeus?.id.required(),
                 TyoskentelyjaksoTyyppi.TERVEYSKESKUS,
                 KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
             )

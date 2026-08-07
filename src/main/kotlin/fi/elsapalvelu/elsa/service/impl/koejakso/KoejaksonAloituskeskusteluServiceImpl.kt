@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonAloituskeskustelu
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
@@ -73,11 +75,11 @@ class KoejaksonAloituskeskusteluServiceImpl(
 
                 // Sähköposti kouluttajalle lähetetystä aloituskeskustelusta
                 mailService.sendEmailFromTemplate(
-                    kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id!!)
-                        .get().user!!,
+                    kayttajaRepository.findById(aloituskeskustelu.lahikouluttaja?.id.required())
+                        .get().user.required(),
                     templateName = "aloituskeskusteluKouluttajalle.html",
                     titleKey = "email.aloituskeskustelukouluttajalle.title",
-                    properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id!!.toString()))
+                    properties = mapOf(Pair(MailProperty.ID, aloituskeskustelu.id.required().toString()))
                 )
             }
 
@@ -90,7 +92,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         userId: String
     ): KoejaksonAloituskeskusteluDTO {
         var aloituskeskustelu =
-            koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskusteluDTO.id!!)
+            koejaksonAloituskeskusteluRepository.findById(koejaksonAloituskeskusteluDTO.id.required())
                 .orElseThrow { EntityNotFoundException("Aloituskeskustelua ei löydy") }
 
         val kirjautunutErikoistuvaLaakari =
@@ -147,10 +149,10 @@ class KoejaksonAloituskeskusteluServiceImpl(
         if (result.lahetetty) {
             lisaaValtuutukset(aloituskeskustelu)
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahikouluttaja?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahikouluttaja?.id.required()).get().user.required(),
                 templateName = "aloituskeskusteluKouluttajalle.html",
                 titleKey = "email.aloituskeskustelukouluttajalle.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
         }
 
@@ -178,20 +180,20 @@ class KoejaksonAloituskeskusteluServiceImpl(
         // Sähköposti esimiehelle kouluttajan hyväksymästä aloituskeskustelusta
         if (result.lahikouluttajaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahiesimies?.id!!).get().user!!,
+                kayttajaRepository.findById(result.lahiesimies?.id.required()).get().user.required(),
                 templateName = "aloituskeskusteluKouluttajalle.html",
                 titleKey = "email.aloituskeskustelukouluttajalle.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
         }
         // Sähköposti erikoistuvalle korjattavasta aloituskeskustelusta
         else {
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!,
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required())
+                    .get().user.required(),
                 templateName = "aloituskeskusteluPalautettu.html",
                 titleKey = "email.aloituskeskustelupalautettu.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
         }
 
@@ -221,21 +223,21 @@ class KoejaksonAloituskeskusteluServiceImpl(
         // Sähköposti erikoistuvalle ja kouluttajalle esimiehen hyväksymästä aloituskeskustelusta
         if (result.lahikouluttajaHyvaksynyt) {
             val erikoistuvaLaakari =
-                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required())
+                    .get().user.required()
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
                 templateName = "aloituskeskusteluHyvaksytty.html",
                 titleKey = "email.aloituskeskusteluhyvaksytty.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahikouluttaja?.id!!)
-                    .get().user!!,
+                kayttajaRepository.findById(result.lahikouluttaja?.id.required())
+                    .get().user.required(),
                 templateName = "aloituskeskusteluHyvaksyttyKouluttaja.html",
                 titleKey = "email.aloituskeskusteluhyvaksytty.title",
                 properties = mapOf(
-                    Pair(MailProperty.ID, result.id!!.toString()),
+                    Pair(MailProperty.ID, result.id.required().toString()),
                     Pair(MailProperty.NAME, erikoistuvaLaakari.getName())
                 )
             )
@@ -243,22 +245,22 @@ class KoejaksonAloituskeskusteluServiceImpl(
         // Sähköposti erikoistuvalle ja kouluttajalle korjattavasta aloituskeskustelusta
         else {
             val erikoistuvaLaakari =
-                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id!!)
-                    .get().user!!
+                kayttajaRepository.findById(result.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required())
+                    .get().user.required()
             mailService.sendEmailFromTemplate(
                 erikoistuvaLaakari,
                 templateName = "aloituskeskusteluPalautettu.html",
                 titleKey = "email.aloituskeskustelupalautettu.title",
-                properties = mapOf(Pair(MailProperty.ID, result.id!!.toString()))
+                properties = mapOf(Pair(MailProperty.ID, result.id.required().toString()))
             )
             mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(result.lahikouluttaja?.id!!)
-                    .get().user!!,
+                kayttajaRepository.findById(result.lahikouluttaja?.id.required())
+                    .get().user.required(),
                 templateName = "aloituskeskusteluPalautettuKouluttaja.html",
                 titleKey = "email.aloituskeskustelupalautettu.title",
                 properties = mapOf(
                     Pair(MailProperty.NAME, erikoistuvaLaakari.getName()),
-                    Pair(MailProperty.TEXT, result.korjausehdotus!!)
+                    Pair(MailProperty.TEXT, result.korjausehdotus.required())
                 )
             )
         }
@@ -268,12 +270,12 @@ class KoejaksonAloituskeskusteluServiceImpl(
 
     private fun lisaaValtuutukset(aloituskeskustelu: KoejaksonAloituskeskustelu) {
         kouluttajavaltuutusService.lisaaValtuutus(
-            aloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-            aloituskeskustelu.lahikouluttaja?.id!!
+            aloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
+            aloituskeskustelu.lahikouluttaja?.id.required()
         )
         kouluttajavaltuutusService.lisaaValtuutus(
-            aloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id!!,
-            aloituskeskustelu.lahiesimies?.id!!
+            aloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
+            aloituskeskustelu.lahiesimies?.id.required()
         )
     }
 

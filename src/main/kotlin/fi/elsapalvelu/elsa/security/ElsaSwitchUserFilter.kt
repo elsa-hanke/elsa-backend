@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.security
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -158,7 +160,7 @@ class ElsaSwitchUserFilter(
                     .orElseThrow { EntityNotFoundException("Käyttäjä ei ole kirjautunut") }
 
         val authorityNames =
-            userRepository.findByIdWithAuthorities(kirjautunutKayttaja.user?.id!!)
+            userRepository.findByIdWithAuthorities(kirjautunutKayttaja.user?.id.required())
                 .get().authorities.map { it.name }
 
         if (authorityNames.contains(VASTUUHENKILO) && kirjautunutKayttaja.yliopistotAndErikoisalat.any {
@@ -177,8 +179,8 @@ class ElsaSwitchUserFilter(
             }) return ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 
         if (kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
-                opintooikeus.id!!,
-                kirjautunutKayttaja.user?.id!!,
+                opintooikeus.id.required(),
+                kirjautunutKayttaja.user?.id.required(),
                 LocalDate.now().minusDays(1)
             ).isPresent
         ) return ERIKOISTUVA_LAAKARI_IMPERSONATED

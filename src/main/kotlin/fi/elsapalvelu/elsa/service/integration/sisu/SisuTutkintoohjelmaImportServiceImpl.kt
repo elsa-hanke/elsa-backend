@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.sisu
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.domain.koulutus.ErikoisalaSisuTutkintoohjelma
 import fi.elsapalvelu.elsa.repository.perustiedot.ErikoisalaRepository
 import org.springframework.stereotype.Service
@@ -20,7 +22,7 @@ class SisuTutkintoohjelmaImportServiceImpl(
                     .flatMap { e -> e.requirementCollections.orEmpty() }
                     .flatMap { r -> r.degreeProgrammeGroupIds?.toSet().orEmpty() }
                     .toSet().let { ids ->
-                        erikoisalaRepository.findOneByVirtaPatevyyskoodi(it.key!!)?.let { erikoisala ->
+                        erikoisalaRepository.findOneByVirtaPatevyyskoodi(it.key.required())?.let { erikoisala ->
                             erikoisala.sisuTutkintoohjelmat.removeIf { s -> s.tutkintoohjelmaId !in ids }
                             ids.map { id ->
                                 if (erikoisala.sisuTutkintoohjelmat.none { s -> s.tutkintoohjelmaId == id }) {

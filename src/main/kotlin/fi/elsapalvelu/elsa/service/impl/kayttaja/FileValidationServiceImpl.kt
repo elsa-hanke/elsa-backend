@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.service.kayttaja.FileValidationService
 import org.slf4j.LoggerFactory
@@ -32,7 +34,7 @@ class FileValidationServiceImpl(
                 log.warn("Tiedoston nimi on tyhjä.")
                 return false
             }
-            if (file.originalFilename!!.length > MAXIMUM_FILE_NAME_LENGTH) {
+            if (file.originalFilename.required().length > MAXIMUM_FILE_NAME_LENGTH) {
                 log.warn("Opintooikeus: $opintooikeusId - Tiedoston nimi '${file.originalFilename}' on liian pitkä.")
                 return false
             }

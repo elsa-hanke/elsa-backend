@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.scheduler.jobs
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
@@ -114,7 +116,7 @@ class ScheduledPaattyvaOpintooikeusHerate(
                 properties = properties,
             )
             val opintooikeusHerate =
-                opintooikeusHerateRepository.findOneByErikoistuvaLaakariKayttajaUserId(user.id!!)
+                opintooikeusHerateRepository.findOneByErikoistuvaLaakariKayttajaUserId(user.id.required())
                     ?: OpintooikeusHerate(
                         erikoistuvaLaakari = paattyvaOikeus.erikoistuvaLaakari
                     )

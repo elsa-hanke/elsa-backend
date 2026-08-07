@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import org.springframework.web.bind.annotation.RequestParam
@@ -37,7 +39,7 @@ class VirkailijaValmistumispyyntoResource(
         val user = userService.getAuthenticatedUser(principal)
         val valmistumispyynnot =
             valmistumispyyntoService.findAllForVirkailijaByCriteria(
-                user.id!!,
+                user.id.required(),
                 criteria,
                 criteria.erikoisalaId?.let { listOf(it.equals) }.orEmpty(),
                 if (criteria.erikoisalaId?.equals == YEK_ERIKOISALA_ID) listOf() else listOf(YEK_ERIKOISALA_ID),
@@ -54,7 +56,7 @@ class VirkailijaValmistumispyyntoResource(
     ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val tarkistus =
-            valmistumispyyntoService.findOneByIdAndVirkailijaUserId(id, user.id!!)
+            valmistumispyyntoService.findOneByIdAndVirkailijaUserId(id, user.id.required())
 
         return ResponseEntity.ok(tarkistus)
     }
@@ -68,7 +70,7 @@ class VirkailijaValmistumispyyntoResource(
     ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
         val user = userService.getAuthenticatedUser(principal)
 
-        if (!valmistumispyyntoService.onkoAvoinVirkailija(user.id!!, id)) {
+        if (!valmistumispyyntoService.onkoAvoinVirkailija(user.id.required(), id)) {
             throw BadRequestAlertException(
                 "Valmistumispyyntö ei ole muokattavissa.",
                 VALMISTUMISPYYNTO_ENTITY_NAME,
@@ -78,7 +80,7 @@ class VirkailijaValmistumispyyntoResource(
         val tarkistus =
             valmistumispyyntoService.updateTarkistusByVirkailijaUserId(
                 id,
-                user.id!!,
+                user.id.required(),
                 valmistumispyynnonTarkistusDTO,
                 laillistamistodistus
             )
@@ -93,7 +95,7 @@ class VirkailijaValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!)
+        val kayttaja = kayttajaService.findByUserId(user.id.required())
         val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirjaVirkailija(
             valmistumispyyntoId,
             kayttaja.orElse(null)?.yliopistot?.firstOrNull()?.id,
@@ -111,11 +113,11 @@ class VirkailijaValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!)
+        val kayttaja = kayttajaService.findByUserId(user.id.required())
         val asiakirja = asiakirjaService
             .findByIdAndYliopistoId(
                 id,
-                kayttaja.orElse(null)?.yliopistot?.map { it.id!! })
+                kayttaja.orElse(null)?.yliopistot?.map { it.id.required() })
 
         return asiakirja?.asiakirjaData?.fileInputStream
             ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())

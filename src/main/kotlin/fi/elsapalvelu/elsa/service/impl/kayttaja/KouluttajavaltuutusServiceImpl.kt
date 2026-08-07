@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
@@ -38,8 +40,8 @@ class KouluttajavaltuutusServiceImpl(
 
         if (kouluttajavaltuutus.id == null) {
             kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserId(
-                opintooikeus?.id!!,
-                kayttajaRepository.findById(kouluttajavaltuutusDTO.valtuutettu?.id!!).get().user?.id!!
+                opintooikeus?.id.required(),
+                kayttajaRepository.findById(kouluttajavaltuutusDTO.valtuutettu?.id.required()).get().user?.id.required()
             ).ifPresentOrElse({
                 kouluttajavaltuutus = it
                 kouluttajavaltuutus.paattymispaiva = kouluttajavaltuutusDTO.paattymispaiva
@@ -48,7 +50,7 @@ class KouluttajavaltuutusServiceImpl(
                 kouluttajavaltuutus.valtuutuksenLuontiaika = Instant.now()
             })
         } else {
-            kouluttajavaltuutusRepository.findById(kouluttajavaltuutus.id!!).ifPresent {
+            kouluttajavaltuutusRepository.findById(kouluttajavaltuutus.id.required()).ifPresent {
                 kouluttajavaltuutus = it
                 kouluttajavaltuutus.paattymispaiva = kouluttajavaltuutusDTO.paattymispaiva
             }
@@ -59,24 +61,24 @@ class KouluttajavaltuutusServiceImpl(
 
             if (sendMail) {
                 mailService.sendEmailFromTemplate(
-                    kouluttajavaltuutus.valtuutettu?.user!!,
+                    kouluttajavaltuutus.valtuutettu?.user.required(),
                     templateName = "katseluoikeudet.html",
                     titleKey = "email.katseluoikeudet.title",
                     properties = mapOf(
                         Pair(
                             MailProperty.NAME,
-                            erikoistuvaLaakari?.kayttaja!!.getNimi()
+                            erikoistuvaLaakari?.kayttaja.required().getNimi()
                         ),
                         Pair(
                             MailProperty.ERIKOISALA,
-                            opintooikeus?.erikoisala?.nimi!!
+                            opintooikeus?.erikoisala?.nimi.required()
                         ),
                         Pair(
                             MailProperty.YLIOPISTO,
-                            opintooikeus.yliopisto?.nimi?.toString()!!
+                            requireNotNull(opintooikeus).yliopisto?.nimi?.toString().required()
                         ),
                         Pair(
-                            MailProperty.DATE, kouluttajavaltuutus.paattymispaiva!!.format(
+                            MailProperty.DATE, kouluttajavaltuutus.paattymispaiva.required().format(
                                 DateTimeFormatter.ofPattern("dd.MM.yyyy")
                             )
                         )
@@ -98,7 +100,7 @@ class KouluttajavaltuutusServiceImpl(
     override fun findAllValtuutettuByValtuuttajaKayttajaUserId(userId: String): List<KouluttajavaltuutusDTO> {
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         return kouluttajavaltuutusRepository.findAllByValtuuttajaOpintooikeusIdAndPaattymispaivaAfter(
-            erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id!!,
+            erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id.required(),
             LocalDate.now().minusDays(1)
         ).sortedBy { it.paattymispaiva }.map(kouluttajavaltuutusMapper::toDto)
     }
@@ -110,7 +112,7 @@ class KouluttajavaltuutusServiceImpl(
     ): Optional<KouluttajavaltuutusDTO> {
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         return kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
-            erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id!!,
+            erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id.required(),
             valtuutettuId,
             LocalDate.now().minusDays(1)
         )

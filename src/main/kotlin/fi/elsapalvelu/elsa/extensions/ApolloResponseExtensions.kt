@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.extensions
 
+import fi.elsapalvelu.elsa.required
+
 import com.apollographql.apollo.api.ApolloResponse
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.exception.ApolloHttpException
@@ -21,7 +23,7 @@ fun <D : Operation.Data> ApolloResponse<D>.checkErrors(context: String, log: Log
 
     // GraphQL-level errors
     if (hasErrors()) {
-        val errMsg = errors!!.joinToString("; ") { err ->
+        val errMsg = errors.required().joinToString("; ") { err ->
             buildString {
                 append(err.message)
                 err.path?.let { append(", path: $it") }

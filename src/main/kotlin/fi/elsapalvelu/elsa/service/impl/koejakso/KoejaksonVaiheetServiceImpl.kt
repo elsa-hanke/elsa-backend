@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
@@ -101,7 +103,7 @@ class KoejaksonVaiheetServiceImpl(
             kayttajaId,
             vainAvoimet
         )
-        applyKoulutussopimuksetForKouluttaja(userId, resultMap, kayttajaId!!, vainAvoimet)
+        applyKoulutussopimuksetForKouluttaja(userId, resultMap, kayttajaId.required(), vainAvoimet)
 
         return sortKoejaksonVaiheet(resultMap)
     }
@@ -150,7 +152,7 @@ class KoejaksonVaiheetServiceImpl(
                 return koejaksonVastuuhenkilonArvioQueryService.findByCriteriaAndYliopistoId(
                     criteria,
                     pageable,
-                    it.id!!,
+                    it.id.required(),
                     k.user?.langKey
                 ).map { arvio ->
                     KoejaksonVaiheDTO(
@@ -170,7 +172,7 @@ class KoejaksonVaiheetServiceImpl(
     override fun findAllAvoinByVirkailijaKayttajaUserId(userId: String): List<KoejaksonVaiheDTO>? {
         kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
             k.yliopistot.firstOrNull()?.let {
-                return koejaksonVastuuhenkilonArvioRepository.findAllAvoinByVirkailija(it.id!!)
+                return koejaksonVastuuhenkilonArvioRepository.findAllAvoinByVirkailija(it.id.required())
                     .map { arvio ->
                         KoejaksonVaiheDTO(
                             arvio.id,
@@ -199,17 +201,17 @@ class KoejaksonVaiheetServiceImpl(
             }.map {
                 if (vainAvoimet) {
                     vastuuhenkilonArvioRepository.findAllAvoinByVastuuhenkilo(
-                        it.yliopisto?.id!!, it.erikoisala?.id!!
+                        it.yliopisto?.id.required(), it.erikoisala?.id.required()
                     )
                 } else {
                     vastuuhenkilonArvioRepository.findAllByVastuuhenkilo(
-                        it.yliopisto?.id!!, it.erikoisala?.id!!
+                        it.yliopisto?.id.required(), it.erikoisala?.id.required()
                     )
                 }
             }.flatten()
         vastuuhenkilonArviot.associate {
             val result = getOpintooikeusIdOrElseThrow(it.opintooikeus) to vastuuhenkilonArvioMapper.toDto(it)
-            result.second.arkistoitava = arkistointiService.onKaytossa(it.opintooikeus?.yliopisto?.nimi!!, CaseType.KOEJAKSO)
+            result.second.arkistoitava = arkistointiService.onKaytossa(it.opintooikeus?.yliopisto?.nimi.required(), CaseType.KOEJAKSO)
             result
         }.forEach {
             val opintooikeusId = it.key
@@ -424,12 +426,12 @@ class KoejaksonVaiheetServiceImpl(
             }.map {
                 if (vainAvoimet) {
                     koejaksonKoulutussopimusRepository.findAllAvoinForVastuuhenkilo(
-                        it.yliopisto?.id!!, it.erikoisala?.id!!
+                        it.yliopisto?.id.required(), it.erikoisala?.id.required()
                     )
                 } else {
                     koejaksonKoulutussopimusRepository.findAllByVastuuhenkiloUserId(
-                        it.yliopisto?.id!!,
-                        it.erikoisala?.id!!
+                        it.yliopisto?.id.required(),
+                        it.erikoisala?.id.required()
                     )
                 }
             }.flatten()

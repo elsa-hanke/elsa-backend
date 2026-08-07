@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import org.springframework.web.bind.annotation.RequestParam
 import java.security.Principal
@@ -44,7 +46,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
     ): ResponseEntity<KoulutussuunnitelmaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         if (koulutussuunnitelmaDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
@@ -67,7 +69,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
     ): ResponseEntity<KoulutussuunnitelmaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         return koulutussuunnitelmaService
             .findOneByOpintooikeusId(opintooikeusId)?.let {

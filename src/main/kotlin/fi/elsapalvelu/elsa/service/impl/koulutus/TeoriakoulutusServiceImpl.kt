@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koulutus
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
@@ -35,7 +37,7 @@ class TeoriakoulutusServiceImpl(
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let { opintooikeus ->
             if (teoriakoulutusDTO.id != null) {
                 teoriakoulutusRepository.findOneByIdAndOpintooikeusId(
-                    teoriakoulutusDTO.id!!,
+                    teoriakoulutusDTO.id.required(),
                     opintooikeusId
                 )?.let {
                     it.koulutuksenNimi = teoriakoulutusDTO.koulutuksenNimi

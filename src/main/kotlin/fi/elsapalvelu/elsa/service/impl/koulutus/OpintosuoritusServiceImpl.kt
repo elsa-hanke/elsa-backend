@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koulutus
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
@@ -25,7 +27,7 @@ class OpintosuoritusServiceImpl(
         val yekTyypit = listOf(OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS, OpintosuoritusTyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO, OpintosuoritusTyyppiEnum.YEK_PATEVYYS)
         val yekSuoritukset =
             if (!yekOikeus) opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
-                opintooikeus?.erikoistuvaLaakari?.id!!,
+                opintooikeus?.erikoistuvaLaakari?.id.required(),
                 YEK_ERIKOISALA_ID
                 ).filter { it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_PATEVYYS }
             else listOf()
@@ -42,13 +44,13 @@ class OpintosuoritusServiceImpl(
             }.sumOf { johtamisopinto ->
                 johtamisopinto.opintopisteet ?: 0.0
             },
-            opintooikeus.opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
+            requireNotNull(opintooikeus).opintoopas?.erikoisalanVaatimaJohtamisopintojenVahimmaismaara,
             opintosuorituksetList.filter { opintosuoritus ->
                 opintosuoritus.tyyppi?.nimi == OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS
             }.sumOf { sateilysuojakoulutus ->
                 sateilysuojakoulutus.opintopisteet ?: 0.0
             },
-            opintooikeus.opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
+            requireNotNull(opintooikeus).opintoopas?.erikoisalanVaatimaSateilysuojakoulutustenVahimmaismaara
         )
     }
 

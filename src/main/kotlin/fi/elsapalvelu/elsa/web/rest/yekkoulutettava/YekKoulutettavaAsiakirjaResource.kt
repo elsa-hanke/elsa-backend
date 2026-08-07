@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import org.springframework.web.bind.annotation.RequestParam
@@ -50,7 +52,7 @@ class YekKoulutettavaAsiakirjaResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
+                user.id.required(), YEK_ERIKOISALA_ID
             )
 
         if (!fileValidationService.validate(files, opintooikeusId)) {
@@ -75,7 +77,7 @@ class YekKoulutettavaAsiakirjaResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
+                user.id.required(), YEK_ERIKOISALA_ID
             )
         var asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId)
 
@@ -100,10 +102,10 @@ class YekKoulutettavaAsiakirjaResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
+                user.id.required(), YEK_ERIKOISALA_ID
             )
         val asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map {
-            it.nimi!!
+            it.nimi.required()
         }
 
         return ResponseEntity.ok(asiakirjat)
@@ -117,7 +119,7 @@ class YekKoulutettavaAsiakirjaResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
+                user.id.required(), YEK_ERIKOISALA_ID
             )
         val asiakirja = asiakirjaService.findOne(id, opintooikeusId)
 
@@ -147,7 +149,7 @@ class YekKoulutettavaAsiakirjaResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
+                user.id.required(), YEK_ERIKOISALA_ID
             )
         asiakirjaService.delete(id, opintooikeusId)
         return ResponseEntity.noContent()

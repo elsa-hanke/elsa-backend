@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.suoritteet
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoriteRepository
@@ -29,7 +31,7 @@ class SuoriteServiceImpl(
     override fun create(suoriteDTO: SuoriteWithErikoisalaDTO): SuoriteWithErikoisalaDTO {
         // Korvataan edellinen
         if (suoriteDTO.id != null) {
-            suoriteRepository.findById(suoriteDTO.id!!).orElse(null)
+            suoriteRepository.findById(suoriteDTO.id.required()).orElse(null)
                 ?.let {
                     it.voimassaolonPaattymispaiva =
                         suoriteDTO.voimassaolonAlkamispaiva?.minusDays(1)
@@ -44,7 +46,7 @@ class SuoriteServiceImpl(
     }
 
     override fun update(suoriteDTO: SuoriteWithErikoisalaDTO): SuoriteWithErikoisalaDTO? {
-        return suoriteRepository.findById(suoriteDTO.id!!).orElse(null)
+        return suoriteRepository.findById(suoriteDTO.id.required()).orElse(null)
             ?.let {
                 it.nimi = suoriteDTO.nimi
                 it.nimiSv = suoriteDTO.nimiSv
@@ -77,7 +79,7 @@ class SuoriteServiceImpl(
         val result = suoriteRepository.findById(id)
             .map(suoriteWithErikoisalaMapper::toDto)
         result.ifPresent {
-            it.voiPoistaa = !suoritemerkintaRepository.existsBySuoriteId(it.id!!)
+            it.voiPoistaa = !suoritemerkintaRepository.existsBySuoriteId(it.id.required())
         }
         return result
     }

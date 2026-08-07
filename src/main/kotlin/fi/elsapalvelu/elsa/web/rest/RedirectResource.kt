@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.config.LoginException
 import org.springframework.core.env.Environment
 import org.springframework.security.saml2.core.Saml2ErrorCodes
@@ -34,7 +36,7 @@ class RedirectResource(private val env: Environment) {
         var exceptionMessage = LoginException.TUNTEMATON.name
 
         if (exception.message in (LoginException.entries.map { it.name })) {
-            exceptionMessage = exception.message!!
+            exceptionMessage = exception.message.required()
         } else {
             val errorCode = exception.saml2Error.errorCode
 

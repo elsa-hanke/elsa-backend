@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.extensions.isInRange
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.tyoskentely.OverlappingKeskeytysaikaValidationService
@@ -17,7 +19,7 @@ class OverlappingKeskeytysaikaValidationServiceImpl(
 
     override fun validateKeskeytysaika(opintooikeusId: Long, keskeytysaikaDTO: KeskeytysaikaDTO): Boolean {
         tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusIdEagerWithKeskeytykset(
-            keskeytysaikaDTO.tyoskentelyjaksoId!!,
+            keskeytysaikaDTO.tyoskentelyjaksoId.required(),
             opintooikeusId
         )?.let {
             val keskeytykset =
@@ -25,15 +27,15 @@ class OverlappingKeskeytysaikaValidationServiceImpl(
                     keskeytysaikaDTO
                 )
 
-            val minKeskeytysaikaDate = keskeytykset.minOf { k -> k.alkamispaiva!! }
-            val maxKeskeytysaikaDate = keskeytykset.maxOf { k -> k.paattymispaiva!! }
+            val minKeskeytysaikaDate = keskeytykset.minOf { k -> k.alkamispaiva.required() }
+            val maxKeskeytysaikaDate = keskeytykset.maxOf { k -> k.paattymispaiva.required() }
 
             dates@ for (date in minKeskeytysaikaDate.datesUntil(maxKeskeytysaikaDate.plusDays(1))) {
                 val keskeytyksetForCurrentDate = keskeytykset.filter { keskeytysaika ->
-                    date.isInRange(keskeytysaika.alkamispaiva!!, keskeytysaika.paattymispaiva)
+                    date.isInRange(keskeytysaika.alkamispaiva.required(), keskeytysaika.paattymispaiva)
                 }
                 val overallKeskeytysaikaFactorForCurrentDate = keskeytyksetForCurrentDate.sumOf { k ->
-                    k.poissaoloprosentti!!.toDouble() / 100.0
+                    k.poissaoloprosentti.required().toDouble() / 100.0
                 }
                 if (overallKeskeytysaikaFactorForCurrentDate > 1) {
                     return false

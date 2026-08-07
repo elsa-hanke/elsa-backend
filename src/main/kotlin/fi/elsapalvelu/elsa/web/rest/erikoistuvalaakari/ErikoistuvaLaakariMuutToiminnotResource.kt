@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import org.springframework.web.bind.annotation.RequestParam
 import java.security.Principal
@@ -59,7 +61,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return erikoistuvaLaakariService.findOneByKayttajaUserIdWithValidOpintooikeudet(user.id!!)?.let {
+        return erikoistuvaLaakariService.findOneByKayttajaUserIdWithValidOpintooikeudet(user.id.required())?.let {
             if (user.authorities?.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED) == true ||
                 user.authorities?.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA) == true
             ) {
@@ -88,8 +90,8 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         @RequestParam(required = false) laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia: Boolean?,
         principal: Principal?
     ): UserDTO {
-        val userId = userService.getAuthenticatedUser(principal).id!!
-        val email = omatTiedotDTO.email!!.lowercase()
+        val userId = userService.getAuthenticatedUser(principal).id.required()
+        val email = omatTiedotDTO.email.required().lowercase()
 
         val userDTO = userService.getUser(userId)
         if (userDTO.email?.lowercase() != email && userService.existsByEmail(email)) {
@@ -102,7 +104,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
 
         val user = userService.getAuthenticatedUser(principal)
         erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id!!,
+            user.id.required(),
             laillistamispaiva,
             laillistamispaivanLiite?.bytes,
             laillistamispaivanLiite?.originalFilename,
@@ -110,7 +112,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         )
 
         erikoistuvaLaakariService.updateLaakarikoulutusSuoritettuSuomiTaiBelgia(
-            user.id!!, laakarikoulutusSuoritettuSuomiTaiBelgia, laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
+            user.id.required(), laakarikoulutusSuoritettuSuomiTaiBelgia, laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
         )
 
         return userService.updateUserDetails(omatTiedotDTO, userId)
@@ -121,7 +123,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<LaillistamispaivaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return erikoistuvaLaakariService.getLaillistamispaiva(user.id!!)?.let {
+        return erikoistuvaLaakariService.getLaillistamispaiva(user.id.required())?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -132,7 +134,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<KayttajaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id!!)
+        erikoistuvaLaakariService.findOneByKayttajaUserId(user.id.required())
             ?: throw BadRequestAlertException(
                 "Uuden lahikouluttajan voi lisätä vain erikoistuva lääkäri",
                 KAYTTAJA_ENTITY_NAME,
@@ -141,7 +143,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         val kouluttajaEmail = requireNotNull(uusiLahikouluttajaDTO.sahkoposti)
         val existingKouluttaja = try {
             kayttajaService.updateKouluttajaYliopistoAndErikoisalaByEmail(
-                user.id!!,
+                user.id.required(),
                 kouluttajaEmail
             )
         } catch (ex: EntityExistsException) {
@@ -157,7 +159,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         }
 
         val result = kayttajaService.saveKouluttaja(
-                    user.id!!,
+                    user.id.required(),
                     KayttajaDTO(
                         etunimi = uusiLahikouluttajaDTO.etunimi,
                         sukunimi = uusiLahikouluttajaDTO.sukunimi,
@@ -170,7 +172,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                         authorities = setOf(KOULUTTAJA)
                     )
                 )
-        val token = verificationTokenService.save(result.userId!!)
+        val token = verificationTokenService.save(result.userId.required())
         mailService.sendEmailFromTemplate(
             User(email = uusiLahikouluttajaDTO.sahkoposti),
             templateName = "uusiKouluttaja.html",
@@ -192,7 +194,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
-        opintooikeusService.setOpintooikeusKaytossa(user.id!!, id)
+        opintooikeusService.setOpintooikeusKaytossa(user.id.required(), id)
         return ResponseEntity.ok().build()
     }
 
@@ -202,7 +204,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         @RequestParam muokkausoikeudet: Boolean
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
-        opintooikeusService.updateMuokkausoikeudet(user.id!!, muokkausoikeudet)
+        opintooikeusService.updateMuokkausoikeudet(user.id.required(), muokkausoikeudet)
         return ResponseEntity.ok().build()
     }
 
@@ -211,7 +213,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<List<KayttajaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(kayttajaService.findKouluttajatFromSameErikoisala(user.id!!))
+        return ResponseEntity.ok(kayttajaService.findKouluttajatFromSameErikoisala(user.id.required()))
     }
 
     @GetMapping("/kouluttajat-vastuuhenkilot")
@@ -221,7 +223,7 @@ class ErikoistuvaLaakariMuutToiminnotResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             kayttajaService.findKouluttajatAndVastuuhenkilotFromSameYliopisto(
-                user.id!!
+                user.id.required()
             )
         )
     }

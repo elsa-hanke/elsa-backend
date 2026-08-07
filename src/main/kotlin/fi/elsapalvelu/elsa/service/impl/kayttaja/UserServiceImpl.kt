@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
@@ -182,18 +184,18 @@ class UserServiceImpl(
             // Yhdistä käyttäjä jos löytyy
             if (existingUser != null) {
                 val existingKayttaja =
-                    kayttajaRepository.findOneByUserId(existingUser.id!!)
+                    kayttajaRepository.findOneByUserId(existingUser.id.required())
                         .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
                 val tokenKayttaja =
-                    kayttajaRepository.findOneByUserId(tokenUser.id!!)
+                    kayttajaRepository.findOneByUserId(tokenUser.id.required())
                         .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
 
                 existingKayttaja.takeIf { t -> t.tila == KayttajatilinTila.KUTSUTTU }
                     ?.apply { KayttajatilinTila.AKTIIVINEN }
 
                 updateKouluttajaReferences(
-                    tokenKayttaja.id!!,
-                    existingKayttaja.id!!
+                    tokenKayttaja.id.required(),
+                    existingKayttaja.id.required()
                 )
 
                 copyTokenUserAuthorities(existingUser, tokenUser)
@@ -223,7 +225,7 @@ class UserServiceImpl(
 
                 userRepository.save(tokenUser)
                 val kayttaja =
-                    kayttajaRepository.findOneByUserId(tokenUser.id!!)
+                    kayttajaRepository.findOneByUserId(tokenUser.id.required())
                         .orElseThrow { EntityNotFoundException(KAYTTAJA_NOT_FOUND_ERROR) }
                 kayttaja.tila = KayttajatilinTila.AKTIIVINEN
                 verificationTokenRepository.delete(token)
@@ -309,7 +311,7 @@ class UserServiceImpl(
 
     override fun delete(id: String) {
         verificationTokenRepository.findOneByUserId(id)?.let {
-            verificationTokenRepository.deleteById(it.id!!)
+            verificationTokenRepository.deleteById(it.id.required())
         }
         userRepository.deleteById(id)
     }

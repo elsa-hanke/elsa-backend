@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
+import fi.elsapalvelu.elsa.required
+
 import java.time.LocalDate
 import java.security.Principal
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
@@ -59,7 +61,7 @@ class TyoskentelyjaksoResourceSupport(
         laillistamistodistus: MultipartFile?
     ) {
         if ((laillistamispaiva == null || laillistamistodistus == null) &&
-            !erikoistuvaLaakariService.laillistamispaivaAndTodistusExists(user.id!!)
+            !erikoistuvaLaakariService.laillistamispaivaAndTodistusExists(user.id.required())
         ) {
             throw BadRequestAlertException(
                 "Laillistamispaiva ja todistus vaaditaan",
@@ -77,7 +79,7 @@ class TyoskentelyjaksoResourceSupport(
                 "idexists"
             )
         }
-        if (tyoskentelyjaksoDTO.tyoskentelypaikka == null || tyoskentelyjaksoDTO.tyoskentelypaikka!!.id != null) {
+        if (tyoskentelyjaksoDTO.tyoskentelypaikka == null || tyoskentelyjaksoDTO.tyoskentelypaikka.required().id != null) {
             throw BadRequestAlertException(
                 "Uusi tyoskentelypaikka ei saa sisältää ID:tä",
                 TYOSKENTELYPAIKKA_ENTITY_NAME,
@@ -121,7 +123,7 @@ class TyoskentelyjaksoResourceSupport(
             )
         }
 
-        if (keskeytysaikaDTO.alkamispaiva!!.isAfter(keskeytysaikaDTO.paattymispaiva)) {
+        if (keskeytysaikaDTO.alkamispaiva.required().isAfter(keskeytysaikaDTO.paattymispaiva)) {
             throw BadRequestAlertException(
                 "Keskeytysajan päättymispäivä ei saa olla ennen alkamisaikaa",
                 KESKEYTYSAIKA_ENTITY_NAME,
@@ -129,7 +131,7 @@ class TyoskentelyjaksoResourceSupport(
             )
         }
 
-        if (keskeytysaikaDTO.alkamispaiva!!.isBefore(keskeytysaikaDTO.tyoskentelyjakso!!.alkamispaiva)) {
+        if (keskeytysaikaDTO.alkamispaiva.required().isBefore(keskeytysaikaDTO.tyoskentelyjakso.required().alkamispaiva)) {
             throw BadRequestAlertException(
                 "Keskeytysajan alkamispäivä ei voi olla ennen työskentelyjakson alkamispäivää",
                 KESKEYTYSAIKA_ENTITY_NAME,
@@ -137,8 +139,8 @@ class TyoskentelyjaksoResourceSupport(
             )
         }
 
-        if (keskeytysaikaDTO.tyoskentelyjakso!!.paattymispaiva != null && keskeytysaikaDTO.paattymispaiva!!.isAfter(
-                keskeytysaikaDTO.tyoskentelyjakso!!.paattymispaiva
+        if (keskeytysaikaDTO.tyoskentelyjakso.required().paattymispaiva != null && keskeytysaikaDTO.paattymispaiva.required().isAfter(
+                keskeytysaikaDTO.tyoskentelyjakso.required().paattymispaiva
             )
         ) {
             throw BadRequestAlertException(

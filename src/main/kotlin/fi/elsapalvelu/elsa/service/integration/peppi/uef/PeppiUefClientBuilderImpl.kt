@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.peppi.uef
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
@@ -28,7 +30,7 @@ class PeppiUefClientBuilderImpl(
                     OkHttp3RequestInterceptor(
                         mapOf(
                             "Accept" to "application/json",
-                            "X-Api-Key" to applicationProperties.getSecurity().getPeppiUef().apiKey!!
+                            "X-Api-Key" to applicationProperties.getSecurity().getPeppiUef().apiKey.required()
                         )
                     )
                 )

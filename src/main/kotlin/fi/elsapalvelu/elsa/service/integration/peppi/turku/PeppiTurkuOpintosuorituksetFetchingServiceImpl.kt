@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.integration.peppi.turku
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
@@ -20,7 +22,7 @@ class PeppiTurkuOpintosuorituksetFetchingServiceImpl(
 
     override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
         val endpointBaseUrl =
-            "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl!!}/study_accomplishments"
+            "${applicationProperties.getSecurity().getPeppiTurku().endpointUrl.required()}/study_accomplishments"
         return commonOpintosuorituksetFetchingService.fetchOpintosuoritukset(
             endpointBaseUrl,
             peppiTurkuClientBuilder.okHttpClient(),

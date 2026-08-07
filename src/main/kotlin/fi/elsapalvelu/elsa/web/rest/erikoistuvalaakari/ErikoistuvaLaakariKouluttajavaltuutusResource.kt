@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.time.LocalDate
 import java.security.Principal
@@ -27,7 +29,7 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
         principal: Principal?
     ): ResponseEntity<List<KouluttajavaltuutusDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(user.id!!).let {
+        kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(user.id.required()).let {
             return ResponseEntity.ok(it)
         }
     }
@@ -48,8 +50,8 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
         }
 
         kouluttajavaltuutusService.findValtuutettuByValtuuttajaAndValtuutettu(
-            user.id!!,
-            valtuutettu.userId!!
+            user.id.required(),
+            valtuutettu.userId.required()
         ).ifPresent {
             throw BadRequestAlertException(
                 "Erikoistuva on jo valtuuttanut kouluttajan",
@@ -58,7 +60,7 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
             )
         }
         val result = kouluttajavaltuutusService.save(
-            user.id!!,
+            user.id.required(),
             KouluttajavaltuutusDTO(
                 alkamispaiva = LocalDate.now(),
                 paattymispaiva = LocalDate.now().plusMonths(6),
@@ -80,7 +82,7 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
         val user = userService.getAuthenticatedUser(principal)
 
         kouluttajavaltuutusService.save(
-            user.id!!,
+            user.id.required(),
             KouluttajavaltuutusDTO(id = id, paattymispaiva = kouluttajavaltuutusDTO.paattymispaiva)
         ).let {
             return ResponseEntity.ok(it)

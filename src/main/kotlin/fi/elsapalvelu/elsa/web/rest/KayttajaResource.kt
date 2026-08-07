@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import org.springframework.web.bind.annotation.RequestParam
 import java.security.Principal
@@ -50,7 +52,7 @@ class KayttajaResource(
 
     @GetMapping("/kayttaja")
     fun getKayttaja(principal: Principal?): UserDTO {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val user = userService.getUser(userId)
         val authorities =
             (principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
@@ -77,7 +79,7 @@ class KayttajaResource(
 
     @GetMapping("/kayttaja-lisatiedot")
     fun getKayttajaLisatiedot(principal: Principal?): KayttajaTiedotDTO {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val kayttaja = kayttajaService.findByUserId(userId).orElse(null)
         return KayttajaTiedotDTO(
             nimike = kayttaja?.nimike,
@@ -87,7 +89,7 @@ class KayttajaResource(
                     KayttajaYliopistoErikoisalatDTO(
                         it.key,
                         it.value.filter { kye -> kye.erikoisala != null }
-                            .map { kye -> kye.erikoisala!! }
+                            .map { kye -> kye.erikoisala.required() }
                     )
                 }?.toMutableSet(),
             yliopistot = yliopistoService.findAll(),
@@ -111,9 +113,9 @@ class KayttajaResource(
         @Valid @RequestParam kayttajanYliopistotJaErikoisalat: String?,
         principal: Principal?
     ): UserDTO {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val user = userService.getUser(userId)
-        val email = omatTiedotDTO.email!!.lowercase()
+        val email = omatTiedotDTO.email.required().lowercase()
 
         val userDTO = userService.getUser(userId)
         if (userDTO.email?.lowercase() != email && userService.existsByEmail(email)) {
@@ -160,10 +162,10 @@ class KayttajaResource(
         @Valid @RequestParam rooli: String,
         principal: Principal?
     ): ResponseEntity<Unit> {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val user = userService.getUser(userId)
 
-        if (user.authorities!!.size < 2) {
+        if (user.authorities.required().size < 2) {
             throw BadRequestAlertException(
                 "Käyttäjällä ei ole useita rooleja.",
                 KAYTTAJA_ENTITY_NAME,
@@ -171,7 +173,7 @@ class KayttajaResource(
             )
         }
 
-        if (!user.authorities!!.contains(rooli)) {
+        if (!user.authorities.required().contains(rooli)) {
             throw BadRequestAlertException(
                 "Käyttäjällä ei ole haluttua roolia.",
                 KAYTTAJA_ENTITY_NAME,
