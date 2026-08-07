@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.config
 
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import org.ehcache.config.builders.CacheConfigurationBuilder
 import org.ehcache.config.builders.ExpiryPolicyBuilder
 import org.ehcache.config.builders.ResourcePoolsBuilder

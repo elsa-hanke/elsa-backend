@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.arviointi
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
@@ -23,7 +25,6 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 
 @Service
 @Transactional(readOnly = true)
@@ -178,28 +179,28 @@ class ErikoistujienSeurantaQueryService(
         spec: Specification<Opintooikeus?>? = null
     ): Specification<Opintooikeus?> {
         var specification: Specification<Opintooikeus?> = spec ?: Specification.unrestricted()
-        criteria?.let {
-            it.asetusId?.let {
+        criteria?.let { seurantaCriteria ->
+            seurantaCriteria.asetusId?.let { asetusId ->
                 specification =
                     specification.and { root, _, cb ->
                         cb.equal(
                             root.join(Opintooikeus_.asetus, JoinType.INNER)
                                 .get(Asetus_.id),
-                            it.equals
+                            asetusId.equals
                         )
                     }
             }
-            it.erikoisalaId?.let {
+            seurantaCriteria.erikoisalaId?.let { erikoisalaId ->
                 specification =
                     specification.and { root, _, cb ->
                         cb.equal(
                             root.join(Opintooikeus_.erikoisala, JoinType.INNER)
                                 .get(Erikoisala_.id),
-                            it.equals
+                            erikoisalaId.equals
                         )
                     }
             }
-            if (it.naytaPaattyneet == null || it.naytaPaattyneet == false) {
+            if (seurantaCriteria.naytaPaattyneet == null || seurantaCriteria.naytaPaattyneet == false) {
                 specification =
                     specification.and { root, _, cb ->
                         cb.greaterThanOrEqualTo(

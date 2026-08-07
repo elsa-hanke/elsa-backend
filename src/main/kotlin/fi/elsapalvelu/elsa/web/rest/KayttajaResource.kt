@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.security.*
@@ -29,7 +32,6 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority
 import org.springframework.web.bind.annotation.*
-import java.security.Principal
 import jakarta.validation.Valid
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 
@@ -124,14 +126,15 @@ class KayttajaResource(
 
         val kayttajanYliopistotDTO: List<KayttajaYliopistoErikoisalatDTO> =
             kayttajanYliopistotJaErikoisalat?.let {
+                @Suppress("UNCHECKED_CAST")
                 objectMapper.readValue(
                     kayttajanYliopistotJaErikoisalat,
                     objectMapper.typeFactory.constructCollectionType(
                         List::class.java,
                         KayttajaYliopistoErikoisalatDTO::class.java
                     )
-                )
-            } ?: listOf()
+                ) as List<KayttajaYliopistoErikoisalatDTO>
+            }.orEmpty()
 
         if (user.authorities?.contains(KOULUTTAJA) == true) {
             kayttajaService.updateKayttaja(
@@ -156,7 +159,7 @@ class KayttajaResource(
     fun vaihdaRooli(
         @Valid @RequestParam rooli: String,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val userId = userService.getAuthenticatedUser(principal).id!!
         val user = userService.getUser(userId)
 

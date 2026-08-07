@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.service.dto.koulutus
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import java.io.Serializable
-import java.time.LocalDate
 
 data class OpintotietoOpintooikeusDataDTO(
 

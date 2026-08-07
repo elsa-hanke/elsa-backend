@@ -1,16 +1,15 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.service.kayttaja.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.time.LocalDate
+import java.security.Principal
+import fi.elsapalvelu.elsa.service.kayttaja.KouluttajavaltuutusService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KouluttajavaltuutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URI
-import java.security.Principal
-import java.time.LocalDate
 import jakarta.validation.Valid
 
 private const val ENTITY_NAME = "kouluttajavaltuutus"

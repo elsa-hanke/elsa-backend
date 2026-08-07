@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
+import java.time.LocalDate
+import java.security.Principal
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
@@ -18,8 +20,6 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
-import java.security.Principal
-import java.time.LocalDate
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"

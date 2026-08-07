@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain.kayttaja
 
+import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
@@ -9,7 +10,6 @@ import org.hibernate.envers.NotAudited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
 import java.time.Instant
-import java.time.LocalDate
 
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.domain.koulutus.Opintoopas

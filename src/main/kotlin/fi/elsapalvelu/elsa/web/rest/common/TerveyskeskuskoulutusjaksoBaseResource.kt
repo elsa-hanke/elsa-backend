@@ -1,18 +1,18 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.service.kayttaja.KayttajaService
 import fi.elsapalvelu.elsa.service.valmistuminen.TerveyskeskuskoulutusjaksonHyvaksyntaService
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.web.rest.TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.ValidationException
 import org.springframework.http.ResponseEntity
 
-abstract class TerveyskeskuskoulutusjaksoBaseResource(
+open class TerveyskeskuskoulutusjaksoBaseResource(
     protected val userService: UserService,
     protected val kayttajaService: KayttajaService,
     protected val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
@@ -46,7 +46,6 @@ abstract class TerveyskeskuskoulutusjaksoBaseResource(
      */
     protected fun buildAsiakirjaDownloadResponse(asiakirja: AsiakirjaDTO?): ResponseEntity<ByteArray> =
         asiakirja?.asiakirjaData?.fileInputStream
-            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             ?: ResponseEntity.notFound().build()
 }
-

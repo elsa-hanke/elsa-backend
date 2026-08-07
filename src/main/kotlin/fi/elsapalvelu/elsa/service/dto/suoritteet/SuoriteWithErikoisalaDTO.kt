@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.suoritteet
 
-import java.io.Serializable
 import java.time.LocalDate
+import java.io.Serializable
 import jakarta.validation.constraints.NotNull
 
 data class SuoriteWithErikoisalaDTO(

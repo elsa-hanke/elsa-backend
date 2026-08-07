@@ -1,5 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
@@ -17,8 +21,6 @@ import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
-import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.GrantedAuthority
@@ -27,8 +29,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.net.URLEncoder
-import java.security.Principal
 
 private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
 
@@ -62,8 +62,8 @@ class YekKoulutettavaAsiakirjaResource(
         }
 
         val asiakirjat = files.map { it.mapAsiakirja() }
-        asiakirjaService.create(asiakirjat, opintooikeusId)?.let {
-            return ResponseEntity.created(URI("/api/asiakirjat"))
+        return asiakirjaService.create(asiakirjat, opintooikeusId)?.let {
+            ResponseEntity.created(URI("/api/asiakirjat"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
@@ -135,7 +135,7 @@ class YekKoulutettavaAsiakirjaResource(
         }
 
         return asiakirja?.asiakirjaData?.fileInputStream
-            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             ?: ResponseEntity.notFound().build()
     }
 
@@ -143,7 +143,7 @@ class YekKoulutettavaAsiakirjaResource(
     fun deleteAsiakirja(
       @PathVariable id: Long,
       principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(

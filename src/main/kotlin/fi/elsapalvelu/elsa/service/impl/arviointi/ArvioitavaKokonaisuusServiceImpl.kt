@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.arviointi
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.arviointi.ArvioitavaKokonaisuusRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
@@ -14,7 +15,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.util.*
 
 @Service
@@ -72,7 +72,7 @@ class ArvioitavaKokonaisuusServiceImpl(
             arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
                 it.erikoisala?.id, it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
             ).map(arvioitavaKokonaisuusMapper::toDto)
-        } ?: listOf()
+        }.orEmpty()
     }
 
     override fun findAllByErikoisalaIdPaged(

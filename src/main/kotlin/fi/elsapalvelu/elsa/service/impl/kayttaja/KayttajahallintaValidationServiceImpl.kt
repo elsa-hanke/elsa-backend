@@ -252,17 +252,17 @@ class KayttajahallintaValidationServiceImpl(
         tehtavaId: Long?,
         reassignedTyyppi: ReassignedVastuuhenkilonTehtavaTyyppi
     ): Boolean {
-        return reassignedTehtavat.find {
+        return reassignedTehtavat.any {
             it.kayttajaYliopistoErikoisala?.erikoisala?.id == erikoisalaId &&
                 it.tehtavaId == tehtavaId &&
                 it.tyyppi == reassignedTyyppi
-        } != null
+        }
     }
 
     private fun getAllTehtavatForErikoisala(erikoisalaId: Long): Set<VastuuhenkilonTehtavatyyppi> =
         erikoisalaRepository.findById(erikoisalaId)
             .orElseThrow { EntityNotFoundException("Erikoisalaa ei löydy") }.vastuuhenkilonTehtavatyypit?.toSet()
-            ?: setOf()
+            .orEmpty()
 
     private fun getAssignedTehtavatForErikoisala(
         kayttajaYliopistoErikoisalaDTO: KayttajaYliopistoErikoisalaDTO,
@@ -272,8 +272,8 @@ class KayttajahallintaValidationServiceImpl(
             kayttajaYliopistoErikoisalaDTO.yliopisto?.id!!,
             kayttajaYliopistoErikoisalaDTO.erikoisala?.id!!
         )
-        excludedId?.let {
-            kayttajaYliopistoErikoisalatList = kayttajaYliopistoErikoisalatList.filter { it.id != excludedId }
+        excludedId?.let { id ->
+            kayttajaYliopistoErikoisalatList = kayttajaYliopistoErikoisalatList.filter { it.id != id }
         }
         return kayttajaYliopistoErikoisalatList.map { it.vastuuhenkilonTehtavat }.flatten().toSet()
     }

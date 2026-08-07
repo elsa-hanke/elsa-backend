@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.suoritteet
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.dto.suoritteet.UusiSuoritemerkintaDTO
-import java.time.LocalDate
 
 interface SuoritemerkintaService {
 

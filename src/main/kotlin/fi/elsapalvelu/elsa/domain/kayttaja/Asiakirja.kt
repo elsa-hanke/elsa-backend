@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain.kayttaja
 
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
@@ -10,7 +11,6 @@ import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
-import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 @Entity

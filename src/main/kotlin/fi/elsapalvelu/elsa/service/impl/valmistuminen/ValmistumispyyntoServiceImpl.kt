@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
+import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
@@ -70,7 +73,6 @@ import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType.*
-import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import fi.elsapalvelu.elsa.service.mail.TransactionalMailService
 import fi.elsapalvelu.elsa.service.mapper.*
@@ -816,12 +818,12 @@ class ValmistumispyyntoServiceImpl(
 
         if (!yek && kayttaja.yliopistotAndErikoisalat.none {
                 it.erikoisala?.id == valmistumispyynto.opintooikeus?.erikoisala?.id
-                    && it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+                    && it.vastuuhenkilonTehtavat.map { vastuuhenkilonTehtava -> vastuuhenkilonTehtava.nimi }
                     .contains(tehtava)
             }) {
             throw getValmistumispyyntoNotFoundException()
         } else if (yek && kayttaja.yliopistotAndErikoisalat.none {
-                it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
+                it.vastuuhenkilonTehtavat.map { vastuuhenkilonTehtava -> vastuuhenkilonTehtava.nimi }
                     .contains(VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN)
             }) {
             throw getValmistumispyyntoNotFoundException()
@@ -1514,7 +1516,7 @@ class ValmistumispyyntoServiceImpl(
                                 voimassaolonPaattymispaiva = s.voimassaolonPaattymispaiva,
                                 vaadittulkm = s.vaadittulkm,
                                 suoritemerkinnat = suoritemerkinnat[s.id]?.sortedByDescending { m -> m.suorituspaiva }
-                                    ?.map(suoritemerkintaMapper::toDto) ?: listOf()
+                                    ?.map(suoritemerkintaMapper::toDto).orEmpty()
                             )
                         },
                         jarjestysnumero = it.jarjestysnumero

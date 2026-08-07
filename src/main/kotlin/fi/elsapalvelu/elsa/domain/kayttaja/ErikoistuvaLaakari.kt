@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.domain.kayttaja
 
+import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
-import java.time.LocalDate
 
 @Entity
 @Table(name = "erikoistuva_laakari")

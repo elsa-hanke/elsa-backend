@@ -1,5 +1,9 @@
 package fi.elsapalvelu.elsa.service.impl.koulutus
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.LoginException
 import fi.elsapalvelu.elsa.config.PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET
@@ -14,9 +18,7 @@ import fi.elsapalvelu.elsa.domain.seuranta.*
 import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
-import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
-import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.repository.koejakso.*
@@ -33,7 +35,6 @@ import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.koulutus.OpintotietodataPersistenceService
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 import jakarta.persistence.EntityNotFoundException
@@ -45,7 +46,6 @@ import org.springframework.stereotype.Service
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
 import java.time.Clock
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
@@ -83,7 +83,7 @@ class OpintotietodataPersistenceServiceImpl(
     ) {
         val filteredOpintotietodataOpintooikeudet =
             filterOpintooikeudetByVoimassaDate(opintotietodataDTOs.map {
-                it.opintooikeudet ?: listOf()
+                it.opintooikeudet.orEmpty()
             }.flatten())
 
         if (filteredOpintotietodataOpintooikeudet.isEmpty()) {
@@ -137,7 +137,7 @@ class OpintotietodataPersistenceServiceImpl(
         var erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
 
         val opintotietodataOpintooikeudet =
-            opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
+            opintotietodataDTOs.map { it.opintooikeudet.orEmpty() }.flatten()
 
         if (filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet).isEmpty()) {
             if (erikoistuvaLaakari == null)
@@ -273,7 +273,7 @@ class OpintotietodataPersistenceServiceImpl(
             mailService.sendEmailFromTemplate(
                 user,
                 // Ei lähetetä Helsingin yliopiston virkailijoille: https://jira.eduuni.fi/browse/UOELSA-1156
-                getOpintohallintoEmailAddresses(yliopistot.filter { it != YliopistoEnum.HELSINGIN_YLIOPISTO }
+                getOpintohallintoEmailAddresses(yliopistot.filter { yliopisto -> yliopisto != YliopistoEnum.HELSINGIN_YLIOPISTO }
                     .toSet()),
                 "useaOpintooikeus.html",
                 "useaopintooikeus.title",
@@ -286,7 +286,7 @@ class OpintotietodataPersistenceServiceImpl(
                 erikoistuvaLaakari = erikoistuvaLaakari
             ).apply {
                 useaVoimassaolevaHerateLahetetty = Instant.now()
-            }.let { opintooikeusHerateRepository.save(it) }
+            }.let { herate -> opintooikeusHerateRepository.save(herate) }
         }
     }
 
@@ -525,14 +525,14 @@ class OpintotietodataPersistenceServiceImpl(
         alkamispaiva: LocalDate?, yliopisto: YliopistoEnum, userId: String
     ): LocalDate? = alkamispaiva?.let {
         if (LocalDate.now(clock) >= alkamispaiva) {
-            return alkamispaiva
+            alkamispaiva
         } else {
             log.warn("$yliopisto, user id: $userId. Opinto-oikeus ei ole vielä alkanut.")
-            return null
+            null
         }
     } ?: run {
         log.error("$yliopisto, user id: $userId. Opinto-oikeuden alkamispäivää ei ole asetettu.")
-        return null
+        null
     }
 
     private fun checkOpintooikeudenPaattymispaivaValidDateExistsOrLogError(
@@ -641,7 +641,7 @@ class OpintotietodataPersistenceServiceImpl(
             log.error(
                 "Erikoistuja: $etunimi $sukunimi. Kelvollista syntymäaikaa ei löytynyt yhdestäkään " +
                     "opintotietojärjestelmästä, jossa erikoistujalla on opinto-oikeus. Yliopisto(t): ${
-                        opintotietodataDTOs.map { it.opintooikeudet ?: listOf() }.flatten()
+                        opintotietodataDTOs.map { it.opintooikeudet.orEmpty() }.flatten()
                             .joinToString { it.yliopisto.toString() }
                     })"
             )

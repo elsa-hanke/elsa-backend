@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.repository.suoritteet
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.suoritteet.SuoritteenKategoria
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
 
 @Repository
 interface SuoritteenKategoriaRepository : JpaRepository<SuoritteenKategoria, Long> {

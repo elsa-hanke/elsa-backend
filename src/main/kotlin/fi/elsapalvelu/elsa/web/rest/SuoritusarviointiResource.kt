@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.*
@@ -26,18 +29,15 @@ import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
-import java.security.Principal
 import jakarta.validation.Valid
 
 private const val ENTITY_NAME = "suoritusarviointi"
@@ -107,7 +107,7 @@ open class SuoritusarviointiResource(
             .findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(id, user.id!!, asiakirjaId)
 
         return asiakirja?.asiakirjaData?.fileInputStream
-            ?.toFileDownloadResponse(asiakirja.nimi ?: "", asiakirja.tyyppi ?: "")
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             ?: ResponseEntity.notFound().build()
     }
 
@@ -119,7 +119,7 @@ open class SuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        suoritusarviointiJson.let {
+        return suoritusarviointiJson.let {
             objectMapper.readValue(it, SuoritusarviointiDTO::class.java)
         }?.let { suoritusarviointiDTO ->
             validateDTO(suoritusarviointiDTO)
@@ -133,7 +133,7 @@ open class SuoritusarviointiResource(
                 deletedAsiakirjaIds,
                 user.id!!
             )
-            return ResponseEntity.ok(result)
+            ResponseEntity.ok(result)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 

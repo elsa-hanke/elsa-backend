@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.dto.kayttaja
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import java.io.Serializable
-import java.time.LocalDate
 
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointiasteikkoDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksotTilastotDTO

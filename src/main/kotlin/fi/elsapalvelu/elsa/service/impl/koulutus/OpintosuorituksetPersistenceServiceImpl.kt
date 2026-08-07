@@ -1,7 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl.koulutus
 
-import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusOsakokonaisuus
 import fi.elsapalvelu.elsa.extensions.match
@@ -20,7 +21,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.time.LocalDate
 
 @Service
 @Transactional

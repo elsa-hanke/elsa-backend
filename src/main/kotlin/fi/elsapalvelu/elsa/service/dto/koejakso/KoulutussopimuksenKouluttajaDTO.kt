@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.koejakso
 
-import java.io.Serializable
 import java.time.LocalDate
+import java.io.Serializable
 
 data class KoulutussopimuksenKouluttajaDTO(
 

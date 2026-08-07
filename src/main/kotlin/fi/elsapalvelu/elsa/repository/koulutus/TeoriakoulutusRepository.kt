@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.repository.koulutus
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
 
 
 @Repository

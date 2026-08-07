@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.scheduler.jobs
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeusHerate
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Component
 import java.time.DayOfWeek
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class PaattyvaOikeus(

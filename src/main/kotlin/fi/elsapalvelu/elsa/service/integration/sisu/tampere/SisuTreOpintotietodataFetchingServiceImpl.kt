@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.integration.sisu.tampere
 
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.*
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila.Companion.fromSisuOpintooikeudenTila
@@ -12,7 +11,6 @@ import fi.elsapalvelu.elsa.service.integration.AbstractOpintotietodataFetchingSe
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
-import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.SisuOpintooikeudenTila
@@ -69,9 +67,6 @@ class SisuTreOpintotietodataFetchingServiceImpl(
             }
         } catch (e: JsonProcessingException) {
             log.error("$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}", e)
-            throw e
-        } catch (e: JsonMappingException) {
-            log.error("$JSON_MAPPING_ERROR: $endpointUrl ${e.message}", e)
             throw e
         } catch (e: IOException) {
             log.error("$JSON_FETCHING_ERROR: $endpointUrl ${e.message}", e)

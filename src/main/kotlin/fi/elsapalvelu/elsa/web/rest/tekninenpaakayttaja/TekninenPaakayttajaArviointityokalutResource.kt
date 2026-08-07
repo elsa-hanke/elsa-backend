@@ -1,9 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluKategoriaService
 import fi.elsapalvelu.elsa.service.arviointi.ArviointityokaluService
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluKategoriaDTO
 import jakarta.validation.Valid
@@ -11,7 +12,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import tech.jhipster.web.util.ResponseUtil
-import java.security.Principal
 
 @RestController
 @RequestMapping("/api/tekninen-paakayttaja")
@@ -52,7 +52,7 @@ class TekninenPaakayttajaArviointityokalutResource(
     @DeleteMapping("/arviointityokalut/kategoria/{id}")
     fun deleteArviointityokaluKategoria(
         @PathVariable id: Long
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         arviointityokaluKategoriaService.delete(id)
         return ResponseEntity.noContent().build()
     }
@@ -98,7 +98,7 @@ class TekninenPaakayttajaArviointityokalutResource(
     @DeleteMapping("/arviointityokalu/{id}")
     fun deleteArviointityokalu(
         @PathVariable id: Long,
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         arviointityokaluService.delete(id)
         return ResponseEntity.noContent().build()
     }
@@ -106,7 +106,7 @@ class TekninenPaakayttajaArviointityokalutResource(
     @PatchMapping("/arviointityokalu/{id}/palauta")
     fun palautaArviointityokalu(
         @PathVariable id: Long
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         arviointityokaluService.palauta(id)
         return ResponseEntity.ok().build()
     }

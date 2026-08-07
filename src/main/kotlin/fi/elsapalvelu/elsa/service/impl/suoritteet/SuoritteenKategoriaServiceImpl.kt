@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.suoritteet
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoritteenKategoriaRepository
 import fi.elsapalvelu.elsa.service.suoritteet.SuoritteenKategoriaService
@@ -12,7 +13,6 @@ import fi.elsapalvelu.elsa.service.mapper.suoritteet.SuoritteenKategoriaWithErik
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.util.*
 
 @Service
@@ -41,7 +41,7 @@ class SuoritteenKategoriaServiceImpl(
                 it.erikoisala?.id,
                 it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
             ).map(suoritteenKategoriaMapper::toDto)
-        } ?: listOf()
+        }.orEmpty()
     }
 
     override fun findAllExpiredByOpintooikeusId(opintooikeusId: Long): List<SuoritteenKategoriaDTO> {
@@ -50,7 +50,7 @@ class SuoritteenKategoriaServiceImpl(
                 it.erikoisala?.id,
                 it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
             ).map(suoritteenKategoriaMapper::toDto)
-        } ?: listOf()
+        }.orEmpty()
     }
 
     override fun findAllByErikoisalaId(erikoisalaId: Long): List<SuoritteenKategoriaSimpleDTO> {

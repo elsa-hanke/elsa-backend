@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa
 
+import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaImportService
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.repository.koulutus.ErikoisalaSisuTutkintoohjelmaRepository
 import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingService
-import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaImportService
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory

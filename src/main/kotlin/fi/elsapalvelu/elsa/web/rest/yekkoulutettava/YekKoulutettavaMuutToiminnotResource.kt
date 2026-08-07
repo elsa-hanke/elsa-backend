@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
+import java.time.LocalDate
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.kayttaja.ErikoistuvaLaakariService
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
@@ -13,8 +16,6 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
-import java.security.Principal
-import java.time.LocalDate
 
 private const val ERIKOISTUVA_LAAKARI_ENTITY_NAME = "erikoistuvaLaakari"
 
@@ -56,8 +57,8 @@ class YekKoulutettavaMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<LaillistamispaivaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        erikoistuvaLaakariService.getLaillistamispaiva(user.id!!)?.let {
-            return ResponseEntity.ok(it)
+        return erikoistuvaLaakariService.getLaillistamispaiva(user.id!!)?.let {
+            ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 

@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.dto.koejakso
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
 import java.io.Serializable
-import java.time.LocalDate
 
 data class HyvaksyttyKoejaksonVaiheDTO(
 

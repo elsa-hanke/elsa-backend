@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.service.kayttaja
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
-import org.springframework.mail.MailException
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.scheduling.annotation.Async
@@ -13,7 +12,6 @@ import org.thymeleaf.spring6.SpringTemplateEngine
 import tech.jhipster.config.JHipsterProperties
 import java.nio.charset.StandardCharsets
 import java.util.*
-import jakarta.mail.MessagingException
 
 enum class MailProperty(val property: String) {
     USER("user"),

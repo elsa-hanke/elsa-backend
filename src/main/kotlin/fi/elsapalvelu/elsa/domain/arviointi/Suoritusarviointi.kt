@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.domain.arviointi
 
+import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
@@ -10,7 +11,6 @@ import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
-import java.time.LocalDate
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja

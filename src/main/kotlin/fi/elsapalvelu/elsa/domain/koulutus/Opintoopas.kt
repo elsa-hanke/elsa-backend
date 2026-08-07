@@ -1,9 +1,10 @@
 package fi.elsapalvelu.elsa.domain.koulutus
 
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
-import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import org.hibernate.envers.Audited
@@ -11,7 +12,6 @@ import org.hibernate.envers.NotAudited
 import org.hibernate.envers.RelationTargetAuditMode
 
 import fi.elsapalvelu.elsa.domain.arviointi.Arviointiasteikko
-import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 @Entity
 @Table(name = "opintoopas")

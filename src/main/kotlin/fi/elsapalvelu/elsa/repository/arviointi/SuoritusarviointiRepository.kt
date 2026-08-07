@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.repository.arviointi
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -9,7 +10,6 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.util.*
 
 @Repository

@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.service.dto.valmistuminen
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
 import java.io.Serializable
-import java.time.LocalDate
 
 data class ValmistumispyyntoDTO(
 

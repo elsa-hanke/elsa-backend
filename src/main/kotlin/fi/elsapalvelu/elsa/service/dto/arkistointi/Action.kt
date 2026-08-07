@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.dto.arkistointi
 
+import java.time.LocalDate
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
-import java.time.LocalDate
 
 class Action {
 
@@ -17,5 +17,5 @@ class Action {
 
     @JacksonXmlProperty(localName = "Record")
     @JacksonXmlElementWrapper(useWrapping = false)
-    var record: MutableList<Record> = mutableListOf()
+    val record: MutableList<Record> = mutableListOf()
 }

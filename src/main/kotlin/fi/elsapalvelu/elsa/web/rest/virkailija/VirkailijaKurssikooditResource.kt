@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
 import fi.elsapalvelu.elsa.service.tyoskentely.*
@@ -27,7 +29,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URI
-import java.security.Principal
 
 private const val KURSSIKOODI_ENTITY_NAME = "opintosuoritus_kurssikoodi"
 
@@ -73,8 +74,8 @@ class VirkailijaKurssikooditResource(
             )
         }
 
-        opintosuoritusKurssikooditService.save(user.id!!, opintosuoritusKurssikoodiDTO)?.let {
-            return ResponseEntity
+        return opintosuoritusKurssikooditService.save(user.id!!, opintosuoritusKurssikoodiDTO)?.let {
+            ResponseEntity
                 .created(URI("/api/virkailija/kurssikoodi/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -107,7 +108,7 @@ class VirkailijaKurssikooditResource(
     fun deleteKurssikoodi(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         opintosuoritusKurssikooditService.delete(id, user.id!!)
         return ResponseEntity

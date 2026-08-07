@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.extensions
 
-import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit

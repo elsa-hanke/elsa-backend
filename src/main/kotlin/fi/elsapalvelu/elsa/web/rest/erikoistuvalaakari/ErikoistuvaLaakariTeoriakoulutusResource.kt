@@ -1,6 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository
@@ -27,7 +30,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.security.Principal
 import java.util.*
 import jakarta.validation.Valid
 
@@ -151,7 +153,7 @@ class ErikoistuvaLaakariTeoriakoulutusResource(
     fun deleteTeoriakoulutus(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
 
         validateMuokkausoikeudet(principal, user.id!!)

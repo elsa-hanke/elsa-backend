@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.kayttaja
 
-import java.io.Serializable
 import java.time.LocalDate
+import java.io.Serializable
 import java.util.*
 
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksotTilastotDTO

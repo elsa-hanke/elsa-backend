@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.suoritteet
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoriteRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoritemerkintaRepository
@@ -12,7 +13,6 @@ import fi.elsapalvelu.elsa.service.mapper.suoritteet.SuoritteenKategoriaWithErik
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.util.*
 
 @Service

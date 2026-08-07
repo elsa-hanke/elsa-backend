@@ -13,7 +13,6 @@ import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.seuranta.IlmoitusDTO
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.security.Principal
 import jakarta.validation.Valid
 
 @RestController
@@ -34,7 +33,7 @@ class TekninenPaakayttajaIlmoituksetResource(
     @DeleteMapping("/ilmoitukset/{id}")
     fun deleteTeoriakoulutus(
         @PathVariable id: Long,
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         ilmoitusService.delete(id)
         return ResponseEntity.noContent().build()
     }

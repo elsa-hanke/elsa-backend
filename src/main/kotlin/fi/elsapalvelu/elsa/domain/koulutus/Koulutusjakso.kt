@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.domain.koulutus
 
+import java.time.LocalDate
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
-import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 

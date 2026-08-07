@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.koulutus
 
-import java.io.Serializable
 import java.time.LocalDate
+import java.io.Serializable
 
 import fi.elsapalvelu.elsa.service.dto.arviointi.SuoritusarviointiDTO
 data class OpintosuoritusDTO(

@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.dto.tyoskentely
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import java.io.Serializable
-import java.time.LocalDate
 
 class TyoskentelyjaksotTableDTO(
 

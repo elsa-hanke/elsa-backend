@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.koulutus.KoulutussuunnitelmaService
 import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutussuunnitelmaDTO
 import fi.elsapalvelu.elsa.service.mapper.koulutus.KoulutussuunnitelmaMapper
-import org.hibernate.engine.jdbc.BlobProxy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -63,13 +62,11 @@ class KoulutussuunnitelmaServiceImpl(
     }
 
     override fun findOneByOpintooikeusId(opintooikeusId: Long): KoulutussuunnitelmaDTO? {
-        koulutussuunnitelmaRepository.findOneByOpintooikeusId(opintooikeusId)?.let {
-            return koulutussuunnitelmaMapper.toDto(it)
-        } ?: run {
-            return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+        return koulutussuunnitelmaRepository.findOneByOpintooikeusId(opintooikeusId)?.let {
+            koulutussuunnitelmaMapper.toDto(it)
+        } ?: opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
                 val koulutussuunnitelma = koulutussuunnitelmaRepository.save(Koulutussuunnitelma(opintooikeus = it))
-                return koulutussuunnitelmaMapper.toDto(koulutussuunnitelma)
-            }
+                koulutussuunnitelmaMapper.toDto(koulutussuunnitelma)
         }
     }
 }

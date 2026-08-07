@@ -1,7 +1,8 @@
 package fi.elsapalvelu.elsa.security
 
-import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository
@@ -27,7 +28,6 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserGran
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.filter.OncePerRequestFilter
-import java.time.LocalDate
 import jakarta.persistence.EntityNotFoundException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -161,10 +161,10 @@ class ElsaSwitchUserFilter(
             userRepository.findByIdWithAuthorities(kirjautunutKayttaja.user?.id!!)
                 .get().authorities.map { it.name }
 
-        if (authorityNames.contains(VASTUUHENKILO) && kirjautunutKayttaja.yliopistotAndErikoisalat.find {
+        if (authorityNames.contains(VASTUUHENKILO) && kirjautunutKayttaja.yliopistotAndErikoisalat.any {
                 it.erikoisala?.id == opintooikeus.erikoisala?.id &&
                     it.yliopisto?.id == opintooikeus.yliopisto?.id
-            } != null) return ERIKOISTUVA_LAAKARI_IMPERSONATED
+            }) return ERIKOISTUVA_LAAKARI_IMPERSONATED
 
         if (authorityNames.contains(VASTUUHENKILO) && opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
             && kirjautunutKayttaja.yliopistotAndErikoisalat.any {
@@ -172,9 +172,9 @@ class ElsaSwitchUserFilter(
                     && it.vastuuhenkilonTehtavat.map { t -> t.nimi }.contains(VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN) })
             return ERIKOISTUVA_LAAKARI_IMPERSONATED
 
-        if (authorityNames.contains(OPINTOHALLINNON_VIRKAILIJA) && kirjautunutKayttaja.yliopistot.find {
+        if (authorityNames.contains(OPINTOHALLINNON_VIRKAILIJA) && kirjautunutKayttaja.yliopistot.any {
                 it.id == opintooikeus.yliopisto?.id
-            } != null) return ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+            }) return ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 
         if (kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
                 opintooikeus.id!!,

@@ -2,15 +2,12 @@ package fi.elsapalvelu.elsa.service.integration.peppi
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.service.integration.LocalizedString
-import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
-import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
 import okhttp3.OkHttpClient
@@ -67,9 +64,6 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
         } catch (e: JsonProcessingException) {
             log.error("$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}", e)
             throw e
-        } catch (e: JsonMappingException) {
-            log.error("$JSON_MAPPING_ERROR: $endpointUrl ${e.message}", e)
-            throw e
         } catch (e: IOException) {
             log.error("$JSON_FETCHING_ERROR: $endpointUrl ${e.message}", e)
             throw e
@@ -88,4 +82,3 @@ data class StudyAccomplishment(
     val hyvaksytty: Boolean?,
     val arvio: LocalizedString?
 )
-

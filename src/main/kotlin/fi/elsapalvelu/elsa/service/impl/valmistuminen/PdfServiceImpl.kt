@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
+import org.springframework.beans.factory.annotation.Value
 import com.itextpdf.html2pdf.ConverterProperties
 import com.itextpdf.html2pdf.HtmlConverter
 import com.itextpdf.io.exceptions.IOException
@@ -20,7 +21,6 @@ import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_YHDISTA_PDF
 import org.apache.pdfbox.Loader
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service

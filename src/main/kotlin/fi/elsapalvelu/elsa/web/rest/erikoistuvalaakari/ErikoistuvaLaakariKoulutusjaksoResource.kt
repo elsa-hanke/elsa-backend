@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.repository.koulutus.KoulutusjaksoRepository
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
@@ -14,14 +16,12 @@ import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutusjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutusjaksoFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.security.Principal
 import java.util.*
 import jakarta.validation.Valid
 
@@ -57,8 +57,8 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
                 "idexists"
             )
         }
-        koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
-            return ResponseEntity
+        return koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
+            ResponseEntity
                 .created(URI("/api/koulutusjaksot/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -93,8 +93,8 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
             )
         }
 
-        koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
-            return ResponseEntity.ok(it)
+        return koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
+            ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
@@ -128,7 +128,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
     fun deleteKoulutusjakso(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
 

@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajahallintaYliopistoErikoisalaDTO
 import java.io.Serializable
-import java.time.LocalDate
 import jakarta.validation.constraints.NotNull
 
 data class KayttajahallintaKayttajaListItemDTO(

@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.koulutus
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetDTO
-import java.time.LocalDate
 
 interface OpintosuoritusService {
 

@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.repository.arviointi
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavanKokonaisuudenKategoria
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
 
 @Repository
 interface ArvioitavanKokonaisuudenKategoriaRepository :

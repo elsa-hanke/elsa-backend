@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonAloituskeskustelu
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.*
@@ -29,7 +30,6 @@ import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
 import jakarta.persistence.EntityNotFoundException

@@ -1,15 +1,16 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.service.kayttaja.FileValidationService
 import fi.elsapalvelu.elsa.service.koulutus.KoulutussuunnitelmaService
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutussuunnitelmaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -19,7 +20,6 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
-import java.security.Principal
 import jakarta.validation.Valid
 
 @RestController
@@ -55,9 +55,9 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
         koulutussuunnitelmaDTO.motivaatiokirjeAsiakirja =
             getMappedFile(motivaatiokirjeFile, opintooikeusId)
 
-        koulutussuunnitelmaService.save(koulutussuunnitelmaDTO, opintooikeusId)
+        return koulutussuunnitelmaService.save(koulutussuunnitelmaDTO, opintooikeusId)
             ?.let {
-                return ResponseEntity.ok(it)
+                ResponseEntity.ok(it)
             } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 

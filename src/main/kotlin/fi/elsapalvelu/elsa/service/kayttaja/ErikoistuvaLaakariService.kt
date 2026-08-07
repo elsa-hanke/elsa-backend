@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.kayttaja
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.kayttaja.ErikoistuvaLaakariDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.LaillistamispaivaDTO
@@ -7,7 +8,6 @@ import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaErikoist
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaListItemDTO
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import java.time.LocalDate
 import java.util.*
 
 interface ErikoistuvaLaakariService {

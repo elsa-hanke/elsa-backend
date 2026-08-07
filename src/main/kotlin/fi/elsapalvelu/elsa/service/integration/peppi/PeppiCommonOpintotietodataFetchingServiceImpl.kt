@@ -2,19 +2,15 @@ package fi.elsapalvelu.elsa.service.integration.peppi
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS
 import fi.elsapalvelu.elsa.config.ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS
 import fi.elsapalvelu.elsa.config.YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI
-import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila.Companion.fromPeppiOpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
-import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
-import fi.elsapalvelu.elsa.service.constants.JSON_MAPPING_ERROR
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.PeppiOpintooikeudenTila
@@ -76,9 +72,6 @@ class PeppiCommonOpintotietodataFetchingServiceImpl(
         } catch (e: JsonProcessingException) {
             log.error("$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}", e)
             throw e
-        } catch (e: JsonMappingException) {
-            log.error("$JSON_MAPPING_ERROR: $endpointUrl ${e.message}", e)
-            throw e
         } catch (e: IOException) {
             log.error("$JSON_FETCHING_ERROR: $endpointUrl ${e.message}", e)
             throw e
@@ -118,4 +111,3 @@ data class Entitlement(
 data class ErikoisalaPeppiTurku(
     val avain: String
 )
-

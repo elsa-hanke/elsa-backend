@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.dto.tyoskentely
 
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyyTyyppi
 import java.io.Serializable
-import java.time.LocalDate
 import jakarta.validation.constraints.NotNull
 
 data class PoissaolonSyyDTO(

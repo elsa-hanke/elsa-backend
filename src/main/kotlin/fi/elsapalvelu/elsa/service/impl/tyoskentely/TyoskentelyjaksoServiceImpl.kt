@@ -1,7 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
-import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.koulutus.Opintoopas
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
@@ -30,7 +31,6 @@ import jakarta.validation.ValidationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.math.max
 import kotlin.math.min
@@ -55,26 +55,26 @@ class TyoskentelyjaksoServiceImpl(
         opintooikeusId: Long,
         newAsiakirjat: MutableSet<AsiakirjaDTO>
     ): TyoskentelyjaksoDTO? {
-        opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+        opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let { opintooikeus ->
             tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO).apply {
-                opintooikeus = it
+                this.opintooikeus = opintooikeus
                 tyoskentelypaikka?.kunta =
-                    tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId?.let { kuntaRepository.findByIdOrNull(it) }
+                    tyoskentelyjaksoDTO.tyoskentelypaikka!!.kuntaId?.let { kuntaId -> kuntaRepository.findByIdOrNull(kuntaId) }
                 omaaErikoisalaaTukeva =
                     tyoskentelyjaksoDTO.omaaErikoisalaaTukeva.takeIf {
                         kaytannonKoulutus == OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
-                    }?.let {
-                        it.id?.let { id -> erikoisalaRepository.findByIdOrNull(id) }
+                    }?.let { erikoisala ->
+                        erikoisala.id?.let { id -> erikoisalaRepository.findByIdOrNull(id) }
                     }
             }.takeIf { isValidTyoskentelyjakso(it) }?.let { tyoskentelyjakso ->
                 mapAsiakirjat(
                     tyoskentelyjakso,
                     newAsiakirjat,
                     null,
-                    it
+                    opintooikeus
                 )
-            }?.let {
-                tyoskentelyjaksoRepository.save(it).let { saved ->
+            }?.let { tyoskentelyjakso ->
+                tyoskentelyjaksoRepository.save(tyoskentelyjakso).let { saved ->
                     return tyoskentelyjaksoMapper.toDto(saved)
                 }
             }
@@ -324,7 +324,7 @@ class TyoskentelyjaksoServiceImpl(
                 yhteensaSuoritettu = arvioErikoistumiseenHyvaksyttavista
             ),
             kaytannonKoulutus = KaytannonKoulutusTyyppi.entries.map {
-                TyoskentelyjaksotTilastotKaytannonKoulutusDTO(kaytannonKoulutus = it, suoritettu = kaytannonKoulutusSuoritettuMap[it]!!)
+                TyoskentelyjaksotTilastotKaytannonKoulutusDTO(kaytannonKoulutus = it, suoritettu = kaytannonKoulutusSuoritettuMap.getValue(it))
             }
                 .toMutableSet(),
             tyoskentelyjaksot = tyoskentelyjaksotSuoritettu
@@ -413,17 +413,20 @@ class TyoskentelyjaksoServiceImpl(
             // Summataan suoritettu aika käytännön koulutuksettain
             when (tyoskentelyjakso.kaytannonKoulutus!!) {
                 OMAN_ERIKOISALAN_KOULUTUS ->
-                    kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS] = kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS]!! + tyoskentelyjaksonPituus
+                    kaytannonKoulutusSuoritettuMap[OMAN_ERIKOISALAN_KOULUTUS] =
+                        kaytannonKoulutusSuoritettuMap.getValue(OMAN_ERIKOISALAN_KOULUTUS) + tyoskentelyjaksonPituus
 
                 OMAA_ERIKOISALAA_TUKEVA_KOULUTUS ->
                     kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS] =
-                        kaytannonKoulutusSuoritettuMap[OMAA_ERIKOISALAA_TUKEVA_KOULUTUS]!! + tyoskentelyjaksonPituus
+                        kaytannonKoulutusSuoritettuMap.getValue(OMAA_ERIKOISALAA_TUKEVA_KOULUTUS) + tyoskentelyjaksonPituus
 
                 TUTKIMUSTYO ->
-                    kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO] = kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO]!! + tyoskentelyjaksonPituus
+                    kaytannonKoulutusSuoritettuMap[TUTKIMUSTYO] =
+                        kaytannonKoulutusSuoritettuMap.getValue(TUTKIMUSTYO) + tyoskentelyjaksonPituus
 
                 TERVEYSKESKUSTYO ->
-                    kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO] = kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO]!! + tyoskentelyjaksonPituus
+                    kaytannonKoulutusSuoritettuMap[TERVEYSKESKUSTYO] =
+                        kaytannonKoulutusSuoritettuMap.getValue(TERVEYSKESKUSTYO) + tyoskentelyjaksonPituus
             }
 
             // Summataan nykyiselle tai hyväksytylle erikoisalalle
@@ -464,7 +467,7 @@ class TyoskentelyjaksoServiceImpl(
                     )
                 result.putIfAbsent(it.tyoskentelyjakso!!.id!!, 0.0)
                 result[it.tyoskentelyjakso!!.id!!] =
-                    result[it.tyoskentelyjakso!!.id!!]!! + amountOfReducedDays
+                    result.getValue(it.tyoskentelyjakso!!.id!!) + amountOfReducedDays
             }
         return result
     }
@@ -476,38 +479,38 @@ class TyoskentelyjaksoServiceImpl(
         val alkamispaiva = tyoskentelyjaksoDTO.alkamispaiva
         val paattymispaiva = tyoskentelyjaksoDTO.paattymispaiva
 
-        tyoskentelyjaksoDTO.id?.let { tyoskentelyjaksoId ->
+        val tyoskentelyjakso = tyoskentelyjaksoDTO.id?.let { tyoskentelyjaksoId ->
             tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(
                 tyoskentelyjaksoId,
                 opintooikeusId
             )
-        }?.let { tyoskentelyjakso ->
-            for (suoritemerkinta in tyoskentelyjakso.suoritemerkinnat) {
-                if (alkamispaiva?.isAfter(suoritemerkinta.suorituspaiva) == true
-                    || paattymispaiva?.isBefore(suoritemerkinta.suorituspaiva) == true
-                ) {
-                    return false
-                }
-            }
-
-            for (keskeytys in tyoskentelyjakso.keskeytykset) {
-                if (alkamispaiva?.isAfter(keskeytys.paattymispaiva) == true
-                    || paattymispaiva?.isBefore(keskeytys.paattymispaiva) == true
-                ) {
-                    return false
-                }
-            }
-
-            for (suoritusarviointi in tyoskentelyjakso.suoritusarvioinnit) {
-                if (alkamispaiva?.isAfter(suoritusarviointi.tapahtumanAjankohta) == true
-                    || paattymispaiva?.isBefore(suoritusarviointi.tapahtumanAjankohta) == true
-                ) {
-                    return false
-                }
-            }
-
-            return true
         } ?: return true
+
+        for (suoritemerkinta in tyoskentelyjakso.suoritemerkinnat) {
+            if (alkamispaiva?.isAfter(suoritemerkinta.suorituspaiva) == true
+                || paattymispaiva?.isBefore(suoritemerkinta.suorituspaiva) == true
+            ) {
+                return false
+            }
+        }
+
+        for (keskeytys in tyoskentelyjakso.keskeytykset) {
+            if (alkamispaiva?.isAfter(keskeytys.paattymispaiva) == true
+                || paattymispaiva?.isBefore(keskeytys.paattymispaiva) == true
+            ) {
+                return false
+            }
+        }
+
+        for (suoritusarviointi in tyoskentelyjakso.suoritusarvioinnit) {
+            if (alkamispaiva?.isAfter(suoritusarviointi.tapahtumanAjankohta) == true
+                || paattymispaiva?.isBefore(suoritusarviointi.tapahtumanAjankohta) == true
+            ) {
+                return false
+            }
+        }
+
+        return true
     }
 
     override fun updateAsiakirjat(
