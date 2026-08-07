@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain.tyoskentely
 
-import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited

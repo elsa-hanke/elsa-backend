@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.criteria
 
-import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import tech.jhipster.service.Criteria
 import tech.jhipster.service.filter.LongFilter
 import tech.jhipster.service.filter.StringFilter

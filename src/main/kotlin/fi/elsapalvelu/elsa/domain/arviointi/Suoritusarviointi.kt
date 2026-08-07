@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain.arviointi
 
-import fi.elsapalvelu.elsa.domain.arviointi.ArvioinninPerustuminen
 import jakarta.persistence.*
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min

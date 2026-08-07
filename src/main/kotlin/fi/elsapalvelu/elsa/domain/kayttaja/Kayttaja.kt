@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain.kayttaja
 
-import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.NotFound

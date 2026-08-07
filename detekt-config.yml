@@ -1,6 +1,10 @@
 style:
   MaxLineLength:
     maxLineLength: 180
+    excludes: ['**/build/generated/**']
+  UtilityClassWithPublicConstructor:
+    active: true
+    excludes: [ '**/build/generated/**' ]
   UnusedImport:
     active: true
   UnusedVariable:
@@ -22,6 +26,12 @@ style:
 naming:
   ConstructorParameterNaming:
     active: false
+  ClassNaming:
+    active: true
+    excludes: ['**/build/generated/**']
+  ObjectPropertyNaming:
+    active: true
+    excludes: ['**/build/generated/**']
 complexity:
   TooManyFunctions:
     allowedFunctionsPerClass: 20
@@ -33,6 +43,7 @@ complexity:
     allowedConditions: 5
   CyclomaticComplexMethod:
     allowedComplexity: 15
+    excludes: ['**/build/generated/**']
   NestedBlockDepth:
     active: false
 exceptions:

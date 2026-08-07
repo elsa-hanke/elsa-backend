@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.domain.arviointi
 
-import fi.elsapalvelu.elsa.domain.arviointi.ArviointiasteikonTasoTyyppi
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.io.Serializable
