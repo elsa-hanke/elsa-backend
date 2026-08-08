@@ -437,7 +437,7 @@ open class KayttajahallintaResource(
     fun createVirkailija(@Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
         principal: Principal?): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
         val yliopistoId = kayttajahallintaKayttajaDTO.yliopisto?.id
-        requireNotNull(yliopistoId)
+            ?: throw missingRequiredField("yliopisto")
         validateCurrentUserIsAllowedToCreateKayttajaByYliopistoId(
             principal, yliopistoId
         )
@@ -447,7 +447,7 @@ open class KayttajahallintaResource(
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
 
-        requireNotNull(listOf(etunimi, sukunimi))
+        validateRequiredNames(etunimi, sukunimi)
 
         validateEmailNotExists(sahkoposti)
         validateEppnNotExists(eppn)
@@ -474,7 +474,7 @@ open class KayttajahallintaResource(
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
 
-        requireNotNull(listOf(etunimi, sukunimi))
+        validateRequiredNames(etunimi, sukunimi)
 
         validateEmailNotExists(sahkoposti)
         validateEppnNotExists(eppn)
@@ -532,7 +532,7 @@ open class KayttajahallintaResource(
     fun createVastuuhenkilo(@Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
                             principal: Principal?): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
         val yliopistoId = kayttajahallintaKayttajaDTO.yliopisto?.id
-        requireNotNull(yliopistoId)
+            ?: throw missingRequiredField("yliopisto")
         validateDTOYliopistotAndErikoisalat(kayttajahallintaKayttajaDTO.yliopistotAndErikoisalat)
         validateCurrentUserIsAllowedToCreateKayttajaByYliopistoId(
             principal, yliopistoId
@@ -543,7 +543,7 @@ open class KayttajahallintaResource(
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
 
-        requireNotNull(listOf(etunimi, sukunimi))
+        validateRequiredNames(etunimi, sukunimi)
 
         validateEmailNotExists(sahkoposti)
         validateEppnNotExists(eppn)
@@ -673,15 +673,6 @@ open class KayttajahallintaResource(
         }
     }
 
-    private fun validateDTOYliopistotAndErikoisalat(yliopistotAndErikoisalat: Set<KayttajaYliopistoErikoisalaDTO>?, yliopistoId: Long? = null) {
-        requireNotNull(yliopistotAndErikoisalat)
-        require(yliopistotAndErikoisalat.isNotEmpty())
-        yliopistotAndErikoisalat.forEach { kayttajaYliopistoErikoisalaDTO ->
-            requireNotNull(kayttajaYliopistoErikoisalaDTO.erikoisala)
-            yliopistoId?.let { require(kayttajaYliopistoErikoisalaDTO.yliopisto?.id == it) }
-        }
-    }
-
     private fun validateYliopisto(
         yliopistotAndErikoisalat: Set<KayttajaYliopistoErikoisalaDTO>?,
         yliopistoId: Long?
@@ -691,10 +682,6 @@ open class KayttajahallintaResource(
                 throw BadRequestAlertException("Vastuuhenkilön yliopistoa ei voi vaihtaa", KAYTTAJA_ENTITY_NAME, "dataillegal.vastuuhenkilon-yliopistoa-ei-voi-vaihtaa")
             }
         }
-    }
-
-    private fun requireNotNull(values: List<String?>) {
-        values.forEach { requireNotNull(it) }
     }
 
     private fun tryToGetErikoistuvaLaakariByKayttajaId(kayttajaId: Long): ErikoistuvaLaakariDTO? =
@@ -747,3 +734,35 @@ open class KayttajahallintaResource(
         KAYTTAJA_ENTITY_NAME, "dataillegal.vastuuhenkilon-tehtavat-maaritettava-enintaan-yhdelle-vastuuhenkilolle"
     )
 }
+
+private fun validateDTOYliopistotAndErikoisalat(
+    yliopistotAndErikoisalat: Set<KayttajaYliopistoErikoisalaDTO>?,
+    yliopistoId: Long? = null
+) {
+    if (yliopistotAndErikoisalat.isNullOrEmpty()) {
+        throw missingRequiredField("yliopistotAndErikoisalat")
+    }
+    yliopistotAndErikoisalat.forEach { yliopistoAndErikoisala ->
+        if (yliopistoAndErikoisala.erikoisala == null) {
+            throw missingRequiredField("erikoisala")
+        }
+        if (yliopistoId != null && yliopistoAndErikoisala.yliopisto?.id != yliopistoId) {
+            throw BadRequestAlertException(
+                "Vastuuhenkilön yliopistoa ei voi vaihtaa",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.vastuuhenkilon-yliopistoa-ei-voi-vaihtaa"
+            )
+        }
+    }
+}
+
+private fun validateRequiredNames(etunimi: String?, sukunimi: String?) {
+    if (etunimi == null) throw missingRequiredField("etunimi")
+    if (sukunimi == null) throw missingRequiredField("sukunimi")
+}
+
+private fun missingRequiredField(fieldName: String) = BadRequestAlertException(
+    "Pakollinen tieto puuttuu: $fieldName",
+    KAYTTAJA_ENTITY_NAME,
+    "dataillegal.pakollinen-tieto-puuttuu"
+)

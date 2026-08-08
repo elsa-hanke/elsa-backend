@@ -369,7 +369,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         initTest(getRole(rolePath), true)
         val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO().apply { yliopisto = YliopistoDTO(id = 1000) }
         testMockMvc.perform(post("/api/$rolePath/vastuuhenkilot").contentType(APPLICATION_JSON).content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
-                .with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().is5xxServerError)
+                .with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isBadRequest)
     }
 
     @ParameterizedTest
@@ -379,7 +379,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO()
             .apply { yliopistotAndErikoisalat = setOf(KayttajaYliopistoErikoisalaDTO(yliopisto = YliopistoDTO(id = 1000))) }
         testMockMvc.perform(post("/api/$rolePath/vastuuhenkilot").contentType(APPLICATION_JSON).content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
-                .with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().is5xxServerError)
+                .with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isBadRequest)
     }
 
     @Test
@@ -658,7 +658,25 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         initTest(getRole(rolePath), true)
         val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO()
         testMockMvc.perform(post("/api/$rolePath/virkailijat").contentType(APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().is5xxServerError)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO)).with(SecurityMockMvcRequestPostProcessors.csrf())).andExpect(status().isBadRequest)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["etunimi", "sukunimi"])
+    fun postVirkailijaWithoutRequiredNameField(fieldName: String) {
+        initTest(TEKNINEN_PAAKAYTTAJA, true)
+        val yliopistoDTO = yliopistoMapper.toDto(yliopisto)
+        val kayttajahallintaKayttajaDTO = KayttajahallintaResourceHelper.getDefaultKayttajaDTO().apply {
+            yliopisto = yliopistoDTO
+            if (fieldName == "etunimi") etunimi = null else sukunimi = null
+        }
+
+        testMockMvc.perform(
+            post("/api/$TEKNINEN_PAAKAYTTAJA_ROLE_PATH/virkailijat")
+                .contentType(APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(kayttajahallintaKayttajaDTO))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andExpect(status().isBadRequest)
     }
 
     @Test
