@@ -42,6 +42,24 @@ async function deleteValmistumispyyntoRows(client: Client, el_id: number): Promi
   )
 }
 
+// ─── Seurantajakso cleanup ────────────────────────────────────────────────
+
+async function deleteSeurantajaksoRows(client: Client, el_id: number): Promise<void> {
+  await client.query(
+    `DELETE FROM seurantajakso_koulutusjakso
+     WHERE seurantajakso_id IN (
+       SELECT id FROM seurantajakso
+       WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)
+     )`,
+    [el_id]
+  )
+  await client.query(
+    `DELETE FROM seurantajakso
+     WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)`,
+    [el_id]
+  )
+}
+
 // ─── Koulutussuunnitelma cleanup ──────────────────────────────────────────────
 
 async function deleteKoulutussuunnitelmaRows(client: Client, el_id: number): Promise<void> {
@@ -216,6 +234,7 @@ async function deleteErikoistuvaLaakari(client: Client, ids: UserIds): Promise<v
     }
 
     await deleteValmistumispyyntoRows(client, el_id)
+    await deleteSeurantajaksoRows(client, el_id)
     await deleteKoulutussuunnitelmaRows(client, el_id)
     await deleteTyoskentelyjaksoRows(client, el_id)
     await deleteTyoskentelypaikkaRows(client, paikkaIds)
