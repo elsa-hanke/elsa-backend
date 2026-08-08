@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.scheduler.jobs
 import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.*
@@ -67,7 +68,8 @@ class ScheduledOpintotietoImport(
             .distinctBy { Pair(it.erikoistuvaLaakari?.id, it.yliopisto?.id) }
         log.info("OpintotietoImport: löydetty ${opintooikeudet.size} käyttäjää")
         opintooikeudet.forEachIndexed { index, opintooikeus ->
-            val user = opintooikeus.erikoistuvaLaakari?.kayttaja?.user.required()
+            val user = getUserOrLogIncompleteRelationship(opintooikeus, index, opintooikeudet.size)
+                ?: return@forEachIndexed
             val yliopistoNimi = opintooikeus.yliopisto?.nimi
             log.info(
                 "OpintotietoImport: käyttäjä ${index + 1}/${opintooikeudet.size}: " +
@@ -105,6 +107,21 @@ class ScheduledOpintotietoImport(
                 Duration.between(timestamp, LocalDateTime.now()).toSeconds()
             } sekunnissa"
         )
+    }
+
+    private fun getUserOrLogIncompleteRelationship(
+        opintooikeus: Opintooikeus,
+        index: Int,
+        totalCount: Int
+    ): User? {
+        val user = opintooikeus.erikoistuvaLaakari?.kayttaja?.user
+        if (user == null) {
+            log.error(
+                "OpintotietoImport: opinto-oikeudelta ${opintooikeus.id} puuttuu käyttäjä; " +
+                    "ohitetaan tietue ${index + 1}/$totalCount"
+            )
+        }
+        return user
     }
 
     private fun getHetu(user: User, cipher: Cipher, originalKey: SecretKey): String? {

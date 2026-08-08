@@ -67,16 +67,24 @@ class SisuTreAuthenticationTokenServiceImpl(
                 }
                 response.body?.string().let { body ->
                     val tokenResponse = objectMapper.readValue(body, TokenResponse::class.java)
-                    validateTokenResponse(tokenResponse, sisuTreProperties.clientId.required())
+                    val accessToken = tokenResponse?.accessToken
+                    val expiresIn = tokenResponse?.expiresIn
+                    if (accessToken == null || expiresIn == null) {
+                        log.error(
+                            "Rajapinta $endpointUrl ei palauttanut kelvollista auth tokenia. " +
+                                "Token: ${tokenResponse.toString()}"
+                        )
+                        return null
+                    }
 
                     AuthenticationTokenCache.storeTokenByClientId(
                         sisuTreProperties.clientId.required(), AuthenticationToken(
-                            accessToken = tokenResponse.accessToken.required(),
+                            accessToken = accessToken,
                             // Huomioidaan umpeutumisajassa verkkoviive 5 sekuntia.
-                            expires = LocalDateTime.now().plusSeconds(tokenResponse.expiresIn.required() - 5)
+                            expires = LocalDateTime.now().plusSeconds(expiresIn - 5)
                         )
                     )
-                    tokenResponse.accessToken
+                    accessToken
                 }
             }
         } catch (e: JsonProcessingException) {
@@ -89,13 +97,6 @@ class SisuTreAuthenticationTokenServiceImpl(
             )
         }
         return null
-    }
-
-    private fun validateTokenResponse(tokenResponse: TokenResponse?, endpointUrl: String) {
-        if (tokenResponse?.accessToken == null || tokenResponse.expiresIn == null) {
-            log.error("Rajapinta $endpointUrl ei palauttanut kelvollista auth tokenia. " +
-                "Token: ${tokenResponse.toString()}")
-        }
     }
 }
 

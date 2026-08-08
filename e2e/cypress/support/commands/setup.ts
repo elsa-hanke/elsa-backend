@@ -21,22 +21,31 @@ type KoejaksoSetupOptions = {
   storeTokens?: boolean
 }
 
+type SeurantajaksoApiOptions = {
+  kouluttajaId: number
+  yhteisetMerkinnat?: string
+}
+
+type VirkailijaSetupOptions = {
+  cleanupEmails?: string[]
+}
+
 const defaultKouluttaja: SeedUser = {
   email: KOULUTTAJA_EMAIL,
-  etunimi: 'E2E',
-  sukunimi: 'Kouluttaja',
+  etunimi: 'Lassekalevi',
+  sukunimi: 'Hummaamistes',
 }
 
 const defaultVastuuhenkilo: SeedUser = {
   email: VASTUUHENKILO_EMAIL,
-  etunimi: 'E2E',
-  sukunimi: 'Vastuuhenkilo',
+  etunimi: 'Mia',
+  sukunimi: 'Ålands',
 }
 
 const defaultVirkailija: SeedUser = {
   email: VIRKAILIJA_EMAIL,
-  etunimi: 'E2E',
-  sukunimi: 'Virkailija',
+  etunimi: 'Daniel',
+  sukunimi: 'Siekkinen',
 }
 
 declare global {
@@ -72,6 +81,17 @@ declare global {
        * Resets koejakso state, seeds support users, logs in as erikoistuva, and seeds kouluttajavaltuutus.
        */
       prepareKoejaksoE2e(options?: KoejaksoSetupOptions): void
+
+      /**
+       * Creates a monitoring period through the API for a logged-in resident.
+       * Optionally adds the shared discussion notes needed for return/approval scenarios.
+       */
+      createSeurantajaksoViaApi(options: SeurantajaksoApiOptions): Chainable<any>
+
+      /**
+       * Resets and seeds the shared university official used by user-management specs.
+       */
+      prepareVirkailijaE2e(options?: VirkailijaSetupOptions): void
     }
   }
 }
@@ -89,6 +109,7 @@ Cypress.Commands.add('resetKoejaksoE2eState', (erikoistuvaEmail = E2E_ERIKOISTUV
 
 const seedKouluttaja = (user: SeedUser, storeTokens: boolean) => {
   return cy.task('db:seedKouluttaja', user).then((result: any) => {
+    Cypress.env('kouluttajaId', Number(result?.kayttajaId))
     if (storeTokens) {
       Cypress.env('kouluttajaToken', result?.token)
     }
@@ -105,6 +126,7 @@ Cypress.Commands.add('seedKouluttajaUser', (user: SeedUser, tokenEnvKey?: string
 
 const seedVastuuhenkilo = (user: SeedUser, storeTokens: boolean) => {
   return cy.task('db:seedVastuuhenkilo', user).then((result: any) => {
+    Cypress.env('vastuuhenkiloId', Number(result?.kayttajaId))
     if (storeTokens) {
       Cypress.env('vastuuhenkiloToken', result?.token)
     }
@@ -121,6 +143,7 @@ Cypress.Commands.add('seedVastuuhenkiloUser', (user: SeedUser, tokenEnvKey?: str
 
 const seedVirkailija = (user: SeedUser, storeTokens: boolean) => {
   return cy.task('db:seedVirkailija', user).then((result: any) => {
+    Cypress.env('virkailijaId', Number(result?.kayttajaId))
     if (storeTokens) {
       Cypress.env('virkailijaToken', result?.token)
     }
@@ -162,5 +185,56 @@ Cypress.Commands.add('prepareKoejaksoE2e', (options: KoejaksoSetupOptions = {}) 
   })
 })
 
-export {}
+Cypress.Commands.add('createSeurantajaksoViaApi', (options: SeurantajaksoApiOptions) => {
+  const requestBody = {
+    alkamispaiva: '2025-01-01',
+    paattymispaiva: '2025-06-30',
+    omaArviointi: 'E2E oma arviointi seurantajaksolta.',
+    lisahuomioita: 'E2E lisähuomiot.',
+    seuraavanJaksonTavoitteet: 'E2E seuraavan jakson tavoitteet.',
+    kouluttaja: { id: options.kouluttajaId },
+    koulutusjaksot: [],
+  }
 
+  return cy
+    .apiRequest({
+      method: 'POST',
+      url: '/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso',
+      body: requestBody,
+    })
+    .then(({ status, body }) => {
+      expect(status).to.eq(201)
+
+      if (!options.yhteisetMerkinnat) {
+        return body
+      }
+
+      return cy
+        .apiRequest({
+          method: 'PUT',
+          url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${body.id}`,
+          body: {
+            ...body,
+            seurantakeskustelunYhteisetMerkinnat: options.yhteisetMerkinnat,
+          },
+        })
+        .then(({ status: updateStatus, body: updatedBody }) => {
+          expect(updateStatus).to.eq(200)
+          return updatedBody
+        })
+    })
+})
+
+Cypress.Commands.add('prepareVirkailijaE2e', (options: VirkailijaSetupOptions = {}) => {
+  Cypress.session.clearAllSavedSessions()
+  for (const email of options.cleanupEmails ?? []) {
+    cy.task('db:cleanupVirkailija', { email })
+  }
+  cy.task('db:cleanupVirkailija', { email: VIRKAILIJA_EMAIL })
+  cy.task('db:seedVirkailija', defaultVirkailija).then((result: any) => {
+    Cypress.env('virkailijaId', Number(result?.kayttajaId))
+    Cypress.env('virkailijaToken', result?.token)
+  })
+})
+
+export {}

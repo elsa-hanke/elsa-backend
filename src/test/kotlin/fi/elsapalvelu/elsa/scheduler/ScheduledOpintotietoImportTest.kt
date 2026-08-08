@@ -107,6 +107,25 @@ class ScheduledOpintotietoImportTest {
         verify(opintosuorituksetPersistenceService, never()).createOrUpdateIfChanged(any(), any())
     }
 
+    @Test
+    fun `import skips incomplete relationship and continues with next user`() {
+        whenever(opintooikeusRepository.findAllValid()).thenReturn(
+            listOf(
+                Opintooikeus(
+                    id = 999L,
+                    erikoistuvaLaakari = null,
+                    yliopisto = Yliopisto(id = 999L, nimi = YliopistoEnum.OULUN_YLIOPISTO)
+                ),
+                makeOpintooikeus("user-ok", YliopistoEnum.OULUN_YLIOPISTO)
+            )
+        )
+
+        assertDoesNotThrow { scheduler.import() }
+
+        verify(opintotietodataPersistenceService).createOrUpdateOpintotieto(eq("user-ok"), any())
+        verify(opintosuorituksetPersistenceService).createOrUpdateIfChanged(eq("user-ok"), any())
+    }
+
     private inner class ThrowingOpintotietodataService(
         private val university: YliopistoEnum
     ) : OpintotietodataFetchingService {
@@ -173,4 +192,3 @@ class ScheduledOpintotietoImportTest {
         )
     }
 }
-
