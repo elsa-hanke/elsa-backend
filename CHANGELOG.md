@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- Detekt fixes PR1 [`#672`](https://github.com/elsa-hanke/elsa-backend/pull/672)(7 August 2026)
+- bump detekt version and cleaned unused imports [`#671`](https://github.com/elsa-hanke/elsa-backend/pull/671)(7 August 2026)
+- Reorganized unit tests [`#670`](https://github.com/elsa-hanke/elsa-backend/pull/670)(7 August 2026)
 - yek-tyoskentelyjakso e2e test [`#667`](https://github.com/elsa-hanke/elsa-backend/pull/667)(6 August 2026)
 - Enabled detekt UnusedImport rule [`#665`](https://github.com/elsa-hanke/elsa-backend/pull/665)(6 August 2026)
 - Bump fast-uri from 3.1.4 to 3.1.5 in /frontend [`#658`](https://github.com/elsa-hanke/elsa-backend/pull/658)(5 August 2026)
