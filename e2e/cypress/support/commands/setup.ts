@@ -32,14 +32,14 @@ type VirkailijaSetupOptions = {
 
 const defaultKouluttaja: SeedUser = {
   email: KOULUTTAJA_EMAIL,
-  etunimi: 'E2E',
-  sukunimi: 'Kouluttaja',
+  etunimi: 'Lassekalevi',
+  sukunimi: 'Hummaamistes',
 }
 
 const defaultVastuuhenkilo: SeedUser = {
   email: VASTUUHENKILO_EMAIL,
-  etunimi: 'E2E',
-  sukunimi: 'Vastuuhenkilo',
+  etunimi: 'Mia',
+  sukunimi: 'Ålands',
 }
 
 const defaultVirkailija: SeedUser = {
@@ -109,7 +109,7 @@ Cypress.Commands.add('resetKoejaksoE2eState', (erikoistuvaEmail = E2E_ERIKOISTUV
 
 const seedKouluttaja = (user: SeedUser, storeTokens: boolean) => {
   return cy.task('db:seedKouluttaja', user).then((result: any) => {
-    Cypress.env('kouluttajaId', result?.kayttajaId)
+    Cypress.env('kouluttajaId', Number(result?.kayttajaId))
     if (storeTokens) {
       Cypress.env('kouluttajaToken', result?.token)
     }
@@ -126,7 +126,7 @@ Cypress.Commands.add('seedKouluttajaUser', (user: SeedUser, tokenEnvKey?: string
 
 const seedVastuuhenkilo = (user: SeedUser, storeTokens: boolean) => {
   return cy.task('db:seedVastuuhenkilo', user).then((result: any) => {
-    Cypress.env('vastuuhenkiloId', result?.kayttajaId)
+    Cypress.env('vastuuhenkiloId', Number(result?.kayttajaId))
     if (storeTokens) {
       Cypress.env('vastuuhenkiloToken', result?.token)
     }
@@ -143,7 +143,7 @@ Cypress.Commands.add('seedVastuuhenkiloUser', (user: SeedUser, tokenEnvKey?: str
 
 const seedVirkailija = (user: SeedUser, storeTokens: boolean) => {
   return cy.task('db:seedVirkailija', user).then((result: any) => {
-    Cypress.env('virkailijaId', result?.kayttajaId)
+    Cypress.env('virkailijaId', Number(result?.kayttajaId))
     if (storeTokens) {
       Cypress.env('virkailijaToken', result?.token)
     }
@@ -232,7 +232,7 @@ Cypress.Commands.add('prepareVirkailijaE2e', (options: VirkailijaSetupOptions = 
   }
   cy.task('db:cleanupVirkailija', { email: VIRKAILIJA_EMAIL })
   cy.task('db:seedVirkailija', defaultVirkailija).then((result: any) => {
-    Cypress.env('virkailijaId', result?.kayttajaId)
+    Cypress.env('virkailijaId', Number(result?.kayttajaId))
     Cypress.env('virkailijaToken', result?.token)
   })
 })

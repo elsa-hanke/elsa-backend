@@ -3,7 +3,7 @@ import {
   VASTUUHENKILO_EMAIL,
 } from '../../support/commands/credentials'
 
-const KOULUTTAJA_NIMI = 'E2E Seurantakouluttaja'
+const KOULUTTAJA_NIMI = 'Lassekalevi Hummaamistes'
 
 describe('Seurantajakson luonti', () => {
   before(() => {
@@ -12,13 +12,13 @@ describe('Seurantajakson luonti', () => {
       storeTokens: true,
       kouluttaja: {
         email: KOULUTTAJA_EMAIL,
-        etunimi: 'E2E',
-        sukunimi: 'Seurantakouluttaja',
+        etunimi: 'Lassekalevi',
+        sukunimi: 'Hummaamistes',
       },
       vastuuhenkilo: {
         email: VASTUUHENKILO_EMAIL,
-        etunimi: 'E2E',
-        sukunimi: 'Seurantavastuuhenkilo',
+        etunimi: 'Mia',
+        sukunimi: 'Ålands',
       },
     })
   })
@@ -69,7 +69,7 @@ describe('Seurantajakson luonti', () => {
         paattymispaiva: '2025-06-30',
         omaArviointi: 'E2E oma arviointi seurantajaksolta.',
       })
-      expect(request.body.kouluttaja.id).to.eq(Cypress.env('kouluttajaId'))
+      expect(Number(request.body.kouluttaja.id)).to.eq(Number(Cypress.env('kouluttajaId')))
       expect(response?.statusCode).to.eq(201)
       expect(response?.body?.id).to.be.a('number')
       Cypress.env('seurantajaksoId', response?.body?.id)
@@ -84,67 +84,69 @@ describe('Seurantajakson luonti', () => {
     cy.contains(KOULUTTAJA_NIMI).should('be.visible')
 
     cy.then(() => {
+      const seurantajaksoId = Number(Cypress.env('seurantajaksoId'))
+
       cy.apiRequest({
         method: 'GET',
-        url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${Cypress.env('seurantajaksoId')}`,
+        url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${seurantajaksoId}`,
       }).then(({ status, body }) => {
         expect(status).to.eq(200)
         expect(body.tila).to.eq('ODOTTAA_ARVIOINTIA_JA_YHTEISIA_MERKINTOJA')
       })
-    })
 
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
-    cy.apiRequest({
-      method: 'GET',
-      url: `/api/kouluttaja/seurantakeskustelut/seurantajakso/${Cypress.env('seurantajaksoId')}`,
-    }).then(({ body }) => {
+      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
       cy.apiRequest({
-        method: 'PUT',
-        url: `/api/kouluttaja/seurantakeskustelut/seurantajakso/${body.id}`,
-        body: {
-          ...body,
-          edistyminenTavoitteidenMukaista: true,
-          kouluttajanArvio: 'E2E kouluttajan arvio seurantajaksosta.',
-        },
-      }).its('status').should('eq', 200)
-    })
-
-    cy.loginAsErikoistuva()
-    cy.apiRequest({
-      method: 'GET',
-      url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${Cypress.env('seurantajaksoId')}`,
-    }).then(({ body }) => {
-      expect(body.tila).to.eq('ODOTTAA_YHTEISIA_MERKINTOJA')
-      cy.apiRequest({
-        method: 'PUT',
-        url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${body.id}`,
-        body: {
-          ...body,
-          seurantakeskustelunYhteisetMerkinnat: 'E2E hyväksyttävät yhteiset merkinnät.',
-        },
-      }).its('status').should('eq', 200)
-    })
-
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
-    cy.apiRequest({
-      method: 'GET',
-      url: `/api/kouluttaja/seurantakeskustelut/seurantajakso/${Cypress.env('seurantajaksoId')}`,
-    }).then(({ body }) => {
-      expect(body.tila).to.eq('ODOTTAA_HYVAKSYNTAA')
-      cy.apiRequest({
-        method: 'PUT',
-        url: `/api/kouluttaja/seurantakeskustelut/seurantajakso/${body.id}`,
-        body,
-      }).then(({ status, body: approvedBody }) => {
-        expect(status).to.eq(200)
-        expect(approvedBody.hyvaksytty).to.eq(true)
+        method: 'GET',
+        url: `/api/kouluttaja/seurantakeskustelut/seurantajakso/${seurantajaksoId}`,
+      }).then(({ body }) => {
+        cy.apiRequest({
+          method: 'PUT',
+          url: `/api/kouluttaja/seurantakeskustelut/seurantajakso/${body.id}`,
+          body: {
+            ...body,
+            edistyminenTavoitteidenMukaista: true,
+            kouluttajanArvio: 'E2E kouluttajan arvio seurantajaksosta.',
+          },
+        }).its('status').should('eq', 200)
       })
-    })
 
-    cy.visit(`/seurantakeskustelut/seurantajakso/${Cypress.env('seurantajaksoId')}`)
-    cy.contains('Seurantajakso on arvioitu ja yhteiset merkinnät hyväksytty.').should(
-      'be.visible'
-    )
-    cy.contains('Muokkaa arviointia').should('not.exist')
+      cy.loginAsErikoistuva()
+      cy.apiRequest({
+        method: 'GET',
+        url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${seurantajaksoId}`,
+      }).then(({ body }) => {
+        expect(body.tila).to.eq('ODOTTAA_YHTEISIA_MERKINTOJA')
+        cy.apiRequest({
+          method: 'PUT',
+          url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${body.id}`,
+          body: {
+            ...body,
+            seurantakeskustelunYhteisetMerkinnat: 'E2E hyväksyttävät yhteiset merkinnät.',
+          },
+        }).its('status').should('eq', 200)
+      })
+
+      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+      cy.apiRequest({
+        method: 'GET',
+        url: `/api/kouluttaja/seurantakeskustelut/seurantajakso/${seurantajaksoId}`,
+      }).then(({ body }) => {
+        expect(body.tila).to.eq('ODOTTAA_HYVAKSYNTAA')
+        cy.apiRequest({
+          method: 'PUT',
+          url: `/api/kouluttaja/seurantakeskustelut/seurantajakso/${body.id}`,
+          body,
+        }).then(({ status, body: approvedBody }) => {
+          expect(status).to.eq(200)
+          expect(approvedBody.hyvaksytty).to.eq(true)
+        })
+      })
+
+      cy.visit(`/seurantakeskustelut/seurantajakso/${seurantajaksoId}`)
+      cy.contains('Seurantajakso on arvioitu ja yhteiset merkinnät hyväksytty.').should(
+        'be.visible'
+      )
+      cy.contains('Muokkaa arviointia').should('not.exist')
+    })
   })
 })

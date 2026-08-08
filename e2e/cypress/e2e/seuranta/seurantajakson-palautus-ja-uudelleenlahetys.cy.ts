@@ -13,13 +13,13 @@ describe('Seurantajakson palautus', () => {
       storeTokens: true,
       kouluttaja: {
         email: KOULUTTAJA_EMAIL,
-        etunimi: 'E2E',
-        sukunimi: 'Seurantakouluttaja',
+        etunimi: 'Lassekalevi',
+        sukunimi: 'Hummaamistes',
       },
       vastuuhenkilo: {
         email: VASTUUHENKILO_EMAIL,
-        etunimi: 'E2E',
-        sukunimi: 'Seurantavastuuhenkilo',
+        etunimi: 'Mia',
+        sukunimi: 'Ålands',
       },
     })
     cy.then(() => {

@@ -3,7 +3,7 @@ import {
   VASTUUHENKILO_EMAIL,
 } from '../../support/commands/credentials'
 
-const KOULUTTAJA_NIMI = 'E2E Palautuskouluttaja'
+const KOULUTTAJA_NIMI = 'Lassekalevi Hummaamistes'
 const KORJAUSEHDOTUS = 'Tarkenna koulutuspaikan nimi.'
 const KORJATTU_KOULUTUSPAIKKA = 'E2E Korjattu testisairaala'
 
@@ -14,13 +14,13 @@ describe('Koulutussopimuksen palautus', () => {
       storeTokens: true,
       kouluttaja: {
         email: KOULUTTAJA_EMAIL,
-        etunimi: 'E2E',
-        sukunimi: 'Palautuskouluttaja',
+        etunimi: 'Lassekalevi',
+        sukunimi: 'Hummaamistes',
       },
       vastuuhenkilo: {
         email: VASTUUHENKILO_EMAIL,
-        etunimi: 'E2E',
-        sukunimi: 'Palautusvastuuhenkilo',
+        etunimi: 'Mia',
+        sukunimi: 'Ålands',
       },
     })
     cy.submitKoulutussopimusViaUi(KOULUTTAJA_NIMI).then((id) => {

@@ -15,18 +15,18 @@ describe('Valmistumispyynnön palautus', () => {
       storeTokens: true,
       kouluttaja: {
         email: KOULUTTAJA_EMAIL,
-        etunimi: 'E2E',
-        sukunimi: 'Kouluttaja',
+        etunimi: 'Lassekalevi',
+        sukunimi: 'Hummaamistes',
       },
       vastuuhenkilo: {
         email: VASTUUHENKILO_EMAIL,
-        etunimi: 'E2E',
-        sukunimi: 'Vastuuhenkilo',
+        etunimi: 'Mia',
+        sukunimi: 'Ålands',
       },
       virkailija: {
         email: VIRKAILIJA_EMAIL,
-        etunimi: 'E2E',
-        sukunimi: 'Virkailija',
+        etunimi: 'Daniel',
+        sukunimi: 'Siekkinen',
       },
     })
     cy.task('db:ensureLoppukeskusteluHyvaksytty', {
@@ -62,6 +62,11 @@ describe('Valmistumispyynnön palautus', () => {
       'Valmistumispyyntö on palautettu takaisin vastuuhenkilön toimesta, joka arvioi osaamisen.'
     ).should('be.visible')
     cy.contains(KORJAUSEHDOTUS).should('be.visible')
+
+    cy.get('input[type="checkbox"]').each(($checkbox) => {
+      cy.wrap($checkbox).check({ force: true })
+    })
+    cy.contains('button', 'Tee valmistumispyyntö').click()
 
     cy.contains('label', 'Matkapuhelinnumero')
       .parent()
