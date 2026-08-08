@@ -44,8 +44,8 @@ const defaultVastuuhenkilo: SeedUser = {
 
 const defaultVirkailija: SeedUser = {
   email: VIRKAILIJA_EMAIL,
-  etunimi: 'E2E',
-  sukunimi: 'Virkailija',
+  etunimi: 'Daniel',
+  sukunimi: 'Siekkinen',
 }
 
 declare global {
