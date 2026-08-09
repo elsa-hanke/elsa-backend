@@ -141,11 +141,26 @@ class ArkistointiServiceImplTest {
             yek = false
         )
 
+        verify(helsinkiSiiloService).laheta("/tmp/ok.zip", CaseType.VALMISTUMINEN)
+        verify(tampereLouhiService, never()).laheta(any(), any())
         verify(alertPublisherService, never()).publishAlert(any(), any())
 
         assertThat(successCount(YliopistoEnum.HELSINGIN_YLIOPISTO, CaseType.VALMISTUMINEN)).isEqualTo(1.0)
         assertThat(errorCount(YliopistoEnum.HELSINGIN_YLIOPISTO, CaseType.VALMISTUMINEN)).isEqualTo(0.0)
         assertThat(arkistointiMetrics.activeArkistointiOperations.get()).isEqualTo(0)
+    }
+
+    @Test
+    fun `laheta routes Tampere archive to Louhi with YEK destination`() {
+        lahetaService.laheta(
+            yliopisto = YliopistoEnum.TAMPEREEN_YLIOPISTO,
+            filePath = "/tmp/yek.zip",
+            caseType = CaseType.VALMISTUMINEN,
+            yek = true
+        )
+
+        verify(tampereLouhiService).laheta("/tmp/yek.zip", true)
+        verify(helsinkiSiiloService, never()).laheta(any(), any())
     }
 
     @Test
@@ -322,4 +337,3 @@ class ArkistointiServiceImplTest {
         return entries
     }
 }
-
