@@ -315,7 +315,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         }
 
         if (vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
-            luoPdf(mapVastuuhenkilonArvio(result), result)
+            val asiakirja = luoPdf(mapVastuuhenkilonArvio(result), result)
+            arkistoiVastuuhenkilonArvio(result, asiakirja)
 
             if (vastuuhenkilonArvio.koejaksoHyvaksytty == false) {
                 mailService.sendEmailFromTemplate(
@@ -347,7 +348,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private fun luoPdf(
         vastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
         vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
-    ) {
+    ): Asiakirja {
         val locale = Locale.forLanguageTag("fi")
         val context = Context(locale).apply {
             setVariable("arvio", vastuuhenkilonArvioDTO)
@@ -371,7 +372,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         pdfService.luoPdf("pdf/vastuuhenkilonarvio.html", context, outputStream)
         val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
-        val asiakirja = asiakirjaRepository.save(
+        return asiakirjaRepository.save(
             Asiakirja(
                 opintooikeus = vastuuhenkilonArvio.opintooikeus,
                 nimi = "koejakson_vastuuhenkilon_arvio_${timestamp}.pdf",
@@ -380,7 +381,12 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
             )
         )
+    }
 
+    private fun arkistoiVastuuhenkilonArvio(
+        vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio,
+        asiakirja: Asiakirja
+    ) {
         val yliopisto = vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi.required()
         val erikoisala = vastuuhenkilonArvio.opintooikeus?.erikoisala.required()
 

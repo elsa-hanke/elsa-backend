@@ -5,6 +5,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -29,6 +30,9 @@ import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
+import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksyntaFormDTO
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -226,6 +230,52 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         assertThat(updated.vastuuhenkiloHyvaksyjaKorjausehdotus).isNull()
 
         verifyEmailSent()
+    }
+
+    @Test
+    fun updateValmistumispyyntoByHyvaksyjaUserId_archivingEnabled_usesGeneratedPersistedDocuments() {
+        val valmistumispyyntoId = initTestInTransaction()
+        whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
+        whenever(
+            arkistointiService.muodostaSahke(
+                any(), any(), any(), any(), any(), any(), any(), any(), any()
+            )
+        ).thenReturn(ArkistointiResult("/tmp/valmistumispyynto.zip", null))
+
+        restMockMvc.perform(
+            put("$ARKISTOINTI_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyyntoId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null)))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        val asiakirjatCaptor = argumentCaptor<List<RecordProperties>>()
+        verify(arkistointiService).muodostaSahke(
+            any(),
+            asiakirjatCaptor.capture(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any()
+        )
+        assertThat(asiakirjatCaptor.firstValue.map { it.type })
+            .containsExactly(
+                RecordType.YHTEENVETO,
+                RecordType.LIITE
+            )
+
+        val persistedAsiakirjaIds = transactionTemplate.execute {
+            val valmistumispyynto = valmistumispyyntoRepository.findById(valmistumispyyntoId).orElseThrow()
+            listOf(
+                valmistumispyynto.yhteenvetoAsiakirja?.id,
+                valmistumispyynto.liitteetAsiakirja?.id
+            )
+        }
+        assertThat(asiakirjatCaptor.firstValue.map { it.asiakirja.id })
+            .containsExactlyElementsOf(persistedAsiakirjaIds)
     }
 
     // -------------------------------------------------------------------------

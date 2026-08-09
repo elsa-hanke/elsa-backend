@@ -373,26 +373,20 @@ class ValmistumispyyntoServiceImpl(
             log.info("Kuittausaika tallennettu [valmistumispyyntoId=$id]")
 
             result.valmistumispyynnonTarkistus?.let {
-                if (it.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
-                    log.info("Luodaan YEK PDF:t [valmistumispyyntoId=$id]")
-                    luoYEKYhteenvetoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
-                    luoLiitteetPdf(valmistumispyynto)
-                    log.info("YEK PDF:t luotu [valmistumispyyntoId=$id]")
-                    sendMailNotificationHyvaksyttyYek(valmistumispyynto)
-                    log.info("YEK hyvaksynta-sahkoposti lahetetty [valmistumispyyntoId=$id]")
-                } else {
-                    log.info("Luodaan PDF:t [valmistumispyyntoId=$id]")
-                    luoLiitteetPdf(valmistumispyynto)
-                    luoErikoistujanTiedotPdf(valmistumispyynto)
-                    luoYhteenvetoPdf(mapValmistumispyynnonTarkistus(valmistumispyynnonTarkistusMapper.toDto(it)), valmistumispyynto)
-                    log.info("PDF:t luotu [valmistumispyyntoId=$id]")
-                    sendMailNotificationHyvaksytty(valmistumispyynto)
-                    log.info("Hyvaksynta-sahkoposti lahetetty [valmistumispyyntoId=$id]")
-                }
+                val arkistoitavatAsiakirjat = luoValmistumispyynnonAsiakirjatJaLahetaViesti(
+                    id,
+                    it,
+                    valmistumispyynto
+                )
 
                 log.info("Tarkistetaan arkistointi [valmistumispyyntoId=$id, yliopisto=${yliopisto.nimi}]")
                 if (arkistointiService.onKaytossa(yliopisto.nimi.required(), CaseType.VALMISTUMINEN)) {
-                    arkistoiValmistumispyynto(id, valmistumispyynto, yliopisto.nimi)
+                    arkistoiValmistumispyynto(
+                        id,
+                        valmistumispyynto,
+                        yliopisto.nimi,
+                        arkistoitavatAsiakirjat
+                    )
                 } else {
                     log.info("Arkistointi ei kaytossa [valmistumispyyntoId=$id, yliopisto=${yliopisto.nimi}]")
                 }
@@ -408,11 +402,50 @@ class ValmistumispyyntoServiceImpl(
         }
     }
 
-    private fun arkistoiValmistumispyynto(id: Long, valmistumispyynto: Valmistumispyynto, nimi: YliopistoEnum?) {
+    private fun luoValmistumispyynnonAsiakirjatJaLahetaViesti(
+        id: Long,
+        tarkistus: ValmistumispyynnonTarkistus,
+        valmistumispyynto: Valmistumispyynto
+    ): List<RecordProperties> {
+        val mappedTarkistus = mapValmistumispyynnonTarkistus(
+            valmistumispyynnonTarkistusMapper.toDto(tarkistus)
+        )
+        if (tarkistus.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
+            log.info("Luodaan YEK PDF:t [valmistumispyyntoId=$id]")
+            val yhteenveto = luoYEKYhteenvetoPdf(mappedTarkistus, valmistumispyynto)
+            val liitteet = luoLiitteetPdf(valmistumispyynto)
+            log.info("YEK PDF:t luotu [valmistumispyyntoId=$id]")
+            sendMailNotificationHyvaksyttyYek(valmistumispyynto)
+            log.info("YEK hyvaksynta-sahkoposti lahetetty [valmistumispyyntoId=$id]")
+            return listOf(
+                RecordProperties(yhteenveto, YHTEENVETO),
+                RecordProperties(liitteet, LIITE)
+            )
+        }
+
+        log.info("Luodaan PDF:t [valmistumispyyntoId=$id]")
+        val liitteet = luoLiitteetPdf(valmistumispyynto)
+        luoErikoistujanTiedotPdf(valmistumispyynto)
+        val yhteenveto = luoYhteenvetoPdf(mappedTarkistus, valmistumispyynto)
+        log.info("PDF:t luotu [valmistumispyyntoId=$id]")
+        sendMailNotificationHyvaksytty(valmistumispyynto)
+        log.info("Hyvaksynta-sahkoposti lahetetty [valmistumispyyntoId=$id]")
+        return listOf(
+            RecordProperties(yhteenveto, YHTEENVETO),
+            RecordProperties(liitteet, LIITE)
+        )
+    }
+
+    private fun arkistoiValmistumispyynto(
+        id: Long,
+        valmistumispyynto: Valmistumispyynto,
+        nimi: YliopistoEnum?,
+        asiakirjat: List<RecordProperties>
+    ) {
         log.info("Arkistointi kaytossa, muodostetaan sahke [valmistumispyyntoId=$id]")
         val result = arkistointiService.muodostaSahke(
             valmistumispyynto.opintooikeus,
-            listOf(RecordProperties(valmistumispyynto.yhteenvetoAsiakirja.required(), YHTEENVETO), RecordProperties(valmistumispyynto.liitteetAsiakirja.required(), LIITE)),
+            asiakirjat,
             caseId = valmistumispyynto.id.required().toString(),
             tarkastaja = valmistumispyynto.virkailija?.user?.getName(),
             tarkastusPaiva = valmistumispyynto.virkailijanKuittausaika,
@@ -1221,9 +1254,17 @@ class ValmistumispyyntoServiceImpl(
         return dto
     }
 
-    private fun luoYhteenvetoPdf(valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO, valmistumispyynto: Valmistumispyynto) {
+    private fun luoYhteenvetoPdf(
+        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO,
+        valmistumispyynto: Valmistumispyynto
+    ): Asiakirja {
         val context = getYhteenvetoPdfContext(valmistumispyynnonTarkistusDTO, valmistumispyynto)
-        saveYhteenvetoPdf(valmistumispyynto = valmistumispyynto, template = "pdf/valmistumisenyhteenveto.html", fileNamePrefix = "valmistumisen_yhteenveto", context = context)
+        return saveYhteenvetoPdf(
+            valmistumispyynto = valmistumispyynto,
+            template = "pdf/valmistumisenyhteenveto.html",
+            fileNamePrefix = "valmistumisen_yhteenveto",
+            context = context
+        )
     }
 
     private fun getYhteenvetoPdfContext(valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO, valmistumispyynto: Valmistumispyynto): Context {
@@ -1293,7 +1334,10 @@ class ValmistumispyyntoServiceImpl(
         }
     }
 
-    private fun luoYEKYhteenvetoPdf(valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO, valmistumispyynto: Valmistumispyynto) {
+    private fun luoYEKYhteenvetoPdf(
+        valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusDTO,
+        valmistumispyynto: Valmistumispyynto
+    ): Asiakirja {
         val locale = Locale.forLanguageTag("fi")
         val context = Context(locale).apply {
             setVariable("tarkistus", valmistumispyynnonTarkistusDTO)
@@ -1324,11 +1368,20 @@ class ValmistumispyyntoServiceImpl(
                 setVariable("teoriakoulutukset", opintosuoritukset.opintosuoritukset)
             }
         }
-        saveYhteenvetoPdf(valmistumispyynto = valmistumispyynto, template = "pdf/valmistumisenyhteenveto_yek.html", fileNamePrefix = "valmistumisen_yhteenveto_yek",
-            context = context)
+        return saveYhteenvetoPdf(
+            valmistumispyynto = valmistumispyynto,
+            template = "pdf/valmistumisenyhteenveto_yek.html",
+            fileNamePrefix = "valmistumisen_yhteenveto_yek",
+            context = context
+        )
     }
 
-    private fun saveYhteenvetoPdf(valmistumispyynto: Valmistumispyynto, template: String, fileNamePrefix: String, context: Context) {
+    private fun saveYhteenvetoPdf(
+        valmistumispyynto: Valmistumispyynto,
+        template: String,
+        fileNamePrefix: String,
+        context: Context
+    ): Asiakirja {
         val outputStream = ByteArrayOutputStream()
         pdfService.luoPdf(template, context, outputStream)
         val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
@@ -1340,33 +1393,34 @@ class ValmistumispyyntoServiceImpl(
 
         valmistumispyynto.yhteenvetoAsiakirja = asiakirja
         valmistumispyyntoRepository.save(valmistumispyynto)
+        return asiakirja
     }
 
-    private fun luoLiitteetPdf(valmistumispyynto: Valmistumispyynto) {
-        valmistumispyynto.opintooikeus?.let {
-            val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(it.id.required())
+    private fun luoLiitteetPdf(valmistumispyynto: Valmistumispyynto): Asiakirja {
+        val opintooikeus = valmistumispyynto.opintooikeus.required()
+        val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(opintooikeus.id.required())
 
-            val outputStream = ByteArrayOutputStream()
-            try {
-                pdfService.yhdistaAsiakirjat(tyoskentelyjaksot.flatMap { t -> t.asiakirjat }, outputStream)
-            } catch (e: Exception) {
-                log.error("Virhe yhdistäessä asiakirjoja valmistumispyynnölle: ${valmistumispyynto.id}", e)
-            }
-            val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-
-            val asiakirja = asiakirjaRepository.save(
-                Asiakirja(
-                    opintooikeus = valmistumispyynto.opintooikeus,
-                    nimi = "valmistumisen_yhteenvedon_liitteet_${timestamp}.pdf",
-                    tyyppi = MediaType.APPLICATION_PDF_VALUE,
-                    lisattypvm = LocalDateTime.now(),
-                    asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
-                )
-            )
-
-            valmistumispyynto.liitteetAsiakirja = asiakirja
-            valmistumispyyntoRepository.save(valmistumispyynto)
+        val outputStream = ByteArrayOutputStream()
+        try {
+            pdfService.yhdistaAsiakirjat(tyoskentelyjaksot.flatMap { t -> t.asiakirjat }, outputStream)
+        } catch (e: Exception) {
+            log.error("Virhe yhdistäessä asiakirjoja valmistumispyynnölle: ${valmistumispyynto.id}", e)
         }
+        val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+
+        val asiakirja = asiakirjaRepository.save(
+            Asiakirja(
+                opintooikeus = opintooikeus,
+                nimi = "valmistumisen_yhteenvedon_liitteet_${timestamp}.pdf",
+                tyyppi = MediaType.APPLICATION_PDF_VALUE,
+                lisattypvm = LocalDateTime.now(),
+                asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
+            )
+        )
+
+        valmistumispyynto.liitteetAsiakirja = asiakirja
+        valmistumispyyntoRepository.save(valmistumispyynto)
+        return asiakirja
     }
 
     private fun luoErikoistujanTiedotPdf(valmistumispyynto: Valmistumispyynto) {
