@@ -685,14 +685,12 @@
                     skin: false
                   }"
                 />
-                <!-- eslint-disable vue/no-v-html -->
                 <div
                   v-else
+                  v-safe-html="virkailijanYhteenvetoSanitized"
                   class="editor-readonly"
                   style="white-space: normal"
-                  v-html="virkailijanYhteenvetoSanitized"
                 ></div>
-                <!-- eslint-enable vue/no-v-html -->
               </elsa-form-group>
               <h2 class="mb-3">{{ $t('huomiot') }}</h2>
               <elsa-form-group

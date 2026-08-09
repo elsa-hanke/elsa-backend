@@ -125,8 +125,7 @@
             {{ kokonaisuus.voimassaoloLoppuu != null ? $date(kokonaisuus.voimassaoloLoppuu) : '' }}
           </p>
           <h5>{{ $t('kuvaus') }}</h5>
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <p v-html="kokonaisuus.kuvaus"></p>
+          <p v-safe-html="kokonaisuus.kuvaus"></p>
           <hr />
         </div>
       </b-col>

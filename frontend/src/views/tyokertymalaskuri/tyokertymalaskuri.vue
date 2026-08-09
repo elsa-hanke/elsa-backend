@@ -6,7 +6,6 @@
         <b-row lg>
           <b-col>
             <h1>{{ $t('tyokertymalaskuri') }}</h1>
-            <!-- eslint-disable vue/no-v-html -->
             <p>{{ $t('tyokertymalaskuri-kuvaus') }}</p>
             <div class="d-flex flex-wrap mb-3 mb-lg-4">
               <elsa-button

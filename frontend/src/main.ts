@@ -12,6 +12,7 @@ import '@/plugins/fontawesome'
 import i18n from '@/plugins/i18n'
 import '@/plugins/registerComponentHooks'
 import '@/plugins/roles'
+import '@/plugins/safe-html'
 import router from '@/router'
 import store from '@/store'
 
