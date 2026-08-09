@@ -14,30 +14,45 @@ class ArkistointiDispatcher(
     private val arkistointiMetrics: ArkistointiMetricsService
 ) {
     private val log = LoggerFactory.getLogger(ArkistointiDispatcher::class.java)
-    private val adaptersByYliopisto = adapters.associateBy(ArkistointiAdapter::yliopisto)
+    private val adaptersByYliopisto = adapters
+        .groupBy(ArkistointiAdapter::yliopisto)
+        .also(::requireUniqueAdapters)
+        .mapValues { (_, yliopistonAdapters) -> yliopistonAdapters.single() }
 
     fun laheta(request: ArkistointiDeliveryRequest) {
         arkistointiMetrics.activeArkistointiOperations.incrementAndGet()
         try {
-            val adapter = adaptersByYliopisto[request.yliopisto]
-            if (adapter == null) {
-                log.info("Integraatiota arkistointiin ei ole tuettu yliopistossa ${request.yliopisto.name}")
-            } else {
-                send(adapter, request)
-            }
+            val adapter = resolveAdapter(request) ?: return
+            adapter.laheta(request)
             arkistointiMetrics.recordSuccess(request.yliopisto, request.caseType)
+        } catch (e: Exception) {
+            publishFailureAlert(request, e)
+            arkistointiMetrics.recordError(request.yliopisto, request.caseType)
+            throw e
         } finally {
             arkistointiMetrics.activeArkistointiOperations.updateAndGet { maxOf(0, it - 1) }
         }
     }
 
-    private fun send(adapter: ArkistointiAdapter, request: ArkistointiDeliveryRequest) {
-        try {
-            adapter.laheta(request)
-        } catch (e: Exception) {
-            publishFailureAlert(request, e)
-            arkistointiMetrics.recordError(request.yliopisto, request.caseType)
-            throw e
+    private fun resolveAdapter(request: ArkistointiDeliveryRequest): ArkistointiAdapter? {
+        return adaptersByYliopisto[request.yliopisto] ?: if (
+            configurationProvider.onKaytossa(request.yliopisto, request.caseType)
+        ) {
+            error(
+                "Arkistointi on käytössä yliopistossa ${request.yliopisto.name} " +
+                    "asiatyypille ${request.caseType.value}, mutta adapteria ei ole määritelty"
+            )
+        } else {
+            log.info("Integraatiota arkistointiin ei ole tuettu yliopistossa ${request.yliopisto.name}")
+            null
+        }
+    }
+
+    private fun requireUniqueAdapters(adapters: Map<YliopistoEnum, List<ArkistointiAdapter>>) {
+        val duplicateYliopistot = adapters.filterValues { it.size > 1 }.keys
+        require(duplicateYliopistot.isEmpty()) {
+            "Yliopistolle saa olla vain yksi arkistointiadapteri. Useita adaptereita: " +
+                duplicateYliopistot.joinToString { it.name }
         }
     }
 
