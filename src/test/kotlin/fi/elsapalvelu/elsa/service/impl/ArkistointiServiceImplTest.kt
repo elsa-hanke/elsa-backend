@@ -14,13 +14,20 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiDispatcher
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
-import fi.elsapalvelu.elsa.service.arkistointi.HelsinkiSiiloService
-import fi.elsapalvelu.elsa.service.arkistointi.TampereLouhiService
+import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.louhi.TampereLouhiService
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePakettiBuilder
+import fi.elsapalvelu.elsa.service.arkistointi.siilo.HelsinkiSiiloService
+import fi.elsapalvelu.elsa.service.arkistointi.siilo.SiiloArkistointiAdapter
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
+import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import fi.elsapalvelu.elsa.service.metrics.ArkistointiMetricsService
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.apache.commons.codec.digest.DigestUtils
@@ -61,10 +68,13 @@ class ArkistointiServiceImplTest {
     fun setUp() {
         metricsRegistry = SimpleMeterRegistry()
         arkistointiMetrics = ArkistointiMetricsService(metricsRegistry)
-        lahetaService = ArkistointiServiceImpl(
-            applicationProperties = ApplicationProperties(),
-            tampereLouhiService = tampereLouhiService,
-            helsinkiSiiloService = helsinkiSiiloService,
+        val applicationProperties = ApplicationProperties()
+        lahetaService = createService(
+            applicationProperties = applicationProperties,
+            adapters = listOf(
+                LouhiArkistointiAdapter(tampereLouhiService),
+                SiiloArkistointiAdapter(helsinkiSiiloService)
+            ),
             alertPublisherService = alertPublisherService,
             arkistointiMetrics = arkistointiMetrics
         )
@@ -238,14 +248,35 @@ class ArkistointiServiceImplTest {
         applicationProperties.getArkistointi().getTre().user = "test-user"
         applicationProperties.getArkistointi().getTre().metadata = createMetadata(zipMetadata)
 
-        return ArkistointiServiceImpl(
+        return createService(
             applicationProperties = applicationProperties,
-            tampereLouhiService = TampereLouhiService(org.springframework.core.io.DefaultResourceLoader(), applicationProperties),
-            helsinkiSiiloService = HelsinkiSiiloService(applicationProperties),
+            adapters = emptyList(),
             alertPublisherService = object : AlertPublisherService {
                 override fun publishAlert(subject: String, message: String) = Unit
             },
             arkistointiMetrics = ArkistointiMetricsService(SimpleMeterRegistry())
+        )
+    }
+
+    private fun createService(
+        applicationProperties: ApplicationProperties,
+        adapters: List<ArkistointiAdapter>,
+        alertPublisherService: AlertPublisherService,
+        arkistointiMetrics: ArkistointiMetricsService
+    ): ArkistointiServiceImpl {
+        val configurationProvider = ArkistointiConfigurationProvider(applicationProperties)
+        val dispatcher = ArkistointiDispatcher(
+            adapters = adapters,
+            configurationProvider = configurationProvider,
+            alertPublisherService = alertPublisherService,
+            arkistointiMetrics = arkistointiMetrics
+        )
+
+        return ArkistointiServiceImpl(
+            configurationProvider = configurationProvider,
+            metadataBuilder = SahkeMetadataBuilder(),
+            pakettiBuilder = SahkePakettiBuilder(),
+            dispatcher = dispatcher
         )
     }
 
