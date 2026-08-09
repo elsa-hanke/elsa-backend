@@ -216,7 +216,7 @@ class ArkistointiServiceImplTest {
     }
 
     @Test
-    fun `laheta universities without integration do not update error counter and do not publish alert`() {
+    fun `laheta universities without integration do not update metrics and do not publish alert`() {
         lahetaService.laheta(
             yliopisto = YliopistoEnum.OULUN_YLIOPISTO,
             filePath = "/tmp/oulu.zip",
@@ -225,7 +225,7 @@ class ArkistointiServiceImplTest {
         )
 
         verify(alertPublisherService, never()).publishAlert(any(), any())
-        assertThat(successCount(YliopistoEnum.OULUN_YLIOPISTO, CaseType.VALMISTUMINEN)).isEqualTo(1.0)
+        assertThat(successCount(YliopistoEnum.OULUN_YLIOPISTO, CaseType.VALMISTUMINEN)).isEqualTo(0.0)
         assertThat(errorCount(YliopistoEnum.OULUN_YLIOPISTO, CaseType.VALMISTUMINEN)).isEqualTo(0.0)
     }
 
