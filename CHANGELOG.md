@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- More e2e tests [`#674`](https://github.com/elsa-hanke/elsa-backend/pull/674)(8 August 2026)
 - Detekt fixes PR1 [`#672`](https://github.com/elsa-hanke/elsa-backend/pull/672)(7 August 2026)
 - bump detekt version and cleaned unused imports [`#671`](https://github.com/elsa-hanke/elsa-backend/pull/671)(7 August 2026)
 - Reorganized unit tests [`#670`](https://github.com/elsa-hanke/elsa-backend/pull/670)(7 August 2026)

@@ -6,9 +6,12 @@ import org.apache.sshd.common.NamedResource
 import org.apache.sshd.common.config.keys.FilePasswordProvider
 import org.apache.sshd.common.signature.BuiltinSignatures
 import org.apache.sshd.common.util.security.SecurityUtils
+import org.apache.sshd.sftp.client.SftpClient
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ResourceLoader
 import org.springframework.http.HttpStatus
+import org.springframework.integration.file.remote.session.SessionFactory
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -16,43 +19,54 @@ import java.io.File
 import java.io.FileInputStream
 
 @Service
-class TampereLouhiService(
-    resourceLoader: ResourceLoader,
-    applicationProperties: ApplicationProperties
+class TampereLouhiService internal constructor(
+    private val sessionFactory: SessionFactory<SftpClient.DirEntry>
 ) {
     private val log = LoggerFactory.getLogger(TampereLouhiService::class.java)
-    private val sessionFactory: DefaultSftpSessionFactory
     private val inProgress = "InProgress"
     private val finished = "Finished"
     private val yekFolder = "YEK"
     private val elsaFolder = "ELSA"
 
-    init {
-        val arkistointiProperties = applicationProperties.getArkistointi().getTre()
-        val client = SshClient.setUpDefaultClient()
-        client.signatureFactories = listOf(
-            BuiltinSignatures.ed25519,
-            BuiltinSignatures.ed25519_cert,
-            BuiltinSignatures.sk_ssh_ed25519)
+    @Autowired
+    constructor(
+        resourceLoader: ResourceLoader,
+        applicationProperties: ApplicationProperties
+    ) : this(createSessionFactory(resourceLoader, applicationProperties))
 
-        arkistointiProperties.privateKeyLocation?.takeIf { it.isNotBlank() }?.let {
-            val resource = resourceLoader.getResource(it)
+    companion object {
+        private fun createSessionFactory(
+            resourceLoader: ResourceLoader,
+            applicationProperties: ApplicationProperties
+        ): DefaultSftpSessionFactory {
+            val arkistointiProperties = applicationProperties.getArkistointi().getTre()
+            val client = SshClient.setUpDefaultClient()
+            client.signatureFactories = listOf(
+                BuiltinSignatures.ed25519,
+                BuiltinSignatures.ed25519_cert,
+                BuiltinSignatures.sk_ssh_ed25519
+            )
 
-            resource.inputStream.use { input ->
-                val keyPairs = SecurityUtils.loadKeyPairIdentities(
-                    null,
-                    NamedResource { it },
-                    input,
-                    FilePasswordProvider.EMPTY
-                )
-                client.addPublicKeyIdentity(keyPairs.iterator().next())
+            arkistointiProperties.privateKeyLocation?.takeIf { it.isNotBlank() }?.let {
+                val resource = resourceLoader.getResource(it)
+
+                resource.inputStream.use { input ->
+                    val keyPairs = SecurityUtils.loadKeyPairIdentities(
+                        null,
+                        NamedResource { it },
+                        input,
+                        FilePasswordProvider.EMPTY
+                    )
+                    client.addPublicKeyIdentity(keyPairs.iterator().next())
+                }
+            }
+
+            return DefaultSftpSessionFactory(client, false).apply {
+                setHost(arkistointiProperties.host)
+                setPort(arkistointiProperties.port?.takeIf { it.isNotBlank() }?.toIntOrNull() ?: 22)
+                setUser(arkistointiProperties.user)
             }
         }
-
-        sessionFactory = DefaultSftpSessionFactory(client, false)
-        sessionFactory.setHost(arkistointiProperties.host)
-        sessionFactory.setPort(arkistointiProperties.port?.takeIf { it.isNotBlank() }?.toIntOrNull() ?: 22)
-        sessionFactory.setUser(arkistointiProperties.user)
     }
 
     fun laheta(filePath: String, yek: Boolean) {
