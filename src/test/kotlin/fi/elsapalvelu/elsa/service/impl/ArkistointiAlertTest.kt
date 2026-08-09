@@ -7,11 +7,17 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiDispatcher
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
-import fi.elsapalvelu.elsa.service.arkistointi.HelsinkiSiiloService
-import fi.elsapalvelu.elsa.service.arkistointi.TampereLouhiService
+import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.louhi.TampereLouhiService
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePakettiBuilder
+import fi.elsapalvelu.elsa.service.arkistointi.siilo.HelsinkiSiiloService
+import fi.elsapalvelu.elsa.service.arkistointi.siilo.SiiloArkistointiAdapter
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import fi.elsapalvelu.elsa.service.metrics.ArkistointiMetricsService
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
@@ -23,9 +29,9 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 
 /**
- * Unit tests verifying that [ArkistointiServiceImpl.laheta] publishes an alert via
- * [AlertPublisherService] whenever Helsinki (HY Siilo) or Tampere (Louhi SFTP) archiving fails,
- * and that no alert is published on success.
+ * Unit tests verifying that synchronous delivery through [ArkistointiServiceImpl.laheta]
+ * publishes an alert via [AlertPublisherService] whenever Helsinki (HY Siilo) or Tampere
+ * (Louhi SFTP) archiving fails, and that no alert is published on success.
  */
 @ExtendWith(MockitoExtension::class)
 class ArkistointiAlertTest {
@@ -48,12 +54,21 @@ class ArkistointiAlertTest {
         applicationProperties.getArkistointi().getTre().port = "22"
         applicationProperties.getArkistointi().getTre().user = "test-user"
 
-        arkistointiService = ArkistointiServiceImpl(
-            applicationProperties = applicationProperties,
-            tampereLouhiService = tampereLouhiService,
-            helsinkiSiiloService = helsinkiSiiloService,
+        val configurationProvider = ArkistointiConfigurationProvider(applicationProperties)
+        val dispatcher = ArkistointiDispatcher(
+            adapters = listOf(
+                LouhiArkistointiAdapter(tampereLouhiService),
+                SiiloArkistointiAdapter(helsinkiSiiloService)
+            ),
+            configurationProvider = configurationProvider,
             alertPublisherService = alertPublisherService,
             arkistointiMetrics = ArkistointiMetricsService(SimpleMeterRegistry())
+        )
+        arkistointiService = ArkistointiServiceImpl(
+            configurationProvider = configurationProvider,
+            metadataBuilder = SahkeMetadataBuilder(),
+            pakettiBuilder = SahkePakettiBuilder(),
+            dispatcher = dispatcher
         )
     }
 
@@ -203,4 +218,3 @@ class ArkistointiAlertTest {
         verify(alertPublisherService, never()).publishAlert(any(), any())
     }
 }
-

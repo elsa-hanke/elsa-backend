@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.arkistointi
+package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import org.apache.sshd.client.SshClient

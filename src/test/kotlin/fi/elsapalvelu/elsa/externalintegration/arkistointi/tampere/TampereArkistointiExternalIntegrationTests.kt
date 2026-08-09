@@ -13,9 +13,15 @@ import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.externalintegration.ExternalIntegrationTestSupport
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiDispatcher
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
-import fi.elsapalvelu.elsa.service.arkistointi.HelsinkiSiiloService
-import fi.elsapalvelu.elsa.service.arkistointi.TampereLouhiService
+import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.louhi.TampereLouhiService
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePakettiBuilder
+import fi.elsapalvelu.elsa.service.arkistointi.siilo.HelsinkiSiiloService
+import fi.elsapalvelu.elsa.service.arkistointi.siilo.SiiloArkistointiAdapter
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -238,12 +244,18 @@ class TampereArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppor
  * [TampereLouhiService] and [ArkistointiServiceImpl].
  *
  * [HelsinkiSiiloService] is mocked because it is not under test here and would
- * require its own network credentials + HKI SFTP access.
+ * require its own network credentials and HTTP endpoint.
  */
 @SpringBootConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     TampereLouhiService::class,
+    LouhiArkistointiAdapter::class,
+    SiiloArkistointiAdapter::class,
+    ArkistointiConfigurationProvider::class,
+    SahkeMetadataBuilder::class,
+    SahkePakettiBuilder::class,
+    ArkistointiDispatcher::class,
     ArkistointiServiceImpl::class,
     ArkistointiMetricsService::class,
     AlertPublisherServiceImpl::class  // single always-registered impl; no-ops when SNS not configured
@@ -262,4 +274,3 @@ class TampereArkistointiExternalIntegrationTestApplication {
     @Bean
     fun meterRegistry(): MeterRegistry = SimpleMeterRegistry()
 }
-

@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.arkistointi
+package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
 import org.apache.sshd.sftp.client.SftpClient
 import org.assertj.core.api.Assertions.assertThat

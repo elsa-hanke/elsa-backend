@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.arkistointi
+package fi.elsapalvelu.elsa.service.arkistointi.siilo
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
