@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- Bump dompurify from 3.4.12 to 3.4.13 in /frontend [`#675`](https://github.com/elsa-hanke/elsa-backend/pull/675)(9 August 2026)
+- Bump js-yaml from 3.15.0 to 3.15.1 in /frontend [`#676`](https://github.com/elsa-hanke/elsa-backend/pull/676)(9 August 2026)
 - More e2e tests [`#674`](https://github.com/elsa-hanke/elsa-backend/pull/674)(8 August 2026)
 - Detekt fixes PR1 [`#672`](https://github.com/elsa-hanke/elsa-backend/pull/672)(7 August 2026)
 - bump detekt version and cleaned unused imports [`#671`](https://github.com/elsa-hanke/elsa-backend/pull/671)(7 August 2026)
