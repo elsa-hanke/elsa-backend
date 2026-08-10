@@ -341,6 +341,33 @@ class VirkailijaEtusivuResourceIT {
 
     @Test
     @Transactional
+    fun combinedFiltersShouldRequireNameErikoisalaAndAsetusToMatchSameOpintooikeus() {
+        initTest()
+
+        val matchingQuery = "?nimi.contains=john&erikoisalaId.equals=${erikoisala1.id}" +
+            "&asetusId.equals=${asetus1.id}"
+
+        restEtusivuMockMvc.perform(get(ERIKOISTUJIEN_SEURANTA_ENDPOINT_URL + matchingQuery))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.content").value(hasSize<Int>(1)))
+            .andExpect(
+                jsonPath("$.content[0].opintooikeusId").value(
+                    erikoistuvaLaakari1.getOpintooikeusKaytossa()?.id
+                )
+            )
+
+        val conflictingQuery = "?nimi.contains=john doe&erikoisalaId.equals=${erikoisala2.id}" +
+            "&asetusId.equals=${asetus2.id}"
+
+        restEtusivuMockMvc.perform(get(ERIKOISTUJIEN_SEURANTA_ENDPOINT_URL + conflictingQuery))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.content").isEmpty)
+    }
+
+    @Test
+    @Transactional
     fun getErikoistujienSeurantaRajaimet() {
         initTest()
         val erikoisalatCountByLiittynytElsaan =

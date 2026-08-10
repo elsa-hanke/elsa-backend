@@ -21,7 +21,8 @@ data class ErikoistujanEteneminenCriteria(
         this(
             other.nimi?.copy(),
             other.erikoisalaId?.copy(),
-            other.asetusId?.copy()
+            other.asetusId?.copy(),
+            other.naytaPaattyneet
         )
 
     override fun copy() = ErikoistujanEteneminenCriteria(this)

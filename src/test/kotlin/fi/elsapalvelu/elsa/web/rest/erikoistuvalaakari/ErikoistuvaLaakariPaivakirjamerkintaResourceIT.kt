@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.seuranta.PaivakirjaAihekategoria
 import fi.elsapalvelu.elsa.domain.seuranta.Paivakirjamerkinta
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
@@ -272,6 +273,52 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
 
         defaultPaivakirjamerkintaShouldBeFound("paivamaara.greaterThanOrEqual=$DEFAULT_PAIVAMAARA")
         defaultPaivakirjamerkintaShouldNotBeFound("paivamaara.greaterThanOrEqual=$UPDATED_PAIVAMAARA")
+    }
+
+    @Test
+    @Transactional
+    fun combinedFiltersShouldReturnOnlyMatchingEntryFromActiveOpintooikeus() {
+        initTest()
+        val category = PaivakirjaAihekategoria(nimi = "combined-filter-category")
+        em.persist(category)
+
+        paivakirjamerkinta.aihekategoriat = mutableSetOf(category)
+        em.persist(paivakirjamerkinta)
+
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
+        requireNotNull(erikoistuvaLaakari)
+        val activeOpintooikeus =
+            OpintooikeusHelper.addOpintooikeusForErikoistuvaLaakari(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, activeOpintooikeus)
+
+        val matchingEntry = createEntity(em, user).apply {
+            aihekategoriat = mutableSetOf(category)
+        }
+        em.persist(matchingEntry)
+
+        em.persist(
+            createEntity(em, user).apply {
+                aihekategoriat = mutableSetOf(category)
+                paivamaara = UPDATED_PAIVAMAARA
+            }
+        )
+        em.persist(
+            createEntity(em, user).apply {
+                aihekategoriat = mutableSetOf(category)
+                yksityinen = true
+            }
+        )
+        em.persist(createEntity(em, user))
+        em.flush()
+
+        val query = "?sort=id,desc&paivamaara.equals=$DEFAULT_PAIVAMAARA" +
+            "&aihekategoriaId.equals=${category.id}&yksityinen.equals=false"
+
+        restPaivakirjamerkintaMockMvc.perform(get(ENTITY_API_URL + query))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.content[0].id").value(matchingEntry.id))
     }
 
     @Throws(Exception::class)
