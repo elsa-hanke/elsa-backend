@@ -57,7 +57,6 @@ class SuoritusarviointiQueryService(
             .map(suoritusarviointiMapper::toDto)
     }
 
-    @Suppress("ComplexMethod")
     private fun createSpecification(criteria: SuoritusarviointiCriteria?, spec: Specification<Suoritusarviointi?>? = null): Specification<Suoritusarviointi?> {
         var specification: Specification<Suoritusarviointi?> = spec ?: Specification.unrestricted()
         if (criteria != null) {

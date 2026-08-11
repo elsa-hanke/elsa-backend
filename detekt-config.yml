@@ -56,3 +56,7 @@ exceptions:
 performance:
   SpreadOperator:
     active: false
+potential-bugs:
+  Deprecation:
+    active: true
+    excludes: ['**/build/generated/**']
