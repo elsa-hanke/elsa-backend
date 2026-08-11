@@ -324,7 +324,7 @@ class UserServiceImpl(
     ) {
         // Kutsutun käyttäjä etu- ja sukunimi tulee olla tarpeeksi lähellä
         // kutsussa syötettyjä tietoja
-        val distance = LevenshteinDistance()
+        val distance = LevenshteinDistance.getDefaultInstance()
         val firstNameDistFirst = distance.apply(tokenUser.firstName, firstName)
         val firstNameDistLast = distance.apply(tokenUser.firstName, lastName)
         val lastNameDistFirst = distance.apply(tokenUser.lastName, firstName)

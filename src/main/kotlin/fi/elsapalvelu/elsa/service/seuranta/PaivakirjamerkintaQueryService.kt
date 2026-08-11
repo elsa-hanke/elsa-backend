@@ -46,7 +46,6 @@ class PaivakirjamerkintaQueryService(
             .map(paivakirjamerkintaMapper::toDto)
     }
 
-    @Suppress("ComplexMethod")
     private fun createSpecification(criteria: PaivakirjamerkintaCriteria?, spec: Specification<Paivakirjamerkinta?>? = null): Specification<Paivakirjamerkinta?> {
         var specification: Specification<Paivakirjamerkinta?> = spec ?: Specification.unrestricted()
         if (criteria != null) {

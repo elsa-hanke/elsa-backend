@@ -748,7 +748,6 @@ class ValmistumispyyntoServiceImpl(
         return null
     }
 
-    @Suppress("ComplexCondition")
     override fun getValmistumispyynnonTyoskentelyjaksoAsiakirja(
         userId: String,
         valmistumispyyntoId: Long,
