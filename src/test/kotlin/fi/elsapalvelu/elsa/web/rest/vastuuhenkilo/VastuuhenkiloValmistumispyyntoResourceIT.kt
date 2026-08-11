@@ -698,4 +698,5 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         user.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(kayttaja = user, yliopisto = yliopisto, erikoisala = erikoisala, vastuuhenkilonTehtavat = tehtavat))
         user.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(kayttaja = user, yliopisto = yliopisto, erikoisala = otherNewErikoisala, vastuuhenkilonTehtavat = tehtavat))
     }
+
 }

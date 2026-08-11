@@ -655,4 +655,5 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         virkailija.yliopistot.add(yliopisto)
         em.persist(virkailija)
     }
+
 }
