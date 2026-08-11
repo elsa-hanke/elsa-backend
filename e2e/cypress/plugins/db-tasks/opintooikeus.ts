@@ -28,10 +28,12 @@ export const opintoOikeusTasks = {
     email,
     opintoOikeus,
     updateCurrent = false,
+    generateId = false,
   }: {
     email: string
     opintoOikeus: OpintoOikeus
     updateCurrent?: boolean
+    generateId?: boolean
   }): Promise<number> {
     return withDb(dbClient, async (client: Client) => {
       if (!opintoOikeus) {
@@ -110,11 +112,20 @@ export const opintoOikeusTasks = {
         await client.query(`UPDATE public.opintooikeus SET kaytossa = false WHERE erikoistuva_laakari_id = $1`, [erikoistuva])
       }
 
+      if (generateId) {
+        const idResult = await client.query<{ id: string }>(
+          `SELECT nextval(
+             pg_get_serial_sequence('public.opintooikeus', 'id')
+           ) AS id`
+        )
+        opintoOikeus.id = Number(idResult.rows[0].id)
+      }
+
       const sql = "INSERT INTO public.opintooikeus (id, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva, opiskelijatunnus, " +
         "osaamisen_arvioinnin_oppaan_pvm, erikoistuva_laakari_id, yliopisto_id, erikoisala_id, opintoopas_id, asetus_id, kaytossa, yliopisto_opintooikeus_id, tila, muokkausaika, terveyskeskuskoulutusjakso_suoritettu, muokkausoikeudet_virkailijoilla, viimeinen_katselupaiva) " +
         "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) returning id";
 
-      const res = await client.query(sql, [
+      const res = await client.query<{ id: number }>(sql, [
         opintoOikeus.id,
         opintoOikeus.myontamispaiva,
         opintoOikeus.paattymispaiva,
@@ -134,8 +145,18 @@ export const opintoOikeusTasks = {
         opintoOikeus.viimeinen_katselupaiva
       ])
 
-      console.log(res.rows[0].id)
-      return opintoOikeus.id
+      const insertedId = Number(res.rows[0].id)
+      if (opintoOikeus.kaytossa) {
+        await client.query(
+          `UPDATE public.erikoistuva_laakari
+           SET aktiivinen_opintooikeus = $1
+           WHERE id = $2`,
+          [insertedId, erikoistuva]
+        )
+      }
+
+      console.log(insertedId)
+      return insertedId
 
     })
   },
