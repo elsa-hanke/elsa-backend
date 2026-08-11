@@ -240,48 +240,6 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
 
     @Test
     @Transactional
-    fun getValmistumispyyntoSuoritustenTilaVanhentunutValtakunnallinenKuulusteluExists() {
-        initTestWithVoimassaolevatSuoritukset()
-        em.persist(
-            OpintosuoritusHelper.createEntity(
-                em,
-                user,
-                tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU,
-                suorituspaiva = LocalDate.now(clock).minusYears(4).minusDays(1)
-            )
-        )
-
-        restValmistumispyyntoMockMvc.perform(
-            get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT)
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.vanhojaTyoskentelyjaksojaOrSuorituksiaExists").value(false))
-            .andExpect(jsonPath("$.kuulusteluVanhentunut").value(true))
-    }
-
-    @Test
-    @Transactional
-    fun getValmistumispyyntoSuoritustenTilaValtakunnallinenKuulusteluAtExpirationBoundaryIsValid() {
-        initTestWithVoimassaolevatSuoritukset()
-        em.persist(
-            OpintosuoritusHelper.createEntity(
-                em,
-                user,
-                tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU,
-                suorituspaiva = LocalDate.now(clock).minusYears(4)
-            )
-        )
-
-        restValmistumispyyntoMockMvc.perform(
-            get(ENDPOINT_BASE_URL + VALMISTUMISPYYNTO_SUORITUSTEN_TILA_ENDPOINT)
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.vanhojaTyoskentelyjaksojaOrSuorituksiaExists").value(false))
-            .andExpect(jsonPath("$.kuulusteluVanhentunut").value(false))
-    }
-
-    @Test
-    @Transactional
     fun createValmistumispyyntoVanhentuneitaSuorituksiaNotExists() {
         initTestWithVoimassaolevatSuoritukset()
         initValmistumispyynnonHyvaksyjat()

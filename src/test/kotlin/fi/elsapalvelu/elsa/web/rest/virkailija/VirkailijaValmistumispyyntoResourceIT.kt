@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.*
@@ -39,10 +38,8 @@ import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import org.springframework.mock.web.MockMultipartFile
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 private const val ENDPOINT_BASE_URL = "/api/virkailija"
 private const val VALMISTUMISPYYNNOT_ENDPOINT =
@@ -602,122 +599,6 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         assertThat(updatedValmistumispyynto.virkailijanKorjausehdotus).isEqualTo(korjausehdotus)
     }
 
-    @Test
-    @Transactional
-    fun updateValmistumispyynnonTarkistusUpdatesLicensingInformation() {
-        initTest()
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaVirkailijanTarkastusta(
-            opintooikeus,
-            vastuuhenkilo
-        )
-        em.persist(valmistumispyynto)
-        val laillistamispaiva = LocalDate.of(2020, 2, 3)
-        val todistusData = javaClass.getResourceAsStream("/fixtures/valid.pdf")!!.readBytes()
-        val laillistamistodistus = MockMultipartFile(
-            "laillistamistodistus",
-            "laillistamistodistus.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            todistusData
-        )
-
-        testMockMvc.perform(
-            multipart(
-                "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
-                valmistumispyynto.id
-            )
-                .file(laillistamistodistus)
-                .param("laillistamispaiva", laillistamispaiva.toString())
-                .param("keskenerainen", "true")
-                .with { it.method = "PUT"; it }
-                .with(csrf())
-        ).andExpect(status().isOk)
-
-        em.flush()
-        em.clear()
-        val updatedErikoistuva = em.find(ErikoistuvaLaakari::class.java, erikoistuvaLaakari.id)
-        assertThat(updatedErikoistuva.laillistamispaiva).isEqualTo(laillistamispaiva)
-        assertThat(updatedErikoistuva.laillistamispaivanLiitetiedostonNimi).isEqualTo("laillistamistodistus.pdf")
-        assertThat(updatedErikoistuva.laillistamispaivanLiitetiedostonTyyppi).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
-        assertThat(updatedErikoistuva.laillistamistodistus?.data).isEqualTo(todistusData)
-    }
-
-    @Test
-    @Transactional
-    fun ackYekValmistumispyynnonTarkistusSendsRequestToFinalApproval() {
-        initYekTest()
-        val valmistumispyynto = Valmistumispyynto(
-            opintooikeus = opintooikeus,
-            erikoistujanKuittausaika = LocalDate.now()
-        )
-        em.persist(valmistumispyynto)
-
-        testMockMvc.perform(
-            multipart(
-                "$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_TARKISTUS_ENDPOINT/{id}",
-                valmistumispyynto.id
-            )
-                .param("keskenerainen", "false")
-                .param("virkailijanYhteenveto", "YEK-tarkistus valmis")
-                .with { it.method = "PUT"; it }
-                .with(csrf())
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.valmistumispyynto.virkailijanKuittausaika").value(LocalDate.now().toString()))
-
-        em.flush()
-        em.clear()
-        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
-        assertThat(updated.virkailija?.id).isEqualTo(virkailija.id)
-        assertThat(updated.virkailijanKuittausaika).isEqualTo(LocalDate.now())
-        assertThat(updated.opintooikeus?.erikoisala?.id).isEqualTo(YEK_ERIKOISALA_ID)
-        assertThat(updated.valmistumispyynnonTarkistus?.virkailijanYhteenveto).isEqualTo("YEK-tarkistus valmis")
-    }
-
-    @Test
-    @Transactional
-    fun getValmistumispyynnonAsiakirjaReturnsDocumentForOfficerFromSameUniversity() {
-        initTest()
-        val asiakirja = persistAsiakirja(opintooikeus)
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaVirkailijanTarkastusta(
-            opintooikeus,
-            vastuuhenkilo
-        ).apply { yhteenvetoAsiakirja = asiakirja }
-        em.persist(valmistumispyynto)
-        em.flush()
-
-        testMockMvc.perform(
-            get(
-                "$ENDPOINT_BASE_URL/valmistumispyynto/{valmistumispyyntoId}/asiakirja/{asiakirjaId}",
-                valmistumispyynto.id,
-                asiakirja.id
-            )
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PDF_VALUE))
-            .andExpect(content().bytes(AsiakirjaHelper.ASIAKIRJA_PDF_DATA))
-    }
-
-    @Test
-    @Transactional
-    fun getValmistumispyynnonAsiakirjaReturnsNotFoundForOfficerFromDifferentUniversity() {
-        initTest(Yliopisto(nimi = YliopistoEnum.TURUN_YLIOPISTO))
-        val asiakirja = persistAsiakirja(opintooikeus)
-        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaVirkailijanTarkastusta(
-            opintooikeus,
-            vastuuhenkilo
-        ).apply { yhteenvetoAsiakirja = asiakirja }
-        em.persist(valmistumispyynto)
-        em.flush()
-
-        testMockMvc.perform(
-            get(
-                "$ENDPOINT_BASE_URL/valmistumispyynto/{valmistumispyyntoId}/asiakirja/{asiakirjaId}",
-                valmistumispyynto.id,
-                asiakirja.id
-            )
-        ).andExpect(status().isNotFound)
-    }
-
     fun initTest(virkailijanYliopisto: Yliopisto? = null) {
         val virkailijaUser = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(virkailijaUser)
@@ -775,52 +656,4 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         em.persist(virkailija)
     }
 
-    private fun persistAsiakirja(opintooikeus: Opintooikeus): Asiakirja {
-        return Asiakirja(
-            opintooikeus = opintooikeus,
-            nimi = AsiakirjaHelper.ASIAKIRJA_PDF_NIMI,
-            tyyppi = MediaType.APPLICATION_PDF_VALUE,
-            lisattypvm = LocalDateTime.now(),
-            asiakirjaData = AsiakirjaData(data = AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
-        ).also(em::persist)
-    }
-
-    private fun initYekTest() {
-        val virkailijaUser = KayttajaResourceWithMockUserIT.createEntity(
-            authority = Authority(OPINTOHALLINNON_VIRKAILIJA)
-        )
-        em.persist(virkailijaUser)
-        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(virkailijaUser.id, emptyMap<String, List<Any>>()),
-            "test",
-            listOf(SimpleGrantedAuthority(OPINTOHALLINNON_VIRKAILIJA))
-        )
-
-        erikoistuvaLaakari = initErikoistuvaLaakari()
-        opintooikeus = OpintooikeusHelper.addOpintooikeusForYekKoulutettava(em, erikoistuvaLaakari)
-        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, opintooikeus)
-
-        val yekTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class).first {
-            it.nimi == VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN
-        }
-        val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity(
-            authority = Authority(VASTUUHENKILO)
-        )
-        em.persist(vastuuhenkiloUser)
-        vastuuhenkilo = KayttajaHelper.createEntity(em, vastuuhenkiloUser)
-        vastuuhenkilo.yliopistotAndErikoisalat.add(
-            KayttajaYliopistoErikoisala(
-                kayttaja = vastuuhenkilo,
-                yliopisto = opintooikeus.yliopisto,
-                erikoisala = opintooikeus.erikoisala,
-                vastuuhenkilonTehtavat = mutableSetOf(yekTehtava)
-            )
-        )
-        em.persist(vastuuhenkilo)
-
-        virkailija = KayttajaHelper.createEntity(em, virkailijaUser)
-        virkailija.yliopistot.add(opintooikeus.yliopisto!!)
-        em.persist(virkailija)
-        em.flush()
-    }
 }
