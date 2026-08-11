@@ -1,5 +1,9 @@
 import { OpintoOikeus } from '../../plugins/db-tasks/opintooikeus'
 import { E2E_ERIKOISTUVA_EMAIL } from '../../support/commands'
+import {
+  VASTUUHENKILO_EMAIL,
+  VIRKAILIJA_EMAIL,
+} from '../../support/commands/credentials'
 
 const YEK_ROLE = 'ROLE_YEK_KOULUTETTAVA'
 const CORRECTION_PROPOSAL = 'Täydennä valmistumispyynnön yhteystiedot.'
@@ -169,6 +173,94 @@ describe('YEK-valmistumispyyntö', () => {
         'Valmistumispyyntö odottaa opintohallinnon tarkistusta sekä vastuuhenkilön lopullista hyväksyntää.'
       ).should('be.visible')
     })
+  })
+
+  it('YEK-valmistumispyyntö tarkistetaan, hyväksytään ja yhteenveto voidaan ladata', () => {
+    cy.seedKoejaksoSupportUsers({
+      cleanupSupportUsers: true,
+      seedVirkailija: true,
+      storeTokens: true,
+      vastuuhenkilo: {
+        email: VASTUUHENKILO_EMAIL,
+        etunimi: 'Mia',
+        sukunimi: 'Ålands',
+      },
+      virkailija: {
+        email: VIRKAILIJA_EMAIL,
+        etunimi: 'Daniel',
+        sukunimi: 'Siekkinen',
+      },
+    })
+    cy.task('db:grantYekGraduationRoles', {
+      vastuuhenkiloEmail: VASTUUHENKILO_EMAIL,
+      virkailijaEmail: VIRKAILIJA_EMAIL,
+      yliopistoId: yekOpintooikeus.yliopisto_id,
+    })
+
+    openYekGraduationRequest()
+    acceptRequirements()
+    fillContactInformation('+358401234567')
+    fillLicensingInformation()
+
+    submitGraduationRequest('POST', 'postYekValmistumispyynto').then(
+      (valmistumispyyntoId) => {
+        cy.loginAsVirkailija(Cypress.env('virkailijaToken'))
+        cy.apiRequest({
+          method: 'GET',
+          url: `/api/virkailija/valmistumispyynnon-tarkistus/${valmistumispyyntoId}`,
+        }).its('status').should('eq', 200)
+        cy.apiRequest({
+          method: 'PUT',
+          url: `/api/virkailija/valmistumispyynnon-tarkistus/${valmistumispyyntoId}`,
+          form: true,
+          body: {
+            yekSuoritettu: true,
+            yekSuorituspaiva: '2020-01-01',
+            terveyskeskustyoTarkistettu: true,
+            kokonaistyoaikaTarkistettu: true,
+            teoriakoulutusTarkistettu: true,
+            keskenerainen: false,
+            virkailijanYhteenveto: 'YEK E2E -tarkistus valmis.',
+          },
+        }).then(({ status, body }) => {
+          expect(status).to.eq(200)
+          expect(body.valmistumispyynto.virkailijanKuittausaika).to.not.be.null
+        })
+
+        cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+        cy.apiRequest({
+          method: 'GET',
+          url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
+        }).then(({ status, body }) => {
+          expect(status).to.eq(200)
+          expect(body.valmistumispyynto.tila).to.eq('ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA')
+        })
+        cy.apiRequest({
+          method: 'PUT',
+          url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
+          body: {
+            sahkoposti: VASTUUHENKILO_EMAIL,
+            puhelinnumero: '+358401112233',
+          },
+          timeout: 120000,
+        }).then(({ status, body }) => {
+          expect(status).to.eq(200)
+          expect(body.valmistumispyynto.tila).to.eq('HYVAKSYTTY')
+          expect(body.valmistumispyynto.yhteenvetoAsiakirjaId).to.be.a('number')
+          expect(body.valmistumispyynto.liitteetAsiakirjaId).to.be.a('number')
+
+          cy.apiRequest({
+            method: 'GET',
+            url: `/api/vastuuhenkilo/valmistumispyynto/${valmistumispyyntoId}/asiakirja/${body.valmistumispyynto.yhteenvetoAsiakirjaId}`,
+            encoding: 'binary',
+          }).then(({ status: downloadStatus, headers, body: documentBody }) => {
+            expect(downloadStatus).to.eq(200)
+            expect(headers['content-type']).to.include('application/pdf')
+            expect(documentBody.length).to.be.greaterThan(0)
+          })
+        })
+      }
+    )
   })
 })
 

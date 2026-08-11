@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.*
@@ -43,6 +44,7 @@ import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
+import org.apache.pdfbox.Loader
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType.*
@@ -54,6 +56,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 private const val ENDPOINT_BASE_URL = "/api/vastuuhenkilo"
 private const val VALMISTUMISPYYNNOT_ENDPOINT = "/valmistumispyynnot?page=0&size=20&sort=muokkauspaiva,desc"
@@ -661,6 +664,172 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         assertThat(updatedValmistumispyynto.vastuuhenkiloHyvaksyjaKorjausehdotus).isEqualTo("korjausehdotus")
     }
 
+    @Test
+    fun ackYekValmistumispyyntoCreatesValidSummaryAndCompletesRequest() {
+        initYekHyvaksyjaTest()
+        val valmistumispyynto = Valmistumispyynto(
+            opintooikeus = opintooikeus,
+            erikoistujanKuittausaika = LocalDate.now(),
+            virkailija = virkailija,
+            virkailijanKuittausaika = LocalDate.now()
+        )
+        em.persist(valmistumispyynto)
+        val tarkistus = ValmistumispyynnonTarkistusHelper
+            .createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
+        em.persist(tarkistus)
+        valmistumispyynto.valmistumispyynnonTarkistus = tarkistus
+        em.flush()
+
+        testMockMvc.perform(
+            put("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyynto.id)
+                .contentType(APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null)))
+                .with(csrf())
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.valmistumispyynto.tila").value(HYVAKSYTTY.name))
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+        assertThat(updated.vastuuhenkiloHyvaksyja?.id).isEqualTo(vastuuhenkilo.id)
+        assertThat(updated.vastuuhenkiloHyvaksyjaKuittausaika).isEqualTo(LocalDate.now())
+        assertThat(updated.opintooikeus?.erikoisala?.id).isEqualTo(YEK_ERIKOISALA_ID)
+        assertThat(updated.yhteenvetoAsiakirja?.nimi).startsWith("valmistumisen_yhteenveto_yek_")
+        assertThat(updated.liitteetAsiakirja).isNotNull
+
+        val yhteenvetoData = requireNotNull(updated.yhteenvetoAsiakirja?.asiakirjaData?.data)
+        assertThat(yhteenvetoData).isNotEmpty
+        Loader.loadPDF(yhteenvetoData).use { pdf ->
+            assertThat(pdf.numberOfPages).isGreaterThan(0)
+        }
+    }
+
+    @Test
+    fun declineYekValmistumispyyntoReturnsRequestToTrainee() {
+        initYekHyvaksyjaTest()
+        val valmistumispyynto = Valmistumispyynto(
+            opintooikeus = opintooikeus,
+            erikoistujanKuittausaika = LocalDate.now(),
+            virkailija = virkailija,
+            virkailijanKuittausaika = LocalDate.now()
+        )
+        em.persist(valmistumispyynto)
+        val tarkistus = ValmistumispyynnonTarkistusHelper
+            .createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
+        em.persist(tarkistus)
+        valmistumispyynto.valmistumispyynnonTarkistus = tarkistus
+
+        testMockMvc.perform(
+            put("$ENDPOINT_BASE_URL$VALMISTUMISPYYNNON_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyynto.id)
+                .contentType(APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO("Täydennä YEK-pyyntö")))
+                .with(csrf())
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.valmistumispyynto.tila").value(VASTUUHENKILON_HYVAKSYNTA_PALAUTETTU.name))
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+        assertThat(updated.erikoistujanKuittausaika).isNull()
+        assertThat(updated.virkailijanKuittausaika).isNull()
+        assertThat(updated.vastuuhenkiloHyvaksyjaPalautusaika).isEqualTo(LocalDate.now())
+        assertThat(updated.vastuuhenkiloHyvaksyjaKorjausehdotus).isEqualTo("Täydennä YEK-pyyntö")
+    }
+
+    @Test
+    fun getValmistumispyynnonAsiakirjaReturnsLinkedDocumentForAssignedReviewer() {
+        initTest(listOf(VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
+        val asiakirja = persistAsiakirja(opintooikeus)
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus).apply {
+            vastuuhenkiloOsaamisenArvioija = vastuuhenkilo
+            yhteenvetoAsiakirja = asiakirja
+        }
+        em.persist(valmistumispyynto)
+        em.flush()
+
+        testMockMvc.perform(
+            get(
+                "$ENDPOINT_BASE_URL/valmistumispyynto/{valmistumispyyntoId}/asiakirja/{asiakirjaId}",
+                valmistumispyynto.id,
+                asiakirja.id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentTypeCompatibleWith(APPLICATION_PDF_VALUE))
+            .andExpect(content().bytes(AsiakirjaHelper.ASIAKIRJA_PDF_DATA))
+    }
+
+    @Test
+    fun getValmistumispyynnonAsiakirjaReturnsNotFoundForDocumentNotLinkedToRequest() {
+        initTest(listOf(VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI))
+        val linkedAsiakirja = persistAsiakirja(opintooikeus)
+        val unrelatedAsiakirja = persistAsiakirja(opintooikeus, "unrelated.pdf")
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus).apply {
+            vastuuhenkiloOsaamisenArvioija = vastuuhenkilo
+            yhteenvetoAsiakirja = linkedAsiakirja
+        }
+        em.persist(valmistumispyynto)
+        em.flush()
+
+        testMockMvc.perform(
+            get(
+                "$ENDPOINT_BASE_URL/valmistumispyynto/{valmistumispyyntoId}/asiakirja/{asiakirjaId}",
+                valmistumispyynto.id,
+                unrelatedAsiakirja.id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun getValmistumispyynnonTyoskentelyjaksoAsiakirjaEnforcesStudyRightBoundary() {
+        initTest(listOf(VALMISTUMISPYYNNON_HYVAKSYNTA))
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus)
+        em.persist(valmistumispyynto)
+        val asiakirja = persistTyoskentelyjaksoAsiakirja(opintooikeus)
+
+        val anotherErikoistuva = initErikoistuvaLaakari(opintooikeus.yliopisto, opintooikeus.erikoisala)
+        val anotherOpintooikeus = anotherErikoistuva.getOpintooikeusKaytossa()!!
+        val anotherAsiakirja = persistTyoskentelyjaksoAsiakirja(anotherOpintooikeus)
+        em.flush()
+
+        testMockMvc.perform(
+            get(
+                "$ENDPOINT_BASE_URL/valmistumispyynto/{valmistumispyyntoId}/tyoskentelyjakso-liite/{asiakirjaId}",
+                valmistumispyynto.id,
+                asiakirja.id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().bytes(AsiakirjaHelper.ASIAKIRJA_PDF_DATA))
+
+        testMockMvc.perform(
+            get(
+                "$ENDPOINT_BASE_URL/valmistumispyynto/{valmistumispyyntoId}/tyoskentelyjakso-liite/{asiakirjaId}",
+                valmistumispyynto.id,
+                anotherAsiakirja.id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun getValmistumispyynnonTyoskentelyjaksoAsiakirjaRequiresGraduationApprovalRole() {
+        initTest(listOf())
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaArviointia(opintooikeus)
+        em.persist(valmistumispyynto)
+        val asiakirja = persistTyoskentelyjaksoAsiakirja(opintooikeus)
+        em.flush()
+
+        testMockMvc.perform(
+            get(
+                "$ENDPOINT_BASE_URL/valmistumispyynto/{valmistumispyyntoId}/tyoskentelyjakso-liite/{asiakirjaId}",
+                valmistumispyynto.id,
+                asiakirja.id
+            )
+        ).andExpect(status().isNotFound)
+    }
+
     fun initTest(vastuuhenkilonTehtavatyypit: List<VastuuhenkilonTehtavatyyppiEnum>) {
         val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(vastuuhenkiloUser)
@@ -697,5 +866,72 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         user.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(kayttaja = user, yliopisto = yliopisto, erikoisala = newErikoisala, vastuuhenkilonTehtavat = tehtavat))
         user.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(kayttaja = user, yliopisto = yliopisto, erikoisala = erikoisala, vastuuhenkilonTehtavat = tehtavat))
         user.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(kayttaja = user, yliopisto = yliopisto, erikoisala = otherNewErikoisala, vastuuhenkilonTehtavat = tehtavat))
+    }
+
+    private fun persistAsiakirja(opintooikeus: Opintooikeus, nimi: String = AsiakirjaHelper.ASIAKIRJA_PDF_NIMI): Asiakirja {
+        return Asiakirja(
+            opintooikeus = opintooikeus,
+            nimi = nimi,
+            tyyppi = APPLICATION_PDF_VALUE,
+            lisattypvm = LocalDateTime.now(),
+            asiakirjaData = AsiakirjaData(data = AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        ).also(em::persist)
+    }
+
+    private fun persistTyoskentelyjaksoAsiakirja(opintooikeus: Opintooikeus): Asiakirja {
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(
+            em,
+            user = opintooikeus.erikoistuvaLaakari?.kayttaja?.user
+        ).apply {
+            this.opintooikeus = opintooikeus
+        }
+        em.persist(tyoskentelyjakso)
+        return Asiakirja(
+            opintooikeus = opintooikeus,
+            tyoskentelyjakso = tyoskentelyjakso,
+            nimi = AsiakirjaHelper.ASIAKIRJA_PDF_NIMI,
+            tyyppi = APPLICATION_PDF_VALUE,
+            lisattypvm = LocalDateTime.now(),
+            asiakirjaData = AsiakirjaData(data = AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
+        ).also(em::persist)
+    }
+
+    private fun initYekHyvaksyjaTest() {
+        val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity(
+            authority = Authority(VASTUUHENKILO)
+        )
+        em.persist(vastuuhenkiloUser)
+        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(vastuuhenkiloUser.id, emptyMap<String, List<Any>>()),
+            "test",
+            listOf(SimpleGrantedAuthority(VASTUUHENKILO))
+        )
+
+        erikoistuvaLaakari = initErikoistuvaLaakari()
+        opintooikeus = OpintooikeusHelper.addOpintooikeusForYekKoulutettava(em, erikoistuvaLaakari)
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, opintooikeus)
+
+        val yekTehtava = em.findAll(VastuuhenkilonTehtavatyyppi::class).first {
+            it.nimi == YEK_VALMISTUMINEN
+        }
+        vastuuhenkilo = KayttajaHelper.createEntity(em, vastuuhenkiloUser)
+        vastuuhenkilo.yliopistotAndErikoisalat.add(
+            KayttajaYliopistoErikoisala(
+                kayttaja = vastuuhenkilo,
+                yliopisto = opintooikeus.yliopisto,
+                erikoisala = opintooikeus.erikoisala,
+                vastuuhenkilonTehtavat = mutableSetOf(yekTehtava)
+            )
+        )
+        em.persist(vastuuhenkilo)
+
+        val virkailijaUser = KayttajaResourceWithMockUserIT.createEntity(
+            authority = Authority(OPINTOHALLINNON_VIRKAILIJA)
+        )
+        em.persist(virkailijaUser)
+        virkailija = KayttajaHelper.createEntity(em, virkailijaUser)
+        virkailija.yliopistot.add(opintooikeus.yliopisto!!)
+        em.persist(virkailija)
+        em.flush()
     }
 }

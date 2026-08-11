@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
@@ -39,6 +40,28 @@ class YekKoulutettavaValmistumispyyntoResourceIT {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
+
+    @Test
+    @Transactional
+    fun createYekGraduationRequestPersistsSentRequest() {
+        val opintooikeus = initYekKoulutettava()
+        val sizeBefore = valmistumispyyntoRepository.count()
+
+        mockMvc.perform(
+            multipart(VALMISTUMISPYYNTO_ENDPOINT)
+                .param("erikoistujanSahkoposti", "yek@example.com")
+                .param("erikoistujanPuhelinnumero", "+358401234567")
+                .with(csrf())
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.opintooikeusId").value(opintooikeus.id))
+
+        assertThat(valmistumispyyntoRepository.count()).isEqualTo(sizeBefore + 1)
+        val saved = valmistumispyyntoRepository.findByOpintooikeusId(opintooikeus.id!!)
+        assertThat(saved).isNotNull
+        assertThat(saved?.erikoistujanKuittausaika).isEqualTo(LocalDate.now())
+        assertThat(saved?.opintooikeus?.erikoisala?.id).isEqualTo(YEK_ERIKOISALA_ID)
+    }
 
     @Test
     @Transactional
