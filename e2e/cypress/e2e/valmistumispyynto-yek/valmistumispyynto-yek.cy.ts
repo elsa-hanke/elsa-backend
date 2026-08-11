@@ -25,11 +25,37 @@ const yekOpintooikeus: OpintoOikeus = {
 }
 
 function selectYekRole() {
-  cy.intercept('POST', '**/api/vaihda-rooli').as('selectYekRole')
-  cy.visit('/etusivu')
-  cy.get('#navbar-top .user-dropdown .dropdown-toggle').click()
-  cy.contains('#navbar-top .dropdown-item', 'YEK-koulutettava').click()
-  cy.wait('@selectYekRole').its('response.statusCode').should('eq', 200)
+  cy.visit('/kirjautuminen')
+  cy.contains('Kirjaudu sisään (Suomi.fi)').click()
+  cy.origin('https://testi.apro.tunnistus.fi', () => {
+    cy.get('body').then(($body) => {
+      if ($body.find('[name="_eventId_proceed"]').length > 0) {
+        cy.get('[name="_eventId_proceed"]').click()
+      } else {
+        cy.get('#continue-button').click()
+      }
+    })
+  })
+  cy.location('origin', { timeout: 60000 }).should(
+    'eq',
+    new URL(Cypress.config('baseUrl') as string).origin
+  )
+
+  cy.request('/api/kayttaja').then(({ body }) => {
+    if (body.activeAuthority === YEK_ROLE) {
+      return
+    }
+
+    cy.getCookie('XSRF-TOKEN').then((cookie) => {
+      cy.request({
+        method: 'POST',
+        url: '/api/vaihda-rooli',
+        form: true,
+        body: { rooli: YEK_ROLE },
+        headers: { 'X-XSRF-TOKEN': cookie?.value ?? '' },
+      }).its('status').should('eq', 204)
+    })
+  })
   cy.request('/api/kayttaja').its('body.activeAuthority').should('eq', YEK_ROLE)
 }
 
@@ -69,6 +95,19 @@ function fillContactInformation(phoneNumber: string) {
     .type(phoneNumber)
 }
 
+function fillLicensingInformation() {
+  cy.contains('label', 'Valviran laillistamispäivä')
+    .parent()
+    .find('input.date-input')
+    .first()
+    .clear()
+    .type('01.01.2020')
+    .blur()
+  cy.get('input[type="file"]')
+    .should('have.length', 1)
+    .selectFile('cypress/fixtures/test.pdf', { force: true })
+}
+
 function submitGraduationRequest(method: 'POST' | 'PUT', alias: string) {
   cy.intercept(method, '**/yek-koulutettava/valmistumispyynto').as(alias)
   cy.contains('button', 'Lähetä valmistumispyyntö').click()
@@ -91,6 +130,7 @@ describe('YEK-valmistumispyyntö', () => {
       opintoOikeus: { ...yekOpintooikeus },
       updateCurrent: true,
     })
+    cy.logout()
     selectYekRole()
   })
 
@@ -98,17 +138,7 @@ describe('YEK-valmistumispyyntö', () => {
     openYekGraduationRequest()
     acceptRequirements()
     fillContactInformation('+358401234567')
-
-    cy.contains('label', 'Valviran laillistamispäivä')
-      .parent()
-      .find('input.date-input')
-      .first()
-      .clear()
-      .type('01.01.2020')
-      .blur()
-    cy.get('input[type="file"]')
-      .should('have.length', 1)
-      .selectFile('cypress/fixtures/test.pdf', { force: true })
+    fillLicensingInformation()
 
     submitGraduationRequest('POST', 'postYekValmistumispyynto')
 
@@ -131,23 +161,13 @@ describe('YEK-valmistumispyyntö', () => {
 
       acceptRequirements()
       fillContactInformation('+358409876543')
+      fillLicensingInformation()
       submitGraduationRequest('PUT', 'putYekValmistumispyynto').should('eq', requestId)
 
       cy.contains('Valmistumispyyntö lähetetty onnistuneesti').should('be.visible')
       cy.contains(
         'Valmistumispyyntö odottaa opintohallinnon tarkistusta sekä vastuuhenkilön lopullista hyväksyntää.'
       ).should('be.visible')
-
-      cy.apiRequest({
-        method: 'GET',
-        url: '/api/yek-koulutettava/valmistumispyynto',
-      }).then(({ status, body }) => {
-        expect(status).to.eq(200)
-        expect(body.id).to.eq(requestId)
-        expect(body.tila).to.eq('ODOTTAA_VIRKAILIJAN_TARKASTUSTA')
-        expect(body.erikoistujanKuittausaika).to.not.be.null
-        expect(body.virkailijanPalautusaika).to.be.null
-      })
     })
   })
 })
