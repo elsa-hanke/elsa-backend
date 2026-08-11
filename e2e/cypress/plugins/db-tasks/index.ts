@@ -6,6 +6,7 @@ import { koejaksoTasks } from './koejakso'
 import { vastuuhenkiloTasks } from './vastuuhenkilo'
 import { virkailijaTasks } from './virkailija'
 import {opintoOikeusTasks} from './opintooikeus'
+import { valmistumispyyntoTasks } from './valmistumispyynto'
 export { dbClient } from './db-client'
 
 export function registerDbTasks(on: Cypress.PluginEvents): void {
@@ -17,7 +18,7 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
     ...koejaksoTasks,
     ...vastuuhenkiloTasks,
     ...virkailijaTasks,
-    ...opintoOikeusTasks
+    ...opintoOikeusTasks,
+    ...valmistumispyyntoTasks
   })
 }
-
