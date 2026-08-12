@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.externalintegration.peppi.uef
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
@@ -38,9 +39,9 @@ class PeppiUefExternalIntegrationTests : FetchingServiceExternalIntegrationBase(
     override val opintosuorituksetService: OpintosuorituksetFetchingService
         get() = peppiUefOpintosuorituksetFetchingServiceImpl
 
-    override val assertErikoisalaTunnisteList: Boolean = false
+    override val fixtureName = "peppi-uef"
 
-    override fun getTestHetu() = "130560-9972"
+    override val expectedUniversity = YliopistoEnum.ITA_SUOMEN_YLIOPISTO
 }
 
 @SpringBootConfiguration

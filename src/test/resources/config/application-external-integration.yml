@@ -98,3 +98,36 @@ application:
       scope-id: ${APPLICATION_SECURITY_SISU_TRE_SCOPE_ID}
       client-secret: ${APPLICATION_SECURITY_SISU_TRE_CLIENT_SECRET}
       subscription-key: ${APPLICATION_SECURITY_SISU_TRE_SUBSCRIPTION_KEY}
+
+external-integration:
+  study-data:
+    peppi-oulu:
+      hetu: ${EXTERNAL_INTEGRATION_PEPPI_OULU_HETU}
+      assert-erikoisala-tunniste-list: true
+      expected-study-right-id: ${EXTERNAL_INTEGRATION_PEPPI_OULU_EXPECTED_STUDY_RIGHT_ID:}
+      expected-course-code: ${EXTERNAL_INTEGRATION_PEPPI_OULU_EXPECTED_COURSE_CODE:}
+      expected-programme-identifier: ${EXTERNAL_INTEGRATION_PEPPI_OULU_EXPECTED_PROGRAMME_IDENTIFIER:}
+    peppi-turku:
+      hetu: ${EXTERNAL_INTEGRATION_PEPPI_TURKU_HETU}
+      assert-erikoisala-tunniste-list: true
+      expected-study-right-id: ${EXTERNAL_INTEGRATION_PEPPI_TURKU_EXPECTED_STUDY_RIGHT_ID:}
+      expected-course-code: ${EXTERNAL_INTEGRATION_PEPPI_TURKU_EXPECTED_COURSE_CODE:}
+      expected-programme-identifier: ${EXTERNAL_INTEGRATION_PEPPI_TURKU_EXPECTED_PROGRAMME_IDENTIFIER:}
+    peppi-uef:
+      hetu: ${EXTERNAL_INTEGRATION_PEPPI_UEF_HETU}
+      assert-erikoisala-tunniste-list: false
+      expected-study-right-id: ${EXTERNAL_INTEGRATION_PEPPI_UEF_EXPECTED_STUDY_RIGHT_ID:}
+      expected-course-code: ${EXTERNAL_INTEGRATION_PEPPI_UEF_EXPECTED_COURSE_CODE:}
+      expected-programme-identifier: ${EXTERNAL_INTEGRATION_PEPPI_UEF_EXPECTED_PROGRAMME_IDENTIFIER:}
+    sisu-hy:
+      hetu: ${EXTERNAL_INTEGRATION_SISU_HY_HETU}
+      assert-erikoisala-tunniste-list: true
+      expected-study-right-id: ${EXTERNAL_INTEGRATION_SISU_HY_EXPECTED_STUDY_RIGHT_ID:}
+      expected-course-code: ${EXTERNAL_INTEGRATION_SISU_HY_EXPECTED_COURSE_CODE:}
+      expected-programme-identifier: ${EXTERNAL_INTEGRATION_SISU_HY_EXPECTED_PROGRAMME_IDENTIFIER:}
+    sisu-tre:
+      hetu: ${EXTERNAL_INTEGRATION_SISU_TRE_HETU}
+      assert-erikoisala-tunniste-list: true
+      expected-study-right-id: ${EXTERNAL_INTEGRATION_SISU_TRE_EXPECTED_STUDY_RIGHT_ID:}
+      expected-course-code: ${EXTERNAL_INTEGRATION_SISU_TRE_EXPECTED_COURSE_CODE:}
+      expected-programme-identifier: ${EXTERNAL_INTEGRATION_SISU_TRE_EXPECTED_PROGRAMME_IDENTIFIER:}
