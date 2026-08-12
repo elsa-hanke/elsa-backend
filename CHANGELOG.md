@@ -2,6 +2,11 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- ValmistumispyyntoServiceImpl testikattavuuden lisääminen [`#688`](https://github.com/elsa-hanke/elsa-backend/pull/688)(11 August 2026)
+- chore: update CycloneDX BOM version to 3.4.0 and Cypress image to 15.20.0 in CI configuration [`#687`](https://github.com/elsa-hanke/elsa-backend/pull/687)(11 August 2026)
+- fix: enable deprecation checks in detekt configuration and remove unnecessary suppressions [`#686`](https://github.com/elsa-hanke/elsa-backend/pull/686)(11 August 2026)
+- chore: update Gradle wrapper to version 9.7.0 [`#685`](https://github.com/elsa-hanke/elsa-backend/pull/685)(11 August 2026)
+- Added new Cypress E2E test case valmistumispyynto-yek.cy.ts [`#684`](https://github.com/elsa-hanke/elsa-backend/pull/684)(11 August 2026)
 - Bump dompurify from 3.4.12 to 3.4.13 in /frontend [`#675`](https://github.com/elsa-hanke/elsa-backend/pull/675)(9 August 2026)
 - Bump js-yaml from 3.15.0 to 3.15.1 in /frontend [`#676`](https://github.com/elsa-hanke/elsa-backend/pull/676)(9 August 2026)
 - More e2e tests [`#674`](https://github.com/elsa-hanke/elsa-backend/pull/674)(8 August 2026)
