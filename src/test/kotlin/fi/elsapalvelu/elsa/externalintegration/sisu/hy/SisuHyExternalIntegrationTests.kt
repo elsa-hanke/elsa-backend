@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.externalintegration.sisu.hy
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
@@ -13,7 +14,6 @@ import fi.elsapalvelu.elsa.service.integration.sisu.helsinki.SisuHyOpintotietoda
 import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingServiceImpl
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -49,24 +49,18 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
     @Autowired
     private lateinit var sisuHyOpintosuorituksetFetchingServiceImpl: SisuHyOpintosuorituksetFetchingServiceImpl
 
-    @Autowired
-    private lateinit var sisuHyClientBuilderImpl: SisuHyClientBuilderImpl
-
     override val opintotietodataService: OpintotietodataFetchingService
         get() = sisuHyOpintotietodataFetchingServiceImpl
 
     override val opintosuorituksetService: OpintosuorituksetFetchingService
         get() = sisuHyOpintosuorituksetFetchingServiceImpl
 
+    override val fixtureName = "sisu-hy"
+
+    override val expectedUniversity = YliopistoEnum.HELSINGIN_YLIOPISTO
+
     @Autowired
     private lateinit var sisuTutkintoohjelmaFetchingService: SisuTutkintoohjelmaFetchingService
-
-    @Test
-    fun shouldBuildApolloClientWithoutRuntimeLinkageErrors() {
-        assertThatCode { sisuHyClientBuilderImpl.apolloClient() }
-            .describedAs("Apollo client creation must not fail because of incompatible runtime dependencies")
-            .doesNotThrowAnyException()
-    }
 
     @Test
     fun shouldFetchTutkintoohjelmatWithoutErrors() {

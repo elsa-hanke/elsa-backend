@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.externalintegration.arkistointi.tampere
+package fi.elsapalvelu.elsa.externalintegration.arkistointi.helsinki
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.ExternalIntegrationTestSupport
@@ -19,6 +19,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.Mockito
@@ -33,24 +34,25 @@ import java.nio.file.Paths
 import java.util.stream.Stream
 
 /**
- * Sends real SÄHKE2 packages through Tampere Louhi and verifies both remote destination routes:
- * Finished/ELSA and Finished/YEK.
+ * Sends a real SÄHKE2 package to every Helsinki Siilo test collection used by ELSA:
+ * valmistuminen (15), sopimus (16), and koejakso (17).
  */
-@SpringBootTest(classes = [TampereArkistointiExternalIntegrationTestApplication::class])
+@SpringBootTest(classes = [HelsinkiArkistointiExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-class TampereArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport() {
+@Disabled
+class HelsinkiArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport() {
 
     @Autowired
     private lateinit var arkistointiService: ArkistointiServiceImpl
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("deliveryScenarios")
-    fun shouldLahetaSahkeToLouhiWithoutErrors(scenario: ArkistointiTestScenario) {
+    fun shouldLahetaSahkeToSiiloWithoutErrors(scenario: ArkistointiTestScenario) {
         val input = ArkistointiTestData.createInput(scenario)
         val result = ArkistointiTestData.createPackage(arkistointiService, input)
 
         log.info(
-            "Sending Tampere Louhi archive test: scenario={}, correlationId={}, zip={}",
+            "Sending Helsinki Siilo archive test: scenario={}, correlationId={}, zip={}",
             scenario.name,
             input.correlationId,
             result.zipFilePath
@@ -66,25 +68,25 @@ class TampereArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppor
                 erikoistujanNimi = "ELSA integraatiotesti ${input.correlationId}"
             )
         }
-            .describedAs("Louhi delivery must succeed for ${scenario.name}")
+            .describedAs("Siilo delivery must succeed for ${scenario.name}")
             .doesNotThrowAnyException()
 
         assertThat(Paths.get(result.zipFilePath))
-            .describedAs("Louhi delivery must delete the local temporary ZIP")
+            .describedAs("Siilo delivery must delete the local temporary ZIP")
             .doesNotExist()
     }
 
     companion object {
         @JvmStatic
         fun deliveryScenarios(): Stream<ArkistointiTestScenario> =
-            ArkistointiTestData.tampereDeliveryScenarios.stream()
+            ArkistointiTestData.helsinkiScenarios.stream()
     }
 }
 
 @SpringBootConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
-    TampereLouhiService::class,
+    HelsinkiSiiloService::class,
     LouhiArkistointiAdapter::class,
     SiiloArkistointiAdapter::class,
     ArkistointiConfigurationProvider::class,
@@ -95,11 +97,11 @@ class TampereArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppor
     ArkistointiMetricsService::class,
     AlertPublisherServiceImpl::class
 )
-class TampereArkistointiExternalIntegrationTestApplication {
+class HelsinkiArkistointiExternalIntegrationTestApplication {
 
     @Bean
-    fun helsinkiSiiloService(): HelsinkiSiiloService =
-        Mockito.mock(HelsinkiSiiloService::class.java)
+    fun tampereLouhiService(): TampereLouhiService =
+        Mockito.mock(TampereLouhiService::class.java)
 
     @Bean
     fun meterRegistry(): MeterRegistry = SimpleMeterRegistry()

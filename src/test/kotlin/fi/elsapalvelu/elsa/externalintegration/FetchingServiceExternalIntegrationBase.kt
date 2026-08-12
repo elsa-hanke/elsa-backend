@@ -11,23 +11,57 @@ import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.Environment
+
+data class StudyDataExternalIntegrationFixture(
+    val hetu: String,
+    val assertErikoisalaTunnisteList: Boolean,
+    val expectedStudyRightId: String?,
+    val expectedCourseCode: String?,
+    val expectedProgrammeIdentifier: String?
+)
 
 abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestSupport() {
+
+    @Autowired
+    private lateinit var environment: Environment
 
     protected abstract val opintotietodataService: OpintotietodataFetchingService
 
     protected abstract val opintosuorituksetService: OpintosuorituksetFetchingService
 
-    protected open fun getTestHetu() = "210281-9988"
+    protected abstract val fixtureName: String
 
-    protected open val assertErikoisalaTunnisteList: Boolean = true
+    protected abstract val expectedUniversity: YliopistoEnum
+
+    private val fixture: StudyDataExternalIntegrationFixture
+        get() {
+            val prefix = "external-integration.study-data.$fixtureName"
+            return StudyDataExternalIntegrationFixture(
+                hetu = environment.getRequiredProperty("$prefix.hetu"),
+                assertErikoisalaTunnisteList = environment.getProperty(
+                    "$prefix.assert-erikoisala-tunniste-list",
+                    Boolean::class.java,
+                    true
+                ),
+                expectedStudyRightId = environment.getOptionalProperty("$prefix.expected-study-right-id"),
+                expectedCourseCode = environment.getOptionalProperty("$prefix.expected-course-code"),
+                expectedProgrammeIdentifier = environment.getOptionalProperty(
+                    "$prefix.expected-programme-identifier"
+                )
+            )
+        }
 
     @Test
     fun shouldFetchOpintotietodataWithoutErrors() {
         val yliopisto = opintotietodataService.getYliopisto()
-        log.info("Testing fetchOpintotietodata for {}, for hetu {}", yliopisto, getTestHetu())
+        assertThat(yliopisto)
+            .describedAs("$fixtureName service should identify the configured university")
+            .isEqualTo(expectedUniversity)
+        log.info("Testing fetchOpintotietodata for {} with configured test identity", yliopisto)
 
-        val result = runBlocking { opintotietodataService.fetchOpintotietodata(getTestHetu()) }
+        val result = runBlocking { opintotietodataService.fetchOpintotietodata(fixture.hetu) }
 
         log.info(
             "fetchOpintotietodata result for {}: syntymaaika={}, opintooikeusCount={}",
@@ -49,52 +83,55 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
             .isNotNull
             .isNotEmpty
 
-        result.opintooikeudet?.forEach { oikeus ->
-            log(oikeus)
+        val opintooikeudet = result.opintooikeudet.orEmpty()
+        opintooikeudet.forEach(::log)
 
-            assertThat(result.opintooikeudet)
-                .describedAs("opintooikeudet must not be empty")
+        assertThat(opintooikeudet).allSatisfy {
+            assertThat(it.id)
+                .describedAs("id should be populated")
+                .isNotBlank
+
+            assertThat(it.opintooikeudenAlkamispaiva)
+                .describedAs("start date should be populated")
                 .isNotNull
-                .isNotEmpty
 
-            assertThat(result.opintooikeudet)
-                .allSatisfy {
+            assertThat(it.opintooikeudenPaattymispaiva)
+                .describedAs("end date should be populated")
+                .isNotNull
 
-                    assertThat(it.id)
-                        .describedAs("id should be populated")
-                        .isNotBlank
+            assertThat(it.asetus)
+                .describedAs("asetus should be populated")
+                .isNotBlank
 
-                    assertThat(it.opintooikeudenAlkamispaiva)
-                        .describedAs("start date should be populated")
-                        .isNotNull
+            if (fixture.assertErikoisalaTunnisteList) {
+                assertThat(it.erikoisalaTunnisteList)
+                    .describedAs("erikoisalaTunnisteList should be populated")
+                    .isNotNull
+                    .isNotEmpty
+            }
 
-                    assertThat(it.opintooikeudenPaattymispaiva)
-                        .describedAs("end date should be populated")
-                        .isNotNull
+            assertThat(it.tila)
+                .describedAs("tila should be populated")
+                .isNotNull
 
-                    assertThat(it.asetus)
-                        .describedAs("asetus should be populated")
-                        .isNotBlank
+            assertThat(it.yliopisto)
+                .describedAs("yliopisto should match the provider")
+                .isEqualTo(yliopisto)
 
-                    if (assertErikoisalaTunnisteList) {
-                        assertThat(it.erikoisalaTunnisteList)
-                            .describedAs("erikoisalaTunnisteList should be populated")
-                            .isNotNull
-                            .isNotEmpty
-                    }
+            assertThat(it.opintooikeudenPaattymispaiva)
+                .describedAs("end date should not be before start date")
+                .isAfterOrEqualTo(it.opintooikeudenAlkamispaiva)
+        }
 
-                    assertThat(it.tila)
-                        .describedAs("tila should be populated")
-                        .isNotNull
-
-                    assertThat(it.yliopisto)
-                        .describedAs("yliopisto should be populated")
-                        .isEqualTo(yliopisto)
-
-                    assertThat(it.opintooikeudenPaattymispaiva)
-                        .describedAs("end date should not be before start date")
-                        .isAfterOrEqualTo(it.opintooikeudenAlkamispaiva)
-                }
+        fixture.expectedStudyRightId?.let { expectedId ->
+            assertThat(opintooikeudet.map { it.id })
+                .describedAs("configured study-right sentinel should be present for $fixtureName")
+                .contains(expectedId)
+        }
+        fixture.expectedProgrammeIdentifier?.let { expectedIdentifier ->
+            assertThat(opintooikeudet.flatMap { it.erikoisalaTunnisteList.orEmpty() })
+                .describedAs("configured programme sentinel should be present for $fixtureName")
+                .contains(expectedIdentifier)
         }
     }
 
@@ -108,7 +145,7 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
         erikoisalaTunnisteList=${data.erikoisalaTunnisteList},
         tila=${data.tila},
         yliopisto=${data.yliopisto},
-        opiskelijatunnus=${data.opiskelijatunnus}
+        opiskelijatunnus=${maskIdentifier(data.opiskelijatunnus)}
         """.trimIndent()
         )
     }
@@ -117,9 +154,12 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
     @Test
     fun shouldFetchOpintosuorituksetWithoutErrors() {
         val yliopisto = opintosuorituksetService.getYliopisto()
-        log.info("Testing fetchOpintosuoritukset for {}, for hetu {}", yliopisto, getTestHetu())
+        assertThat(yliopisto)
+            .describedAs("$fixtureName service should identify the configured university")
+            .isEqualTo(expectedUniversity)
+        log.info("Testing fetchOpintosuoritukset for {} with configured test identity", yliopisto)
 
-        val result = runBlocking { opintosuorituksetService.fetchOpintosuoritukset(getTestHetu()) }
+        val result = runBlocking { opintosuorituksetService.fetchOpintosuoritukset(fixture.hetu) }
 
         log.info(
             "fetchOpintosuoritukset result for {}: yliopisto={}, itemCount={}",
@@ -149,10 +189,10 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
             .describedAs("yliopisto should match service yliopisto")
             .isEqualTo(yliopisto)
 
-        result.items?.forEach { suoritus ->
+        val items = result.items.orEmpty()
+        items.forEach(::log)
 
-            log(suoritus)
-
+        assertThat(items).allSatisfy { suoritus ->
             assertThat(suoritus.nimi_fi)
                 .describedAs("nimi_fi should be populated")
                 .isNotBlank
@@ -174,10 +214,8 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
                 .describedAs("yliopistoOpintooikeusId should be populated")
                 .isNotBlank
 
-            suoritus.osakokonaisuudet?.forEach { osakokonaisuus ->
-
+            suoritus.osakokonaisuudet.orEmpty().forEach { osakokonaisuus ->
                 log(osakokonaisuus)
-
                 assertThat(osakokonaisuus.nimi_fi)
                     .describedAs("osakokonaisuus.nimi_fi should be populated")
                     .isNotBlank
@@ -195,6 +233,16 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
                     .describedAs("osakokonaisuus.hyvaksytty should be populated")
                     .isNotNull
             }
+        }
+
+        fixture.expectedCourseCode?.let { expectedCode ->
+            val courseCodes = items.flatMap { suoritus ->
+                listOfNotNull(suoritus.kurssikoodi) +
+                    suoritus.osakokonaisuudet.orEmpty().mapNotNull { it.kurssikoodi }
+            }
+            assertThat(courseCodes)
+                .describedAs("configured course-code sentinel should be present for $fixtureName")
+                .contains(expectedCode)
         }
     }
 
@@ -233,5 +281,15 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
         vanhenemispaiva=${data.vanhenemispaiva}
         """.trimIndent()
         )
+    }
+
+    private fun maskIdentifier(value: String?): String? =
+        value?.let { "***${it.takeLast(MASKED_IDENTIFIER_VISIBLE_CHARACTERS)}" }
+
+    private fun Environment.getOptionalProperty(name: String): String? =
+        getProperty(name)?.takeIf { it.isNotBlank() }
+
+    private companion object {
+        const val MASKED_IDENTIFIER_VISIBLE_CHARACTERS = 4
     }
 }

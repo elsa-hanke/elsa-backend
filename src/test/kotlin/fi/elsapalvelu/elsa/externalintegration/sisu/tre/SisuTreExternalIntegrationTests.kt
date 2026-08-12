@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.externalintegration.sisu.tre
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.kayttaja.AuthenticationTokenService
@@ -56,7 +57,9 @@ class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase()
     @Autowired
     private lateinit var authenticationTokenService: AuthenticationTokenService
 
-    override fun getTestHetu() = "170999-998Y"
+    override val fixtureName = "sisu-tre"
+
+    override val expectedUniversity = YliopistoEnum.TAMPEREEN_YLIOPISTO
 
     @Test
     fun shouldFetchAccessToken() {
