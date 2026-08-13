@@ -11,12 +11,22 @@ type SeedUser = {
   sukunimi: string
 }
 
+type SeedVastuuhenkilo = SeedUser & {
+  yliopistoId?: number
+  erikoisalaId?: number
+}
+
+type SeededUser = {
+  kayttajaId: number
+  token?: string
+} | null
+
 type KoejaksoSetupOptions = {
   erikoistuvaEmail?: string
   cleanupSupportUsers?: boolean
   seedVirkailija?: boolean
   kouluttaja?: SeedUser
-  vastuuhenkilo?: SeedUser
+  vastuuhenkilo?: SeedVastuuhenkilo
   virkailija?: SeedUser
   storeTokens?: boolean
 }
@@ -75,7 +85,10 @@ declare global {
       /**
        * Seeds a single vastuuhenkilo support user and optionally stores its token in Cypress.env.
        */
-      seedVastuuhenkiloUser(user: SeedUser, tokenEnvKey?: string): void
+      seedVastuuhenkiloUser(
+        user: SeedVastuuhenkilo,
+        tokenEnvKey?: string
+      ): Chainable<SeededUser>
 
       /**
        * Resets koejakso state, seeds support users, logs in as erikoistuva, and seeds kouluttajavaltuutus.
@@ -124,7 +137,7 @@ Cypress.Commands.add('seedKouluttajaUser', (user: SeedUser, tokenEnvKey?: string
   })
 })
 
-const seedVastuuhenkilo = (user: SeedUser, storeTokens: boolean) => {
+const seedVastuuhenkilo = (user: SeedVastuuhenkilo, storeTokens: boolean) => {
   return cy.task('db:seedVastuuhenkilo', user).then((result: any) => {
     Cypress.env('vastuuhenkiloId', Number(result?.kayttajaId))
     if (storeTokens) {
@@ -133,11 +146,12 @@ const seedVastuuhenkilo = (user: SeedUser, storeTokens: boolean) => {
   })
 }
 
-Cypress.Commands.add('seedVastuuhenkiloUser', (user: SeedUser, tokenEnvKey?: string) => {
-  cy.task('db:seedVastuuhenkilo', user).then((result: any) => {
+Cypress.Commands.add('seedVastuuhenkiloUser', (user: SeedVastuuhenkilo, tokenEnvKey?: string) => {
+  return cy.task<SeededUser>('db:seedVastuuhenkilo', user).then((result) => {
     if (tokenEnvKey) {
       Cypress.env(tokenEnvKey, result?.token)
     }
+    return result
   })
 })
 

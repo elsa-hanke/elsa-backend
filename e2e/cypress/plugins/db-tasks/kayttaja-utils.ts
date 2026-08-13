@@ -8,19 +8,24 @@ export async function ensureYliopistoLink(client: Client, kayttajaId: number): P
   )
 }
 
-export async function ensureYliopistoErikoisalaLink(client: Client, kayttajaId: number): Promise<number> {
+export async function ensureYliopistoErikoisalaLink(
+  client: Client,
+  kayttajaId: number,
+  yliopistoId = 1,
+  erikoisalaId = 46
+): Promise<number> {
   const existing = await client.query(
     `SELECT id FROM kayttaja_yliopisto_erikoisala
-     WHERE kayttaja_id = $1 AND yliopisto_id = 1 AND erikoisala_id = 46`,
-    [kayttajaId]
+     WHERE kayttaja_id = $1 AND yliopisto_id = $2 AND erikoisala_id = $3`,
+    [kayttajaId, yliopistoId, erikoisalaId]
   )
   if (existing.rows.length > 0) return existing.rows[0].id
 
   return (
     await client.query(
       `INSERT INTO kayttaja_yliopisto_erikoisala (kayttaja_id, yliopisto_id, erikoisala_id)
-       VALUES ($1, 1, 46) RETURNING id`,
-      [kayttajaId]
+       VALUES ($1, $2, $3) RETURNING id`,
+      [kayttajaId, yliopistoId, erikoisalaId]
     )
   ).rows[0].id
 }
