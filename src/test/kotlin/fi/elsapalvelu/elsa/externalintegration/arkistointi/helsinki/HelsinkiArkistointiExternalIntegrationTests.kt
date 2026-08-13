@@ -39,7 +39,6 @@ import java.util.stream.Stream
  */
 @SpringBootTest(classes = [HelsinkiArkistointiExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class HelsinkiArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport() {
 
     @Autowired
