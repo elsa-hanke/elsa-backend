@@ -47,10 +47,14 @@ export const vastuuhenkiloTasks = {
     email,
     etunimi,
     sukunimi,
+    yliopistoId = 1,
+    erikoisalaId = 46,
   }: {
     email: string
     etunimi: string
     sukunimi: string
+    yliopistoId?: number
+    erikoisalaId?: number
   }): Promise<{ kayttajaId: number; token?: string } | null> {
     return withDb(dbClient, async (client: Client) => {
       await client.query(
@@ -60,7 +64,12 @@ export const vastuuhenkiloTasks = {
 
       const existing = await fetchUserIdsByEmailOrLogin(client, email)
       if (existing) {
-        const yeId = await ensureYliopistoErikoisalaLink(client, existing.kayttajaId)
+        const yeId = await ensureYliopistoErikoisalaLink(
+          client,
+          existing.kayttajaId,
+          yliopistoId,
+          erikoisalaId
+        )
         await seedTehtavatyyppit(client, yeId)
         await ensureUserAuthority(client, existing.userId, ROLE)
         return { kayttajaId: existing.kayttajaId }
@@ -68,7 +77,12 @@ export const vastuuhenkiloTasks = {
 
       // Custom linkFn for vastuuhenkilo: ensure link and seed tehtavatyyppit
       const linkFn = async (client: Client, kayttajaId: number) => {
-        const yeId = await ensureYliopistoErikoisalaLink(client, kayttajaId)
+        const yeId = await ensureYliopistoErikoisalaLink(
+          client,
+          kayttajaId,
+          yliopistoId,
+          erikoisalaId
+        )
         await seedTehtavatyyppit(client, yeId)
         return yeId
       }

@@ -1,6 +1,6 @@
 import { Client } from 'pg'
 import { dbClient, withDb } from './db-client'
-import {addRoletoUser, getErikoistujaLaakariId} from './db-helpers'
+import {addRoletoUser, getErikoistujaLaakariId, getOpintooikeusId} from './db-helpers'
 
 export type OpintoOikeus = {
   id: number,
@@ -24,6 +24,10 @@ export type OpintoOikeus = {
 
 
 export const opintoOikeusTasks = {
+  async 'db:getActiveOpintooikeusId'({ email }: { email: string }): Promise<number | null> {
+    return withDb(dbClient, async (client: Client) => getOpintooikeusId(client, email))
+  },
+
   async 'db:seedOpintooikeus'({
     email,
     opintoOikeus,

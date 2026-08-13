@@ -15,6 +15,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.UusiLahikouluttajaDTO
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -200,9 +201,48 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         assertThat(yliopistotAndErikoisalatList[1].erikoisala).isEqualTo(opintooikeus.erikoisala)
     }
 
-    fun initKouluttajaWithYliopistoAndErikoisala(yliopisto: Yliopisto? = null, erikoisala: Erikoisala? = null) {
-         val kouluttajaUser =
-            KayttajaResourceWithMockUserIT.createEntity(TyoskentelypaikkaHelper.DEFAULT_NIMI, DEFAULT_EMAIL, Authority(name = KOULUTTAJA))
+    @Test
+    @Transactional
+    fun `test that existing vastuuhenkilo does not get erikoistuva yliopisto and erikoisala`() {
+        initKouluttajaWithYliopistoAndErikoisala(authority = Authority(name = VASTUUHENKILO))
+
+        val vastuuhenkiloBefore = kayttajaRepository.findOneByUserEmail(DEFAULT_EMAIL).get()
+        assertThat(vastuuhenkiloBefore.yliopistotAndErikoisalat).hasSize(1)
+        val yliopistotAndErikoisalatBefore = vastuuhenkiloBefore.yliopistotAndErikoisalat.map {
+            Triple(it.id, it.yliopisto?.id, it.erikoisala?.id)
+        }
+
+        val uusiLahikouluttajaDTO =
+            UusiLahikouluttajaDTO(DEFAULT_ETUNIMI, DEFAULT_SUKUNIMI, DEFAULT_EMAIL)
+
+        restLahikouluttajatMockMvc.perform(
+            post("/api/erikoistuva-laakari/lahikouluttajat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(uusiLahikouluttajaDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        em.flush()
+        em.clear()
+
+        val vastuuhenkiloAfter = kayttajaRepository.findOneByUserEmail(DEFAULT_EMAIL).get()
+        assertThat(vastuuhenkiloAfter.yliopistotAndErikoisalat).hasSize(1)
+        assertThat(vastuuhenkiloAfter.yliopistotAndErikoisalat.map {
+            Triple(it.id, it.yliopisto?.id, it.erikoisala?.id)
+        }).containsExactlyElementsOf(yliopistotAndErikoisalatBefore)
+    }
+
+    fun initKouluttajaWithYliopistoAndErikoisala(
+        yliopisto: Yliopisto? = null,
+        erikoisala: Erikoisala? = null,
+        authority: Authority = Authority(name = KOULUTTAJA)
+    ) {
+        val kouluttajaUser =
+            KayttajaResourceWithMockUserIT.createEntity(
+                TyoskentelypaikkaHelper.DEFAULT_NIMI,
+                DEFAULT_EMAIL,
+                authority
+            )
         em.persist(kouluttajaUser)
         em.flush()
         val kouluttajaKayttaja = KayttajaHelper.createEntity(em, kouluttajaUser)

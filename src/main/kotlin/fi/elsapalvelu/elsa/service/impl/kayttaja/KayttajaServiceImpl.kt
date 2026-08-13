@@ -235,6 +235,14 @@ class KayttajaServiceImpl(
                 val erikoistuvanYliopisto = requireNotNull(opintooikeus.yliopisto)
                 val erikoistuvanErikoisala = requireNotNull(opintooikeus.erikoisala)
 
+                // Vastuuhenkilö voi toimia yksittäisen erikoistujan kouluttajana tai arvioijana
+                // ilman, että hänelle annetaan vastuuhenkilön oikeuksia erikoistujan erikoisalalle.
+                // KayttajaYliopistoErikoisala-rivi laajentaisi vastuuhenkilön oikeudet kaikkiin saman
+                // yliopiston ja erikoisalan erikoistujiin.
+                if (it.user?.authorities?.any { authority -> authority.name == VASTUUHENKILO } == true) {
+                    return@let kayttajaMapper.toDto(it)
+                }
+
                 if (it.yliopistotAndErikoisalat.any { yliopistotAndErikoisalat ->
                         yliopistotAndErikoisalat.yliopisto?.id == erikoistuvanYliopisto.id &&
                             yliopistotAndErikoisalat.erikoisala?.id == erikoistuvanErikoisala.id
