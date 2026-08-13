@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- feat: add Helsinki archiving integration configuration and tests [`#689`](https://github.com/elsa-hanke/elsa-backend/pull/689)(12 August 2026)
 - ValmistumispyyntoServiceImpl testikattavuuden lisääminen [`#688`](https://github.com/elsa-hanke/elsa-backend/pull/688)(11 August 2026)
 - chore: update CycloneDX BOM version to 3.4.0 and Cypress image to 15.20.0 in CI configuration [`#687`](https://github.com/elsa-hanke/elsa-backend/pull/687)(11 August 2026)
 - fix: enable deprecation checks in detekt configuration and remove unnecessary suppressions [`#686`](https://github.com/elsa-hanke/elsa-backend/pull/686)(11 August 2026)
