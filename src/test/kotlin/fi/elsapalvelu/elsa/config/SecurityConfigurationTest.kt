@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.VerificationTokenRepository
+import fi.elsapalvelu.elsa.security.MDC_USER_ID_KEY
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.koulutus.OpintosuorituksetPersistenceService
@@ -22,6 +23,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.slf4j.MDC
 import org.springframework.context.ApplicationContext
 import org.springframework.core.env.Environment
 import org.springframework.web.filter.CorsFilter
@@ -46,15 +48,20 @@ class SecurityConfigurationTest {
             result = successfulResult
         )
 
-        val result = runBlocking {
-            callFetchOpintotietodata(
-                securityConfiguration(opintotietodataServices = listOf(failingService, successfulService))
-            )
+        val result = MDC.putCloseable(MDC_USER_ID_KEY, "user-123").use {
+            runBlocking {
+                callFetchOpintotietodata(
+                    securityConfiguration(opintotietodataServices = listOf(failingService, successfulService))
+                )
+            }
         }
 
         assertThat(result).containsExactly(successfulResult)
         assertThat(failingService.fetchCount).isEqualTo(1)
         assertThat(successfulService.fetchCount).isEqualTo(1)
+        assertThat(failingService.userIdFromMdc).isEqualTo("user-123")
+        assertThat(successfulService.userIdFromMdc).isEqualTo("user-123")
+        assertThat(MDC.get(MDC_USER_ID_KEY)).isNull()
     }
 
     @Test
@@ -92,6 +99,9 @@ class SecurityConfigurationTest {
         // Both university services were attempted
         assertThat(failingService.fetchCount).isEqualTo(1)
         assertThat(successfulService.fetchCount).isEqualTo(1)
+        assertThat(failingService.userIdFromMdc).isEqualTo("user-123")
+        assertThat(successfulService.userIdFromMdc).isEqualTo("user-123")
+        assertThat(MDC.get(MDC_USER_ID_KEY)).isNull()
 
         // Only the successful service's result reached the persistence layer
         verify(persistenceService, times(1)).createOrUpdateIfChanged(any(), any())
@@ -154,9 +164,11 @@ class SecurityConfigurationTest {
     ) : OpintotietodataFetchingService {
 
         var fetchCount = 0
+        var userIdFromMdc: String? = null
 
         override suspend fun fetchOpintotietodata(hetu: String): OpintotietodataDTO? {
             fetchCount++
+            userIdFromMdc = MDC.get(MDC_USER_ID_KEY)
             exception?.let { throw it }
             return result
         }
@@ -173,9 +185,11 @@ class SecurityConfigurationTest {
     ) : OpintosuorituksetFetchingService {
 
         var fetchCount = 0
+        var userIdFromMdc: String? = null
 
         override suspend fun fetchOpintosuoritukset(hetu: String): OpintosuorituksetPersistenceDTO? {
             fetchCount++
+            userIdFromMdc = MDC.get(MDC_USER_ID_KEY)
             try {
                 exception?.let { throw it }
                 return result

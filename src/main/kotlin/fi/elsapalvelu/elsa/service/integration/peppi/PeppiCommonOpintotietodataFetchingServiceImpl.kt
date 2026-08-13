@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.config.YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila.Companion.fromPeppiOpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
+import fi.elsapalvelu.elsa.security.currentUserIdLogField
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietoOpintooikeusDataDTO
@@ -40,7 +41,10 @@ class PeppiCommonOpintotietodataFetchingServiceImpl(
         try {
             return client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    log.error("$JSON_FETCHING_ERROR: $endpointUrl ${response.body?.string()}")
+                    log.error(
+                        "$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} " +
+                            response.body?.string()
+                    )
                     return null
                 }
                 response.body?.string().let { body ->
@@ -70,10 +74,13 @@ class PeppiCommonOpintotietodataFetchingServiceImpl(
                 }
             }
         } catch (e: JsonProcessingException) {
-            log.error("$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}", e)
+            log.error(
+                "$JSON_DATA_PROSESSING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}",
+                e
+            )
             throw e
         } catch (e: IOException) {
-            log.error("$JSON_FETCHING_ERROR: $endpointUrl ${e.message}", e)
+            log.error("$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}", e)
             throw e
         }
     }

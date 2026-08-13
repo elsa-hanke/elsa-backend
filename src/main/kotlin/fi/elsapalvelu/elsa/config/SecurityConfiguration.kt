@@ -35,9 +35,11 @@ import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import jakarta.persistence.EntityNotFoundException
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.*
+import kotlinx.coroutines.slf4j.MDCContext
 import org.apache.commons.lang3.exception.ExceptionUtils
 import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -520,23 +522,25 @@ class SecurityConfiguration(
         firstName: String,
         lastName: String
     ) {
-        runBlocking {
-            try {
-                fetchOpintotietodata(hetu).let {
-                    if (it.isNotEmpty()) {
-                        opintotietodataPersistenceService.createOrUpdateIfChanged(
-                            userId,
-                            firstName,
-                            lastName,
-                            it
-                        )
-                    } else {
-                        log.info("Kirjautuessa ladatut opintotiedot olivat tyhjät käyttäjälle: $userId")
+        MDC.putCloseable(MDC_USER_ID_KEY, userId).use {
+            runBlocking {
+                try {
+                    fetchOpintotietodata(hetu).let {
+                        if (it.isNotEmpty()) {
+                            opintotietodataPersistenceService.createOrUpdateIfChanged(
+                                userId,
+                                firstName,
+                                lastName,
+                                it
+                            )
+                        } else {
+                            log.info("Kirjautuessa ladatut opintotiedot olivat tyhjät käyttäjälle: $userId")
+                        }
                     }
+                } catch (ex: Exception) {
+                    if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
+                    log.error("Virhe opintotietodatan haussa tai päivittämisessä käyttäjälle $userId: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
                 }
-            } catch (ex: Exception) {
-                if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
-                log.error("Virhe opintotietodatan haussa tai päivittämisessä käyttäjälle $userId: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
             }
         }
     }
@@ -544,7 +548,7 @@ class SecurityConfiguration(
     private suspend fun fetchOpintotietodata(hetu: String): List<OpintotietodataDTO> =
         supervisorScope {
             opintotietodataFetchingServices.map { service ->
-                async(ioDispatcher) {
+                async(ioDispatcher + MDCContext()) {
                     fetchOpintotietodataForService(service, hetu)
                 }
             }.awaitAll().filterNotNull()
@@ -572,7 +576,9 @@ class SecurityConfiguration(
         }
 
     private fun fetchAndHandleOpintosuorituksetNonBlocking(userId: String, hetu: String) {
-        val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
+        val scope = CoroutineScope(
+            SupervisorJob() + ioDispatcher + MDCContext(mapOf(MDC_USER_ID_KEY to userId))
+        )
         opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
             .forEach { service ->
                 scope.launch {

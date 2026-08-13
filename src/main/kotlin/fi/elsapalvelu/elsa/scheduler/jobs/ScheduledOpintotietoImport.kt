@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.service.*
 import fi.elsapalvelu.elsa.service.koejakso.*
@@ -20,6 +21,7 @@ import kotlinx.coroutines.*
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import org.slf4j.MDC
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.LocalDateTime
@@ -31,6 +33,7 @@ import javax.crypto.spec.SecretKeySpec
 import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.security.MDC_USER_ID_KEY
 
 @Component
 class ScheduledOpintotietoImport(
@@ -53,6 +56,24 @@ class ScheduledOpintotietoImport(
     override fun runJob() {
         log.info("OpintotietoImport käynnistetty")
         val timestamp = LocalDateTime.now()
+        importOpintotiedot()
+        log.info(
+            "OpintotietoImport valmis ${
+                Duration.between(timestamp, LocalDateTime.now()).toSeconds()
+            } sekunnissa"
+        )
+    }
+
+    private fun importOpintotiedot() {
+        val context = createImportContext()
+        val opintooikeudet = findImportableOpintooikeudet()
+        log.info("OpintotietoImport: löydetty ${opintooikeudet.size} käyttäjää")
+        opintooikeudet.forEachIndexed { index, opintooikeus ->
+            importOpintooikeus(opintooikeus, index, opintooikeudet.size, context)
+        }
+    }
+
+    private fun createImportContext(): ImportContext {
         val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
         val decodedKey = Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
         val originalKey: SecretKey = SecretKeySpec(
@@ -64,49 +85,58 @@ class ScheduledOpintotietoImport(
         val opintosuoritusServices =
             opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
                 .associateBy { it.getYliopisto() }
-        val opintooikeudet = opintooikeusRepository.findAllValid()
+
+        return ImportContext(cipher, originalKey, opintotietoServices, opintosuoritusServices)
+    }
+
+    private fun findImportableOpintooikeudet(): List<Opintooikeus> =
+        opintooikeusRepository.findAllValid()
             .distinctBy { Pair(it.erikoistuvaLaakari?.id, it.yliopisto?.id) }
-        log.info("OpintotietoImport: löydetty ${opintooikeudet.size} käyttäjää")
-        opintooikeudet.forEachIndexed { index, opintooikeus ->
-            val user = getUserOrLogIncompleteRelationship(opintooikeus, index, opintooikeudet.size)
-                ?: return@forEachIndexed
-            val yliopistoNimi = opintooikeus.yliopisto?.nimi
-            log.info(
-                "OpintotietoImport: käyttäjä ${index + 1}/${opintooikeudet.size}: " +
-                    "userId=${user.id}, yliopisto=$yliopistoNimi"
-            )
-            getHetu(user, cipher, originalKey)?.let { hetu ->
+
+    private fun importOpintooikeus(
+        opintooikeus: Opintooikeus,
+        index: Int,
+        totalCount: Int,
+        context: ImportContext
+    ) {
+        val user = getUserOrLogIncompleteRelationship(opintooikeus, index, totalCount) ?: return
+        val userId = user.id.required()
+        val yliopistoNimi = opintooikeus.yliopisto?.nimi
+        log.info(
+            "OpintotietoImport: käyttäjä ${index + 1}/$totalCount: " +
+                "userId=$userId, yliopisto=$yliopistoNimi"
+        )
+        MDC.putCloseable(MDC_USER_ID_KEY, userId).use {
+            getHetu(user, context.cipher, context.originalKey)?.let { hetu ->
                 runBlocking {
-                    try {
-                        opintotietoServices[yliopistoNimi]?.fetchOpintotietodata(hetu)
-                            ?.let { data ->
-                                opintotietodataPersistenceService.createOrUpdateOpintotieto(
-                                    user.id.required(),
-                                    data
-                                )
-                            }
-                        opintosuoritusServices[yliopistoNimi]?.fetchOpintosuoritukset(hetu)
-                            ?.let { data ->
-                                opintosuorituksetPersistenceService.createOrUpdateIfChanged(
-                                    user.id.required(),
-                                    data
-                                )
-                            }
-                    } catch (e: Exception) {
-                        log.error(
-                            "OpintotietoImport virhe käyttäjälle ${user.id} " +
-                                "(yliopisto=$yliopistoNimi): ${e.message}",
-                            e
-                        )
-                    }
+                    fetchAndPersistOpintotiedot(userId, hetu, yliopistoNimi, context)
                 }
             }
         }
-        log.info(
-            "OpintotietoImport valmis ${
-                Duration.between(timestamp, LocalDateTime.now()).toSeconds()
-            } sekunnissa"
-        )
+    }
+
+    private suspend fun fetchAndPersistOpintotiedot(
+        userId: String,
+        hetu: String,
+        yliopistoNimi: YliopistoEnum?,
+        context: ImportContext
+    ) {
+        try {
+            context.opintotietoServices[yliopistoNimi]?.fetchOpintotietodata(hetu)
+                ?.let { data ->
+                    opintotietodataPersistenceService.createOrUpdateOpintotieto(userId, data)
+                }
+            context.opintosuoritusServices[yliopistoNimi]?.fetchOpintosuoritukset(hetu)
+                ?.let { data ->
+                    opintosuorituksetPersistenceService.createOrUpdateIfChanged(userId, data)
+                }
+        } catch (e: Exception) {
+            log.error(
+                "OpintotietoImport virhe käyttäjälle $userId " +
+                    "(yliopisto=$yliopistoNimi): ${e.message}",
+                e
+            )
+        }
     }
 
     private fun getUserOrLogIncompleteRelationship(
@@ -131,4 +161,11 @@ class ScheduledOpintotietoImport(
         cipher.init(Cipher.DECRYPT_MODE, originalKey, IvParameterSpec(user.initVector))
         return String(cipher.doFinal(user.hetu), StandardCharsets.UTF_8)
     }
+
+    private data class ImportContext(
+        val cipher: Cipher,
+        val originalKey: SecretKey,
+        val opintotietoServices: Map<YliopistoEnum, OpintotietodataFetchingService>,
+        val opintosuoritusServices: Map<YliopistoEnum, OpintosuorituksetFetchingService>
+    )
 }
