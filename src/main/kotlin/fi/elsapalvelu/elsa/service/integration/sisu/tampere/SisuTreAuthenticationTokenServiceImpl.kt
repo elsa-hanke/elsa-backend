@@ -8,10 +8,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.security.AuthenticationToken
 import fi.elsapalvelu.elsa.security.AuthenticationTokenCache
-import fi.elsapalvelu.elsa.service.kayttaja.AuthenticationTokenService
-import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
+import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
+import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
+import fi.elsapalvelu.elsa.service.kayttaja.AuthenticationTokenService
 import okhttp3.FormBody
 import okhttp3.Request
 import org.slf4j.LoggerFactory
@@ -19,17 +20,21 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.io.IOException
 import java.time.LocalDateTime
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TOKEN_PATH = "oauth2/v2.0/token"
+private const val ALERT_SUBJECT = "Tampere opintotietointegraation autentikointi epäonnistui"
 
 @Service
 class SisuTreAuthenticationTokenServiceImpl(
     @Qualifier("AuthenticationTokenClient") private val sisuTreAuthTokenClientBuilder: OkHttpClientBuilder,
     private val objectMapper: ObjectMapper,
-    private val applicationProperties: ApplicationProperties
+    private val applicationProperties: ApplicationProperties,
+    private val alertPublisherService: AlertPublisherService
 ) : AuthenticationTokenService {
 
     private val log = LoggerFactory.getLogger(javaClass)
+    private val authenticationFailureAlertPublished = AtomicBoolean(false)
 
     override fun getCachedTokenOrRequestNew(): String? {
         val sisuTreProperties = applicationProperties.getSecurity().getSisuTre()
@@ -62,7 +67,13 @@ class SisuTreAuthenticationTokenServiceImpl(
         try {
             return sisuTreAuthTokenClientBuilder.okHttpClient().newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    log.error("$JSON_FETCHING_ERROR: $endpointUrl ${response.body?.string()}")
+                    val responseBody = response.body?.string()
+                    log.error("$JSON_FETCHING_ERROR: $endpointUrl $responseBody")
+                    publishAuthenticationFailureAlert(
+                        response.code,
+                        endpointUrl,
+                        responseBody
+                    )
                     return null
                 }
                 response.body?.string().let { body ->
@@ -84,6 +95,7 @@ class SisuTreAuthenticationTokenServiceImpl(
                             expires = LocalDateTime.now().plusSeconds(expiresIn - 5)
                         )
                     )
+                    authenticationFailureAlertPublished.set(false)
                     accessToken
                 }
             }
@@ -98,6 +110,36 @@ class SisuTreAuthenticationTokenServiceImpl(
         }
         return null
     }
+
+    private fun publishAuthenticationFailureAlert(
+        status: Int,
+        endpointUrl: String,
+        responseBody: String?
+    ) {
+        if (authenticationFailureAlertPublished.compareAndSet(false, true)) {
+            val oauthError = parseOauthError(responseBody)
+            val message = buildString {
+                append("Tampereen opintotietointegraatio ei saanut OAuth2-tokenia.")
+                append(" HTTP status: $status.")
+                oauthError?.get("error")?.asText()?.let { append(" Error: $it.") }
+                oauthError?.get("error_codes")?.joinToString { it.asText() }?.let {
+                    append(" Error codes: $it.")
+                }
+                append(" Endpoint: $endpointUrl.")
+                append(" Virhe ei liity yksittäiseen henkilötunnukseen.")
+            }
+            alertPublisherService.publishAlert(ALERT_SUBJECT, message)
+        }
+    }
+
+    private fun parseOauthError(responseBody: String?) =
+        if (responseBody.isNullOrBlank()) {
+            null
+        } else try {
+            objectMapper.readTree(responseBody)
+        } catch (_: JsonProcessingException) {
+            null
+        }
 }
 
 data class TokenResponse(

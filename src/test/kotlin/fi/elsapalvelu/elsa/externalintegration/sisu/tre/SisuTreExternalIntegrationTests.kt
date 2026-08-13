@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
+import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import fi.elsapalvelu.elsa.service.kayttaja.AuthenticationTokenService
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
@@ -92,4 +93,7 @@ class SisuTreExternalIntegrationTestApplication {
 
     @Bean
     fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
+
+    @Bean
+    fun alertPublisherService(): AlertPublisherService = Mockito.mock(AlertPublisherService::class.java)
 }
