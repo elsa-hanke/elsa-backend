@@ -49,7 +49,8 @@ class PeppiTurkuClientBuilderImpl(
                     IntegrationAuthenticationAlertInterceptor(
                         integrationAlertService,
                         IntegrationAlertKey.PEPPI_TURKU_AUTHENTICATION,
-                        "Turun Peppi"
+                        "Turun Peppi",
+                        alertOnNetworkFailure = true
                     )
                 )
                 .connectTimeout(5, TimeUnit.SECONDS)

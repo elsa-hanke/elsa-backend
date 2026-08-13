@@ -10,8 +10,6 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 const val MDC_USER_ID_KEY = "userId"
 
-fun currentUserIdLogField(): String =
-    MDC.get(MDC_USER_ID_KEY)?.let { " userId=$it" }.orEmpty()
 
 /**
  * Adds the authenticated user's ID to SLF4J MDC for every request so that

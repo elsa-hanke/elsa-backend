@@ -52,6 +52,7 @@ class SisuTreClientBuilderImpl(
                         IntegrationAlertKey.SISU_TRE_API_AUTHENTICATION,
                         "Tampereen Sisu",
                         authenticationFailureStatuses = setOf(401, 403),
+                        alertOnNetworkFailure = true,
                         suppressedByAlertKey = IntegrationAlertKey.SISU_TRE_OAUTH
                     )
                 )

@@ -8,7 +8,6 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
-import fi.elsapalvelu.elsa.security.currentUserIdLogField
 import fi.elsapalvelu.elsa.service.integration.AbstractOpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.LocalizedString
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
@@ -41,10 +40,7 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
         try {
             return sisuTreClientBuilder.okHttpClient().newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    log.error(
-                        "$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} " +
-                            response.body?.string()
-                    )
+                    log.error("$JSON_FETCHING_ERROR: $endpointUrl ${response.body?.string()}")
                     return null
                 }
                 response.body?.string().let { body ->
@@ -71,13 +67,10 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
                 }
             }
         } catch (e: JsonProcessingException) {
-            log.error(
-                "$JSON_DATA_PROSESSING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}",
-                e
-            )
+            log.error("$JSON_DATA_PROSESSING_ERROR: $endpointUrl ${e.message}", e)
             throw e
         } catch (e: IOException) {
-            log.error("$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}", e)
+            log.error("$JSON_FETCHING_ERROR: $endpointUrl ${e.message}", e)
             throw e
         }
     }

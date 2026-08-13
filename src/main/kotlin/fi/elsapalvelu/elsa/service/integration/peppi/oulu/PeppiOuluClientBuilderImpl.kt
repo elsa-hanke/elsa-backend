@@ -50,6 +50,7 @@ class PeppiOuluClientBuilderImpl(
                         integrationAlertService,
                         IntegrationAlertKey.PEPPI_OULU_AUTHENTICATION,
                         "Oulun Peppi",
+                        alertOnNetworkFailure = true,
                         resetOnSuccessfulResponse = false
                     )
                 )

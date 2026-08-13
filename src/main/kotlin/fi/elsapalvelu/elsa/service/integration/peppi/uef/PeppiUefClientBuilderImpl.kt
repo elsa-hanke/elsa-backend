@@ -44,7 +44,8 @@ class PeppiUefClientBuilderImpl(
                     IntegrationAuthenticationAlertInterceptor(
                         integrationAlertService,
                         IntegrationAlertKey.PEPPI_UEF_AUTHENTICATION,
-                        "Itä-Suomen Peppi"
+                        "It-Suomen Peppi",
+                        alertOnNetworkFailure = true
                     )
                 )
                 .connectTimeout(100, TimeUnit.SECONDS)

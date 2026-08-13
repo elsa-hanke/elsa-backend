@@ -61,6 +61,7 @@ class SisuHyClientBuilderImpl(
                         IntegrationAlertKey.SISU_HY_AUTHENTICATION,
                         "Helsingin Sisu",
                         alertOnTlsFailure = true,
+                        alertOnNetworkFailure = true,
                         resetOnSuccessfulResponse = false
                     )
                 )

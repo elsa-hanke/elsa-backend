@@ -35,10 +35,7 @@ class SisuTutkintoohjelmaFetchingServiceImpl(
             return sisuHyClientBuilder.okHttpClient().newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     log.error("$JSON_FETCHING_ERROR $endpointUrl ${response.body?.string()}")
-                    if (
-                        response.code != HTTP_UNAUTHORIZED &&
-                        response.code != HTTP_INTERNAL_SERVER_ERROR
-                    ) {
+                    if (response.code != HTTP_UNAUTHORIZED) {
                         publishFetchingFailureAlert(endpointUrl, "HTTP status: ${response.code}.")
                     }
                     return null
@@ -80,7 +77,6 @@ class SisuTutkintoohjelmaFetchingServiceImpl(
 
     private companion object {
         const val HTTP_UNAUTHORIZED = 401
-        const val HTTP_INTERNAL_SERVER_ERROR = 500
     }
 }
 

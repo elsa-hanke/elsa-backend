@@ -11,6 +11,7 @@ class IntegrationAuthenticationAlertInterceptor(
     private val integrationName: String,
     private val authenticationFailureStatuses: Set<Int> = setOf(401),
     private val alertOnTlsFailure: Boolean = false,
+    private val alertOnNetworkFailure: Boolean = false,
     private val resetOnSuccessfulResponse: Boolean = true,
     private val suppressedByAlertKey: IntegrationAlertKey? = null
 ) : Interceptor {
@@ -23,10 +24,10 @@ class IntegrationAuthenticationAlertInterceptor(
                     response.code in authenticationFailureStatuses && !isSuppressedByAnotherAlert() ->
                         integrationAlertService.publishOnceUntilSuccess(
                             alertKey,
-                            "$integrationName opintotietointegraation autentikointi epäonnistui",
+                            "$integrationName opintotietointegraation autentikointi eponnistui",
                             "$integrationName opintotietointegraatio palautti autentikointivirheen. " +
                                 "HTTP status: ${response.code}. Endpoint: ${request.url}. " +
-                                "Virhe ei liity yksittäiseen henkilötunnukseen."
+                                "Virhe ei liity yksittiseen henkiltunnukseen."
                         )
 
                     response.isSuccessful && resetOnSuccessfulResponse ->
@@ -34,13 +35,23 @@ class IntegrationAuthenticationAlertInterceptor(
                 }
             }
         } catch (e: IOException) {
-            if (alertOnTlsFailure && e.hasSslCause()) {
-                integrationAlertService.publishOnceUntilSuccess(
-                    alertKey,
-                    "$integrationName opintotietointegraation TLS-yhteys epäonnistui",
-                    "$integrationName opintotietointegraation TLS-yhteyden muodostaminen epäonnistui. " +
-                        "Endpoint: ${request.url}. Virhe ei liity yksittäiseen henkilötunnukseen."
-                )
+            val isSsl = e.hasSslCause()
+            when {
+                isSsl && alertOnTlsFailure ->
+                    integrationAlertService.publishOnceUntilSuccess(
+                        alertKey,
+                        "$integrationName opintotietointegraation TLS-yhteys eponnistui",
+                        "$integrationName opintotietointegraation TLS-yhteyden muodostaminen eponnistui. " +
+                            "Endpoint: ${request.url}. Virhe ei liity yksittiseen henkiltunnukseen."
+                    )
+                !isSsl && alertOnNetworkFailure ->
+                    integrationAlertService.publishOnceUntilSuccess(
+                        alertKey,
+                        "$integrationName opintotietointegraatioon ei saatu yhteyttä",
+                        "$integrationName opintotietointegraatioon yhdistäminen eponnistui. " +
+                            "Endpoint: ${request.url}. Virhe: ${e.message}. " +
+                            "Virhe ei liity yksittiseen henkiltunnukseen."
+                    )
             }
             throw e
         }
