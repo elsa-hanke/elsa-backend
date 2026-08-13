@@ -7,11 +7,13 @@ import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegratio
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
 import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingService
 import fi.elsapalvelu.elsa.service.integration.sisu.helsinki.SisuHyClientBuilderImpl
 import fi.elsapalvelu.elsa.service.integration.sisu.helsinki.SisuHyOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.integration.sisu.helsinki.SisuHyOpintotietodataFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
@@ -80,6 +82,7 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
 @ImportAutoConfiguration(JacksonAutoConfiguration::class)
 @Import(
     SisuHyClientBuilderImpl::class,
+    IntegrationAlertService::class,
     SisuHyOpintotietodataFetchingServiceImpl::class,
     SisuHyOpintosuorituksetFetchingServiceImpl::class,
     SisuTutkintoohjelmaFetchingServiceImpl::class
@@ -93,4 +96,7 @@ class SisuHyExternalIntegrationTestApplication {
 
     @Bean
     fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
+
+    @Bean
+    fun alertPublisherService(): AlertPublisherService = Mockito.mock(AlertPublisherService::class.java)
 }

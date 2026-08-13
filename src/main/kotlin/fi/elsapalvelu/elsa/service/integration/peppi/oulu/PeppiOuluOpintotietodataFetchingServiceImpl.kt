@@ -11,6 +11,8 @@ import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.integration.AbstractOpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertKey
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.PeppiOpintooikeudenTila
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service
 @Service
 class PeppiOuluOpintotietodataFetchingServiceImpl(
     @Qualifier("PeppiOulu") private val peppiOuluClientBuilder: GraphQLClientBuilder,
+    private val integrationAlertService: IntegrationAlertService,
     yliopistoRepository: YliopistoRepository
 ) : AbstractOpintotietodataFetchingService(yliopistoRepository, YliopistoEnum.OULUN_YLIOPISTO) {
 
@@ -30,7 +33,13 @@ class PeppiOuluOpintotietodataFetchingServiceImpl(
         val response = peppiOuluClientBuilder.apolloClient()
             .query(OpintotietodataPeppiOuluQuery(id = hetu))
             .execute()
-            .checkErrors("Opinto-oikeustietoja ei saatu haettua Oulun Pepistä", log)
+            .checkErrors("Opinto-oikeustietoja ei saatu haettua Oulun Pepistä", log) { authenticated ->
+                integrationAlertService.updateGraphQlAuthentication(
+                    IntegrationAlertKey.PEPPI_OULU_AUTHENTICATION,
+                    "Oulun Peppi",
+                    authenticated
+                )
+            }
 
         return response.data?.private_person_by_personal_identity_code?.let {
             OpintotietodataDTO(

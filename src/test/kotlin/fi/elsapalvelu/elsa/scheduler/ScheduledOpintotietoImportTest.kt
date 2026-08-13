@@ -15,6 +15,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.scheduler.jobs.ScheduledOpintotietoImport
+import fi.elsapalvelu.elsa.security.MDC_USER_ID_KEY
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.koulutus.OpintosuorituksetPersistenceService
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
@@ -26,6 +27,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.assertj.core.api.Assertions.assertThat
+import org.slf4j.MDC
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.Base64
@@ -42,6 +45,8 @@ class ScheduledOpintotietoImportTest {
     private val aesKey = KeyGenerator.getInstance("AES").also { it.init(128) }.generateKey()
 
     private lateinit var scheduler: ScheduledOpintotietoImport
+    private var opintotietodataUserIdFromMdc: String? = null
+    private var opintosuorituksetUserIdFromMdc: String? = null
 
     @BeforeEach
     fun setUp() {
@@ -92,6 +97,10 @@ class ScheduledOpintotietoImportTest {
             .createOrUpdateOpintotieto(eq("user-fail"), any())
         verify(opintosuorituksetPersistenceService, never())
             .createOrUpdateIfChanged(eq("user-fail"), any())
+
+        assertThat(opintotietodataUserIdFromMdc).isEqualTo("user-ok")
+        assertThat(opintosuorituksetUserIdFromMdc).isEqualTo("user-ok")
+        assertThat(MDC.get(MDC_USER_ID_KEY)).isNull()
     }
 
     @Test
@@ -139,7 +148,9 @@ class ScheduledOpintotietoImportTest {
         private val university: YliopistoEnum
     ) : OpintotietodataFetchingService {
         override suspend fun fetchOpintotietodata(hetu: String) =
-            OpintotietodataDTO(syntymaaika = null, opintooikeudet = null)
+            OpintotietodataDTO(syntymaaika = null, opintooikeudet = null).also {
+                opintotietodataUserIdFromMdc = MDC.get(MDC_USER_ID_KEY)
+            }
         override fun shouldFetchOpintotietodata() = true
         override fun getYliopisto() = university
     }
@@ -157,7 +168,9 @@ class ScheduledOpintotietoImportTest {
         private val university: YliopistoEnum
     ) : OpintosuorituksetFetchingService {
         override suspend fun fetchOpintosuoritukset(hetu: String) =
-            OpintosuorituksetPersistenceDTO(yliopisto = university, items = emptyList())
+            OpintosuorituksetPersistenceDTO(yliopisto = university, items = emptyList()).also {
+                opintosuorituksetUserIdFromMdc = MDC.get(MDC_USER_ID_KEY)
+            }
         override fun shouldFetchOpintosuoritukset() = true
         override fun getYliopisto() = university
     }

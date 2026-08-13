@@ -8,7 +8,10 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.web.filter.OncePerRequestFilter
 
-private const val MDC_USER_ID_KEY = "userId"
+const val MDC_USER_ID_KEY = "userId"
+
+fun currentUserIdLogField(): String =
+    MDC.get(MDC_USER_ID_KEY)?.let { " userId=$it" }.orEmpty()
 
 /**
  * Adds the authenticated user's ID to SLF4J MDC for every request so that
@@ -40,4 +43,3 @@ class MdcUserIdFilter : OncePerRequestFilter() {
         }
     }
 }
-

@@ -6,9 +6,11 @@ import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegratio
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
 import fi.elsapalvelu.elsa.service.integration.peppi.oulu.PeppiOuluClientBuilderImpl
 import fi.elsapalvelu.elsa.service.integration.peppi.oulu.PeppiOuluOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.integration.peppi.oulu.PeppiOuluOpintotietodataFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
@@ -43,6 +45,7 @@ class PeppiOuluExternalIntegrationTests : FetchingServiceExternalIntegrationBase
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     PeppiOuluClientBuilderImpl::class,
+    IntegrationAlertService::class,
     PeppiOuluOpintotietodataFetchingServiceImpl::class,
     PeppiOuluOpintosuorituksetFetchingServiceImpl::class
 )
@@ -50,4 +53,7 @@ class PeppiOuluExternalIntegrationTestApplication {
     /** Stub – [YliopistoRepository] is only used by shouldFetch* guards, not by the fetch methods under test. */
     @Bean
     fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
+
+    @Bean
+    fun alertPublisherService(): AlertPublisherService = Mockito.mock(AlertPublisherService::class.java)
 }

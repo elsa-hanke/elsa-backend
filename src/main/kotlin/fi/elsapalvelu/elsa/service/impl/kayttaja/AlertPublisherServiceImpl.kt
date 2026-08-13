@@ -36,13 +36,13 @@ class AlertPublisherServiceImpl(
     override fun publishAlert(subject: String, message: String) {
         val topicArn = applicationProperties.getAlert().snsTopicArn
         if (topicArn.isNullOrBlank()) {
-            log.info("Alert not sent (SNS topic ARN not configured): subject={}", subject)
+            log.info("Alert not sent (SNS topic ARN not configured): subject={} message={}", subject, message)
             return
         }
 
         val snsClient = snsClientProvider.getIfAvailable()
         if (snsClient == null) {
-            log.warn("Alert not sent (SnsClient bean not available): subject={}", subject)
+            log.warn("Alert not sent (SnsClient bean not available): subject={} message={}", subject, message)
             return
         }
 

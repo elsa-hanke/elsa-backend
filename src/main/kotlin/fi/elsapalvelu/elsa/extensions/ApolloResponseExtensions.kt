@@ -9,7 +9,11 @@ import org.slf4j.Logger
 
 private const val GRAPHQL_NO_VALUE_PRESENT_ERROR = "Unexpected Internal Error: No value present"
 
-fun <D : Operation.Data> ApolloResponse<D>.checkErrors(context: String, log: Logger): ApolloResponse<D> {
+fun <D : Operation.Data> ApolloResponse<D>.checkErrors(
+    context: String,
+    log: Logger,
+    onAuthenticationResult: (authenticated: Boolean) -> Unit = {}
+): ApolloResponse<D> {
     // Network / parsing error
     exception?.let { ex ->
         if (ex is ApolloHttpException) {
@@ -20,6 +24,9 @@ fun <D : Operation.Data> ApolloResponse<D>.checkErrors(context: String, log: Log
         }
         throw ex
     }
+
+    val authenticationFailed = hasGraphQlErrorCode("UNAUTHENTICATED")
+    onAuthenticationResult(!authenticationFailed)
 
     // GraphQL-level errors
     if (hasErrors()) {
@@ -44,3 +51,8 @@ fun <D : Operation.Data> ApolloResponse<D>.checkErrors(context: String, log: Log
 
 private fun <D : Operation.Data> ApolloResponse<D>.hasOnlyNoValuePresentGraphQLErrors(): Boolean =
     errors?.all { it.message.contains(GRAPHQL_NO_VALUE_PRESENT_ERROR) } == true
+
+private fun <D : Operation.Data> ApolloResponse<D>.hasGraphQlErrorCode(code: String): Boolean =
+    errors?.any {
+        it.extensions?.get("code")?.toString()?.equals(code, ignoreCase = true) == true
+    } == true

@@ -1,10 +1,15 @@
 package fi.elsapalvelu.elsa.service.integration.sisu.helsinki
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
+import fi.elsapalvelu.elsa.service.integration.IntegrationAuthenticationAlertInterceptor
+import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import okhttp3.tls.HeldCertificate
 import org.assertj.core.api.Assertions.assertThatCode
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.mockito.Mockito
 import org.springframework.core.io.DefaultResourceLoader
 import java.nio.file.Files
 import java.nio.file.Path
@@ -37,10 +42,19 @@ class SisuHyClientBuilderImplTest {
                 privateKeyLocation = privateKey.toUri().toString()
             }
         }
-        val builder = SisuHyClientBuilderImpl(properties, DefaultResourceLoader())
+        val builder = SisuHyClientBuilderImpl(
+            properties,
+            DefaultResourceLoader(),
+            IntegrationAlertService(Mockito.mock(AlertPublisherService::class.java))
+        )
 
         assertThatCode { builder.apolloClient() }
             .doesNotThrowAnyException()
+        assertThat(
+            builder.okHttpClient().interceptors.any {
+                it is IntegrationAuthenticationAlertInterceptor
+            }
+        ).isTrue
     }
 
     private companion object {

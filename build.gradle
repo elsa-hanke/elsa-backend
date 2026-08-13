@@ -177,6 +177,7 @@ dependencies {
     testImplementation "com.squareup.okhttp3:mockwebserver:4.9.3"
     testImplementation "com.h2database:h2:2.4.240"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.9.0"
     implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.2.1'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.2.1'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-sns:3.2.1'

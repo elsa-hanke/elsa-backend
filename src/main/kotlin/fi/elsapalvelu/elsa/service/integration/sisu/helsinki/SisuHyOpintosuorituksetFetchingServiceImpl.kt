@@ -7,6 +7,8 @@ import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.integration.AbstractOpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertKey
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusOsakokonaisuusDTO
@@ -19,6 +21,7 @@ private val validStates = listOf("ATTAINED", "SUBSTITUTED")
 @Service
 class SisuHyOpintosuorituksetFetchingServiceImpl(
     @Qualifier("SisuHy") private val sisuHyClientBuilder: GraphQLClientBuilder,
+    private val integrationAlertService: IntegrationAlertService,
     yliopistoRepository: YliopistoRepository
 ) : AbstractOpintosuorituksetFetchingService(yliopistoRepository, YliopistoEnum.HELSINGIN_YLIOPISTO) {
 
@@ -28,7 +31,13 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
         val response = sisuHyClientBuilder.apolloClient()
             .query(OpintosuorituksetSisuHyQuery(id = hetu))
             .execute()
-            .checkErrors("Opintosuoritustietoja ei saatu haettua HY:n Sisusta", log)
+            .checkErrors("Opintosuoritustietoja ei saatu haettua HY:n Sisusta", log) { authenticated ->
+                integrationAlertService.updateGraphQlAuthentication(
+                    IntegrationAlertKey.SISU_HY_AUTHENTICATION,
+                    "Helsingin Sisu",
+                    authenticated
+                )
+            }
 
         return response.data?.private_person_by_personal_identity_code?.attainments?.filter {
             it.state in validStates
