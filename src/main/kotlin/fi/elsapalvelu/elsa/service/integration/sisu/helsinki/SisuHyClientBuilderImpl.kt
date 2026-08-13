@@ -7,6 +7,9 @@ import com.apollographql.apollo.network.okHttpClient
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
 import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertKey
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
+import fi.elsapalvelu.elsa.service.integration.IntegrationAuthenticationAlertInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.tls.HandshakeCertificates
 import okhttp3.tls.HeldCertificate
@@ -25,18 +28,21 @@ import java.util.concurrent.TimeUnit
 @Service
 class SisuHyClientBuilderImpl(
     applicationProperties: ApplicationProperties,
-    resourceLoader: ResourceLoader
+    resourceLoader: ResourceLoader,
+    integrationAlertService: IntegrationAlertService
 ) : GraphQLClientBuilder {
 
     init {
         Companion.applicationProperties = applicationProperties
         Companion.resourceLoader = resourceLoader
+        Companion.integrationAlertService = integrationAlertService
     }
 
     companion object {
 
         private lateinit var applicationProperties: ApplicationProperties
         private lateinit var resourceLoader: ResourceLoader
+        private lateinit var integrationAlertService: IntegrationAlertService
 
         val okHttpClient: OkHttpClient by lazy {
             val sisuCertificates: HandshakeCertificates = sisuCertificates()
@@ -47,6 +53,15 @@ class SisuHyClientBuilderImpl(
                         mapOf(
                             "X-Api-Key" to applicationProperties.getSecurity().getSisuHy().apiKey.required()
                         )
+                    )
+                )
+                .addInterceptor(
+                    IntegrationAuthenticationAlertInterceptor(
+                        integrationAlertService,
+                        IntegrationAlertKey.SISU_HY_AUTHENTICATION,
+                        "Helsingin Sisu",
+                        alertOnTlsFailure = true,
+                        resetOnSuccessfulResponse = false
                     )
                 )
                 .connectTimeout(5, TimeUnit.SECONDS)

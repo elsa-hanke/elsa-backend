@@ -11,6 +11,8 @@ import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.integration.AbstractOpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertKey
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 import org.slf4j.LoggerFactory
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service
 @Service
 class SisuHyOpintotietodataFetchingServiceImpl(
     @Qualifier("SisuHy") private val sisuHyClientBuilder: GraphQLClientBuilder,
+    private val integrationAlertService: IntegrationAlertService,
     yliopistoRepository: YliopistoRepository
 ) : AbstractOpintotietodataFetchingService(yliopistoRepository, YliopistoEnum.HELSINGIN_YLIOPISTO) {
 
@@ -29,7 +32,13 @@ class SisuHyOpintotietodataFetchingServiceImpl(
         val response = sisuHyClientBuilder.apolloClient()
             .query(OpintotietodataSisuHyQuery(id = hetu))
             .execute()
-            .checkErrors("Opinto-oikeustietoja ei saatu haettua HY:n Sisusta", log)
+            .checkErrors("Opinto-oikeustietoja ei saatu haettua HY:n Sisusta", log) { authenticated ->
+                integrationAlertService.updateGraphQlAuthentication(
+                    IntegrationAlertKey.SISU_HY_AUTHENTICATION,
+                    "Helsingin Sisu",
+                    authenticated
+                )
+            }
 
         return response.data?.private_person_by_personal_identity_code?.let {
             OpintotietodataDTO(
@@ -54,4 +63,5 @@ class SisuHyOpintotietodataFetchingServiceImpl(
                 })
         }
     }
+
 }

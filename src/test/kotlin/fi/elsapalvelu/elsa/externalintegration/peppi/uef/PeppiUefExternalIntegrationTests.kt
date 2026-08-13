@@ -7,11 +7,13 @@ import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegratio
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
 import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.integration.peppi.PeppiCommonOpintotietodataFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.integration.peppi.uef.PeppiUefClientBuilderImpl
 import fi.elsapalvelu.elsa.service.integration.peppi.uef.PeppiUefOpintosuorituksetFetchingServiceImpl
 import fi.elsapalvelu.elsa.service.integration.peppi.uef.PeppiUefOpintotietodataFetchingServiceImpl
+import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
@@ -49,6 +51,7 @@ class PeppiUefExternalIntegrationTests : FetchingServiceExternalIntegrationBase(
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     PeppiUefClientBuilderImpl::class,
+    IntegrationAlertService::class,
     PeppiCommonOpintotietodataFetchingServiceImpl::class,
     PeppiCommonOpintosuorituksetFetchingServiceImpl::class,
     PeppiUefOpintotietodataFetchingServiceImpl::class,
@@ -63,4 +66,7 @@ class PeppiUefExternalIntegrationTestApplication {
 
     @Bean
     fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
+
+    @Bean
+    fun alertPublisherService(): AlertPublisherService = Mockito.mock(AlertPublisherService::class.java)
 }

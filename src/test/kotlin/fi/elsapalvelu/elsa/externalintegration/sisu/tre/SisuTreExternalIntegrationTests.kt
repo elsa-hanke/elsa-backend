@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import fi.elsapalvelu.elsa.service.kayttaja.AuthenticationTokenService
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
 import fi.elsapalvelu.elsa.service.impl.kayttaja.AuthenticationTokenClientBuilderImpl
 import fi.elsapalvelu.elsa.service.integration.sisu.tampere.SisuTreAuthenticationTokenServiceImpl
 import fi.elsapalvelu.elsa.service.integration.sisu.tampere.SisuTreClientBuilderImpl
@@ -77,6 +78,7 @@ class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase()
 @ImportAutoConfiguration(JacksonAutoConfiguration::class)
 @Import(
     AuthenticationTokenClientBuilderImpl::class,
+    IntegrationAlertService::class,
     SisuTreAuthenticationTokenServiceImpl::class,
     SisuTreClientBuilderImpl::class,
     SisuTreOpintotietodataFetchingServiceImpl::class,

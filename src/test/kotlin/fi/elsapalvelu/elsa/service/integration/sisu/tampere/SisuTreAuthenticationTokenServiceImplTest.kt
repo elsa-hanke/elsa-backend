@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.integration.sisu.tampere
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
 import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import okhttp3.Call
@@ -54,7 +55,7 @@ class SisuTreAuthenticationTokenServiceImplTest {
             },
             jacksonObjectMapper(),
             properties,
-            alertPublisherService
+            IntegrationAlertService(alertPublisherService)
         )
         whenever(client.newCall(any())).thenReturn(call)
     }
