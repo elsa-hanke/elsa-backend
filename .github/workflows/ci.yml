@@ -13,6 +13,11 @@ permissions:
   id-token: write
   contents: write
 
+env:
+  ECS_HEALTH_CHECK_COMMAND: >-
+    wget -q -O- http://localhost:8081/management/health |
+    grep -q '"status":"UP"' || exit 1
+
 jobs:
   backend-test-and-build:
     runs-on: ubuntu-latest
@@ -338,15 +343,34 @@ jobs:
           aws-region: eu-west-1
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition elsa-dev-backend --query taskDefinition | jq -r 'del(
-          .taskDefinitionArn,
-          .requiresAttributes,
-          .compatibilities,
-          .revision,
-          .status,
-          .registeredAt,
-          .registeredBy
-          )' > task-definition.json
+          set -euo pipefail
+          CONTAINER_NAME="elsa-dev-backend-container"
+          aws ecs describe-task-definition --task-definition elsa-dev-backend --query taskDefinition | jq \
+            --arg container "$CONTAINER_NAME" \
+            --arg command "$ECS_HEALTH_CHECK_COMMAND" '
+              del(
+                .taskDefinitionArn,
+                .requiresAttributes,
+                .compatibilities,
+                .revision,
+                .status,
+                .registeredAt,
+                .registeredBy
+              ) |
+              (.containerDefinitions[] | select(.name == $container) | .healthCheck) = {
+                command: ["CMD-SHELL", $command],
+                interval: 30,
+                timeout: 10,
+                retries: 3,
+                startPeriod: 120
+              } |
+              if any(.containerDefinitions[];
+                .name == $container and
+                .healthCheck.command == ["CMD-SHELL", $command]
+              ) then .
+              else error("Failed to configure health check for \($container)")
+              end
+            ' > task-definition.json
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -422,15 +446,34 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition elsa-staging-backend --query taskDefinition | jq -r 'del(
-          .taskDefinitionArn,
-          .requiresAttributes,
-          .compatibilities,
-          .revision,
-          .status,
-          .registeredAt,
-          .registeredBy
-          )' > task-definition.json
+          set -euo pipefail
+          CONTAINER_NAME="elsa-staging-backend-container"
+          aws ecs describe-task-definition --task-definition elsa-staging-backend --query taskDefinition | jq \
+            --arg container "$CONTAINER_NAME" \
+            --arg command "$ECS_HEALTH_CHECK_COMMAND" '
+              del(
+                .taskDefinitionArn,
+                .requiresAttributes,
+                .compatibilities,
+                .revision,
+                .status,
+                .registeredAt,
+                .registeredBy
+              ) |
+              (.containerDefinitions[] | select(.name == $container) | .healthCheck) = {
+                command: ["CMD-SHELL", $command],
+                interval: 30,
+                timeout: 10,
+                retries: 3,
+                startPeriod: 120
+              } |
+              if any(.containerDefinitions[];
+                .name == $container and
+                .healthCheck.command == ["CMD-SHELL", $command]
+              ) then .
+              else error("Failed to configure health check for \($container)")
+              end
+            ' > task-definition.json
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -517,10 +560,75 @@ jobs:
         env:
           TEAMS_HOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
+          set -euo pipefail
           VERSION="$GITHUB_REF_NAME"
           CHANGELOG_URL="https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md"
-          PAYLOAD=$(printf '{"type":"message","attachments":[{"contentType":"application/vnd.microsoft.card.adaptive","content":{"type":"AdaptiveCard","version":"1.2","body":[{"type":"TextBlock","text":"Versio %s on julkaistu testiympäristöön.","wrap":true},{"type":"TextBlock","text":"Muutosloki:","wrap":true}],"actions":[{"type":"Action.OpenUrl","title":"Sovellus","url":"https://testi.elsapalvelu.fi/kirjautuminen"},{"type":"Action.OpenUrl","title":"Muutosloki","url":"%s"}]}}]}' "$VERSION" "$CHANGELOG_URL")
-          curl --globoff -X POST -H 'Content-type: application/json' --data-raw "$PAYLOAD" "$TEAMS_HOOK"
+          PAYLOAD=$(jq -n \
+            --arg version "$VERSION" \
+            --arg changelogUrl "$CHANGELOG_URL" '
+              {
+                type: "message",
+                attachments: [{
+                  contentType: "application/vnd.microsoft.card.adaptive",
+                  contentUrl: null,
+                  content: {
+                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                    type: "AdaptiveCard",
+                    version: "1.2",
+                    body: [
+                      {
+                        type: "TextBlock",
+                        text: ("Versio " + $version + " on julkaistu testiympäristöön."),
+                        wrap: true
+                      },
+                      {
+                        type: "TextBlock",
+                        text: "Muutosloki:",
+                        wrap: true
+                      }
+                    ],
+                    actions: [
+                      {
+                        type: "Action.OpenUrl",
+                        title: "Sovellus",
+                        url: "https://testi.elsapalvelu.fi/kirjautuminen"
+                      },
+                      {
+                        type: "Action.OpenUrl",
+                        title: "Muutosloki",
+                        url: $changelogUrl
+                      }
+                    ]
+                  }
+                }]
+              }
+            ')
+
+          RESPONSE_BODY="$(mktemp)"
+          RESPONSE_HEADERS="$(mktemp)"
+          trap 'rm -f "$RESPONSE_BODY" "$RESPONSE_HEADERS"' EXIT
+          HTTP_STATUS="$(curl --globoff --silent --show-error \
+            --dump-header "$RESPONSE_HEADERS" \
+            --output "$RESPONSE_BODY" \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header 'Content-type: application/json' \
+            --data-raw "$PAYLOAD" \
+            "$TEAMS_HOOK")"
+
+          echo "Teams webhook HTTP status: $HTTP_STATUS"
+          WORKFLOW_RUN_ID="$(grep -i '^x-ms-workflow-run-id:' "$RESPONSE_HEADERS" | tail -1 | cut -d: -f2- | tr -d '\r' | xargs || true)"
+          if [[ -n "$WORKFLOW_RUN_ID" ]]; then
+            echo "Teams workflow run ID: $WORKFLOW_RUN_ID"
+          fi
+          if [[ -s "$RESPONSE_BODY" ]]; then
+            echo "Teams webhook response body:"
+            sed -n '1,40p' "$RESPONSE_BODY"
+          fi
+          if [[ ! "$HTTP_STATUS" =~ ^2[0-9]{2}$ ]]; then
+            echo "::error::Teams webhook request failed with HTTP status $HTTP_STATUS"
+            exit 1
+          fi
 
   production-gate:
     runs-on: ubuntu-latest
@@ -571,15 +679,34 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition elsa-prod-backend --query taskDefinition | jq -r 'del(
-          .taskDefinitionArn,
-          .requiresAttributes,
-          .compatibilities,
-          .revision,
-          .status,
-          .registeredAt,
-          .registeredBy
-          )' > task-definition.json
+          set -euo pipefail
+          CONTAINER_NAME="elsa-prod-backend-container"
+          aws ecs describe-task-definition --task-definition elsa-prod-backend --query taskDefinition | jq \
+            --arg container "$CONTAINER_NAME" \
+            --arg command "$ECS_HEALTH_CHECK_COMMAND" '
+              del(
+                .taskDefinitionArn,
+                .requiresAttributes,
+                .compatibilities,
+                .revision,
+                .status,
+                .registeredAt,
+                .registeredBy
+              ) |
+              (.containerDefinitions[] | select(.name == $container) | .healthCheck) = {
+                command: ["CMD-SHELL", $command],
+                interval: 30,
+                timeout: 10,
+                retries: 3,
+                startPeriod: 120
+              } |
+              if any(.containerDefinitions[];
+                .name == $container and
+                .healthCheck.command == ["CMD-SHELL", $command]
+              ) then .
+              else error("Failed to configure health check for \($container)")
+              end
+            ' > task-definition.json
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -636,9 +763,53 @@ jobs:
         env:
           TEAMS_HOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
+          set -euo pipefail
           VERSION="$GITHUB_REF_NAME"
-          PAYLOAD=$(printf '{"type":"message","attachments":[{"contentType":"application/vnd.microsoft.card.adaptive","content":{"type":"AdaptiveCard","version":"1.2","body":[{"type":"TextBlock","text":"🚀 Versio %s on julkaistu tuotantoon.","wrap":true}]}}]}' "$VERSION")
-          curl --globoff -X POST -H 'Content-type: application/json' --data-raw "$PAYLOAD" "$TEAMS_HOOK"
+          PAYLOAD=$(jq -n --arg version "$VERSION" '
+            {
+              type: "message",
+              attachments: [{
+                contentType: "application/vnd.microsoft.card.adaptive",
+                contentUrl: null,
+                content: {
+                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  type: "AdaptiveCard",
+                  version: "1.2",
+                  body: [{
+                    type: "TextBlock",
+                    text: ("🚀 Versio " + $version + " on julkaistu tuotantoon."),
+                    wrap: true
+                  }]
+                }
+              }]
+            }
+          ')
+
+          RESPONSE_BODY="$(mktemp)"
+          RESPONSE_HEADERS="$(mktemp)"
+          trap 'rm -f "$RESPONSE_BODY" "$RESPONSE_HEADERS"' EXIT
+          HTTP_STATUS="$(curl --globoff --silent --show-error \
+            --dump-header "$RESPONSE_HEADERS" \
+            --output "$RESPONSE_BODY" \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header 'Content-type: application/json' \
+            --data-raw "$PAYLOAD" \
+            "$TEAMS_HOOK")"
+
+          echo "Teams webhook HTTP status: $HTTP_STATUS"
+          WORKFLOW_RUN_ID="$(grep -i '^x-ms-workflow-run-id:' "$RESPONSE_HEADERS" | tail -1 | cut -d: -f2- | tr -d '\r' | xargs || true)"
+          if [[ -n "$WORKFLOW_RUN_ID" ]]; then
+            echo "Teams workflow run ID: $WORKFLOW_RUN_ID"
+          fi
+          if [[ -s "$RESPONSE_BODY" ]]; then
+            echo "Teams webhook response body:"
+            sed -n '1,40p' "$RESPONSE_BODY"
+          fi
+          if [[ ! "$HTTP_STATUS" =~ ^2[0-9]{2}$ ]]; then
+            echo "::error::Teams webhook request failed with HTTP status $HTTP_STATUS"
+            exit 1
+          fi
 
   merge-release:
     runs-on: ubuntu-latest
