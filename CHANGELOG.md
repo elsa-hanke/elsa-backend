@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.2...HEAD)
+
+- Release/v2.2.x merge [`#693`](https://github.com/elsa-hanke/elsa-backend/pull/693)(14 August 2026)
+
+## [v2.2.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.1...v2.2.2) - 14 August 2026
+
 ## [v2.2.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.0...v2.2.1) - 14 August 2026
 
 ## [v2.2.0-1](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...v2.2.0-1) - 14 August 2026
