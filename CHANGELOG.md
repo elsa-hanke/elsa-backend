@@ -1,6 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
+## [v2.2.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.0...v2.2.1) - 14 August 2026
+
+## [v2.2.0-1](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...v2.2.0-1) - 14 August 2026
 
 - several improvements and refactorings focused on operational alerting for integration authentication failures [`#692`](https://github.com/elsa-hanke/elsa-backend/pull/692)(13 August 2026)
 - ELSA-1194: Olemassa olevan vastuuhenkilön lisääminen erikoistuvan arvioijaksi tai kouluttajaksi ei enää laajenna hänen käyttöoikeuksiaan tahattomasti. [`#691`](https://github.com/elsa-hanke/elsa-backend/pull/691)(13 August 2026)
