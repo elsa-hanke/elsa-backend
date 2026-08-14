@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
 
+- several improvements and refactorings focused on operational alerting for integration authentication failures [`#692`](https://github.com/elsa-hanke/elsa-backend/pull/692)(13 August 2026)
+- ELSA-1194: Olemassa olevan vastuuhenkilön lisääminen erikoistuvan arvioijaksi tai kouluttajaksi ei enää laajenna hänen käyttöoikeuksiaan tahattomasti. [`#691`](https://github.com/elsa-hanke/elsa-backend/pull/691)(13 August 2026)
 - feat: add Helsinki archiving integration configuration and tests [`#689`](https://github.com/elsa-hanke/elsa-backend/pull/689)(12 August 2026)
 - ValmistumispyyntoServiceImpl testikattavuuden lisääminen [`#688`](https://github.com/elsa-hanke/elsa-backend/pull/688)(11 August 2026)
 - chore: update CycloneDX BOM version to 3.4.0 and Cypress image to 15.20.0 in CI configuration [`#687`](https://github.com/elsa-hanke/elsa-backend/pull/687)(11 August 2026)
