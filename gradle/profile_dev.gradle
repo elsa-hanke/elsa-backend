@@ -1,7 +1,5 @@
 dependencies {
-    if (!project.hasProperty("replica")) {
-        developmentOnly "org.springframework.boot:spring-boot-devtools:${springBootVersion}"
-    }
+    developmentOnly "org.springframework.boot:spring-boot-devtools:${springBootVersion}"
 }
 
 def profiles = "dev"

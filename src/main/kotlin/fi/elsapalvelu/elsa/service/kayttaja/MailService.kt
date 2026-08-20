@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.kayttaja
 
-import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.domain.kayttaja.User
@@ -38,8 +37,7 @@ class MailService(
     private val jHipsterProperties: JHipsterProperties,
     private val javaMailSender: JavaMailSender,
     private val messageSource: MessageSource,
-    private val templateEngine: SpringTemplateEngine,
-    private val applicationProperties: ApplicationProperties
+    private val templateEngine: SpringTemplateEngine
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -53,11 +51,6 @@ class MailService(
         isMultipart: Boolean,
         isHtml: Boolean
     ) {
-        if (!applicationProperties.getMail().enabled) {
-            log.info("Email sending is disabled; skipped message with subject: {}", subject)
-            return
-        }
-
         log.debug(
             "Send email[multipart '$isMultipart' and html '$isHtml']" +
                 " to: '$to', cc: '${cc?.joinToString { it }}' with subject '$subject' and content=$content"

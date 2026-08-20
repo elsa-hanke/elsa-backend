@@ -43,13 +43,8 @@ startb-replica: kill8080
   : "${REPLICA_DB_PASSWORD:?Set REPLICA_DB_PASSWORD to the replica-only database password.}"
 
   export SPRING_PROFILES_ACTIVE=dev,replica
-  export SPRING_LIQUIBASE_ENABLED=false
-  export APPLICATION_SCHEDULING_ENABLED=false
-  export APPLICATION_STUDY_DATA_INTEGRATIONS_ENABLED=false
-  export APPLICATION_MAIL_ENABLED=false
-  export MANAGEMENT_CLOUDWATCH2_METRICS_EXPORT_ENABLED=false
 
-  ./gradlew -Preplica bootRun
+  ./gradlew bootRun
 
 start-replica-tunnel:
   #!/usr/bin/env sh

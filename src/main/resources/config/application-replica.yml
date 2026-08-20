@@ -42,8 +42,6 @@ application:
     enabled: false
   study-data-integrations:
     enabled: false
-  mail:
-    enabled: false
   alert:
     sns-topic-arn:
   security:

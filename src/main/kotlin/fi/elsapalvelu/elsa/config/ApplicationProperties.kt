@@ -20,7 +20,6 @@ class ApplicationProperties {
     private val alert = Alert()
     private val scheduling = Scheduling()
     private val studyDataIntegrations = StudyDataIntegrations()
-    private val mail = Mail()
 
     fun getCsrf(): Csrf {
         return csrf
@@ -54,19 +53,11 @@ class ApplicationProperties {
         return studyDataIntegrations
     }
 
-    fun getMail(): Mail {
-        return mail
-    }
-
     class Scheduling {
         var enabled: Boolean = true
     }
 
     class StudyDataIntegrations {
-        var enabled: Boolean = true
-    }
-
-    class Mail {
         var enabled: Boolean = true
     }
 
