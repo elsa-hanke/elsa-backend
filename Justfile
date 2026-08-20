@@ -29,7 +29,10 @@ stop-db:
 startb: kill8080 start-db
  ./gradlew bootRun
 
-startb-replica: kill8080
+startb-replica:
+  @exec just --dotenv-path .env.replica _startb-replica
+
+_startb-replica: kill8080
   #!/usr/bin/env sh
   set -eu
 
@@ -46,7 +49,10 @@ startb-replica: kill8080
 
   ./gradlew bootRun
 
-start-replica-tunnel:
+srt:
+  @exec just --dotenv-path .env.replica _start-replica-tunnel
+
+_start-replica-tunnel:
   #!/usr/bin/env sh
   set -eu
 
@@ -109,7 +115,7 @@ br:
   just startf &
   wait
 
-br-replica:
+brr:
   #!/usr/bin/env sh
   set -eu
   trap 'kill 0' INT TERM EXIT
@@ -152,3 +158,26 @@ psql +args='':
          -p 5432                                              \
          -U elsaBackend                                       \
          {{ args }}
+
+psqlr +args='':
+  @exec just --dotenv-path .env.replica -- _psqlr {{ args }}
+
+_psqlr +args='':
+  #!/usr/bin/env sh
+  set -eu
+
+  : "${REPLICA_DB_URL:?Set REPLICA_DB_URL to the JDBC URL of the local replica tunnel.}"
+  : "${REPLICA_DB_USERNAME:?Set REPLICA_DB_USERNAME to the replica-only database user.}"
+  : "${REPLICA_DB_PASSWORD:?Set REPLICA_DB_PASSWORD to the replica-only database password.}"
+
+  replica_psql_url="${REPLICA_DB_URL#jdbc:}"
+  case "$replica_psql_url" in
+    postgresql://localhost:*/*|postgresql://127.0.0.1:*/*) ;;
+    *)
+      echo "Refusing to connect: REPLICA_DB_URL must use localhost or 127.0.0.1." >&2
+      exit 1
+      ;;
+  esac
+
+  export PGPASSWORD="$REPLICA_DB_PASSWORD"
+  exec psql "$replica_psql_url" --username "$REPLICA_DB_USERNAME" {{ args }}
