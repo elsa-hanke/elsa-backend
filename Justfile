@@ -30,7 +30,7 @@ startb: kill8080 start-db
  ./gradlew bootRun
 
 startb-replica:
-  @exec just --dotenv-path .env.replica _startb-replica
+  @exec env -u APPLICATION_SECURITY_ENCODED_KEY just --dotenv-path .env.replica _startb-replica
 
 _startb-replica: kill8080
   #!/usr/bin/env sh
