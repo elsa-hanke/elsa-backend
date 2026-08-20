@@ -824,30 +824,41 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.MERGE_TOKEN || github.token }}
-      - name: Merge release into master, then master into main
+      - name: Merge release into master (full replace), then master into main (real merge, skip CHANGELOG.md conflicts)
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch --all --tags
-
-          git config merge.ours-always.driver true
 
           RELEASE_BRANCH=$(git branch -r --contains "refs/tags/$GITHUB_REF_NAME" \
             | grep -E 'origin/(release|hotfix)/' \
             | head -1 | sed 's|.*origin/||' | xargs)
 
-          # Step 1: release → master
+          if [ -z "$RELEASE_BRANCH" ]; then
+            echo "No matching release/hotfix branch found for tag $GITHUB_REF_NAME"
+            exit 1
+          fi
+
+          # ---------- Step 1: release/hotfix -> master ----------
+          # master mirrors prod and only ever changes via this job, so a full
+          # tree replace is safe and correct — including CHANGELOG.md, which
+          # should just be release's freshly generated version.
           git checkout master
-
-          # Tell git: for CHANGELOG.md, always keep ours (master's version)
-          echo "CHANGELOG.md merge=ours-always" >> .git/info/attributes
-
-          git merge origin/$RELEASE_BRANCH --no-ff \
-            -m "Merge $RELEASE_BRANCH ($GITHUB_REF_NAME) master-haaraan"
+          git merge -s ours "origin/$RELEASE_BRANCH" --no-commit
+          git read-tree -m -u "origin/$RELEASE_BRANCH"
+          git commit -m "Merge $RELEASE_BRANCH ($GITHUB_REF_NAME) master-haaraan"
           git push origin master
 
-          # Step 2: master → main
+          # ---------- Step 2: master -> main ----------
+          # main has parallel PR work for future releases, so this must be a
+          # real recursive merge — only CHANGELOG.md conflicts are auto-skipped
+          # (main's own CHANGELOG.md always wins). Any other real conflict
+          # between release code and in-flight main work will fail the job,
+          # which is intentional — that needs a human.
           git checkout main
+
+          git config merge.ours-always.driver true
           echo "CHANGELOG.md merge=ours-always" >> .git/info/attributes
 
           git merge origin/master --no-ff \
