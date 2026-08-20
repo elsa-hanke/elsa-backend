@@ -1,0 +1,62 @@
+# Local backend against the production-data replica hosted in the dev environment.
+# Secrets belong in .env.replica (see .env.replica.example), never in this file.
+
+logging:
+  level:
+    ROOT: INFO
+    fi.elsapalvelu.elsa: INFO
+
+management:
+  cloudwatch2:
+    metrics:
+      export:
+        enabled: false
+
+spring:
+  main:
+    lazy-initialization: false
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+  datasource:
+    url: ${REPLICA_DB_URL:jdbc:postgresql://localhost:15432/elsaBackend?sslmode=require}
+    username: ${REPLICA_DB_USERNAME:replace-with-replica-user}
+    password: ${REPLICA_DB_PASSWORD:replace-with-replica-password}
+    hikari:
+      connection-timeout: 10000
+      initialization-fail-timeout: 10000
+      maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    enabled: false
+  mail:
+    host: 127.0.0.1
+    port: 1025
+
+application:
+  scheduling:
+    enabled: false
+  study-data-integrations:
+    enabled: false
+  mail:
+    enabled: false
+  alert:
+    sns-topic-arn:
+  security:
+    haka:
+      enabled: false
+  arkistointi:
+    tre:
+      kaytossa: false
+    hki:
+      kaytossa: false
+    oulu:
+      kaytossa: false
+    turku:
+      kaytossa: false
+    uef:
+      kaytossa: false

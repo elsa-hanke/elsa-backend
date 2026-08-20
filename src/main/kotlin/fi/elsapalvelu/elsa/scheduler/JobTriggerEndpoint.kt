@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.scheduler
 
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint
 import org.springframework.boot.actuate.endpoint.annotation.Selector
 import org.springframework.boot.actuate.endpoint.annotation.WriteOperation
@@ -21,6 +22,12 @@ import java.time.Instant
  */
 @Component
 @Endpoint(id = "jobtrigger")
+@ConditionalOnProperty(
+    prefix = "application.scheduling",
+    name = ["enabled"],
+    havingValue = "true",
+    matchIfMissing = true
+)
 class JobTriggerEndpoint(
     jobs: List<TriggerableJob>,
     private val jdbcTemplate: JdbcTemplate
@@ -74,4 +81,3 @@ class JobTriggerEndpoint(
         }
     }
 }
-

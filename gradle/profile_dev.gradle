@@ -1,5 +1,7 @@
 dependencies {
-    developmentOnly "org.springframework.boot:spring-boot-devtools:${springBootVersion}"
+    if (!project.hasProperty("replica")) {
+        developmentOnly "org.springframework.boot:spring-boot-devtools:${springBootVersion}"
+    }
 }
 
 def profiles = "dev"
@@ -33,4 +35,3 @@ processResources {
         }
     }
 }
-
