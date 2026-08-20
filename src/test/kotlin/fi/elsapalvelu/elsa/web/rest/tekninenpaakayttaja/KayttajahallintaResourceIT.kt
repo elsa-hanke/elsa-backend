@@ -2,7 +2,16 @@ package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.koejakso.*
+import fi.elsapalvelu.elsa.domain.tyoskentely.*
+import fi.elsapalvelu.elsa.domain.arviointi.*
+import fi.elsapalvelu.elsa.domain.suoritteet.*
+import fi.elsapalvelu.elsa.domain.koulutus.*
+import fi.elsapalvelu.elsa.domain.seuranta.*
+import fi.elsapalvelu.elsa.domain.valmistuminen.*
+import fi.elsapalvelu.elsa.domain.kayttaja.*
+import fi.elsapalvelu.elsa.domain.perustiedot.*
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
@@ -134,9 +143,7 @@ class KayttajahallintaResourceIT {
 
     companion object {
         private val defaultYliopistoEnum = YliopistoEnum.HELSINGIN_YLIOPISTO
-        private val erikoisala1Nimi = "erikoisala1"
-        private val erikoisala2Nimi = "erikoisala2"
-        private val asetus1Nimi = "asetus1"
-        private val asetus2Nimi = "asetus2"
+        private const val erikoisala1Nimi = "erikoisala1"
+        private const val asetus1Nimi = "asetus1"
     }
 }

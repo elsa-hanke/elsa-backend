@@ -1,0 +1,213 @@
+package fi.elsapalvelu.elsa.service.impl.kayttaja
+
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
+import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
+import fi.elsapalvelu.elsa.repository.koulutus.KoulutussuunnitelmaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaYliopistoErikoisalaDTO
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.AsiakirjaMapper
+import org.springframework.data.repository.findByIdOrNull
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.io.ByteArrayInputStream
+import java.time.LocalDateTime
+
+@Service
+@Transactional
+class AsiakirjaServiceImpl(
+    private val asiakirjaRepository: AsiakirjaRepository,
+    private val asiakirjaMapper: AsiakirjaMapper,
+    private val koulutussuunnitelmaRepository: KoulutussuunnitelmaRepository,
+    private val opintooikeusRepository: OpintooikeusRepository
+) : AsiakirjaService {
+
+    override fun create(
+        asiakirjat: List<AsiakirjaDTO>,
+        opintooikeusId: Long,
+        tyoskentelyJaksoId: Long?
+    ): List<AsiakirjaDTO>? {
+        opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let { opintooikeus ->
+            var asiakirjaEntities = asiakirjat.map {
+                asiakirjaMapper.toEntity(it).apply {
+                    this.lisattypvm = LocalDateTime.now()
+                    this.opintooikeus = opintooikeus
+                    this.asiakirjaData?.data = it.asiakirjaData?.fileInputStream?.readAllBytes()
+                }
+            }
+
+            asiakirjaEntities = asiakirjaRepository.saveAll(asiakirjaEntities)
+            return asiakirjaEntities.map { asiakirjaMapper.toDto(it) }
+        }
+
+        return null
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAllByOpintooikeusId(opintooikeusId: Long): List<AsiakirjaDTO> {
+        return asiakirjaRepository.findAllByOpintooikeusId(opintooikeusId)
+            .map(asiakirjaMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAllByOpintooikeusIdAndTyoskentelyjaksoId(
+        opintooikeusId: Long,
+        tyoskentelyJaksoId: Long?
+    ): List<AsiakirjaDTO> {
+        return asiakirjaRepository.findAllByOpintooikeusIdAndTyoskentelyjaksoId(
+            opintooikeusId,
+            tyoskentelyJaksoId
+        )
+            .map(asiakirjaMapper::toDto)
+    }
+
+    override fun findByIdAndTyoskentelyjaksoTyyppi(
+        id: Long,
+        tyyppi: TyoskentelyjaksoTyyppi,
+        yliopistoIds: List<Long>?
+    ): AsiakirjaDTO? {
+        yliopistoIds?.let {
+            asiakirjaRepository.findOneByIdAndTyoskentelyjaksoTyoskentelypaikkaTyyppiAndYliopistoIds(
+                id,
+                tyyppi,
+                it
+            )?.let { asiakirja ->
+                val result = asiakirjaMapper.toDto(asiakirja)
+                result.asiakirjaData?.fileInputStream =
+                    ByteArrayInputStream(asiakirja.asiakirjaData?.data)
+                return result
+            }
+        }
+        return null
+    }
+
+    override fun findByIdAndTyoskentelyjaksoTyyppiForVastuuhenkilo(
+        id: Long,
+        tyyppi: TyoskentelyjaksoTyyppi,
+        yliopistotAndErikoisalat: MutableSet<KayttajaYliopistoErikoisalaDTO>?
+    ): AsiakirjaDTO? {
+        yliopistotAndErikoisalat?.let {
+            asiakirjaRepository.findOneByIdAndTyoskentelyjaksoTyoskentelypaikkaTyyppi(
+                id,
+                tyyppi
+            )?.let { asiakirja ->
+                if (yliopistotAndErikoisalat.any {
+                    it.yliopisto?.id == asiakirja.tyoskentelyjakso?.opintooikeus?.yliopisto?.id
+                        && it.vastuuhenkilonTehtavat.map { vastuualue -> vastuualue.nimi }.contains(
+                                if (asiakirja.tyoskentelyjakso?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO
+                                else VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN) }
+                    ) {
+                    val result = asiakirjaMapper.toDto(asiakirja)
+                    result.asiakirjaData?.fileInputStream =
+                        ByteArrayInputStream(asiakirja.asiakirjaData?.data)
+                    return result
+                }
+                return null
+            }
+        }
+        return null
+    }
+
+    override fun findByIdAndYliopistoId(id: Long, yliopistoIds: List<Long>?): AsiakirjaDTO? {
+        yliopistoIds?.let {
+            asiakirjaRepository.findOneByIdAndYliopistoId(
+                id,
+                it
+            )?.let { asiakirja ->
+                val result = asiakirjaMapper.toDto(asiakirja)
+                result.asiakirjaData?.fileInputStream =
+                    ByteArrayInputStream(asiakirja.asiakirjaData?.data)
+                return result
+            }
+        }
+        return null
+    }
+
+    override fun findByIdAndLiitettykoejaksoon(id: Long): AsiakirjaDTO? {
+        asiakirjaRepository.findOneByIdAndTyoskentelyjaksoLiitettyKoejaksoonTrue(id)
+            ?.let { asiakirja ->
+                val result = asiakirjaMapper.toDto(asiakirja)
+                result.asiakirjaData?.fileInputStream =
+                    ByteArrayInputStream(asiakirja.asiakirjaData?.data)
+                return result
+            }
+        return null
+    }
+
+    override fun findByIdAndLiitettykoejaksoonByYliopisto(
+        id: Long,
+        yliopistoIds: List<Long>?
+    ): AsiakirjaDTO? {
+        yliopistoIds?.let {
+            asiakirjaRepository.findOneByIdAndLiitettyKoejaksoon(id, it)
+                ?.let { asiakirja ->
+                    val result = asiakirjaMapper.toDto(asiakirja)
+                    result.asiakirjaData?.fileInputStream =
+                        ByteArrayInputStream(asiakirja.asiakirjaData?.data)
+                    return result
+                }
+        }
+        return null
+    }
+
+    @Transactional(readOnly = true)
+    override fun findOne(id: Long, opintooikeusId: Long): AsiakirjaDTO? {
+        asiakirjaRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
+            return asiakirjaMapper.toDto(it).apply {
+                asiakirjaData?.fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data)
+            }
+        }
+        return null
+    }
+
+    @Transactional(readOnly = true)
+    override fun findById(id: Long): AsiakirjaDTO? {
+        asiakirjaRepository.findById(id).orElse(null)?.let {
+            return asiakirjaMapper.toDto(it).apply {
+                asiakirjaData?.fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data)
+            }
+        }
+        return null
+    }
+
+    override fun delete(id: Long, opintooikeusId: Long) {
+        asiakirjaRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
+            deleteKoulutussuunnitelmaReferenceIfExists(id)
+            asiakirjaRepository.deleteById(id)
+        }
+    }
+
+    private fun deleteKoulutussuunnitelmaReferenceIfExists(asiakirjaId: Long) {
+        koulutussuunnitelmaRepository.findOneByKoulutussuunnitelmaAsiakirjaIdOrMotivaatiokirjeAsiakirjaId(
+            asiakirjaId
+        )
+            ?.let {
+                if (it.koulutussuunnitelmaAsiakirja?.id == asiakirjaId) {
+                    it.koulutussuunnitelmaAsiakirja = null
+                } else if (it.motivaatiokirjeAsiakirja?.id == asiakirjaId) {
+                    it.motivaatiokirjeAsiakirja = null
+                }
+            }
+    }
+
+    override fun delete(ids: List<Long>, opintooikeusId: Long) {
+        asiakirjaRepository.findAllById(ids).filter {
+            it.opintooikeus?.id == opintooikeusId
+        }.let { asiakirjaRepository.deleteAll(it) }
+    }
+
+    override fun removeTyoskentelyjaksoReference(tyoskentelyJaksoId: Long?) {
+        val asiakirjaIdsByTyoskentelyjakso =
+            asiakirjaRepository.findAllByTyoskentelyjaksoId(tyoskentelyJaksoId).map { it.id }
+        val asiakirjaEntitiesByTyoskentelyjakso =
+            asiakirjaRepository.findAllById(asiakirjaIdsByTyoskentelyjakso)
+        asiakirjaEntitiesByTyoskentelyjakso.forEach {
+            it.tyoskentelyjakso = null
+        }
+
+        asiakirjaRepository.saveAll(asiakirjaEntitiesByTyoskentelyjakso)
+    }
+}

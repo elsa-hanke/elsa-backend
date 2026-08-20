@@ -48,5 +48,7 @@ jobs:
           SLACK_HOOK: ${{ secrets.NETUM_SLACK_HOOK_URL }}
         run: |
           curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\":warning: *Backendin tietoturvaskannaus — haavoittuvuuksia löydetty*\Backendin riippuvuuksissa löydettiin *kriittisen vakavuuden haavoittuvuuksia*.\nKorjaukset suositellaan tehtäväksi välittömästi.\nAjo: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+            --data '{
+              "text": ":warning: *Backendin tietoturvaskannaus — haavoittuvuuksia löydetty*\nBackendin riippuvuuksissa löydettiin *kriittisen vakavuuden haavoittuvuuksia*.\nKorjaukset suositellaan tehtäväksi välittömästi.\nAjo: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }' \
             "$SLACK_HOOK"

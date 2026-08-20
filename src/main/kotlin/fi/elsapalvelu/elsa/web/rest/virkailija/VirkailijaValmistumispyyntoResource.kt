@@ -1,26 +1,28 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.service.AsiakirjaService
-import fi.elsapalvelu.elsa.service.KayttajaService
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.ValmistumispyyntoService
+import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
+import fi.elsapalvelu.elsa.service.kayttaja.KayttajaService
+import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusDTO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyynnonTarkistusUpdateDTO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoListItemDTO
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusDTO
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusUpdateDTO
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoListItemDTO
+import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import java.net.URLEncoder
-import java.security.Principal
 
-private const val VALMISTUMISPYYNTO_ENTITY_NAME = "valmistumispyynto"
 
 @RestController
 @RequestMapping("/api/virkailija")
@@ -37,9 +39,9 @@ class VirkailijaValmistumispyyntoResource(
         val user = userService.getAuthenticatedUser(principal)
         val valmistumispyynnot =
             valmistumispyyntoService.findAllForVirkailijaByCriteria(
-                user.id!!,
+                user.id.required(),
                 criteria,
-                criteria.erikoisalaId?.let { listOf(it.equals) } ?: listOf(),
+                criteria.erikoisalaId?.let { listOf(it.equals) }.orEmpty(),
                 if (criteria.erikoisalaId?.equals == YEK_ERIKOISALA_ID) listOf() else listOf(YEK_ERIKOISALA_ID),
                 pageable
             )
@@ -54,7 +56,7 @@ class VirkailijaValmistumispyyntoResource(
     ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val tarkistus =
-            valmistumispyyntoService.findOneByIdAndVirkailijaUserId(id, user.id!!)
+            valmistumispyyntoService.findOneByIdAndVirkailijaUserId(id, user.id.required())
 
         return ResponseEntity.ok(tarkistus)
     }
@@ -68,7 +70,7 @@ class VirkailijaValmistumispyyntoResource(
     ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
         val user = userService.getAuthenticatedUser(principal)
 
-        if (!valmistumispyyntoService.onkoAvoinVirkailija(user.id!!, id)) {
+        if (!valmistumispyyntoService.onkoAvoinVirkailija(user.id.required(), id)) {
             throw BadRequestAlertException(
                 "Valmistumispyyntö ei ole muokattavissa.",
                 VALMISTUMISPYYNTO_ENTITY_NAME,
@@ -78,7 +80,7 @@ class VirkailijaValmistumispyyntoResource(
         val tarkistus =
             valmistumispyyntoService.updateTarkistusByVirkailijaUserId(
                 id,
-                user.id!!,
+                user.id.required(),
                 valmistumispyynnonTarkistusDTO,
                 laillistamistodistus
             )
@@ -93,24 +95,16 @@ class VirkailijaValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!)
+        val kayttaja = kayttajaService.findByUserId(user.id.required())
         val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirjaVirkailija(
             valmistumispyyntoId,
             kayttaja.orElse(null)?.yliopistot?.firstOrNull()?.id,
             asiakirjaId
         )
 
-        asiakirja?.asiakirjaData?.fileInputStream?.use {
-            return ResponseEntity.ok()
-                .header(
-                    HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
-                )
-                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
-                .body(it.readBytes())
-        }
-
-        return ResponseEntity.notFound().build()
+        return asiakirja?.asiakirjaData?.fileInputStream
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
+            ?: ResponseEntity.notFound().build()
     }
 
     @GetMapping("/valmistumispyynto/tyoskentelyjakso-liite/{id}")
@@ -119,21 +113,14 @@ class VirkailijaValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!)
+        val kayttaja = kayttajaService.findByUserId(user.id.required())
         val asiakirja = asiakirjaService
             .findByIdAndYliopistoId(
                 id,
-                kayttaja.orElse(null)?.yliopistot?.map { it.id!! })
+                kayttaja.orElse(null)?.yliopistot?.map { it.id.required() })
 
-        asiakirja?.asiakirjaData?.fileInputStream?.use {
-            return ResponseEntity.ok()
-                .header(
-                    HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
-                )
-                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
-                .body(it.readBytes())
-        }
-        return ResponseEntity.notFound().build()
+        return asiakirja?.asiakirjaData?.fileInputStream
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
+            ?: ResponseEntity.notFound().build()
     }
 }

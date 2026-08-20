@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
-import fi.elsapalvelu.elsa.service.dto.KayttajaYliopistoErikoisalaDTO
-import fi.elsapalvelu.elsa.service.dto.ReassignedVastuuhenkilonTehtavaDTO
-import fi.elsapalvelu.elsa.service.dto.YliopistoDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaYliopistoErikoisalaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.ReassignedVastuuhenkilonTehtavaDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.YliopistoDTO
 import java.io.Serializable
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotEmpty
@@ -27,5 +27,9 @@ data class KayttajahallintaKayttajaDTO(
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaKayttajaDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 

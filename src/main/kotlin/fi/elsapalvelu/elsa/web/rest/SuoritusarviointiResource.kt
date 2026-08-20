@@ -1,26 +1,45 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.criteria.ArvioitavaKokonaisuusCriteria
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.koejakso.*
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
+import fi.elsapalvelu.elsa.service.dto.arviointi.*
+import fi.elsapalvelu.elsa.service.dto.suoritteet.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.*
+import fi.elsapalvelu.elsa.service.dto.seuranta.*
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.*
+import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
-import java.net.URLEncoder
-import java.security.Principal
 import jakarta.validation.Valid
 
 private const val ENTITY_NAME = "suoritusarviointi"
@@ -41,7 +60,7 @@ open class SuoritusarviointiResource(
     ): ResponseEntity<List<SuoritusarviointiDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val suoritusarvioinnit =
-            suoritusarviointiQueryService.findByKouluttajaOrVastuuhenkiloUserId(user.id!!)
+            suoritusarviointiQueryService.findByKouluttajaOrVastuuhenkiloUserId(user.id.required())
         val avoimet = suoritusarvioinnit.filter { it.arviointiAika == null }
         val muut = suoritusarvioinnit.filter { it.arviointiAika != null }
         val sortedSuoritusarvioinnit =
@@ -56,7 +75,7 @@ open class SuoritusarviointiResource(
     ): ResponseEntity<List<EtusivuArviointipyyntoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val arviointipyynnot =
-            suoritusarviointiService.findAvoimetByKouluttajaOrVastuuhenkiloUserId(user.id!!)
+            suoritusarviointiService.findAvoimetByKouluttajaOrVastuuhenkiloUserId(user.id.required())
                 .sortedBy { it.tapahtumanAjankohta }.map {
                     EtusivuArviointipyyntoDTO(
                         id = it.id,
@@ -75,7 +94,7 @@ open class SuoritusarviointiResource(
     ): ResponseEntity<SuoritusarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val suoritusarviointiDTO =
-            suoritusarviointiService.findOneByIdAndArvioinninAntajauserId(id, user.id!!)
+            suoritusarviointiService.findOneByIdAndArvioinninAntajauserId(id, user.id.required())
         return ResponseUtil.wrapOrNotFound(suoritusarviointiDTO)
     }
 
@@ -87,18 +106,11 @@ open class SuoritusarviointiResource(
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
         val asiakirja = suoritusarviointiService
-            .findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(id, user.id!!, asiakirjaId)
+            .findAsiakirjaBySuoritusarviointiIdAndArvioinninAntajauserId(id, user.id.required(), asiakirjaId)
 
-        asiakirja?.asiakirjaData?.fileInputStream?.use {
-            return ResponseEntity.ok()
-                .header(
-                    HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
-                )
-                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
-                .body(it.readBytes())
-        }
-        return ResponseEntity.notFound().build()
+        return asiakirja?.asiakirjaData?.fileInputStream
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
+            ?: ResponseEntity.notFound().build()
     }
 
     @PutMapping("/suoritusarvioinnit")
@@ -109,7 +121,7 @@ open class SuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        suoritusarviointiJson.let {
+        return suoritusarviointiJson.let {
             objectMapper.readValue(it, SuoritusarviointiDTO::class.java)
         }?.let { suoritusarviointiDTO ->
             validateDTO(suoritusarviointiDTO)
@@ -121,9 +133,9 @@ open class SuoritusarviointiResource(
                 suoritusarviointiDTO,
                 newAsiakirjat,
                 deletedAsiakirjaIds,
-                user.id!!
+                user.id.required()
             )
-            return ResponseEntity.ok(result)
+            ResponseEntity.ok(result)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
@@ -132,7 +144,7 @@ open class SuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<List<ErikoisalaDTO?>> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!).get()
+        val kayttaja = kayttajaService.findByUserId(user.id.required()).get()
         return ResponseEntity.ok(kayttaja.yliopistotAndErikoisalat?.map { it.erikoisala })
     }
 
@@ -143,7 +155,7 @@ open class SuoritusarviointiResource(
         principal: Principal?
     ): ResponseEntity<Page<ArvioitavaKokonaisuusDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!).get()
+        val kayttaja = kayttajaService.findByUserId(user.id.required()).get()
         if (kayttaja.yliopistotAndErikoisalat?.map { it.erikoisala?.id }
                 ?.contains(criteria.erikoisalaId) == false) {
             throw BadRequestAlertException(

@@ -1,15 +1,37 @@
 package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.koejakso.*
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
+import fi.elsapalvelu.elsa.service.dto.arviointi.*
+import fi.elsapalvelu.elsa.service.dto.suoritteet.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.*
+import fi.elsapalvelu.elsa.service.dto.seuranta.*
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.*
+import fi.elsapalvelu.elsa.service.dto.perustiedot.*
+import fi.elsapalvelu.elsa.web.rest.ENTITY_KOEJAKSON_SOPIMUS
+import fi.elsapalvelu.elsa.web.rest.common.KoejaksoResourceSupport
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import tech.jhipster.web.util.ResponseUtil
-import java.security.Principal
 
-private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 
 @RestController
 @RequestMapping("/api/kouluttaja")
@@ -20,13 +42,14 @@ class KouluttajaKoejaksoResource(
     private val koejaksonValiarviointiService: KoejaksonValiarviointiService,
     private val koejaksonKehittamistoimenpiteetService: KoejaksonKehittamistoimenpiteetService,
     private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService,
-    private val koejaksonVaiheetService: KoejaksonVaiheetService
+    private val koejaksonVaiheetService: KoejaksonVaiheetService,
+    private val koejaksoResourceSupport: KoejaksoResourceSupport
 ) {
 
     @GetMapping("/koejaksot")
     fun getKoejaksot(principal: Principal?): ResponseEntity<List<KoejaksonVaiheDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val koejaksonVaiheet = koejaksonVaiheetService.findAllByKouluttajaKayttajaUserId(user.id!!)
+        val koejaksonVaiheet = koejaksonVaiheetService.findAllByKouluttajaKayttajaUserId(user.id.required())
         return ResponseEntity.ok(koejaksonVaiheet)
     }
 
@@ -37,7 +60,7 @@ class KouluttajaKoejaksoResource(
     ): ResponseEntity<KoejaksonKoulutussopimusDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val koulutussopimusDTO =
-            koejaksonKoulutussopimusService.findOneByIdAndKouluttajaKayttajaUserId(id, user.id!!)
+            koejaksonKoulutussopimusService.findOneByIdAndKouluttajaKayttajaUserId(id, user.id.required())
         return ResponseUtil.wrapOrNotFound(koulutussopimusDTO)
     }
 
@@ -57,7 +80,7 @@ class KouluttajaKoejaksoResource(
         val user = userService.getAuthenticatedUser(principal)
 
         val existingKoulutussopimusDTO =
-            koejaksonKoulutussopimusService.findOne(koulutussopimusDTO.id!!)
+            koejaksonKoulutussopimusService.findOne(koulutussopimusDTO.id.required())
 
         if (existingKoulutussopimusDTO.get().lahetetty != true) {
             throw BadRequestAlertException(
@@ -67,7 +90,7 @@ class KouluttajaKoejaksoResource(
             )
         }
 
-        val result = koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id!!)
+        val result = koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id.required())
         return ResponseEntity.ok(result)
     }
 
@@ -77,13 +100,12 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonAloituskeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        var aloituskeskusteluDTO =
-            koejaksonAloituskeskusteluService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
-
-        if (!aloituskeskusteluDTO.isPresent) {
-            aloituskeskusteluDTO =
-                koejaksonAloituskeskusteluService.findOneByIdAndLahiesimiesUserId(id, user.id!!)
-        }
+        val aloituskeskusteluDTO = koejaksoResourceSupport.findByLahikouluttajaOrLahiesimies(
+            id,
+            user.id.required(),
+            koejaksonAloituskeskusteluService::findOneByIdAndLahikouluttajaUserId,
+            koejaksonAloituskeskusteluService::findOneByIdAndLahiesimiesUserId
+        )
         return ResponseUtil.wrapOrNotFound(aloituskeskusteluDTO)
     }
 
@@ -93,13 +115,12 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonValiarviointiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        var valiarviointiDTO =
-            koejaksonValiarviointiService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
-
-        if (!valiarviointiDTO.isPresent) {
-            valiarviointiDTO =
-                koejaksonValiarviointiService.findOneByIdAndLahiesimiesUserId(id, user.id!!)
-        }
+        val valiarviointiDTO = koejaksoResourceSupport.findByLahikouluttajaOrLahiesimies(
+            id,
+            user.id.required(),
+            koejaksonValiarviointiService::findOneByIdAndLahikouluttajaUserId,
+            koejaksonValiarviointiService::findOneByIdAndLahiesimiesUserId
+        )
         return ResponseUtil.wrapOrNotFound(valiarviointiDTO)
     }
 
@@ -109,16 +130,12 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonKehittamistoimenpiteetDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        var kehittamistoimenpiteetDTO =
-            koejaksonKehittamistoimenpiteetService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
-
-        if (!kehittamistoimenpiteetDTO.isPresent) {
-            kehittamistoimenpiteetDTO =
-                koejaksonKehittamistoimenpiteetService.findOneByIdAndLahiesimiesUserId(
-                    id,
-                    user.id!!
-                )
-        }
+        val kehittamistoimenpiteetDTO = koejaksoResourceSupport.findByLahikouluttajaOrLahiesimies(
+            id,
+            user.id.required(),
+            koejaksonKehittamistoimenpiteetService::findOneByIdAndLahikouluttajaUserId,
+            koejaksonKehittamistoimenpiteetService::findOneByIdAndLahiesimiesUserId
+        )
         return ResponseUtil.wrapOrNotFound(kehittamistoimenpiteetDTO)
     }
 
@@ -128,16 +145,12 @@ class KouluttajaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<KoejaksonLoppukeskusteluDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        var loppukeskusteluDTO =
-            koejaksonLoppukeskusteluService.findOneByIdAndLahikouluttajaUserId(id, user.id!!)
-
-        if (!loppukeskusteluDTO.isPresent) {
-            loppukeskusteluDTO =
-                koejaksonLoppukeskusteluService.findOneByIdAndLahiesimiesUserId(
-                    id,
-                    user.id!!
-                )
-        }
+        val loppukeskusteluDTO = koejaksoResourceSupport.findByLahikouluttajaOrLahiesimies(
+            id,
+            user.id.required(),
+            koejaksonLoppukeskusteluService::findOneByIdAndLahikouluttajaUserId,
+            koejaksonLoppukeskusteluService::findOneByIdAndLahiesimiesUserId
+        )
         return ResponseUtil.wrapOrNotFound(loppukeskusteluDTO)
     }
 }

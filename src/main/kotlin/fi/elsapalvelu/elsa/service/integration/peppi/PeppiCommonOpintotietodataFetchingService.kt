@@ -1,0 +1,14 @@
+package fi.elsapalvelu.elsa.service.integration.peppi
+
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
+import okhttp3.OkHttpClient
+
+interface PeppiCommonOpintotietodataFetchingService {
+    suspend fun fetchOpintotietodata(
+        endpointUrl: String,
+        client: OkHttpClient,
+        hetu: String,
+        yliopistoEnum: YliopistoEnum
+    ): OpintotietodataDTO?
+}

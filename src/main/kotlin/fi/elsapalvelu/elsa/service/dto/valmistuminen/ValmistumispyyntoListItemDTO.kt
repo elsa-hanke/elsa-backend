@@ -1,0 +1,28 @@
+package fi.elsapalvelu.elsa.service.dto.valmistuminen
+
+import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonHyvaksyjaRole
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
+import java.io.Serializable
+
+data class ValmistumispyyntoListItemDTO(
+
+    var id: Long? = null,
+
+    var erikoistujanNimi: String? = null,
+
+    var tila: ValmistumispyynnonTila? = null,
+
+    var tapahtumanAjankohta: LocalDate? = null,
+
+    var isAvoinForCurrentKayttaja: Boolean = false,
+
+    var rooli: ValmistumispyynnonHyvaksyjaRole? = null
+
+): Serializable {
+    override fun toString() = "ValmistumispyyntoListItemDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

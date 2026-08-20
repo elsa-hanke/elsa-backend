@@ -1,0 +1,24 @@
+package fi.elsapalvelu.elsa.service.dto.kayttaja
+
+import fi.elsapalvelu.elsa.service.dto.enumeration.ReassignedVastuuhenkilonTehtavaTyyppi
+import java.io.Serializable
+import jakarta.validation.constraints.NotNull
+
+data class ReassignedVastuuhenkilonTehtavaDTO(
+
+    @NotNull
+    var kayttajaYliopistoErikoisala: KayttajaYliopistoErikoisalaDTO? = null,
+
+    @NotNull
+    var tehtavaId: Long? = null,
+
+    @NotNull
+    var tyyppi: ReassignedVastuuhenkilonTehtavaTyyppi? = null
+
+): Serializable {
+    override fun toString() = "ReassignedVastuuhenkilonTehtavaDTO()"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

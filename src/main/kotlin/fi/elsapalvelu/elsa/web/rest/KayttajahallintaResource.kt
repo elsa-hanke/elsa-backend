@@ -1,17 +1,39 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
+import fi.elsapalvelu.elsa.domain.kayttaja.Authority
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.constants.ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.koejakso.*
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
+import fi.elsapalvelu.elsa.service.dto.arviointi.*
+import fi.elsapalvelu.elsa.service.dto.suoritteet.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.*
+import fi.elsapalvelu.elsa.service.dto.seuranta.*
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.*
+import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
@@ -21,11 +43,11 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URI
-import java.security.Principal
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 private const val ERIKOISTUVA_LAAKARI_ENTITY_NAME = "erikoistuvaLaakari"
 
+@Suppress("TooManyFunctions")
 open class KayttajahallintaResource(
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val userService: UserService,
@@ -45,9 +67,9 @@ open class KayttajahallintaResource(
     ): ResponseEntity<Page<KayttajahallintaKayttajaListItemDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val erikoistujat = if (hasVirkailijaRole(user)) {
-            erikoistuvaLaakariService.findAllFromSameYliopisto(user.id!!, criteria, pageable)
+            erikoistuvaLaakariService.findAllFromSameYliopisto(user.id.required(), criteria, pageable)
         } else {
-            erikoistuvaLaakariService.findAll(user.id!!, criteria, pageable)
+            erikoistuvaLaakariService.findAll(user.id.required(), criteria, pageable)
         }
         return ResponseEntity.ok(erikoistujat)
     }
@@ -59,11 +81,11 @@ open class KayttajahallintaResource(
         val user = userService.getAuthenticatedUser(principal)
         val vastuuhenkilot = if (hasVirkailijaRole(user)) {
             kayttajaService.findByKayttajahallintaCriteriaFromSameYliopisto(
-                user.id!!, VASTUUHENKILO, criteria, pageable
+                user.id.required(), VASTUUHENKILO, criteria, pageable
             )
         } else {
             kayttajaService.findByKayttajahallintaCriteria(
-                user.id!!, VASTUUHENKILO, criteria, pageable
+                user.id.required(), VASTUUHENKILO, criteria, pageable
             )
         }
         return ResponseEntity.ok(vastuuhenkilot)
@@ -76,11 +98,11 @@ open class KayttajahallintaResource(
         val user = userService.getAuthenticatedUser(principal)
         val kouluttajat = if (hasVirkailijaRole(user)) {
             kayttajaService.findByKayttajahallintaCriteriaFromSameYliopisto(
-                user.id!!, KOULUTTAJA, criteria, pageable
+                user.id.required(), KOULUTTAJA, criteria, pageable
             )
         } else {
             kayttajaService.findByKayttajahallintaCriteria(
-                user.id!!, KOULUTTAJA, criteria, pageable
+                user.id.required(), KOULUTTAJA, criteria, pageable
             )
         }
         return ResponseEntity.ok(kouluttajat)
@@ -93,11 +115,11 @@ open class KayttajahallintaResource(
         val user = userService.getAuthenticatedUser(principal)
         val virkailijat = if (hasVirkailijaRole(user)) {
             kayttajaService.findByKayttajahallintaCriteriaFromSameYliopisto(
-                user.id!!, OPINTOHALLINNON_VIRKAILIJA, criteria, pageable
+                user.id.required(), OPINTOHALLINNON_VIRKAILIJA, criteria, pageable
             )
         } else {
             kayttajaService.findByKayttajahallintaCriteria(
-                user.id!!, OPINTOHALLINNON_VIRKAILIJA, criteria, pageable
+                user.id.required(), OPINTOHALLINNON_VIRKAILIJA, criteria, pageable
             )
         }
         return ResponseEntity.ok(virkailijat)
@@ -114,7 +136,7 @@ open class KayttajahallintaResource(
         }
 
         val paakayttajat = kayttajaService.findByKayttajahallintaCriteria(
-            user.id!!, TEKNINEN_PAAKAYTTAJA, criteria, pageable
+            user.id.required(), TEKNINEN_PAAKAYTTAJA, criteria, pageable
         )
         return ResponseEntity.ok(paakayttajat)
     }
@@ -153,7 +175,7 @@ open class KayttajahallintaResource(
         if (kayttaja.authorities?.contains(Authority(name = KOULUTTAJA)) == true
             || kayttaja.authorities?.contains(Authority(name = VASTUUHENKILO)) == true
         ) {
-            avoimiaTehtavia = kayttajaService.avoimiaTehtavia(kayttaja.id!!)
+            avoimiaTehtavia = kayttajaService.avoimiaTehtavia(kayttaja.id.required())
         }
 
         return ResponseEntity.ok(
@@ -181,7 +203,7 @@ open class KayttajahallintaResource(
     fun deleteKayttaja(
         @PathVariable id: Long, principal: Principal?,
         @Valid @RequestBody kayttajahallintaReassignedKouluttajaDTO: KayttajahallintaReassignedKouluttajaDTO
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val kayttaja = getKayttajaOrThrow(id)
         validateCurrentUserIsAllowedToManageKayttaja(principal, id)
 
@@ -195,14 +217,14 @@ open class KayttajahallintaResource(
 
         kayttajahallintaReassignedKouluttajaDTO.reassignedKayttajaId?.let {
             userService.updateKouluttajaReferences(
-                kayttaja.id!!,
+                kayttaja.id.required(),
                 it
             )
         }
 
         val userId = kayttaja.userId
-        kayttajaService.delete(kayttaja.id!!)
-        userService.delete(userId!!)
+        kayttajaService.delete(kayttaja.id.required())
+        userService.delete(userId.required())
 
         return ResponseEntity
             .noContent()
@@ -256,31 +278,31 @@ open class KayttajahallintaResource(
         @Valid @RequestBody kayttajahallintaErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariDTO,
         principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {
-        validateEmailNotExists(kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite!!)
+        validateEmailNotExists(kayttajahallintaErikoistuvaLaakariDTO.sahkopostiosoite.required())
 
-        if (yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!).isEmpty) {
+        if (yliopistoService.findOne(kayttajahallintaErikoistuvaLaakariDTO.yliopistoId.required()).isEmpty) {
             throw BadRequestAlertException(
                 "Yliopistoa ei löydy.", KAYTTAJA_ENTITY_NAME, "dataillegal.yliopistoa-ei-loydy"
             )
         }
 
         validateCurrentUserIsAllowedToCreateKayttajaByYliopistoId(
-            principal, kayttajahallintaErikoistuvaLaakariDTO.yliopistoId!!
+            principal, kayttajahallintaErikoistuvaLaakariDTO.yliopistoId.required()
         )
 
-        if (erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId!!).isEmpty) {
+        if (erikoisalaService.findOne(kayttajahallintaErikoistuvaLaakariDTO.erikoisalaId.required()).isEmpty) {
             throw BadRequestAlertException(
                 "Erikoisalaa ei löydy.", KAYTTAJA_ENTITY_NAME, "dataillegal.erikoisalaa-ei-loydy"
             )
         }
 
-        if (asetusService.findOne(kayttajahallintaErikoistuvaLaakariDTO.asetusId!!) == null) {
+        if (asetusService.findOne(kayttajahallintaErikoistuvaLaakariDTO.asetusId.required()) == null) {
             throw BadRequestAlertException(
                 "Asetusta ei löydy.", KAYTTAJA_ENTITY_NAME, "dataillegal.asetusta-ei-loydy"
             )
         }
 
-        if (opintoopasService.findOne(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId!!) == null) {
+        if (opintoopasService.findOne(kayttajahallintaErikoistuvaLaakariDTO.opintoopasId.required()) == null) {
             throw BadRequestAlertException(
                 "Opinto-opasta ei löydy.",
                 KAYTTAJA_ENTITY_NAME,
@@ -298,11 +320,11 @@ open class KayttajahallintaResource(
     @PutMapping("/erikoistuvat-laakarit/{id}/kutsu")
     fun resendErikoistuvaLaakariInvitation(
         @PathVariable id: Long, principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val erikoistuvaLaakari = getErikoistuvaLaakariByIdOrThrow(id)
         validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
             principal,
-            erikoistuvaLaakari.kayttajaId!!
+            erikoistuvaLaakari.kayttajaId.required()
         )
         erikoistuvaLaakariService.resendInvitation(id)
         return ResponseEntity.noContent().build()
@@ -311,16 +333,16 @@ open class KayttajahallintaResource(
     @PatchMapping("/kayttajat/{id}/aktivoi")
     fun activateKayttaja(
         @PathVariable id: Long, principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val erikoistuvaLaakari = tryToGetErikoistuvaLaakariByKayttajaId(id)
         if (erikoistuvaLaakari != null) {
             validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
                 principal,
-                erikoistuvaLaakari.kayttajaId!!
+                erikoistuvaLaakari.kayttajaId.required()
             )
         } else {
             val kayttaja = getKayttajaOrThrow(id)
-            validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id!!)
+            validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id.required())
         }
         kayttajaService.activateKayttaja(id)
         return ResponseEntity.ok().build()
@@ -330,12 +352,12 @@ open class KayttajahallintaResource(
     fun passivateKayttaja(
         @PathVariable id: Long, principal: Principal?,
         @Valid @RequestBody kayttajahallintaReassignedKouluttajaDTO: KayttajahallintaReassignedKouluttajaDTO
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val erikoistuvaLaakari = tryToGetErikoistuvaLaakariByKayttajaId(id)
         if (erikoistuvaLaakari != null) {
             validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
                 principal,
-                erikoistuvaLaakari.id!!
+                erikoistuvaLaakari.id.required()
             )
         } else {
             val kayttaja = getKayttajaOrThrow(id)
@@ -350,19 +372,13 @@ open class KayttajahallintaResource(
             } else if (kayttaja.authorities?.contains(Authority(name = VASTUUHENKILO)) == true
                 && kayttaja.yliopistotAndErikoisalat?.any { it.vastuuhenkilonTehtavat.isNotEmpty() } == true
             ) {
-                throw BadRequestAlertException(
-                    "Vastuuhenkilöä ei voi passivoida jos siihen liittyy vastuualueita.",
-                    KAYTTAJA_ENTITY_NAME,
-                    "dataillegal.vastuuhenkiloa-vastuualueilla-ei-voi-passivoida"
-                )
+                throw BadRequestAlertException("Vastuuhenkilöä ei voi passivoida jos siihen liittyy vastuualueita.", KAYTTAJA_ENTITY_NAME,
+                    "dataillegal.vastuuhenkiloa-vastuualueilla-ei-voi-passivoida")
             }
-            validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id!!)
+            validateCurrentUserIsAllowedToManageKayttaja(principal, kayttaja.id.required())
 
             kayttajahallintaReassignedKouluttajaDTO.reassignedKayttajaId?.let {
-                userService.updateAvoinKouluttajaReferences(
-                    kayttaja.id!!,
-                    it
-                )
+                userService.updateAvoinKouluttajaReferences(kayttaja.id.required(), it)
             }
         }
         kayttajaService.passivateKayttaja(id)
@@ -370,56 +386,43 @@ open class KayttajahallintaResource(
     }
 
     @PatchMapping("/erikoistuvat-laakarit/{userId}")
-    fun patchErikoistuvaLaakari(
-        @PathVariable userId: String,
-        @Valid @RequestBody updateErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariUpdateDTO,
-        principal: Principal?
-    ): ResponseEntity<Void> {
+    fun patchErikoistuvaLaakari(@PathVariable userId: String,
+        @Valid @RequestBody updateErikoistuvaLaakariDTO: KayttajahallintaErikoistuvaLaakariUpdateDTO, principal: Principal?): ResponseEntity<Unit> {
         val erikoistuvaLaakariDTO = getErikoistuvaLaakariByUserIdOrThrow(userId)
         validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
             principal,
-            erikoistuvaLaakariDTO.kayttajaId!!
+            erikoistuvaLaakariDTO.kayttajaId.required()
         )
         val sahkoposti = updateErikoistuvaLaakariDTO.sahkoposti
 
         val userDTO = userService.getUser(userId)
         validateEmailNotExists(sahkoposti, userDTO)
         userService.updateEmail(sahkoposti, userId)
-        opintooikeusService.updateOpintooikeudet(
-            userId,
-            updateErikoistuvaLaakariDTO.opintooikeudet ?: listOf()
-        )
+        opintooikeusService.updateOpintooikeudet(userId, updateErikoistuvaLaakariDTO.opintooikeudet.orEmpty())
 
         return ResponseEntity.ok().build()
     }
 
     @PatchMapping("/kouluttajat/{kayttajaId}")
-    fun patchKouluttaja(
-        @PathVariable kayttajaId: Long,
-        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
-        principal: Principal?
-    ): ResponseEntity<Void> {
+    fun patchKouluttaja(@PathVariable kayttajaId: Long, @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        principal: Principal?): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
-        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id.required())
 
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
-        val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
+        val userDTO = userService.getUser(existingKayttajaDTO.userId.required())
 
         validateEmailNotExists(sahkoposti, userDTO)
 
-        kayttajaService.saveKayttajahallintaKayttaja(
-            kayttajahallintaKayttajaDTO,
-            kayttajaId = kayttajaId
-        )
+        kayttajaService.saveKayttajahallintaKayttaja(kayttajahallintaKayttajaDTO, kayttajaId = kayttajaId)
         return ResponseEntity.ok().build()
     }
 
     @PutMapping("/kouluttajat/{kayttajaId}/kutsu")
-    fun resendKouluttajaInvitation(
-        @PathVariable kayttajaId: Long, principal: Principal?
-    ): ResponseEntity<Void> {
+    fun resendKouluttajaInvitation(@PathVariable kayttajaId: Long, principal: Principal?
+    ): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
-        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id.required())
 
         val virkailijaOrPaakayttajaUser = userService.getAuthenticatedUser(principal)
         kayttajaService.resendInvitation(
@@ -431,12 +434,10 @@ open class KayttajahallintaResource(
     }
 
     @PostMapping("/virkailijat")
-    fun createVirkailija(
-        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
-        principal: Principal?
-    ): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
+    fun createVirkailija(@Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        principal: Principal?): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
         val yliopistoId = kayttajahallintaKayttajaDTO.yliopisto?.id
-        requireNotNull(yliopistoId)
+            ?: throw missingRequiredField("yliopisto")
         validateCurrentUserIsAllowedToCreateKayttajaByYliopistoId(
             principal, yliopistoId
         )
@@ -446,7 +447,7 @@ open class KayttajahallintaResource(
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
 
-        requireNotNull(listOf(etunimi, sukunimi))
+        validateRequiredNames(etunimi, sukunimi)
 
         validateEmailNotExists(sahkoposti)
         validateEppnNotExists(eppn)
@@ -461,10 +462,8 @@ open class KayttajahallintaResource(
     }
 
     @PostMapping("/paakayttajat")
-    fun createPaakayttaja(
-        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
-        principal: Principal?
-    ): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
+    fun createPaakayttaja(@Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        principal: Principal?): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
         val user = userService.getAuthenticatedUser(principal)
         if (hasVirkailijaRole(user)) {
             throw getVirkailijaException()
@@ -475,7 +474,7 @@ open class KayttajahallintaResource(
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
 
-        requireNotNull(listOf(etunimi, sukunimi))
+        validateRequiredNames(etunimi, sukunimi)
 
         validateEmailNotExists(sahkoposti)
         validateEppnNotExists(eppn)
@@ -494,36 +493,30 @@ open class KayttajahallintaResource(
         @PathVariable kayttajaId: Long,
         @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
-        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id.required())
 
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
-        val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
+        val userDTO = userService.getUser(existingKayttajaDTO.userId.required())
 
         validateEmailNotExists(sahkoposti, userDTO)
         validateEppnNotExists(eppn, userDTO)
 
-        kayttajaService.saveKayttajahallintaKayttaja(
-            kayttajahallintaKayttajaDTO,
-            kayttajaId = kayttajaId
-        )
+        kayttajaService.saveKayttajahallintaKayttaja(kayttajahallintaKayttajaDTO, kayttajaId = kayttajaId)
         return ResponseEntity.ok().build()
     }
 
     @PatchMapping("/virkailijat/{kayttajaId}")
-    fun patchVirkailija(
-        @PathVariable kayttajaId: Long,
-        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
-        principal: Principal?
-    ): ResponseEntity<Void> {
+    fun patchVirkailija(@PathVariable kayttajaId: Long, @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+        principal: Principal?): ResponseEntity<Unit> {
         val existingKayttajaDTO = getKayttajaOrThrow(kayttajaId)
-        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id!!)
+        validateCurrentUserIsAllowedToManageKayttaja(principal, existingKayttajaDTO.id.required())
 
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
-        val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
+        val userDTO = userService.getUser(existingKayttajaDTO.userId.required())
 
         validateEmailNotExists(sahkoposti, userDTO)
         validateEppnNotExists(eppn, userDTO)
@@ -536,12 +529,10 @@ open class KayttajahallintaResource(
     }
 
     @PostMapping("/vastuuhenkilot")
-    fun createVastuuhenkilo(
-        @Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
-        principal: Principal?
-    ): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
+    fun createVastuuhenkilo(@Valid @RequestBody kayttajahallintaKayttajaDTO: KayttajahallintaKayttajaDTO,
+                            principal: Principal?): ResponseEntity<KayttajahallintaKayttajaWrapperDTO> {
         val yliopistoId = kayttajahallintaKayttajaDTO.yliopisto?.id
-        requireNotNull(yliopistoId)
+            ?: throw missingRequiredField("yliopisto")
         validateDTOYliopistotAndErikoisalat(kayttajahallintaKayttajaDTO.yliopistotAndErikoisalat)
         validateCurrentUserIsAllowedToCreateKayttajaByYliopistoId(
             principal, yliopistoId
@@ -552,15 +543,13 @@ open class KayttajahallintaResource(
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
 
-        requireNotNull(listOf(etunimi, sukunimi))
+        validateRequiredNames(etunimi, sukunimi)
 
         validateEmailNotExists(sahkoposti)
         validateEppnNotExists(eppn)
 
-        if (!kayttajahallintaValidationService.validateNewVastuuhenkiloYliopistotAndErikoisalat(
-                kayttajahallintaKayttajaDTO
-            )
-        ) throw getVastuuhenkilonTehtavatException()
+        if (!kayttajahallintaValidationService.validateNewVastuuhenkiloYliopistotAndErikoisalat(kayttajahallintaKayttajaDTO))
+            throw getVastuuhenkilonTehtavatException()
 
         val result = kayttajaService.saveVastuuhenkilo(kayttajahallintaKayttajaDTO)
 
@@ -586,24 +575,18 @@ open class KayttajahallintaResource(
         val givenYliopistotAndErikoisalat = kayttajahallintaKayttajaDTO.yliopistotAndErikoisalat
 
         validateYliopisto(givenYliopistotAndErikoisalat, yliopistoId)
-        validateDTOYliopistotAndErikoisalat(
-            givenYliopistotAndErikoisalat,
-            existingKayttajaDTO.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto?.id
-        )
+        validateDTOYliopistotAndErikoisalat(givenYliopistotAndErikoisalat, existingKayttajaDTO.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto?.id)
         validateCurrentUserIsAllowedToManageKayttaja(principal, kayttajaId)
 
         val sahkoposti = kayttajahallintaKayttajaDTO.sahkoposti
         val eppn = kayttajahallintaKayttajaDTO.eppn
-        val userDTO = userService.getUser(existingKayttajaDTO.userId!!)
+        val userDTO = userService.getUser(existingKayttajaDTO.userId.required())
 
         validateEmailNotExists(sahkoposti, userDTO)
         validateEppnNotExists(eppn, userDTO)
 
-        if (!kayttajahallintaValidationService.validateExistingVastuuhenkiloYliopistotAndErikoisalat(
-                kayttajahallintaKayttajaDTO,
-                existingKayttajaDTO
-            )
-        ) throw getVastuuhenkilonTehtavatException()
+        if (!kayttajahallintaValidationService.validateExistingVastuuhenkiloYliopistotAndErikoisalat(kayttajahallintaKayttajaDTO, existingKayttajaDTO))
+            throw getVastuuhenkilonTehtavatException()
 
         val result = kayttajaService.saveVastuuhenkilo(kayttajahallintaKayttajaDTO, kayttajaId)
         return ResponseEntity.ok(result)
@@ -614,11 +597,7 @@ open class KayttajahallintaResource(
         criteria: KayttajahallintaCriteria, pageable: Pageable, principal: Principal?
     ): ResponseEntity<Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttajat = kayttajaService.findByCriteriaAndAuthorities(
-            user.id!!,
-            criteria,
-            pageable
-        )
+        val kayttajat = kayttajaService.findByCriteriaAndAuthorities(user.id.required(), criteria, pageable)
         return ResponseEntity.ok(kayttajat)
     }
 
@@ -631,7 +610,7 @@ open class KayttajahallintaResource(
 
     private fun getYliopistotByRole(user: UserDTO): MutableSet<YliopistoDTO> {
         if (hasVirkailijaRole(user)) {
-            val kayttaja = getKayttajaByUserIdOrThrow(user.id!!)
+            val kayttaja = getKayttajaByUserIdOrThrow(user.id.required())
             val virkailijaYliopisto = getVirkailijaYliopistoOrThrow(kayttaja)
             return mutableSetOf(virkailijaYliopisto)
         }
@@ -653,27 +632,16 @@ open class KayttajahallintaResource(
     }
 
     private fun validateEmailNotExists(sahkoposti: String, userDTO: UserDTO? = null) {
-        if ((userDTO == null || userDTO.email?.lowercase() != sahkoposti.lowercase()) && userService.existsByEmail(
-                sahkoposti
-            )
-        ) {
-            throw BadRequestAlertException(
-                "Samalla sähköpostilla löytyy jo toinen käyttäjä.",
-                KAYTTAJA_ENTITY_NAME,
-                "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja"
-            )
+        if ((userDTO == null || userDTO.email?.lowercase() != sahkoposti.lowercase()) && userService.existsByEmail(sahkoposti)) {
+            throw BadRequestAlertException("Samalla sähköpostilla löytyy jo toinen käyttäjä.", KAYTTAJA_ENTITY_NAME,
+                "dataillegal.samalla-sahkopostilla-loytyy-jo-toinen-kayttaja")
         }
     }
 
-    private fun validateCurrentUserIsAllowedToCreateKayttajaByYliopistoId(
-        principal: Principal?, yliopistoId: Long
-    ) {
+    private fun validateCurrentUserIsAllowedToCreateKayttajaByYliopistoId(principal: Principal?, yliopistoId: Long) {
         val virkailijaOrPaakayttajaUser = userService.getAuthenticatedUser(principal)
         if (hasVirkailijaRole(virkailijaOrPaakayttajaUser)) {
-            if (!kayttajahallintaValidationService.validateVirkailijaIsAllowedToCreateKayttajaByYliopistoId(
-                    virkailijaOrPaakayttajaUser, yliopistoId
-                )
-            ) {
+            if (!kayttajahallintaValidationService.validateVirkailijaIsAllowedToCreateKayttajaByYliopistoId(virkailijaOrPaakayttajaUser, yliopistoId)) {
                 throw getVirkailijaException()
             }
         }
@@ -684,9 +652,7 @@ open class KayttajahallintaResource(
         return if (hasVirkailijaRole(virkailijaOrPaakayttajaUser)) "virkailija" else "tekninen-paakayttaja"
     }
 
-    private fun validateCurrentUserIsAllowedToManageErikoistuvaLaakari(
-        principal: Principal?, kayttajaId: Long
-    ) {
+    private fun validateCurrentUserIsAllowedToManageErikoistuvaLaakari(principal: Principal?, kayttajaId: Long) {
         val virkailijaOrPaakayttajaUser = userService.getAuthenticatedUser(principal)
         if (hasVirkailijaRole(virkailijaOrPaakayttajaUser)) {
             if (!kayttajahallintaValidationService.validateVirkailijaIsAllowedToManageErikoistuvaLaakari(
@@ -698,30 +664,12 @@ open class KayttajahallintaResource(
         }
     }
 
-    private fun validateCurrentUserIsAllowedToManageKayttaja(
-        principal: Principal?,
-        kayttajaId: Long
-    ) {
+    private fun validateCurrentUserIsAllowedToManageKayttaja(principal: Principal?, kayttajaId: Long) {
         val virkailijaOrPaakayttajaUser = userService.getAuthenticatedUser(principal)
         if (hasVirkailijaRole(virkailijaOrPaakayttajaUser)) {
-            if (!kayttajahallintaValidationService.validateVirkailijaIsAllowedToManageKayttaja(
-                    virkailijaOrPaakayttajaUser, kayttajaId
-                )
-            ) {
+            if (!kayttajahallintaValidationService.validateVirkailijaIsAllowedToManageKayttaja(virkailijaOrPaakayttajaUser, kayttajaId)) {
                 throw getVirkailijaException()
             }
-        }
-    }
-
-    private fun validateDTOYliopistotAndErikoisalat(
-        yliopistotAndErikoisalat: Set<KayttajaYliopistoErikoisalaDTO>?,
-        yliopistoId: Long? = null
-    ) {
-        requireNotNull(yliopistotAndErikoisalat)
-        require(yliopistotAndErikoisalat.isNotEmpty())
-        yliopistotAndErikoisalat.forEach { kayttajaYliopistoErikoisalaDTO ->
-            requireNotNull(kayttajaYliopistoErikoisalaDTO.erikoisala)
-            yliopistoId?.let { require(kayttajaYliopistoErikoisalaDTO.yliopisto?.id == it) }
         }
     }
 
@@ -731,17 +679,9 @@ open class KayttajahallintaResource(
     ) {
         yliopistotAndErikoisalat?.forEach {
             if (it.yliopisto?.id != yliopistoId) {
-                throw BadRequestAlertException(
-                    "Vastuuhenkilön yliopistoa ei voi vaihtaa",
-                    KAYTTAJA_ENTITY_NAME,
-                    "dataillegal.vastuuhenkilon-yliopistoa-ei-voi-vaihtaa"
-                )
+                throw BadRequestAlertException("Vastuuhenkilön yliopistoa ei voi vaihtaa", KAYTTAJA_ENTITY_NAME, "dataillegal.vastuuhenkilon-yliopistoa-ei-voi-vaihtaa")
             }
         }
-    }
-
-    private fun requireNotNull(values: List<String?>) {
-        values.forEach { requireNotNull(it) }
     }
 
     private fun tryToGetErikoistuvaLaakariByKayttajaId(kayttajaId: Long): ErikoistuvaLaakariDTO? =
@@ -754,39 +694,27 @@ open class KayttajahallintaResource(
     private fun getVirkailijaYliopistoOrThrow(virkailijaDTO: KayttajaDTO) =
         virkailijaDTO.yliopistot?.firstOrNull() ?: throw BadRequestAlertException(
             "Virkailijalle ei ole määritetty yliopistoa",
-            KAYTTAJA_ENTITY_NAME,
-            "dataillegal.virkailijalle-ei-ole-maaritetty-yliopistoa"
-
+            KAYTTAJA_ENTITY_NAME, "dataillegal.virkailijalle-ei-ole-maaritetty-yliopistoa"
         )
 
     private fun getKayttajaOrThrow(kayttajaId: Long): KayttajaDTO =
         kayttajaService.findOne(kayttajaId).orElseThrow {
-            BadRequestAlertException(
-                "Käyttäjää ei löydy", KAYTTAJA_ENTITY_NAME, "dataillegal.kayttajaa-ei-loydy"
-            )
+            BadRequestAlertException("Käyttäjää ei löydy", KAYTTAJA_ENTITY_NAME, "dataillegal.kayttajaa-ei-loydy")
         }
 
     private fun getKayttajaByUserIdOrThrow(userId: String): KayttajaDTO =
         kayttajaService.findByUserId(userId).orElseThrow {
-            BadRequestAlertException(
-                "Käyttäjää ei löydy", KAYTTAJA_ENTITY_NAME, "dataillegal.kayttajaa-ei-loydy"
-            )
+            BadRequestAlertException("Käyttäjää ei löydy", KAYTTAJA_ENTITY_NAME, "dataillegal.kayttajaa-ei-loydy")
         }
 
     private fun getErikoistuvaLaakariByIdOrThrow(id: Long): ErikoistuvaLaakariDTO =
         erikoistuvaLaakariService.findOne(id).orElseThrow {
-            BadRequestAlertException(
-                ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR,
-                ERIKOISTUVA_LAAKARI_ENTITY_NAME,
-                "dataillegal.erikoistuvaa-laakaria-ei-loydy"
-            )
+            BadRequestAlertException(ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR, ERIKOISTUVA_LAAKARI_ENTITY_NAME, "dataillegal.erikoistuvaa-laakaria-ei-loydy")
         }
 
     private fun getErikoistuvaLaakariByKayttajaIdOrThrow(kayttajaId: Long): ErikoistuvaLaakariDTO =
         erikoistuvaLaakariService.findOneByKayttajaId(kayttajaId) ?: throw BadRequestAlertException(
-            ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR,
-            ERIKOISTUVA_LAAKARI_ENTITY_NAME,
-            "dataillegal.erikoistuvaa-laakaria-ei-loydy"
+            ERIKOISTUVA_LAAKARI_NOT_FOUND_ERROR, ERIKOISTUVA_LAAKARI_ENTITY_NAME, "dataillegal.erikoistuvaa-laakaria-ei-loydy"
         )
 
     private fun getErikoistuvaLaakariByUserIdOrThrow(userId: String): ErikoistuvaLaakariDTO =
@@ -797,14 +725,44 @@ open class KayttajahallintaResource(
         )
 
     private fun getVirkailijaException() = BadRequestAlertException(
-        "Virkailija voi hallinnoida vain oman yliopistonsa käyttäjiä",
-        KAYTTAJA_ENTITY_NAME,
+        "Virkailija voi hallinnoida vain oman yliopistonsa käyttäjiä", KAYTTAJA_ENTITY_NAME,
         "dataillegal.virkailija-voi-hallinnoida-vain-oman-yliopistonsa-kayttajia"
     )
 
     private fun getVastuuhenkilonTehtavatException() = BadRequestAlertException(
         "Virhe vastuuhenkilön tehtävien määrittelyssä",
-        KAYTTAJA_ENTITY_NAME,
-        "dataillegal.vastuuhenkilon-tehtavat-maaritettava-enintaan-yhdelle-vastuuhenkilolle"
+        KAYTTAJA_ENTITY_NAME, "dataillegal.vastuuhenkilon-tehtavat-maaritettava-enintaan-yhdelle-vastuuhenkilolle"
     )
 }
+
+private fun validateDTOYliopistotAndErikoisalat(
+    yliopistotAndErikoisalat: Set<KayttajaYliopistoErikoisalaDTO>?,
+    yliopistoId: Long? = null
+) {
+    if (yliopistotAndErikoisalat.isNullOrEmpty()) {
+        throw missingRequiredField("yliopistotAndErikoisalat")
+    }
+    yliopistotAndErikoisalat.forEach { yliopistoAndErikoisala ->
+        if (yliopistoAndErikoisala.erikoisala == null) {
+            throw missingRequiredField("erikoisala")
+        }
+        if (yliopistoId != null && yliopistoAndErikoisala.yliopisto?.id != yliopistoId) {
+            throw BadRequestAlertException(
+                "Vastuuhenkilön yliopistoa ei voi vaihtaa",
+                KAYTTAJA_ENTITY_NAME,
+                "dataillegal.vastuuhenkilon-yliopistoa-ei-voi-vaihtaa"
+            )
+        }
+    }
+}
+
+private fun validateRequiredNames(etunimi: String?, sukunimi: String?) {
+    if (etunimi == null) throw missingRequiredField("etunimi")
+    if (sukunimi == null) throw missingRequiredField("sukunimi")
+}
+
+private fun missingRequiredField(fieldName: String) = BadRequestAlertException(
+    "Pakollinen tieto puuttuu: $fieldName",
+    KAYTTAJA_ENTITY_NAME,
+    "dataillegal.pakollinen-tieto-puuttuu"
+)

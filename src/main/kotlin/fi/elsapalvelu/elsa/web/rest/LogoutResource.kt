@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import java.security.Principal
 import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
@@ -7,7 +8,6 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
-import java.security.Principal
 import jakarta.servlet.http.HttpServletRequest
 
 @RestController
@@ -17,7 +17,7 @@ class LogoutResource(
 ) {
 
     @GetMapping("/api/local-logout")
-    fun localLogout(request: HttpServletRequest): ResponseEntity<Void> {
+    fun localLogout(request: HttpServletRequest): ResponseEntity<Unit> {
         request.session.invalidate()
         return ResponseEntity.ok().build()
     }

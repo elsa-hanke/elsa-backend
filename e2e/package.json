@@ -4,7 +4,9 @@
   "private": true,
   "description": "End-to-end tests for Elsa backend",
   "scripts": {
-    "cy:open": "cypress open"
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:headed": "cypress run --headed"
   },
   "packageManager": "yarn@1.22.22",
   "engines": {
@@ -12,9 +14,8 @@
   },
   "devDependencies": {
     "@types/pg": "^8.11.0",
-    "cypress": "^15.13.0",
+    "cypress": "^15.20.1",
     "pg": "^8.13.0",
     "typescript": "^6.0.0"
   }
 }
-

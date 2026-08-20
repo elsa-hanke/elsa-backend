@@ -3,10 +3,19 @@ package fi.elsapalvelu.elsa.web.rest.kouluttaja
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.enumeration.ArvioinninPerustuminen
-import fi.elsapalvelu.elsa.repository.SuoritusarviointiRepository
+import fi.elsapalvelu.elsa.domain.koejakso.*
+import fi.elsapalvelu.elsa.domain.tyoskentely.*
+import fi.elsapalvelu.elsa.domain.arviointi.*
+import fi.elsapalvelu.elsa.domain.suoritteet.*
+import fi.elsapalvelu.elsa.domain.koulutus.*
+import fi.elsapalvelu.elsa.domain.seuranta.*
+import fi.elsapalvelu.elsa.domain.valmistuminen.*
+import fi.elsapalvelu.elsa.domain.kayttaja.*
+import fi.elsapalvelu.elsa.domain.perustiedot.*
+import fi.elsapalvelu.elsa.domain.arviointi.ArvioinninPerustuminen
+import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
-import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
@@ -188,7 +197,7 @@ class KouluttajaSuoritusarviointiResourceIT {
             .andExpect(jsonPath("$.lisatiedot").value(DEFAULT_LISATIEDOT))
     }
 
-    fun initTest(userId: String? = DEFAULT_ID) {
+    fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -206,8 +215,6 @@ class KouluttajaSuoritusarviointiResourceIT {
     }
 
     companion object {
-
-        private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
 
         private val DEFAULT_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.now(ZoneId.systemDefault())

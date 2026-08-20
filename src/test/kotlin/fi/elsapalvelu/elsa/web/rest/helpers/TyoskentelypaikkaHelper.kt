@@ -1,14 +1,12 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.Kunta
-import fi.elsapalvelu.elsa.domain.Tyoskentelypaikka
-import fi.elsapalvelu.elsa.domain.enumeration.TyoskentelyjaksoTyyppi
+import fi.elsapalvelu.elsa.domain.perustiedot.Kunta
+import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelypaikka
+import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 
-class TyoskentelypaikkaHelper {
-
-    companion object {
+object TyoskentelypaikkaHelper {
 
         const val DEFAULT_NIMI = "AAAAAAAAAA"
         const val UPDATED_NIMI = "BBBBBBBBBB"
@@ -66,5 +64,5 @@ class TyoskentelypaikkaHelper {
 
             return tyoskentelypaikka
         }
-    }
+
 }

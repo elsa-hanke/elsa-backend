@@ -1,14 +1,14 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.domain.kayttaja.Authority
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import fi.elsapalvelu.elsa.security.ADMIN
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.USER
-import fi.elsapalvelu.elsa.service.dto.UserDTO
-import fi.elsapalvelu.elsa.service.mapper.UserMapper
+import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.UserMapper
 import fi.elsapalvelu.elsa.web.rest.createByteArray
 import fi.elsapalvelu.elsa.web.rest.equalsVerifier
 import org.apache.commons.lang3.RandomStringUtils

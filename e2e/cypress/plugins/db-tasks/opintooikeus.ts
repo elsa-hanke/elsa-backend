@@ -1,6 +1,6 @@
 import { Client } from 'pg'
 import { dbClient, withDb } from './db-client'
-import {addRoletoUser, getErikoistujaLaakariId} from './db-helpers'
+import {addRoletoUser, getErikoistujaLaakariId, getOpintooikeusId} from './db-helpers'
 
 export type OpintoOikeus = {
   id: number,
@@ -24,12 +24,20 @@ export type OpintoOikeus = {
 
 
 export const opintoOikeusTasks = {
+  async 'db:getActiveOpintooikeusId'({ email }: { email: string }): Promise<number | null> {
+    return withDb(dbClient, async (client: Client) => getOpintooikeusId(client, email))
+  },
+
   async 'db:seedOpintooikeus'({
     email,
     opintoOikeus,
+    updateCurrent = false,
+    generateId = false,
   }: {
     email: string
     opintoOikeus: OpintoOikeus
+    updateCurrent?: boolean
+    generateId?: boolean
   }): Promise<number> {
     return withDb(dbClient, async (client: Client) => {
       if (!opintoOikeus) {
@@ -50,15 +58,78 @@ export const opintoOikeusTasks = {
       console.log(opintoOikeus)
 
       opintoOikeus.erikoistuva_laakari_id = erikoistuva
+      if (updateCurrent) {
+        const currentOpintooikeus = await client.query(
+          `SELECT id FROM public.opintooikeus WHERE erikoistuva_laakari_id = $1 AND kaytossa = true LIMIT 1`,
+          [erikoistuva]
+        )
+        const currentId: number | undefined = currentOpintooikeus.rows[0]?.id
+        if (!currentId) {
+          throw new Error(`Could not find active opintooikeus for ${email}`)
+        }
+
+        await client.query(
+          `UPDATE public.opintooikeus
+           SET opintooikeuden_myontamispaiva = $2,
+               opintooikeuden_paattymispaiva = $3,
+               opiskelijatunnus = $4,
+               osaamisen_arvioinnin_oppaan_pvm = $5,
+               yliopisto_id = $6,
+               erikoisala_id = $7,
+               opintoopas_id = $8,
+               asetus_id = $9,
+               kaytossa = $10,
+               yliopisto_opintooikeus_id = $11,
+               tila = $12,
+               muokkausaika = $13,
+               terveyskeskuskoulutusjakso_suoritettu = $14,
+               muokkausoikeudet_virkailijoilla = $15,
+               viimeinen_katselupaiva = $16
+           WHERE id = $1`,
+          [
+            currentId,
+            opintoOikeus.myontamispaiva,
+            opintoOikeus.paattymispaiva,
+            opintoOikeus.opiskelijatunnus,
+            opintoOikeus.osaamisen_arvioinnin_oppaan_pvm,
+            opintoOikeus.yliopisto_id,
+            opintoOikeus.erikoisala_id,
+            opintoOikeus.opintoopas_id,
+            opintoOikeus.asetus_id,
+            opintoOikeus.kaytossa,
+            opintoOikeus.yliopisto_opintooikeus_id,
+            opintoOikeus.tila,
+            opintoOikeus.muokkausaika,
+            opintoOikeus.terveyskeskuskoulutusjakso_suoritettu,
+            opintoOikeus.muokkausoikeudet_virkailijoilla,
+            opintoOikeus.viimeinen_katselupaiva
+          ]
+        )
+        await client.query(
+          `UPDATE public.erikoistuva_laakari SET aktiivinen_opintooikeus = $1 WHERE id = $2`,
+          [currentId, erikoistuva]
+        )
+        return currentId
+      }
+
       if ( opintoOikeus.kaytossa ) {
         await client.query(`UPDATE public.opintooikeus SET kaytossa = false WHERE erikoistuva_laakari_id = $1`, [erikoistuva])
+      }
+
+      if (generateId) {
+        const idResult = await client.query<{ id: string }>(
+          `SELECT nextval(
+             pg_get_serial_sequence('public.opintooikeus', 'id')
+           ) AS id`
+        )
+        opintoOikeus.id = Number(idResult.rows[0].id)
       }
 
       const sql = "INSERT INTO public.opintooikeus (id, opintooikeuden_myontamispaiva, opintooikeuden_paattymispaiva, opiskelijatunnus, " +
         "osaamisen_arvioinnin_oppaan_pvm, erikoistuva_laakari_id, yliopisto_id, erikoisala_id, opintoopas_id, asetus_id, kaytossa, yliopisto_opintooikeus_id, tila, muokkausaika, terveyskeskuskoulutusjakso_suoritettu, muokkausoikeudet_virkailijoilla, viimeinen_katselupaiva) " +
         "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) returning id";
 
-      const res = await client.query(sql, [
+      const res = await client.query<{ id: number }>(sql, [
         opintoOikeus.id,
         opintoOikeus.myontamispaiva,
         opintoOikeus.paattymispaiva,
@@ -78,8 +149,18 @@ export const opintoOikeusTasks = {
         opintoOikeus.viimeinen_katselupaiva
       ])
 
-      console.log(res.rows[0].id)
-      return opintoOikeus.id
+      const insertedId = Number(res.rows[0].id)
+      if (opintoOikeus.kaytossa) {
+        await client.query(
+          `UPDATE public.erikoistuva_laakari
+           SET aktiivinen_opintooikeus = $1
+           WHERE id = $2`,
+          [insertedId, erikoistuva]
+        )
+      }
+
+      console.log(insertedId)
+      return insertedId
 
     })
   },

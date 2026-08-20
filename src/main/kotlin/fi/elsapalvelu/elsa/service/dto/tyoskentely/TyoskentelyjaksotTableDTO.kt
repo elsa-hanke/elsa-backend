@@ -1,0 +1,26 @@
+package fi.elsapalvelu.elsa.service.dto.tyoskentely
+
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
+import java.io.Serializable
+
+class TyoskentelyjaksotTableDTO(
+
+    var tyoskentelyjaksot: MutableSet<TyoskentelyjaksoDTO> = mutableSetOf(),
+
+    var keskeytykset: MutableSet<KeskeytysaikaDTO> = mutableSetOf(),
+
+    var tilastot: TyoskentelyjaksotTilastotDTO? = null,
+
+    var terveyskeskuskoulutusjaksonTila: TerveyskeskuskoulutusjaksoTila? = null,
+
+    var terveyskeskuskoulutusjaksonKorjausehdotus: String? = null,
+
+    var terveyskeskuskoulutusjaksonHyvaksymispvm: LocalDate? = null
+
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+    override fun toString() = "TyoskentelyjaksotTableDTO"
+}

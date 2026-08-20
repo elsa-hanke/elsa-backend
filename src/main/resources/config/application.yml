@@ -15,6 +15,8 @@
 # ===================================================================
 
 management:
+  server:
+    port: 8081
   endpoints:
     web:
       base-path: /management
@@ -28,9 +30,11 @@ management:
             "jhimetrics",
             "logfile",
             "loggers",
+            "metrics",
             "threaddump",
             "caches",
             "liquibase",
+            "jobtrigger",
           ]
   endpoint:
     health:
@@ -79,7 +83,7 @@ logging:
     javax.management.remote: WARN
     jdk.event.security: INFO
     jdk.internal.httpclient: WARN
-    liquibase: WARN
+    liquibase: INFO
     org.apache: WARN
     org.ehcache: WARN
     org.glassfish.jaxb.runtime: WARN
@@ -269,6 +273,8 @@ application:
       endpoint-url: https://mixqa.uef.fi/api/v1/elsa
   feedback:
     to: julia.sillanpaa@tuni.fi
+  alert:
+    sns-topic-arn: ${APPLICATION_ALERT_SNS_TOPIC_ARN:}
   opintohallintoemail:
     hki:
     oulu:
@@ -328,14 +334,14 @@ application:
           valmistuminen:
             title: "Valmistumisen yhteenveto"
             type: "Raportti"
-            siilo-koodi: "0b00000000001e0e"
+            siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_VALMISTUMINEN_SIILO_KOODI:0b00000000001e0e}
             function: "04.12"
             documents:
               yhteenveto:
                 retention-period: "20"
           koejakso:
             title: "Koejakson arviointi"
-            siilo-koodi: "0b00000000001e10"
+            siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_KOEJAKSO_SIILO_KOODI:0b00000000001e10}
             type: "Muu"
             function: "04.12"
             documents:
@@ -343,7 +349,7 @@ application:
                 retention-period: "20"
           sopimus:
             title: "Koulutuspaikkasopimus"
-            siilo-koodi: "0b00000000001e0f"
+            siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_SOPIMUS_SIILO_KOODI:0b00000000001e0f}
             type: "Sopimus"
             function: "04.12"
             documents:

@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Opintosuoritus
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.domain.enumeration.OpintosuoritusTyyppiEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -61,7 +61,7 @@ class YekKoulutettavaTeoriakoulutusResourceIT {
     }
 
 
-    fun initTest(userId: String? = KayttajaHelper.DEFAULT_ID) {
+    fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -101,6 +101,6 @@ class YekKoulutettavaTeoriakoulutusResourceIT {
 
     companion object {
         private const val OPINTOSUORITUS1_KURSSIKOODI = "YLEE0028"
-        private val ENTITY_API_URL: String = "/api/yek-koulutettava/teoriakoulutukset"
+        private const val ENTITY_API_URL: String = "/api/yek-koulutettava/teoriakoulutukset"
     }
 }

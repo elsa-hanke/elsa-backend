@@ -1,16 +1,14 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.Arviointiasteikko
-import fi.elsapalvelu.elsa.domain.Erikoisala
-import fi.elsapalvelu.elsa.domain.Opintoopas
+import fi.elsapalvelu.elsa.domain.arviointi.Arviointiasteikko
+import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
+import fi.elsapalvelu.elsa.domain.koulutus.Opintoopas
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
 
-class OpintoopasHelper {
-
-    companion object {
+object OpintoopasHelper {
 
         private const val DEFAULT_NIMI = "AAAAAAAAAA"
         private const val UPDATED_NIMI = "BBBBBBBBBB"
@@ -98,7 +96,7 @@ class OpintoopasHelper {
                 erikoisalanVaatimaJohtamisopintojenVahimmaismaara =
                 UPDATED_ERIKOISALAN_VAATIMA_JOHTAMISOPINTOJEN_VAHIMMAISMAARA
             )
+
         }
-    }
 
 }

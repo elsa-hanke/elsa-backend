@@ -18,7 +18,7 @@ import jakarta.persistence.MappedSuperclass
  */
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener::class)
-abstract class AbstractAuditingEntity(
+open class AbstractAuditingEntity(
 
     @CreatedBy
     @Column(name = "created_by", nullable = false, length = 50, updatable = false)

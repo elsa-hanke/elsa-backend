@@ -1,17 +1,38 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.koejakso.*
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
+import fi.elsapalvelu.elsa.service.dto.arviointi.*
+import fi.elsapalvelu.elsa.service.dto.suoritteet.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.*
+import fi.elsapalvelu.elsa.service.dto.seuranta.*
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.*
+import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.security.Principal
 
 @RestController
 @RequestMapping("/api/virkailija/etusivu")
@@ -38,7 +59,7 @@ class VirkailijaEtusivuResource(
         pageable: Pageable,
         principal: Principal?
     ): ResponseEntity<Page<ErikoistujanEteneminenVirkailijaDTO>> {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val erikoistujat =
             etusivuService.getErikoistujienSeurantaForVirkailija(userId, criteria, pageable)
         return ResponseEntity.ok(erikoistujat)
@@ -50,7 +71,7 @@ class VirkailijaEtusivuResource(
         pageable: Pageable,
         principal: Principal?
     ): ResponseEntity<Page<KoulutettavanEteneminenDTO>> {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val koulutettavat =
             etusivuService.getKoulutettavienSeurantaForVirkailija(userId, criteria, pageable)
         return ResponseEntity.ok(koulutettavat)
@@ -58,7 +79,7 @@ class VirkailijaEtusivuResource(
 
     @GetMapping("/yliopisto")
     fun getYliopisto(principal: Principal?): ResponseEntity<String> {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val yliopistoNimi =
             kayttajaService.findByUserId(userId).get().yliopistot?.firstOrNull()?.nimi
         return ResponseEntity.ok(yliopistoNimi)
@@ -71,7 +92,7 @@ class VirkailijaEtusivuResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             koejaksonVaiheetService.findAllAvoinByVirkailijaKayttajaUserId(
-                user.id!!
+                user.id.required()
             )
         )
     }
@@ -83,7 +104,7 @@ class VirkailijaEtusivuResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             valmistumispyyntoService.findAllForVirkailijaByCriteria(
-                user.id!!,
+                user.id.required(),
                 NimiErikoisalaAndAvoinCriteria(avoin = true),
                 listOf(),
                 listOf(YEK_ERIKOISALA_ID),
@@ -99,7 +120,7 @@ class VirkailijaEtusivuResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             valmistumispyyntoService.findAllForVirkailijaByCriteria(
-                user.id!!,
+                user.id.required(),
                 NimiErikoisalaAndAvoinCriteria(avoin = true),
                 listOf(YEK_ERIKOISALA_ID),
                 listOf(),

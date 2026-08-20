@@ -16,7 +16,6 @@ import tech.jhipster.config.JHipsterConstants
  *
  * By default, it only runs with the "dev" profile.
  */
-@Suppress("unused")
 @Aspect
 open class LoggingAspect(private val env: Environment) {
 

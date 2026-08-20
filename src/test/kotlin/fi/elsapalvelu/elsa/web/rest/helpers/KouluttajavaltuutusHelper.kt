@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus
-import fi.elsapalvelu.elsa.domain.Opintooikeus
+import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
+import fi.elsapalvelu.elsa.domain.kayttaja.Kouluttajavaltuutus
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.Instant
 import java.time.LocalDate
@@ -11,9 +11,7 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import jakarta.persistence.EntityManager
 
-class KouluttajavaltuutusHelper {
-
-    companion object {
+object KouluttajavaltuutusHelper {
 
         private val DEFAULT_ALKAMISPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_ALKAMISPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())
@@ -118,5 +116,5 @@ class KouluttajavaltuutusHelper {
 
             return kouluttajavaltuutus
         }
-    }
+
 }

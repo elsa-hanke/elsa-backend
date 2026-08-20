@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
-import java.io.Serializable
 import java.time.LocalDate
+import java.io.Serializable
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
@@ -43,5 +43,9 @@ data class KayttajahallintaErikoistuvaLaakariDTO(
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaErikoistuvaLaakariDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 

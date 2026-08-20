@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.criteria
 
-import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
 import tech.jhipster.service.Criteria
 import tech.jhipster.service.filter.LongFilter
 import tech.jhipster.service.filter.StringFilter
@@ -22,7 +21,8 @@ data class ErikoistujanEteneminenCriteria(
         this(
             other.nimi?.copy(),
             other.erikoisalaId?.copy(),
-            other.asetusId?.copy()
+            other.asetusId?.copy(),
+            other.naytaPaattyneet
         )
 
     override fun copy() = ErikoistujanEteneminenCriteria(this)

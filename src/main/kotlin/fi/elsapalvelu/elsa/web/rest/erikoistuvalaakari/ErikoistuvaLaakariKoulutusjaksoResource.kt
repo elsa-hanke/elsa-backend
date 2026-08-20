@@ -1,18 +1,29 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.repository.KoulutusjaksoRepository
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
+import fi.elsapalvelu.elsa.repository.koulutus.KoulutusjaksoRepository
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.KoulutusjaksoDTO
-import fi.elsapalvelu.elsa.service.dto.KoulutusjaksoFormDTO
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutusjaksoDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutusjaksoFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.security.Principal
 import java.util.*
 import jakarta.validation.Valid
 
@@ -33,16 +44,13 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         const val ENTITY_NAME = "koulutusjakso"
     }
 
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
-
     @PostMapping("/koulutusjaksot")
     fun createKoulutusjakso(
         @Valid @RequestBody koulutusjaksoDTO: KoulutusjaksoDTO,
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         if (koulutusjaksoDTO.id != null) {
             throw BadRequestAlertException(
@@ -51,8 +59,8 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
                 "idexists"
             )
         }
-        koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
-            return ResponseEntity
+        return koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
+            ResponseEntity
                 .created(URI("/api/koulutusjaksot/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -65,7 +73,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         if (koulutusjaksoDTO.id == null) {
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
@@ -87,8 +95,8 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
             )
         }
 
-        koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
-            return ResponseEntity.ok(it)
+        return koulutusjaksoService.save(koulutusjaksoDTO, opintooikeusId)?.let {
+            ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
@@ -97,7 +105,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<List<KoulutusjaksoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         return ResponseEntity.ok(
             koulutusjaksoService
@@ -111,7 +119,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         return koulutusjaksoService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
@@ -122,9 +130,9 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
     fun deleteKoulutusjakso(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         if (koulutusjaksoService.findOne(id, opintooikeusId)?.lukittu == true) {
             throw BadRequestAlertException(
@@ -145,7 +153,7 @@ class ErikoistuvaLaakariKoulutusjaksoResource(
         principal: Principal?
     ): ResponseEntity<KoulutusjaksoFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+        val opintooikeusId = opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val form = KoulutusjaksoFormDTO()
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService

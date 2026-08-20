@@ -1,10 +1,32 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.koejakso.*
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
+import fi.elsapalvelu.elsa.service.dto.arviointi.*
+import fi.elsapalvelu.elsa.service.dto.suoritteet.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.*
+import fi.elsapalvelu.elsa.service.dto.seuranta.*
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.*
+import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
@@ -12,7 +34,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import tech.jhipster.service.filter.LongFilter
-import java.security.Principal
 
 @RestController
 @RequestMapping("/api/vastuuhenkilo/etusivu")
@@ -27,11 +48,10 @@ class VastuuhenkiloEtusivuResource(
 
     @GetMapping("/erikoistujien-seuranta-rajaimet")
     fun getErikoistujienSeurantaRajaimet(
-        pageable: Pageable,
         principal: Principal?
     ): ResponseEntity<ErikoistujienSeurantaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaVastuuhenkiloRajaimet(user.id!!))
+        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaVastuuhenkiloRajaimet(user.id.required()))
     }
 
     @GetMapping("/erikoistujien-seuranta")
@@ -41,7 +61,7 @@ class VastuuhenkiloEtusivuResource(
         principal: Principal?
     ): ResponseEntity<Page<ErikoistujanEteneminenDTO>?> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaForVastuuhenkilo(user.id!!, criteria, pageable))
+        return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaForVastuuhenkilo(user.id.required(), criteria, pageable))
     }
 
     @GetMapping("/koulutettavien-seuranta")
@@ -50,7 +70,7 @@ class VastuuhenkiloEtusivuResource(
         pageable: Pageable,
         principal: Principal?
     ): ResponseEntity<Page<KoulutettavanEteneminenDTO>> {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val koulutettavat =
             etusivuService.getKoulutettavienSeurantaForVastuuhenkilo(userId, criteria, pageable)
         return ResponseEntity.ok(koulutettavat)
@@ -63,7 +83,7 @@ class VastuuhenkiloEtusivuResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             koejaksonVaiheetService.findAllByVastuuhenkiloKayttajaUserId(
-                user.id!!,
+                user.id.required(),
                 true
             )
         )
@@ -76,7 +96,7 @@ class VastuuhenkiloEtusivuResource(
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
             valmistumispyyntoService.findAllForVastuuhenkiloByCriteria(
-                user.id!!,
+                user.id.required(),
                 NimiErikoisalaAndAvoinCriteria(avoin = true),
                 Pageable.unpaged()
             ).content
@@ -92,7 +112,7 @@ class VastuuhenkiloEtusivuResource(
         erikoisalaFilter.equals = YEK_ERIKOISALA_ID
         return ResponseEntity.ok(
             valmistumispyyntoService.findAllForVastuuhenkiloByCriteria(
-                user.id!!,
+                user.id.required(),
                 NimiErikoisalaAndAvoinCriteria(avoin = true, erikoisalaId = erikoisalaFilter),
                 Pageable.unpaged()
             ).content
@@ -105,13 +125,13 @@ class VastuuhenkiloEtusivuResource(
     ): ResponseEntity<List<EtusivuSeurantajaksoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(
-            seurantajaksoService.findAvoinByKouluttajaUserId(user.id!!)
+            seurantajaksoService.findAvoinByKouluttajaUserId(user.id.required())
         )
     }
 
     @GetMapping("/yliopisto")
     fun getYliopisto(principal: Principal?): ResponseEntity<String> {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val yliopistoNimi =
             kayttajaService.findByUserId(userId).get().yliopistotAndErikoisalat?.firstOrNull()?.yliopisto?.nimi
         return ResponseEntity.ok(yliopistoNimi)

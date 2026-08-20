@@ -1,17 +1,39 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.koejakso.*
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
+import fi.elsapalvelu.elsa.service.dto.arviointi.*
+import fi.elsapalvelu.elsa.service.dto.suoritteet.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.*
+import fi.elsapalvelu.elsa.service.dto.seuranta.*
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.*
+import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority
 import org.springframework.web.bind.annotation.*
-import java.security.Principal
 import jakarta.validation.Valid
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 
@@ -30,7 +52,7 @@ class KayttajaResource(
 
     @GetMapping("/kayttaja")
     fun getKayttaja(principal: Principal?): UserDTO {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val user = userService.getUser(userId)
         val authorities =
             (principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
@@ -57,7 +79,7 @@ class KayttajaResource(
 
     @GetMapping("/kayttaja-lisatiedot")
     fun getKayttajaLisatiedot(principal: Principal?): KayttajaTiedotDTO {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val kayttaja = kayttajaService.findByUserId(userId).orElse(null)
         return KayttajaTiedotDTO(
             nimike = kayttaja?.nimike,
@@ -67,7 +89,7 @@ class KayttajaResource(
                     KayttajaYliopistoErikoisalatDTO(
                         it.key,
                         it.value.filter { kye -> kye.erikoisala != null }
-                            .map { kye -> kye.erikoisala!! }
+                            .map { kye -> kye.erikoisala.required() }
                     )
                 }?.toMutableSet(),
             yliopistot = yliopistoService.findAll(),
@@ -91,9 +113,9 @@ class KayttajaResource(
         @Valid @RequestParam kayttajanYliopistotJaErikoisalat: String?,
         principal: Principal?
     ): UserDTO {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val user = userService.getUser(userId)
-        val email = omatTiedotDTO.email!!.lowercase()
+        val email = omatTiedotDTO.email.required().lowercase()
 
         val userDTO = userService.getUser(userId)
         if (userDTO.email?.lowercase() != email && userService.existsByEmail(email)) {
@@ -106,14 +128,15 @@ class KayttajaResource(
 
         val kayttajanYliopistotDTO: List<KayttajaYliopistoErikoisalatDTO> =
             kayttajanYliopistotJaErikoisalat?.let {
+                @Suppress("UNCHECKED_CAST")
                 objectMapper.readValue(
                     kayttajanYliopistotJaErikoisalat,
                     objectMapper.typeFactory.constructCollectionType(
                         List::class.java,
                         KayttajaYliopistoErikoisalatDTO::class.java
                     )
-                )
-            } ?: listOf()
+                ) as List<KayttajaYliopistoErikoisalatDTO>
+            }.orEmpty()
 
         if (user.authorities?.contains(KOULUTTAJA) == true) {
             kayttajaService.updateKayttaja(
@@ -138,11 +161,11 @@ class KayttajaResource(
     fun vaihdaRooli(
         @Valid @RequestParam rooli: String,
         principal: Principal?
-    ): ResponseEntity<Void> {
-        val userId = userService.getAuthenticatedUser(principal).id!!
+    ): ResponseEntity<Unit> {
+        val userId = userService.getAuthenticatedUser(principal).id.required()
         val user = userService.getUser(userId)
 
-        if (user.authorities!!.size < 2) {
+        if (user.authorities.required().size < 2) {
             throw BadRequestAlertException(
                 "Käyttäjällä ei ole useita rooleja.",
                 KAYTTAJA_ENTITY_NAME,
@@ -150,7 +173,7 @@ class KayttajaResource(
             )
         }
 
-        if (!user.authorities!!.contains(rooli)) {
+        if (!user.authorities.required().contains(rooli)) {
             throw BadRequestAlertException(
                 "Käyttäjällä ei ole haluttua roolia.",
                 KAYTTAJA_ENTITY_NAME,

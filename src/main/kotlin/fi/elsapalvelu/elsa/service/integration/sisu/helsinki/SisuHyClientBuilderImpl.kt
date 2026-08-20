@@ -1,0 +1,111 @@
+package fi.elsapalvelu.elsa.service.integration.sisu.helsinki
+
+import fi.elsapalvelu.elsa.required
+
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.network.okHttpClient
+import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.interceptor.OkHttp3RequestInterceptor
+import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertKey
+import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
+import fi.elsapalvelu.elsa.service.integration.IntegrationAuthenticationAlertInterceptor
+import okhttp3.OkHttpClient
+import okhttp3.tls.HandshakeCertificates
+import okhttp3.tls.HeldCertificate
+import org.opensaml.security.x509.X509Support
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.io.Resource
+import org.springframework.core.io.ResourceLoader
+import org.springframework.security.converter.RsaKeyConverters
+import org.springframework.stereotype.Service
+import java.security.KeyPair
+import java.security.cert.X509Certificate
+import java.security.interfaces.RSAPrivateKey
+import java.util.concurrent.TimeUnit
+
+@Qualifier("SisuHy")
+@Service
+class SisuHyClientBuilderImpl(
+    applicationProperties: ApplicationProperties,
+    resourceLoader: ResourceLoader,
+    integrationAlertService: IntegrationAlertService
+) : GraphQLClientBuilder {
+
+    init {
+        Companion.applicationProperties = applicationProperties
+        Companion.resourceLoader = resourceLoader
+        Companion.integrationAlertService = integrationAlertService
+    }
+
+    companion object {
+
+        private lateinit var applicationProperties: ApplicationProperties
+        private lateinit var resourceLoader: ResourceLoader
+        private lateinit var integrationAlertService: IntegrationAlertService
+
+        val okHttpClient: OkHttpClient by lazy {
+            val sisuCertificates: HandshakeCertificates = sisuCertificates()
+            OkHttpClient.Builder()
+                .sslSocketFactory(sisuCertificates.sslSocketFactory(), sisuCertificates.trustManager)
+                .addInterceptor(
+                    OkHttp3RequestInterceptor(
+                        mapOf(
+                            "X-Api-Key" to applicationProperties.getSecurity().getSisuHy().apiKey.required()
+                        )
+                    )
+                )
+                .addInterceptor(
+                    IntegrationAuthenticationAlertInterceptor(
+                        integrationAlertService,
+                        IntegrationAlertKey.SISU_HY_AUTHENTICATION,
+                        "Helsingin Sisu",
+                        alertOnTlsFailure = true,
+                        alertOnNetworkFailure = true,
+                        resetOnSuccessfulResponse = false
+                    )
+                )
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(5, TimeUnit.SECONDS)
+                .writeTimeout(5, TimeUnit.SECONDS)
+                .build()
+        }
+
+        private fun sisuCertificates(): HandshakeCertificates {
+            val publicKeyResource: Resource =
+                resourceLoader.getResource(
+                    applicationProperties.getSecurity().getSisuHy().certificateLocation.required()
+                )
+            val bytes = publicKeyResource.inputStream.use { it.readBytes() }
+            val certificate: X509Certificate =
+                X509Support.decodeCertificate(bytes).required()
+            val privateKeyResource: Resource =
+                resourceLoader.getResource(
+                    applicationProperties.getSecurity().getSisuHy().privateKeyLocation.required()
+                )
+            val rsa: RSAPrivateKey =
+                RsaKeyConverters.pkcs8().convert(privateKeyResource.inputStream).required()
+            val keyPair = KeyPair(certificate.publicKey, rsa)
+            val certificates: HandshakeCertificates = HandshakeCertificates.Builder()
+                .addPlatformTrustedCertificates()
+                .heldCertificate(HeldCertificate(keyPair, certificate))
+                .build()
+            return certificates
+        }
+
+        val apolloClient: ApolloClient by lazy {
+            ApolloClient.Builder()
+                .serverUrl(applicationProperties.getSecurity().getSisuHy().graphqlEndpointUrl.required())
+                .okHttpClient(okHttpClient)
+                .build()
+        }
+    }
+
+    override fun apolloClient(): ApolloClient {
+        return apolloClient
+    }
+
+    override fun okHttpClient(): OkHttpClient {
+        return okHttpClient
+    }
+}

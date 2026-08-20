@@ -2,8 +2,8 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import fi.elsapalvelu.elsa.security.ANONYMOUS
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -18,6 +18,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertNotNull
 
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
 private const val DEFAULT_LOGIN = "johndoe"
 private const val DEFAULT_EMAIL = "johndoe@localhost"
 private const val DEFAULT_FIRSTNAME = "john"
@@ -36,7 +37,7 @@ class UserServiceIT {
 
     private lateinit var user: User
 
-    private lateinit var userDetails: MutableMap<String, List<Any>>
+    private val userDetails: MutableMap<String, List<Any>> = mutableMapOf()
 
     @BeforeEach
     fun init() {
@@ -48,10 +49,9 @@ class UserServiceIT {
             lastName = DEFAULT_LASTNAME,
             langKey = DEFAULT_LANGKEY
         )
-        userDetails = mutableMapOf(
-            "urn:oid:2.5.4.42" to listOf(DEFAULT_FIRSTNAME),
-            "urn:oid:2.5.4.4" to listOf(DEFAULT_LASTNAME)
-        )
+        userDetails.clear()
+        userDetails["urn:oid:2.5.4.42"] = listOf(DEFAULT_FIRSTNAME)
+        userDetails["urn:oid:2.5.4.4"] = listOf(DEFAULT_LASTNAME)
     }
 
     @Test

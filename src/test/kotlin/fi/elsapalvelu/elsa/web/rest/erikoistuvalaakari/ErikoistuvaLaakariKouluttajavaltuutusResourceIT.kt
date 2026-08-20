@@ -1,15 +1,15 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.Kayttaja
-import fi.elsapalvelu.elsa.domain.Kouluttajavaltuutus
-import fi.elsapalvelu.elsa.domain.Opintooikeus
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
+import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
+import fi.elsapalvelu.elsa.domain.kayttaja.Kouluttajavaltuutus
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
-import fi.elsapalvelu.elsa.service.mapper.KayttajaMapper
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KouluttajavaltuutusDTO
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.KayttajaMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper

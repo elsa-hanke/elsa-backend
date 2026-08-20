@@ -10,4 +10,8 @@ data class CaseProperties(
 
     var function: String
 
-) : Serializable
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

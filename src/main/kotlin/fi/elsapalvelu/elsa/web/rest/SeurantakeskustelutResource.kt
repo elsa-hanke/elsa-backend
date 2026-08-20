@@ -1,9 +1,13 @@
 package fi.elsapalvelu.elsa.web.rest
 
-import fi.elsapalvelu.elsa.service.SeurantajaksoService
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.dto.SeurantajaksoDTO
-import fi.elsapalvelu.elsa.service.dto.SeurantajaksonTiedotDTO
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
+import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
+import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksoDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksonTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.SeurantajaksoTila
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
@@ -11,7 +15,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
-import java.security.Principal
 import java.util.*
 
 private const val ENTITY_NAME = "seurantajakso"
@@ -25,7 +28,7 @@ open class SeurantakeskustelutResource(
     fun getSeurantajaksot(principal: Principal?): ResponseEntity<List<SeurantajaksoDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val seurantajaksot =
-            seurantajaksoService.findByKouluttajaUserId(user.id!!).groupBy { it.opintooikeusId }
+            seurantajaksoService.findByKouluttajaUserId(user.id.required()).groupBy { it.opintooikeusId }
         val result = mutableListOf<SeurantajaksoDTO>()
         seurantajaksot.forEach { (_, erikoistuvanJaksot) ->
             val sortedJaksot = sortSeurantajaksot(erikoistuvanJaksot)
@@ -43,7 +46,7 @@ open class SeurantakeskustelutResource(
         principal: Principal?
     ): ResponseEntity<SeurantajaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return seurantajaksoService.findByIdAndKouluttajaUserId(id, user.id!!)?.let {
+        return seurantajaksoService.findByIdAndKouluttajaUserId(id, user.id.required())?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
@@ -54,7 +57,7 @@ open class SeurantakeskustelutResource(
         @RequestParam id: Long
     ): ResponseEntity<SeurantajaksonTiedotDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(seurantajaksoService.findSeurantajaksonTiedot(id, user.id!!))
+        return ResponseEntity.ok(seurantajaksoService.findSeurantajaksonTiedot(id, user.id.required()))
     }
 
     @PutMapping("/seurantajakso/{id}")
@@ -80,7 +83,7 @@ open class SeurantakeskustelutResource(
             )
         }
 
-        val seurantajakso = seurantajaksoService.findByIdAndKouluttajaUserId(id, user.id!!)
+        val seurantajakso = seurantajaksoService.findByIdAndKouluttajaUserId(id, user.id.required())
             ?: throw BadRequestAlertException(
                 "Seurantajaksoa ei löydy",
                 ENTITY_NAME,
@@ -95,7 +98,7 @@ open class SeurantakeskustelutResource(
             )
         }
 
-        val result = seurantajaksoService.update(seurantajaksoDTO, user.id!!)
+        val result = seurantajaksoService.update(seurantajaksoDTO, user.id.required())
         return ResponseEntity.ok(result)
     }
 

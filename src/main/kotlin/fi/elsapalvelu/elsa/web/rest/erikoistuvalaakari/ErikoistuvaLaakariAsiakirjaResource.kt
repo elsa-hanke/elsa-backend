@@ -1,13 +1,26 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.GrantedAuthority
@@ -16,8 +29,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.net.URLEncoder
-import java.security.Principal
 import jakarta.validation.Valid
 
 private const val ENTITY_NAME = "asiakirja"
@@ -31,8 +42,6 @@ class ErikoistuvaLaakariAsiakirjaResource(
     private val opintooikeusService: OpintooikeusService,
     private val valmistumispyyntoService: ValmistumispyyntoService
 ) {
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
 
     @PostMapping("/asiakirjat")
     fun createAsiakirjat(
@@ -41,7 +50,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         if (!fileValidationService.validate(files, opintooikeusId)) {
             throw BadRequestAlertException(
@@ -52,8 +61,8 @@ class ErikoistuvaLaakariAsiakirjaResource(
         }
 
         val asiakirjat = files.map { it.mapAsiakirja() }
-        asiakirjaService.create(asiakirjat, opintooikeusId)?.let {
-            return ResponseEntity
+        return asiakirjaService.create(asiakirjat, opintooikeusId)?.let {
+            ResponseEntity
                 .created(URI("/api/asiakirjat"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -65,7 +74,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         var asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId)
 
         val authorities =
@@ -88,9 +97,9 @@ class ErikoistuvaLaakariAsiakirjaResource(
     ): ResponseEntity<List<String>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val asiakirjat = asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map {
-            it.nimi!!
+            it.nimi.required()
         }
 
         return ResponseEntity.ok(asiakirjat)
@@ -103,7 +112,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val asiakirja = asiakirjaService.findOne(id, opintooikeusId)
 
         val authorities =
@@ -119,31 +128,22 @@ class ErikoistuvaLaakariAsiakirjaResource(
             }
         }
 
-        asiakirja?.asiakirjaData?.fileInputStream?.use {
-            return ResponseEntity.ok()
-                .header(
-                    HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
-                )
-                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
-                .body(it.readBytes())
-        }
-
-        return ResponseEntity.notFound().build()
+        return asiakirja?.asiakirjaData?.fileInputStream
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
+            ?: ResponseEntity.notFound().build()
     }
 
     @DeleteMapping("/asiakirjat/{id}")
     fun deleteAsiakirja(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         asiakirjaService.delete(id, opintooikeusId)
         return ResponseEntity
             .noContent()
             .build()
     }
 }
-

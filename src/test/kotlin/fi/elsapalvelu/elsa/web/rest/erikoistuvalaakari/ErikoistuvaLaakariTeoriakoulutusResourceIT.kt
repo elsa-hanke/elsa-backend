@@ -1,22 +1,22 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.Teoriakoulutus
-import fi.elsapalvelu.elsa.domain.User
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.TeoriakoulutusRepository
+import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
+import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.mapper.TeoriakoulutusMapper
+import fi.elsapalvelu.elsa.service.mapper.koulutus.TeoriakoulutusMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.createByteArray
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper.Companion.ASIAKIRJA_PDF_NIMI
+import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper.ASIAKIRJA_PDF_NIMI
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.OpintoopasHelper.Companion.DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA
+import fi.elsapalvelu.elsa.web.rest.helpers.OpintoopasHelper.DEFAULT_ERIKOISALAN_VAATIMA_TEORIAKOULUTUSTEN_VAHIMMAISMAARA
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.hasItem
@@ -648,8 +648,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         val DEFAULT_FILE: ByteArray = createByteArray(1, "0")
         val UPDATED_FILE: ByteArray = createByteArray(1, "1")
 
-        private val ENTITY_API_URL: String = "/api/erikoistuva-laakari/teoriakoulutukset"
-        private val ENTITY_API_URL_ID: String = ENTITY_API_URL + "/{id}"
+        private const val ENTITY_API_URL: String = "/api/erikoistuva-laakari/teoriakoulutukset"
+        private const val ENTITY_API_URL_ID: String = ENTITY_API_URL + "/{id}"
 
         private val random: Random = SecureRandom()
         private val count: AtomicLong = AtomicLong(random.nextInt().toLong() + (2L * Integer.MAX_VALUE))

@@ -1,0 +1,145 @@
+package fi.elsapalvelu.elsa.service.impl.kayttaja
+
+import fi.elsapalvelu.elsa.required
+
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository
+import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.service.kayttaja.KouluttajavaltuutusService
+import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
+import fi.elsapalvelu.elsa.service.kayttaja.MailService
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KouluttajavaltuutusDTO
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.KouluttajavaltuutusMapper
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.util.*
+
+@Service
+@Transactional
+class KouluttajavaltuutusServiceImpl(
+    private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
+    private val kouluttajavaltuutusMapper: KouluttajavaltuutusMapper,
+    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val kayttajaRepository: KayttajaRepository,
+    private val mailService: MailService
+) : KouluttajavaltuutusService {
+
+    override fun save(
+        userId: String,
+        kouluttajavaltuutusDTO: KouluttajavaltuutusDTO,
+        sendMail: Boolean
+    ): KouluttajavaltuutusDTO {
+        var kouluttajavaltuutus = kouluttajavaltuutusMapper.toEntity(kouluttajavaltuutusDTO)
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        val opintooikeus = erikoistuvaLaakari?.getOpintooikeusKaytossa()
+
+        if (kouluttajavaltuutus.id == null) {
+            kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserId(
+                opintooikeus?.id.required(),
+                kayttajaRepository.findById(kouluttajavaltuutusDTO.valtuutettu?.id.required()).get().user?.id.required()
+            ).ifPresentOrElse({
+                kouluttajavaltuutus = it
+                kouluttajavaltuutus.paattymispaiva = kouluttajavaltuutusDTO.paattymispaiva
+            }, {
+                kouluttajavaltuutus.valtuuttajaOpintooikeus = opintooikeus
+                kouluttajavaltuutus.valtuutuksenLuontiaika = Instant.now()
+            })
+        } else {
+            kouluttajavaltuutusRepository.findById(kouluttajavaltuutus.id.required()).ifPresent {
+                kouluttajavaltuutus = it
+                kouluttajavaltuutus.paattymispaiva = kouluttajavaltuutusDTO.paattymispaiva
+            }
+        }
+        if (kouluttajavaltuutus.valtuuttajaOpintooikeus?.id == opintooikeus?.id) {
+            kouluttajavaltuutus.valtuutuksenMuokkausaika = Instant.now()
+            kouluttajavaltuutus = kouluttajavaltuutusRepository.save(kouluttajavaltuutus)
+
+            if (sendMail) {
+                mailService.sendEmailFromTemplate(
+                    kouluttajavaltuutus.valtuutettu?.user.required(),
+                    templateName = "katseluoikeudet.html",
+                    titleKey = "email.katseluoikeudet.title",
+                    properties = mapOf(
+                        Pair(
+                            MailProperty.NAME,
+                            erikoistuvaLaakari?.kayttaja.required().getNimi()
+                        ),
+                        Pair(
+                            MailProperty.ERIKOISALA,
+                            opintooikeus?.erikoisala?.nimi.required()
+                        ),
+                        Pair(
+                            MailProperty.YLIOPISTO,
+                            requireNotNull(opintooikeus).yliopisto?.nimi?.toString().required()
+                        ),
+                        Pair(
+                            MailProperty.DATE, kouluttajavaltuutus.paattymispaiva.required().format(
+                                DateTimeFormatter.ofPattern("dd.MM.yyyy")
+                            )
+                        )
+                    )
+                )
+            }
+        }
+
+        return kouluttajavaltuutusMapper.toDto(kouluttajavaltuutus)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAll(): List<KouluttajavaltuutusDTO> {
+        return kouluttajavaltuutusRepository.findAll()
+            .map(kouluttajavaltuutusMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAllValtuutettuByValtuuttajaKayttajaUserId(userId: String): List<KouluttajavaltuutusDTO> {
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        return kouluttajavaltuutusRepository.findAllByValtuuttajaOpintooikeusIdAndPaattymispaivaAfter(
+            erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id.required(),
+            LocalDate.now().minusDays(1)
+        ).sortedBy { it.paattymispaiva }.map(kouluttajavaltuutusMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findValtuutettuByValtuuttajaAndValtuutettu(
+        userId: String,
+        valtuutettuId: String,
+    ): Optional<KouluttajavaltuutusDTO> {
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        return kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
+            erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id.required(),
+            valtuutettuId,
+            LocalDate.now().minusDays(1)
+        )
+            .map(kouluttajavaltuutusMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findOne(id: Long): Optional<KouluttajavaltuutusDTO> {
+        return kouluttajavaltuutusRepository.findById(id)
+            .map(kouluttajavaltuutusMapper::toDto)
+    }
+
+    override fun delete(id: Long) {
+        kouluttajavaltuutusRepository.deleteById(id)
+    }
+
+    override fun lisaaValtuutus(erikoistuvaUserId: String, valtuutettuKayttajaId: Long) {
+        val valtuutettuKayttaja = kayttajaRepository.findById(valtuutettuKayttajaId).orElse(null)
+        if (valtuutettuKayttaja?.user?.authorities?.map { it.name }?.contains(KOULUTTAJA) == true) {
+            save(
+                erikoistuvaUserId,
+                KouluttajavaltuutusDTO(
+                    alkamispaiva = LocalDate.now(),
+                    paattymispaiva = LocalDate.now().plusMonths(6),
+                    valtuutettu = KayttajaDTO(id = valtuutettuKayttajaId)
+                )
+            )
+        }
+    }
+}

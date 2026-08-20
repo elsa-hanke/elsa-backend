@@ -1,5 +1,3 @@
-import {E2E_ERIKOISTUVA_EMAIL} from "../../support/commands";
-
 export {}
 
 /**
@@ -22,11 +20,10 @@ const KOULUTTAJA_SUKUNIMI = 'Kouluttaja'
 
 describe('Katseluoikeudet', () => {
   before(() => {
-    Cypress.session.clearAllSavedSessions()
-    cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
+    cy.resetErikoistuvaE2eState()
     // Seed the kouluttaja before logging in as erikoistuva.
     // Idempotent — safe to call on repeated runs.
-    cy.task('db:seedKouluttaja', {
+    cy.seedKouluttajaUser({
       email: KOULUTTAJA_EMAIL,
       etunimi: KOULUTTAJA_ETUNIMI,
       sukunimi: KOULUTTAJA_SUKUNIMI,

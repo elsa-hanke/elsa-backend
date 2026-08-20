@@ -1,0 +1,34 @@
+package fi.elsapalvelu.elsa.service.dto.arviointi
+
+import java.io.Serializable
+import java.time.Instant
+
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaDTO
+data class SuoritusarvioinninKommenttiDTO(
+
+    var id: Long? = null,
+
+    var teksti: String? = null,
+
+    var luontiaika: Instant? = null,
+
+    var muokkausaika: Instant? = null,
+
+    var kommentoija: KayttajaDTO? = null,
+
+    var suoritusarviointiId: Long? = null
+
+) : Serializable {
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SuoritusarvioinninKommenttiDTO) return false
+        return id != null && id == other.id
+    }
+
+    override fun hashCode() = 31
+}

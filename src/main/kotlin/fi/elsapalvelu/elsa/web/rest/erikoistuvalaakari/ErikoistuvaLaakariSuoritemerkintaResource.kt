@@ -1,17 +1,37 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.koejakso.*
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
+import fi.elsapalvelu.elsa.service.dto.arviointi.*
+import fi.elsapalvelu.elsa.service.dto.suoritteet.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.*
+import fi.elsapalvelu.elsa.service.dto.seuranta.*
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.*
+import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import java.security.Principal
 
 private const val ENTITY_NAME = "suoritemerkinta"
 
@@ -30,9 +50,6 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     private val suoriteService: SuoriteService
 ) {
 
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
-
     @PostMapping("/suoritemerkinnat")
     fun createSuoritemerkinta(
         @Valid @RequestBody uusiSuoritemerkintaDTO: UusiSuoritemerkintaDTO,
@@ -40,12 +57,12 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     ): ResponseEntity<List<SuoritemerkintaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
         uusiSuoritemerkintaDTO.arviointiasteikko =
             arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
-        suoritemerkintaService.create(uusiSuoritemerkintaDTO, user.id!!)?.let {
-            return ResponseEntity
+        return suoritemerkintaService.create(uusiSuoritemerkintaDTO, user.id.required())?.let {
+            ResponseEntity
                 .created(URI("/api/suoritemerkinnat"))
                 .body(it)
         } ?: throw BadRequestAlertException(
@@ -64,15 +81,15 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
 
-        if (suoritemerkintaDTO.arviointiasteikko != null) {
-            throw IllegalArgumentException("Käytettyä arviointiasteikkoa ei voi muokata")
+        require(suoritemerkintaDTO.arviointiasteikko == null) {
+            "Käytettyä arviointiasteikkoa ei voi muokata"
         }
 
         suoritemerkintaDTO.lukittu = false
         val user = userService.getAuthenticatedUser(principal)
 
-        suoritemerkintaService.save(suoritemerkintaDTO, user.id!!)?.let {
-            return ResponseEntity.ok(it)
+        return suoritemerkintaService.save(suoritemerkintaDTO, user.id.required())?.let {
+            ResponseEntity.ok(it)
         } ?: throw BadRequestAlertException(
             "Suoritemerkinnän työskentelyjakso täytyy olla oma.",
             ENTITY_NAME,
@@ -86,8 +103,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
         principal: Principal?
     ): ResponseEntity<SuoritemerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        suoritemerkintaService.findOne(id, user.id!!)?.let {
-            return ResponseEntity.ok(it)
+        return suoritemerkintaService.findOne(id, user.id.required())?.let {
+            ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 
@@ -95,9 +112,9 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     fun deleteSuoritemerkinta(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
-        suoritemerkintaService.delete(id, user.id!!)
+        suoritemerkintaService.delete(id, user.id.required())
         return ResponseEntity
             .noContent()
             .build()
@@ -109,7 +126,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     ): ResponseEntity<SuoritteetTableDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val table = SuoritteetTableDTO()
 
         table.suoritteenKategoriat = suoritteenKategoriaService
@@ -134,7 +151,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     ): ResponseEntity<SuoritemerkinnatOptionsDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val options = SuoritemerkinnatOptionsDTO()
         options.tyoskentelyjaksot = tyoskentelyjaksoService
             .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
@@ -150,7 +167,7 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     ): ResponseEntity<SuoritemerkintaFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val form = SuoritemerkintaFormDTO()
 
         form.tyoskentelyjaksot = tyoskentelyjaksoService
@@ -167,11 +184,8 @@ class ErikoistuvaLaakariSuoritemerkintaResource(
     }
 
     private fun toSortedSuoritteenKategoriat(suoritteenKategoriat: List<SuoritteenKategoriaDTO>): Set<SuoritteenKategoriaDTO> {
-        return suoritteenKategoriat.map {
-            it.apply {
-                suoritteet = suoritteet?.sortedBy { suoritteet -> suoritteet.nimi }?.toSet()
-            }
-            it
+        return suoritteenKategoriat.onEach {
+            it.suoritteet = it.suoritteet?.sortedBy { suorite -> suorite.nimi }?.toSet()
         }.sortedWith(compareBy({ it.jarjestysnumero }, { it.nimi })).toSet()
     }
 }

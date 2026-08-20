@@ -1,14 +1,26 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.repository.PaivakirjamerkintaRepository
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
+import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.criteria.PaivakirjamerkintaCriteria
-import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkinnatOptionsDTO
-import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkintaDTO
-import fi.elsapalvelu.elsa.service.dto.PaivakirjamerkintaFormDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjamerkinnatOptionsDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjamerkintaDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.PaivakirjamerkintaFormDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
@@ -20,7 +32,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.service.filter.BooleanFilter
 import java.net.URI
-import java.security.Principal
 import java.util.*
 import jakarta.validation.Valid
 
@@ -41,9 +52,6 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
         const val ENTITY_NAME = "paivakirjamerkinta"
     }
 
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
-
     @PostMapping("/paivakirjamerkinnat")
     fun createPaivakirjamerkinta(
         @Valid @RequestBody paivakirjamerkintaDTO: PaivakirjamerkintaDTO,
@@ -51,7 +59,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     ): ResponseEntity<PaivakirjamerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         if (paivakirjamerkintaDTO.id != null) {
             throw BadRequestAlertException(
                 "A new paivakirjamerkinta cannot already have an ID",
@@ -75,7 +83,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     ): ResponseEntity<PaivakirjamerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         if (paivakirjamerkintaDTO.id == null) {
             throw BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull")
         }
@@ -101,7 +109,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     ): ResponseEntity<Page<PaivakirjamerkintaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
                 .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED)
         ) {
@@ -125,7 +133,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     ): ResponseEntity<PaivakirjamerkintaDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         return paivakirjamerkintaService.findOne(id, opintooikeusId)?.let {
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
@@ -135,10 +143,10 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     fun deletePaivakirjamerkinta(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         paivakirjamerkintaService.delete(id, opintooikeusId)
 
         return ResponseEntity.noContent().build()
@@ -150,7 +158,7 @@ class ErikoistuvaLaakariPaivakirjamerkintaResource(
     ): ResponseEntity<PaivakirjamerkintaFormDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id!!)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
         val form = PaivakirjamerkintaFormDTO()
         form.aihekategoriat = paivakirjaAihekategoriaService.findAll().toMutableSet()
         form.teoriakoulutukset = teoriakoulutusService.findAll(opintooikeusId).toMutableSet()

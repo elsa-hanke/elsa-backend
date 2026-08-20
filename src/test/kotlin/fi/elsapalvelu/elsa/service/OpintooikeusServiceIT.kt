@@ -2,11 +2,11 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.domain.Authority
-import fi.elsapalvelu.elsa.domain.ErikoistuvaLaakari
-import fi.elsapalvelu.elsa.domain.KayttajaYliopistoErikoisala
-import fi.elsapalvelu.elsa.domain.Opintooikeus
-import fi.elsapalvelu.elsa.domain.enumeration.OpintooikeudenTila
+import fi.elsapalvelu.elsa.domain.kayttaja.Authority
+import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.kayttaja.KayttajaYliopistoErikoisala
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
@@ -32,6 +32,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class OpintooikeusServiceIT {
@@ -101,7 +102,7 @@ class OpintooikeusServiceIT {
 
         assertFalse(elOikeus.kaytossa)
         assertFalse(yekOikeus.kaytossa)
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
     }
 
     @Test
@@ -128,7 +129,7 @@ class OpintooikeusServiceIT {
 
         assertFalse(expiredOikeus.kaytossa)
         assertFalse(yekOikeus.kaytossa)
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
     }
 
     @Test
@@ -182,7 +183,7 @@ class OpintooikeusServiceIT {
         assertFalse(user.authorities.contains(Authority(YEK_KOULUTETTAVA)))
         assertTrue(user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI)))
         assertFalse(yekOikeus.kaytossa)
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
 
         val oikeusKaytossa = erikoistuvaLaakari.opintooikeudet.firstOrNull { it.kaytossa == true }
         assertEquals(erikoistuvaLaakari.aktiivinenOpintooikeus, oikeusKaytossa?.id)
@@ -222,7 +223,7 @@ class OpintooikeusServiceIT {
         assertTrue(user.authorities.contains(Authority(YEK_KOULUTETTAVA)))
         assertTrue(user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI)))
 
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
         assertEquals(erikoistuvaLaakari.aktiivinenOpintooikeus, oikeusKaytossa?.id)
     }
 
@@ -256,7 +257,7 @@ class OpintooikeusServiceIT {
         assertTrue(user.authorities.contains(Authority(YEK_KOULUTETTAVA)))
         assertFalse(user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI)))
 
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
     }
 
     @Test
@@ -289,7 +290,7 @@ class OpintooikeusServiceIT {
         assertFalse(user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI)))
 
         assertTrue(expiredOikeus.kaytossa)
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
     }
 
     @Test
@@ -335,6 +336,6 @@ class OpintooikeusServiceIT {
         assertFalse(user.authorities.contains(Authority(ERIKOISTUVA_LAAKARI)))
 
         assertTrue(expiredOikeus.kaytossa)
-        assertEquals(1, erikoistuvaLaakari.opintooikeudet.filter { it.kaytossa == true }.size)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
     }
 }

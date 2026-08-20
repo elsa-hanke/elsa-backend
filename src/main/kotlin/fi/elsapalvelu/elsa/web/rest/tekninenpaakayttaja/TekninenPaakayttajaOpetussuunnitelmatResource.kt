@@ -1,8 +1,28 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.extensions.isInRange
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.koejakso.*
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
+import fi.elsapalvelu.elsa.service.dto.arviointi.*
+import fi.elsapalvelu.elsa.service.dto.suoritteet.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.*
+import fi.elsapalvelu.elsa.service.dto.seuranta.*
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.*
+import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -11,7 +31,6 @@ import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URI
 import jakarta.validation.Valid
-import java.security.Principal
 
 private const val OPINTOOPAS_ENTITY_NAME = "opintoopas"
 private const val ERIKOISALA_ENTITY_NAME = "erikoisala"
@@ -21,6 +40,7 @@ private const val ARVIOITAVA_KOKONAISUUS_ENTITY_NAME = "arvioitavakokonaisuus"
 private const val SUORITTEEN_KATEGORIA_ENTITY_NAME = "suoritteenkategoria"
 private const val SUORITE_ENTITY_NAME = "suorite"
 
+@Suppress("TooManyFunctions")
 @RestController
 @RequestMapping("/api/tekninen-paakayttaja")
 class TekninenPaakayttajaOpetussuunnitelmatResource(
@@ -69,8 +89,8 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
             )
         }
         validateOpintoopas(opintoopasDTO)
-        opintoopasService.update(opintoopasDTO)?.let {
-            return ResponseEntity
+        return opintoopasService.update(opintoopasDTO)?.let {
+            ResponseEntity
                 .created(URI("/api/tekninen-paakayttaja/opintoopas/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -114,7 +134,8 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     @PostMapping("/arvioitavankokonaisuudenkategoria")
-    fun createArvioitavanKokonaisuudenKategoria(@Valid @RequestBody arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO): ResponseEntity<ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO> {
+    fun createArvioitavanKokonaisuudenKategoria(@Valid @RequestBody arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO):
+        ResponseEntity<ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO> {
         if (arvioitavanKokonaisuudenKategoriaDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi kategoria ei saa sisältää id:tä",
@@ -130,7 +151,8 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     @PutMapping("/arvioitavankokonaisuudenkategoria")
-    fun updateArvioitavanKokonaisuudenKategoria(@Valid @RequestBody arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO): ResponseEntity<ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO> {
+    fun updateArvioitavanKokonaisuudenKategoria(@Valid @RequestBody arvioitavanKokonaisuudenKategoriaDTO: ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO):
+        ResponseEntity<ArvioitavanKokonaisuudenKategoriaWithErikoisalaDTO> {
         if (arvioitavanKokonaisuudenKategoriaDTO.id == null) {
             throw BadRequestAlertException(
                 "Virheellinen id",
@@ -176,9 +198,8 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
 
     @DeleteMapping("/arvioitavatkokonaisuudet/{id}")
     fun deleteArvioitavaKokonaisuus(
-        @PathVariable id: Long,
-        principal: Principal?
-    ): ResponseEntity<Void> {
+        @PathVariable id: Long
+    ): ResponseEntity<Unit> {
         arvioitavaKokonaisuusService.delete(id)
         return ResponseEntity
             .noContent()
@@ -265,9 +286,8 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
 
     @DeleteMapping("/suoritteet/{id}")
     fun deleteSuorite(
-        @PathVariable id: Long,
-        principal: Principal?
-    ): ResponseEntity<Void> {
+        @PathVariable id: Long
+    ): ResponseEntity<Unit> {
         suoriteService.delete(id)
         return ResponseEntity
             .noContent()
@@ -282,7 +302,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
                 "dataillegal.opinto-oppaalta-puuttuu-erikoisala"
             )
 
-        if (opintoopasDTO.voimassaoloPaattyy != null && opintoopasDTO.voimassaoloPaattyy!!.isBefore(
+        if (opintoopasDTO.voimassaoloPaattyy != null && opintoopasDTO.voimassaoloPaattyy.required().isBefore(
                 opintoopasDTO.voimassaoloAlkaa
             )
         ) {
@@ -296,16 +316,16 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
         val opintooppaat =
             opintoopasService.findAllByErikoisala(erikoisalaId).filter { it.id != opintoopasDTO.id }
 
-        val uusin = opintooppaat.maxByOrNull { it.voimassaoloAlkaa!! } ?: return
+        val uusin = opintooppaat.maxByOrNull { it.voimassaoloAlkaa.required() } ?: return
 
         if (opintoopasDTO.voimassaoloPaattyy == null) {
-            if (opintoopasDTO.voimassaoloAlkaa!!.isBefore(uusin.voimassaoloAlkaa)) {
+            if (opintoopasDTO.voimassaoloAlkaa.required().isBefore(uusin.voimassaoloAlkaa)) {
                 throw BadRequestAlertException(
                     "Opinto-oppaalle on annettava päättymispäivä, jos se ei ole uusin",
                     OPINTOOPAS_ENTITY_NAME,
                     "dataillegal.opinto-oppaalle-annettava-paattymispaiva"
                 )
-            } else if (uusin.voimassaoloPaattyy != null && opintoopasDTO.voimassaoloAlkaa!!.isBefore(
+            } else if (uusin.voimassaoloPaattyy != null && opintoopasDTO.voimassaoloAlkaa.required().isBefore(
                     uusin.voimassaoloPaattyy
                 )
             ) {
@@ -319,12 +339,12 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
 
         val voimassaoloPaattyy = opintoopasDTO.voimassaoloPaattyy ?: return
 
-        if (opintoopasDTO.voimassaoloAlkaa!!.isAfter(uusin.voimassaoloAlkaa) && uusin.voimassaoloPaattyy == null) {
+        if (opintoopasDTO.voimassaoloAlkaa.required().isAfter(uusin.voimassaoloAlkaa) && uusin.voimassaoloPaattyy == null) {
             return
         }
 
-        for (date in opintoopasDTO.voimassaoloAlkaa!!.datesUntil(voimassaoloPaattyy.plusDays(1))) {
-            if (opintooppaat.any { date.isInRange(it.voimassaoloAlkaa!!, it.voimassaoloPaattyy) }) {
+        for (date in opintoopasDTO.voimassaoloAlkaa.required().datesUntil(voimassaoloPaattyy.plusDays(1))) {
+            if (opintooppaat.any { date.isInRange(it.voimassaoloAlkaa.required(), it.voimassaoloPaattyy) }) {
                 throw BadRequestAlertException(
                     "Opinto-oppaan voimassaolo ei saa olla päällekkäinen toisen opinto-oppaan kanssa",
                     OPINTOOPAS_ENTITY_NAME,
@@ -335,7 +355,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     private fun validateArvioitavaKokonaisuusVoimassaolo(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO) {
-        if (arvioitavaKokonaisuusDTO.voimassaoloLoppuu != null && arvioitavaKokonaisuusDTO.voimassaoloLoppuu!!.isBefore(
+        if (arvioitavaKokonaisuusDTO.voimassaoloLoppuu != null && arvioitavaKokonaisuusDTO.voimassaoloLoppuu.required().isBefore(
                 arvioitavaKokonaisuusDTO.voimassaoloAlkaa
             )
         ) {
@@ -348,9 +368,9 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     private fun validateArvioitavaKokonaisuusArvioinnit(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO) {
-        if (suoritusarviointiService.existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusDTO.id!!)) {
-            arvioitavaKokonaisuusService.findOne(arvioitavaKokonaisuusDTO.id!!).orElse(null)?.let {
-                if (arvioitavaKokonaisuusDTO.voimassaoloAlkaa!!.isAfter(it.voimassaoloAlkaa)
+        if (suoritusarviointiService.existsByArvioitavaKokonaisuusId(arvioitavaKokonaisuusDTO.id.required())) {
+            arvioitavaKokonaisuusService.findOne(arvioitavaKokonaisuusDTO.id.required()).orElse(null)?.let {
+                if (arvioitavaKokonaisuusDTO.voimassaoloAlkaa.required().isAfter(it.voimassaoloAlkaa)
                     || (it.voimassaoloLoppuu != null && arvioitavaKokonaisuusDTO.voimassaoloLoppuu?.isBefore(
                         it.voimassaoloLoppuu
                     ) == true)
@@ -366,7 +386,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     private fun validateSuoritteenVoimassaolo(suoriteDTO: SuoriteWithErikoisalaDTO) {
-        if (suoriteDTO.voimassaolonPaattymispaiva != null && suoriteDTO.voimassaolonPaattymispaiva!!.isBefore(
+        if (suoriteDTO.voimassaolonPaattymispaiva != null && suoriteDTO.voimassaolonPaattymispaiva.required().isBefore(
                 suoriteDTO.voimassaolonAlkamispaiva
             )
         ) {
@@ -379,9 +399,9 @@ class TekninenPaakayttajaOpetussuunnitelmatResource(
     }
 
     private fun validateSuoritemerkinnat(suoriteDTO: SuoriteWithErikoisalaDTO) {
-        if (suoritemerkintaService.existsBySuoriteId(suoriteDTO.id!!)) {
-            suoriteService.findOne(suoriteDTO.id!!).orElse(null)?.let {
-                if (suoriteDTO.voimassaolonAlkamispaiva!!.isAfter(it.voimassaolonAlkamispaiva)
+        if (suoritemerkintaService.existsBySuoriteId(suoriteDTO.id.required())) {
+            suoriteService.findOne(suoriteDTO.id.required()).orElse(null)?.let {
+                if (suoriteDTO.voimassaolonAlkamispaiva.required().isAfter(it.voimassaolonAlkamispaiva)
                     || (it.voimassaolonPaattymispaiva != null && suoriteDTO.voimassaolonPaattymispaiva?.isBefore(
                         it.voimassaolonPaattymispaiva
                     ) == true)

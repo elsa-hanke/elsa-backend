@@ -1,7 +1,29 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.*
+import fi.elsapalvelu.elsa.service.dto.koejakso.*
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
+import fi.elsapalvelu.elsa.service.dto.arviointi.*
+import fi.elsapalvelu.elsa.service.dto.suoritteet.*
+import fi.elsapalvelu.elsa.service.dto.koulutus.*
+import fi.elsapalvelu.elsa.service.dto.seuranta.*
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
+import fi.elsapalvelu.elsa.service.dto.kayttaja.*
+import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -9,7 +31,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URI
-import java.security.Principal
 
 private const val KURSSIKOODI_ENTITY_NAME = "opintosuoritus_kurssikoodi"
 
@@ -23,7 +44,7 @@ class VirkailijaKurssikooditResource(
     @GetMapping("")
     fun getKurssikoodit(principal: Principal?): ResponseEntity<List<OpintosuoritusKurssikoodiDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseEntity.ok(opintosuoritusKurssikooditService.findAllForVirkailija(user.id!!))
+        return ResponseEntity.ok(opintosuoritusKurssikooditService.findAllForVirkailija(user.id.required()))
     }
 
     @GetMapping("/tyypit")
@@ -37,7 +58,7 @@ class VirkailijaKurssikooditResource(
         principal: Principal?
     ): ResponseEntity<OpintosuoritusKurssikoodiDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        return ResponseUtil.wrapOrNotFound(opintosuoritusKurssikooditService.findOne(id, user.id!!))
+        return ResponseUtil.wrapOrNotFound(opintosuoritusKurssikooditService.findOne(id, user.id.required()))
     }
 
     @PostMapping("")
@@ -55,8 +76,8 @@ class VirkailijaKurssikooditResource(
             )
         }
 
-        opintosuoritusKurssikooditService.save(user.id!!, opintosuoritusKurssikoodiDTO)?.let {
-            return ResponseEntity
+        return opintosuoritusKurssikooditService.save(user.id.required(), opintosuoritusKurssikoodiDTO)?.let {
+            ResponseEntity
                 .created(URI("/api/virkailija/kurssikoodi/${it.id}"))
                 .body(it)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -79,7 +100,7 @@ class VirkailijaKurssikooditResource(
 
         return ResponseEntity.ok(
             opintosuoritusKurssikooditService.save(
-                user.id!!,
+                user.id.required(),
                 opintosuoritusKurssikoodiDTO
             )
         )
@@ -89,9 +110,9 @@ class VirkailijaKurssikooditResource(
     fun deleteKurssikoodi(
         @PathVariable id: Long,
         principal: Principal?
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
-        opintosuoritusKurssikooditService.delete(id, user.id!!)
+        opintosuoritusKurssikooditService.delete(id, user.id.required())
         return ResponseEntity
             .noContent()
             .build()

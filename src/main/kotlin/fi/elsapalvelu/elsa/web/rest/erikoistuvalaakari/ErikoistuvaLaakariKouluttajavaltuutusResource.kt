@@ -1,16 +1,17 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import fi.elsapalvelu.elsa.service.KouluttajavaltuutusService
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.dto.KayttajaDTO
-import fi.elsapalvelu.elsa.service.dto.KouluttajavaltuutusDTO
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.time.LocalDate
+import java.security.Principal
+import fi.elsapalvelu.elsa.service.kayttaja.KouluttajavaltuutusService
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaDTO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KouluttajavaltuutusDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URI
-import java.security.Principal
-import java.time.LocalDate
 import jakarta.validation.Valid
 
 private const val ENTITY_NAME = "kouluttajavaltuutus"
@@ -22,15 +23,13 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
     private val userService: UserService,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService
 ) {
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
 
     @GetMapping("/kouluttajavaltuutukset")
     fun getKouluttajavaltuutukset(
         principal: Principal?
     ): ResponseEntity<List<KouluttajavaltuutusDTO>> {
         val user = userService.getAuthenticatedUser(principal)
-        kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(user.id!!).let {
+        kouluttajavaltuutusService.findAllValtuutettuByValtuuttajaKayttajaUserId(user.id.required()).let {
             return ResponseEntity.ok(it)
         }
     }
@@ -51,8 +50,8 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
         }
 
         kouluttajavaltuutusService.findValtuutettuByValtuuttajaAndValtuutettu(
-            user.id!!,
-            valtuutettu.userId!!
+            user.id.required(),
+            valtuutettu.userId.required()
         ).ifPresent {
             throw BadRequestAlertException(
                 "Erikoistuva on jo valtuuttanut kouluttajan",
@@ -61,7 +60,7 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
             )
         }
         val result = kouluttajavaltuutusService.save(
-            user.id!!,
+            user.id.required(),
             KouluttajavaltuutusDTO(
                 alkamispaiva = LocalDate.now(),
                 paattymispaiva = LocalDate.now().plusMonths(6),
@@ -83,7 +82,7 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
         val user = userService.getAuthenticatedUser(principal)
 
         kouluttajavaltuutusService.save(
-            user.id!!,
+            user.id.required(),
             KouluttajavaltuutusDTO(id = id, paattymispaiva = kouluttajavaltuutusDTO.paattymispaiva)
         ).let {
             return ResponseEntity.ok(it)

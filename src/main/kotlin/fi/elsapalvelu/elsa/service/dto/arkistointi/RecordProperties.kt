@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.arkistointi
 
-import fi.elsapalvelu.elsa.domain.Asiakirja
+import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import java.io.Serializable
 
 data class RecordProperties(
@@ -9,4 +9,8 @@ data class RecordProperties(
 
     var type: RecordType
 
-) : Serializable
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

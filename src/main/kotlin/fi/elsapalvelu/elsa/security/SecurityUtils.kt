@@ -23,7 +23,6 @@ fun extractPrincipal(authentication: Authentication?): String? {
         return null
     }
 
-    @Suppress("CAST_NEVER_SUCCEEDS")
     return when (val principal = authentication.principal) {
         is Saml2AuthenticationToken -> principal.name
         is String -> principal

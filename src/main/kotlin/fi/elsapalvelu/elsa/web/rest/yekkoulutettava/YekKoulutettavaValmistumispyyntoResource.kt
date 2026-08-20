@@ -1,12 +1,21 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.dto.*
-import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import fi.elsapalvelu.elsa.required
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.UusiValmistumispyyntoDTO
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoDTO
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoSuoritustenTilaDTO
+import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoApplicationService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import java.net.URI
 import java.security.Principal
@@ -18,73 +27,43 @@ private const val VALMISTUMISPYYNTO_ENTITY_NAME = "valmistumispyyntö"
 class YekKoulutettavaValmistumispyyntoResource(
     private val userService: UserService,
     private val opintooikeusService: OpintooikeusService,
-    private val valmistumispyyntoService: ValmistumispyyntoService,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
-    private val fileValidationService: FileValidationService
+    private val valmistumispyyntoApplicationService: ValmistumispyyntoApplicationService
 ) {
 
     @GetMapping("/valmistumispyynto")
     fun getValmistumispyynto(principal: Principal?): ResponseEntity<ValmistumispyyntoDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
-            )
-        return ResponseEntity.ok(valmistumispyyntoService.findOneByOpintooikeusId(opintooikeusId))
+        val context = resolveContext(principal)
+
+        return ResponseEntity.ok(valmistumispyyntoApplicationService.findOne(context.opintooikeusId))
     }
 
     @GetMapping("/valmistumispyynto-suoritusten-tila")
-    fun getValmistumispyyntoSuoritustenTila(principal: Principal?): ResponseEntity<ValmistumispyyntoSuoritustenTilaDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
-            )
-        val erikoisalaTyyppi = valmistumispyyntoService.findErikoisalaTyyppiByOpintooikeusId(opintooikeusId)
-        val vanhatSuorituksetDTO =
-            valmistumispyyntoService.findSuoritustenTila(opintooikeusId, erikoisalaTyyppi)
-        val form = ValmistumispyyntoSuoritustenTilaDTO(
-          erikoisalaTyyppi = erikoisalaTyyppi,
-          vanhojaTyoskentelyjaksojaOrSuorituksiaExists = vanhatSuorituksetDTO.vanhojaTyoskentelyjaksojaOrSuorituksiaExists,
-          kuulusteluVanhentunut = vanhatSuorituksetDTO.kuulusteluVanhentunut
+    fun getValmistumispyyntoSuoritustenTila(
+        principal: Principal?
+    ): ResponseEntity<ValmistumispyyntoSuoritustenTilaDTO> {
+        val context = resolveContext(principal)
+
+        return ResponseEntity.ok(
+            valmistumispyyntoApplicationService.findSuoritustenTila(context.opintooikeusId)
         )
-
-        return ResponseEntity.ok(form)
     }
-
 
     @PostMapping("/valmistumispyynto")
     fun createValmistumispyynto(
-      @Valid uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
-      @RequestParam(required = false) laillistamistodistus: MultipartFile?,
-      principal: Principal?
+        @Valid uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
+        @RequestParam(required = false) laillistamistodistus: MultipartFile?,
+        principal: Principal?
     ): ResponseEntity<ValmistumispyyntoDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
-            )
-        val erikoisalaTyyppi = valmistumispyyntoService.findErikoisalaTyyppiByOpintooikeusId(opintooikeusId)
-        val vanhatSuorituksetDTO =
-            valmistumispyyntoService.findSuoritustenTila(opintooikeusId, erikoisalaTyyppi)
-
-        validateLaillistamispaivaAndTodistus(user, uusiValmistumispyyntoDTO, laillistamistodistus)
-        validateVanhentuneetSuoritukset(uusiValmistumispyyntoDTO, vanhatSuorituksetDTO)
-        validateValmistumispyyntoNotExists(opintooikeusId)
-        validateLaillistamistodistusIfExists(laillistamistodistus)
-
-        erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id!!,
-            uusiValmistumispyyntoDTO.laillistamispaiva,
-            laillistamistodistus?.bytes,
-            laillistamistodistus?.originalFilename,
-            laillistamistodistus?.contentType
+        val context = resolveContext(principal)
+        val result = valmistumispyyntoApplicationService.create(
+            context.userId,
+            context.opintooikeusId,
+            uusiValmistumispyyntoDTO,
+            laillistamistodistus,
+            VALMISTUMISPYYNTO_ENTITY_NAME
         )
 
-        valmistumispyyntoService.create(opintooikeusId, uusiValmistumispyyntoDTO).let { result ->
-            return ResponseEntity.created(URI("/api/valmistumispyynto"))
-                .body(result)
-        }
+        return ResponseEntity.created(URI("/api/valmistumispyynto")).body(result)
     }
 
     @PutMapping("/valmistumispyynto")
@@ -93,86 +72,31 @@ class YekKoulutettavaValmistumispyyntoResource(
         @RequestParam(required = false) laillistamistodistus: MultipartFile?,
         principal: Principal?
     ): ResponseEntity<ValmistumispyyntoDTO> {
-        val user = userService.getAuthenticatedUser(principal)
-        val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
-                user.id!!, YEK_ERIKOISALA_ID
-            )
-        val erikoisalaTyyppi = valmistumispyyntoService.findErikoisalaTyyppiByOpintooikeusId(opintooikeusId)
-        val vanhatSuorituksetDTO =
-            valmistumispyyntoService.findSuoritustenTila(opintooikeusId, erikoisalaTyyppi)
-
-        validateLaillistamispaivaAndTodistus(user, uusiValmistumispyyntoDTO, laillistamistodistus)
-        validateVanhentuneetSuoritukset(uusiValmistumispyyntoDTO, vanhatSuorituksetDTO)
-        validateLaillistamistodistusIfExists(laillistamistodistus)
-
-        erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id!!,
-            uusiValmistumispyyntoDTO.laillistamispaiva,
-            laillistamistodistus?.bytes,
-            laillistamistodistus?.originalFilename,
-            laillistamistodistus?.contentType
+        val context = resolveContext(principal)
+        val result = valmistumispyyntoApplicationService.update(
+            context.userId,
+            context.opintooikeusId,
+            uusiValmistumispyyntoDTO,
+            laillistamistodistus,
+            VALMISTUMISPYYNTO_ENTITY_NAME
         )
 
-        valmistumispyyntoService.update(opintooikeusId, uusiValmistumispyyntoDTO).let { result ->
-            return ResponseEntity.ok(result)
-        }
+        return ResponseEntity.ok(result)
     }
 
-    private fun validateValmistumispyyntoNotExists(opintooikeusId: Long) {
-        if (valmistumispyyntoService.existsByOpintooikeusId(opintooikeusId)) {
-            throw BadRequestAlertException(
-              "Valmistumispyyntö on jo lähetetty",
-              VALMISTUMISPYYNTO_ENTITY_NAME,
-              "dataillegal.valmistumispyynto-on-jo-lahetetty"
+    private fun resolveContext(principal: Principal?): ValmistumispyyntoContext {
+        val userId = userService.getAuthenticatedUser(principal).id.required()
+        val opintooikeusId =
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(
+                userId,
+                YEK_ERIKOISALA_ID
             )
-        }
+
+        return ValmistumispyyntoContext(userId, opintooikeusId)
     }
 
-    private fun validateLaillistamispaivaAndTodistus(
-        user: UserDTO,
-        uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
-        laillistamistodistus: MultipartFile?
-    ) {
-        if ((uusiValmistumispyyntoDTO.laillistamispaiva == null || laillistamistodistus == null) &&
-            !erikoistuvaLaakariService.laillistamispaivaAndTodistusExists(
-                user.id!!
-            )
-        ) {
-            throw BadRequestAlertException(
-              "Laillistamispaiva ja todistus vaaditaan",
-              VALMISTUMISPYYNTO_ENTITY_NAME,
-              "dataillegal.laillistamispaiva-ja-todistus-vaaditaan"
-            )
-        }
-    }
-
-    private fun validateVanhentuneetSuoritukset(
-      uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO,
-      vanhatSuorituksetDTO: VanhentuneetSuorituksetDTO
-    ) {
-        if (uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista == null &&
-            (vanhatSuorituksetDTO.vanhojaTyoskentelyjaksojaOrSuorituksiaExists == true
-                || vanhatSuorituksetDTO.kuulusteluVanhentunut == true)
-        ) {
-            throw BadRequestAlertException(
-              "Selvitys vanhentuneista suorituksista vaaditaan",
-              VALMISTUMISPYYNTO_ENTITY_NAME,
-              "dataillegal.selvitys-vanhentuneista-suorituksista-vaaditaan"
-            )
-        }
-    }
-
-    private fun validateLaillistamistodistusIfExists(laillistamistodistus: MultipartFile?) {
-        laillistamistodistus?.let {
-            if (!fileValidationService.validate(listOf(it))) {
-                throw BadRequestAlertException(
-                  "Tiedosto ei ole kelvollinen.",
-                  VALMISTUMISPYYNTO_ENTITY_NAME,
-                  "dataillegal.tiedosto-ei-ole-kelvollinen"
-                )
-            }
-        }
-    }
-
+    private data class ValmistumispyyntoContext(
+        val userId: String,
+        val opintooikeusId: Long
+    )
 }

@@ -2,17 +2,29 @@ package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.domain.koejakso.*
+import fi.elsapalvelu.elsa.domain.tyoskentely.*
+import fi.elsapalvelu.elsa.domain.arviointi.*
+import fi.elsapalvelu.elsa.domain.suoritteet.*
+import fi.elsapalvelu.elsa.domain.koulutus.*
+import fi.elsapalvelu.elsa.domain.seuranta.*
+import fi.elsapalvelu.elsa.domain.valmistuminen.*
+import fi.elsapalvelu.elsa.domain.kayttaja.*
+import fi.elsapalvelu.elsa.domain.perustiedot.*
+import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.dto.ValmistumispyyntoHyvaksyntaFormDTO
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksyntaFormDTO
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.apache.pdfbox.Loader
+import org.assertj.core.api.Assertions.assertThat
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -36,14 +48,8 @@ import jakarta.persistence.EntityManager
  * These tests exercise the full HTTP → service → PDF generation stack so that
  * failures reproduce the real transaction rollback seen in production.
  *
- * Bug summary:
- *  1. [lisaaArvioinnit] calls [yhdistaPdf] for every suoritusarviointi attachment
- *     WITHOUT checking the MIME type.  A JPEG attachment causes iText to throw
- *     "PDF header not found", rolling back the entire approval transaction.
- *  2. A zero-byte attachment stored in the DB produces the same crash.
- *  3. [yhdistaAsiakirjat] has a catch block, but it catches
- *     [com.itextpdf.io.exceptions.IOException] while PDFBox throws
- *     [java.io.IOException] – a different type – so it also bubbles up uncaught.
+ * Regression scenarios include non-PDF and empty attachments. Those inputs must
+ * be skipped while valid PDFs are still merged into the generated document.
  *
  */
 @AutoConfigureMockMvc
@@ -55,6 +61,9 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
     @Autowired
     private lateinit var restMockMvc: MockMvc
+
+    @Autowired
+    private lateinit var valmistumispyyntoRepository: ValmistumispyyntoRepository
 
     private lateinit var opintooikeus: Opintooikeus
     private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
@@ -69,9 +78,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     private val emptyPdf: ByteArray = ByteArray(0)
 
     /**
-     * A real JPEG (1×1 px) – the primary production bug trigger for opintooikeus.
-     * Users uploaded JPEG photos as suoritusarviointi attachments; the code passes
-     * them straight to PdfReader without a MIME check → "PDF header not found".
+     * A real JPEG (1×1 px) representing an attachment that must not be merged as PDF.
      */
     private val validJpeg: ByteArray by lazy {
         javaClass.getResourceAsStream("/fixtures/valid.jpg")!!.readBytes()
@@ -82,7 +89,8 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         initTestWithTehtavatyypit(listOf(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA))
     }
 
-    private fun initTestWithTehtavatyypit(vastuuhenkilonTehtavatyypit: List<VastuuhenkilonTehtavatyyppiEnum>) {        val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity()
+    private fun initTestWithTehtavatyypit(vastuuhenkilonTehtavatyypit: List<VastuuhenkilonTehtavatyyppiEnum>) {
+        val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(vastuuhenkiloUser)
 
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
@@ -264,12 +272,11 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     /**
      * ELSA-1127 – PRIMARY BUG fixed: JPEG in arviointiAsiakirjat.
      *
-     * [lisaaArvioinnit] now routes JPEG attachments through [yhdistaPdfTaiKuva] which
-     * embeds the image as a PDF page instead of passing it to PdfReader.
+     * [lisaaArvioinnit] skips JPEG attachments instead of passing them to PdfReader.
      */
     @Test
     @Transactional
-    fun approvalFailsWhenArviointiAttachmentIsJpeg() {
+    fun approvalSucceedsBySkippingJpegArviointiAttachment() {
 
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.IMAGE_JPEG_VALUE, validJpeg)
@@ -278,7 +285,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
-        // FIXED: JPEG attachment no longer crashes the approval transaction
         performApproval(valmistumispyynto.id)
             .andExpect(status().isOk)
     }
@@ -288,7 +294,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
      */
     @Test
     @Transactional
-    fun approvalFailsWhenItsearviointiAttachmentIsJpeg() {
+    fun approvalSucceedsBySkippingJpegItsearviointiAttachment() {
 
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.IMAGE_JPEG_VALUE, validJpeg, itsearviointi = true)
@@ -297,7 +303,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
-        // FIXED: JPEG attachment no longer crashes the approval transaction
         performApproval(valmistumispyynto.id)
             .andExpect(status().isOk)
     }
@@ -310,7 +315,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
      */
     @Test
     @Transactional
-    fun approvalFailsWhenArviointiAttachmentIsEmptyPdf() {
+    fun approvalSucceedsBySkippingEmptyArviointiPdf() {
 
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.APPLICATION_PDF_VALUE, emptyPdf)
@@ -319,7 +324,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
-        // FIXED: empty PDF attachment is skipped, approval succeeds
         performApproval(valmistumispyynto.id)
             .andExpect(status().isOk)
     }
@@ -329,7 +333,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
      */
     @Test
     @Transactional
-    fun approvalFailsWhenItsearviointiAttachmentIsEmptyPdf() {
+    fun approvalSucceedsBySkippingEmptyItsearviointiPdf() {
 
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.APPLICATION_PDF_VALUE, emptyPdf, itsearviointi = true)
@@ -338,7 +342,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
-        // FIXED: empty PDF attachment is skipped, approval succeeds
         performApproval(valmistumispyynto.id)
             .andExpect(status().isOk)
     }
@@ -361,6 +364,8 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         performApproval(valmistumispyynto.id)
             .andExpect(status().isOk)
+
+        assertGeneratedTraineeDataDocumentIsValid(valmistumispyynto.id!!)
     }
 
     /**
@@ -424,12 +429,11 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     /**
      * Mixed attachments: one valid PDF + one JPEG on the same suoritusarviointi.
      *
-     * FIXED: [yhdistaPdfTaiKuva] handles both types – the PDF is merged and the
-     * JPEG is embedded as an image page. No crash.
+     * The PDF is merged and the unsupported JPEG is skipped. No crash.
      */
     @Test
     @Transactional
-    fun approvalFailsWhenMixedAttachmentsContainJpeg() {
+    fun approvalSucceedsWithMixedAttachmentsByMergingOnlyPdf() {
 
         persistKoulutussuunnitelma()
 
@@ -467,9 +471,18 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
-        // FIXED: mixed PDF + JPEG no longer crashes
         performApproval(valmistumispyynto.id)
             .andExpect(status().isOk)
     }
-}
 
+    private fun assertGeneratedTraineeDataDocumentIsValid(valmistumispyyntoId: Long) {
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyyntoId).orElseThrow()
+        val data = requireNotNull(updated.erikoistujanTiedotAsiakirja?.asiakirjaData?.data)
+        assertThat(data).isNotEmpty
+        Loader.loadPDF(data).use { pdf ->
+            assertThat(pdf.numberOfPages).isGreaterThan(3)
+        }
+    }
+}

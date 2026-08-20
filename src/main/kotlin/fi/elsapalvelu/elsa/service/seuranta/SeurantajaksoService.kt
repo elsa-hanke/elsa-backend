@@ -1,0 +1,42 @@
+package fi.elsapalvelu.elsa.service.seuranta
+
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.service.dto.seuranta.EtusivuSeurantajaksoDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksoDTO
+import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksonTiedotDTO
+
+interface SeurantajaksoService {
+
+    fun create(
+        seurantajaksoDTO: SeurantajaksoDTO,
+        opintooikeusId: Long
+    ): SeurantajaksoDTO?
+
+    fun update(
+        seurantajaksoDTO: SeurantajaksoDTO,
+        userId: String
+    ): SeurantajaksoDTO
+
+    fun findByOpintooikeusId(
+        opintooikeusId: Long
+    ): List<SeurantajaksoDTO>
+
+    fun findByKouluttajaUserId(userId: String): List<SeurantajaksoDTO>
+
+    fun findAvoinByKouluttajaUserId(userId: String): List<EtusivuSeurantajaksoDTO>
+
+    fun findByIdAndKouluttajaUserId(id: Long, userId: String): SeurantajaksoDTO?
+
+    fun findOne(id: Long, opintooikeusId: Long): SeurantajaksoDTO?
+
+    fun findSeurantajaksonTiedot(
+        opintooikeusId: Long,
+        alkamispaiva: LocalDate,
+        paattymispaiva: LocalDate,
+        koulutusjaksot: List<Long>
+    ): SeurantajaksonTiedotDTO
+
+    fun findSeurantajaksonTiedot(id: Long, userId: String): SeurantajaksonTiedotDTO
+
+    fun delete(id: Long, opintooikeusId: Long)
+}

@@ -1,12 +1,31 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.koejakso.*
+import fi.elsapalvelu.elsa.domain.tyoskentely.*
+import fi.elsapalvelu.elsa.domain.arviointi.*
+import fi.elsapalvelu.elsa.domain.suoritteet.*
+import fi.elsapalvelu.elsa.domain.koulutus.*
+import fi.elsapalvelu.elsa.domain.seuranta.*
+import fi.elsapalvelu.elsa.domain.valmistuminen.*
+import fi.elsapalvelu.elsa.domain.kayttaja.*
+import fi.elsapalvelu.elsa.domain.perustiedot.*
+import jakarta.persistence.EntityManager
 import java.time.LocalDate
 import java.time.ZoneId
 
-class KoejaksonVaiheetHelper {
+/**
+ * All five koejakso phases as a single value returned by [persistKoejaksoVaiheet].
+ */
+data class KoejaksoVaiheet(
+    val koulutussopimus: KoejaksonKoulutussopimus,
+    val aloituskeskustelu: KoejaksonAloituskeskustelu,
+    val valiarviointi: KoejaksonValiarviointi,
+    val kehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet,
+    val loppukeskustelu: KoejaksonLoppukeskustelu
+)
 
-    companion object {
+object KoejaksonVaiheetHelper {
         const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
         const val DEFAULT_LOGIN = "johndoe"
         const val DEFAULT_EMAIL = "john.doe@example.com"
@@ -57,7 +76,7 @@ class KoejaksonVaiheetHelper {
         ): KoejaksonAloituskeskustelu {
             val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
             return KoejaksonAloituskeskustelu(
-                opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
+                opintooikeus = opintooikeus,
                 koejaksonSuorituspaikka = DEFAULT_KOULUTUSPAIKKA,
                 koejaksonAlkamispaiva = DEFAULT_ALKAMISPAIVA,
                 koejaksonPaattymispaiva = DEFAULT_PAATTYMISPAIVA,
@@ -152,5 +171,38 @@ class KoejaksonVaiheetHelper {
                 vastuuhenkilo = vastuuhenkilo,
             )
         }
-    }
+
+        /**
+         * Creates and persists all five koejakso phases (koulutussopimus with kouluttajat /
+         * koulutuspaikat, aloituskeskustelu, väliarviointi, kehittamistoimenpiteet,
+         * loppukeskustelu) in dependency order and returns them as a [KoejaksoVaiheet].
+         *
+         * Replaces the repeated 10-line block that appeared in
+         * KouluttajaKoejaksoResourceIT, VastuuhenkiloKoejaksoResourceIT, and
+         * ErikoistuvaLaakariKoejaksoResourceIT.
+         */
+        @JvmStatic
+        fun persistKoejaksoVaiheet(
+            em: EntityManager,
+            erikoistuvaLaakari: ErikoistuvaLaakari,
+            kouluttaja: Kayttaja,
+            esimies: Kayttaja,
+            vastuuhenkilo: Kayttaja,
+            yliopisto: Yliopisto
+        ): KoejaksoVaiheet {
+            val sopimus = createKoulutussopimus(erikoistuvaLaakari, vastuuhenkilo)
+            sopimus.kouluttajat = mutableSetOf(createKoulutussopimuksenKouluttaja(sopimus, kouluttaja))
+            sopimus.koulutuspaikat = mutableSetOf(createKoulutussopimuksenKoulutuspaikka(sopimus, yliopisto))
+            em.persist(sopimus)
+            val aloitus = createAloituskeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+            em.persist(aloitus)
+            val vali = createValiarviointi(erikoistuvaLaakari, kouluttaja, esimies)
+            em.persist(vali)
+            val kehit = createKehittamistoimenpiteet(erikoistuvaLaakari, kouluttaja, esimies)
+            em.persist(kehit)
+            val loppu = createLoppukeskustelu(erikoistuvaLaakari, kouluttaja, esimies)
+            em.persist(loppu)
+            return KoejaksoVaiheet(sopimus, aloitus, vali, kehit, loppu)
+        }
+
 }

@@ -1,15 +1,16 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
-import fi.elsapalvelu.elsa.service.SuoritusarvioinninKommenttiService
-import fi.elsapalvelu.elsa.service.UserService
-import fi.elsapalvelu.elsa.service.dto.SuoritusarvioinninKommenttiDTO
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
+import fi.elsapalvelu.elsa.service.arviointi.SuoritusarvioinninKommenttiService
+import fi.elsapalvelu.elsa.service.dto.arviointi.SuoritusarvioinninKommenttiDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.net.URI
-import java.security.Principal
 import java.time.Instant
 import jakarta.validation.Valid
 
@@ -22,8 +23,6 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
     private val suoritusarvioinninKommenttiService: SuoritusarvioinninKommenttiService,
     private val userService: UserService
 ) {
-    @Value("\${jhipster.clientApp.name}")
-    private var applicationName: String? = null
 
     @PostMapping("/suoritusarvioinnit/{id}/kommentti")
     fun createSuoritusarvioinninKommentti(
@@ -44,7 +43,7 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
         suoritusarvioinninKommenttiDTO.muokkausaika = now
         suoritusarvioinninKommenttiDTO.suoritusarviointiId = id
         val result = suoritusarvioinninKommenttiService
-            .save(suoritusarvioinninKommenttiDTO, user.id!!)
+            .save(suoritusarvioinninKommenttiDTO, user.id.required())
 
         return ResponseEntity.created(URI("/api/suoritusarvioinnit/$id/kommentti/${result.id}"))
             .body(result)
@@ -61,7 +60,7 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
         val user = userService.getAuthenticatedUser(principal)
         suoritusarvioinninKommenttiDTO.muokkausaika = Instant.now()
         val result =
-            suoritusarvioinninKommenttiService.save(suoritusarvioinninKommenttiDTO, user.id!!)
+            suoritusarvioinninKommenttiService.save(suoritusarvioinninKommenttiDTO, user.id.required())
         return ResponseEntity.ok(result)
     }
 }

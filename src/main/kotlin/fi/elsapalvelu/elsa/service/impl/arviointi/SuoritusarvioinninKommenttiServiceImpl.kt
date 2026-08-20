@@ -1,0 +1,91 @@
+package fi.elsapalvelu.elsa.service.impl.arviointi
+
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarvioinninKommenttiRepository
+import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
+import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
+import fi.elsapalvelu.elsa.service.kayttaja.MailService
+import fi.elsapalvelu.elsa.service.arviointi.SuoritusarvioinninKommenttiService
+import fi.elsapalvelu.elsa.service.dto.arviointi.SuoritusarvioinninKommenttiDTO
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.KayttajaMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.SuoritusarvioinninKommenttiMapper
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.*
+
+@Service
+@Transactional
+class SuoritusarvioinninKommenttiServiceImpl(
+    private val suoritusarvioinninKommenttiRepository: SuoritusarvioinninKommenttiRepository,
+    private val kayttajaRepository: KayttajaRepository,
+    private val suoritusarviointiRepository: SuoritusarviointiRepository,
+    private val suoritusarvioinninKommenttiMapper: SuoritusarvioinninKommenttiMapper,
+    private val kayttajaMapper: KayttajaMapper,
+    private val mailService: MailService
+) : SuoritusarvioinninKommenttiService {
+
+    override fun save(
+        suoritusarvioinninKommenttiDTO: SuoritusarvioinninKommenttiDTO,
+        userId: String
+    ): SuoritusarvioinninKommenttiDTO {
+        val kayttaja = kayttajaRepository.findOneByUserId(userId).get()
+        val kayttajaDTO = kayttajaMapper.toDto(kayttaja)
+
+        // Tarkisteaan, että muokkaaja on sama kuin kommentin tekijä
+        require(
+            suoritusarvioinninKommenttiDTO.kommentoija == null ||
+                suoritusarvioinninKommenttiDTO.kommentoija == kayttajaDTO
+        ) {
+            "Kommenttia voi muokata vain kommentin tekijä."
+        }
+
+        var suoritusarvioinninKommentti =
+            suoritusarvioinninKommenttiMapper.toEntity(suoritusarvioinninKommenttiDTO)
+
+        // Asetetaan kommentoija uuteen kommenttiin
+        if (suoritusarvioinninKommentti.kommentoija == null) {
+            suoritusarvioinninKommentti.kommentoija = kayttaja
+        }
+
+        val suoritusarviointi = suoritusarviointiRepository
+            .findOneById(suoritusarvioinninKommentti.suoritusarviointi?.id.required()).get()
+        require(
+            kayttaja == suoritusarviointi.arvioinninAntaja ||
+                kayttaja == suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja
+        ) { "Kommentin lisääjän täytyy olla joko arviointipyynnön tehnyt tai arvioinnin antaja." }
+
+        suoritusarvioinninKommentti =
+            suoritusarvioinninKommenttiRepository.save(suoritusarvioinninKommentti)
+        val user =
+            if (kayttaja == suoritusarviointi.arvioinninAntaja) kayttajaRepository.findById(
+                suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required()
+            ).get().user.required()
+            else kayttajaRepository.findById(suoritusarviointi.arvioinninAntaja?.id.required())
+                .get().user.required()
+        mailService.sendEmailFromTemplate(
+            user,
+            templateName = "suoritusarvioinninKommenttiEmail.html",
+            titleKey = "email.suoritusarvioinninkommentti.title",
+            properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id.required().toString()))
+        )
+        return suoritusarvioinninKommenttiMapper.toDto(suoritusarvioinninKommentti)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAll(): List<SuoritusarvioinninKommenttiDTO> {
+        return suoritusarvioinninKommenttiRepository.findAll()
+            .map(suoritusarvioinninKommenttiMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findOne(id: Long): Optional<SuoritusarvioinninKommenttiDTO> {
+        return suoritusarvioinninKommenttiRepository.findById(id)
+            .map(suoritusarvioinninKommenttiMapper::toDto)
+    }
+
+    override fun delete(id: Long) {
+        suoritusarvioinninKommenttiRepository.deleteById(id)
+    }
+}

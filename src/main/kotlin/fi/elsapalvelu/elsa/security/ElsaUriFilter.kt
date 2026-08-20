@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.security
 
+import fi.elsapalvelu.elsa.required
+
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import org.springframework.web.filter.OncePerRequestFilter
 import jakarta.servlet.FilterChain
@@ -22,7 +24,7 @@ class ElsaUriFilter(private val applicationProperties: ApplicationProperties) :
         filterChain.doFilter(object : HttpServletRequestWrapper(request) {
             override fun getScheme(): String {
                 return super.getScheme()
-                    .replace("http", applicationProperties.getSecurity().samlScheme!!)
+                    .replace("http", applicationProperties.getSecurity().samlScheme.required())
             }
 
             override fun getServerPort(): Int {

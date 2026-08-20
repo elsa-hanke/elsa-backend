@@ -4,10 +4,13 @@ build:
   ./gradlew clean build -x test -x integrationTest
 
 test:
-  ./gradlew clean test integrationTest
+  ./gradlew clean test integrationTest detekt detektTest
 
 itest:
   ./gradlew clean integrationTest
+
+detekt:
+  ./gradlew clean detekt
 
 init:
   @docker volume create elsa_db_data > /dev/null 2>&1 || true
@@ -18,10 +21,10 @@ clean-db:
   docker volume rm elsa_db_data || true
 
 start-db: init
-  docker-compose -f src/main/docker/postgresql.yml up -d
+  docker-compose -f infra/postgresql.yml up -d
 
 stop-db:
-  docker-compose -f src/main/docker/postgresql.yml down
+  docker-compose -f infra/postgresql.yml down
 
 startb: kill8080 start-db
  ./gradlew bootRun

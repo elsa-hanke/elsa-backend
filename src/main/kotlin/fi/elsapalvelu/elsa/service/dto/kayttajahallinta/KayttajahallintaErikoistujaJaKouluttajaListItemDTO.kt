@@ -1,10 +1,10 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
-import fi.elsapalvelu.elsa.domain.enumeration.KayttajatilinTila
-import fi.elsapalvelu.elsa.service.dto.KayttajahallintaYliopistoErikoisalaDTO
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
+import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajahallintaYliopistoErikoisalaDTO
 import jakarta.validation.constraints.NotNull
 import java.io.Serializable
-import java.time.LocalDate
 
 data class KayttajahallintaErikoistujaJaKouluttajaListItemDTO(
 
@@ -33,5 +33,9 @@ data class KayttajahallintaErikoistujaJaKouluttajaListItemDTO(
 
     ) : Serializable {
     override fun toString() = "KayttajahallintaKayttajaListItemDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 

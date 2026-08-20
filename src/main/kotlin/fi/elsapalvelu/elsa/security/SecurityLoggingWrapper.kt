@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.security
 
 import org.slf4j.LoggerFactory
 
+@Suppress("UtilityClassWithPublicConstructor")
 class SecurityLoggingWrapper {
 
     companion object {

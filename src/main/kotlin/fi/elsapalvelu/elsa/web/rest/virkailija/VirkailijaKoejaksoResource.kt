@@ -1,18 +1,29 @@
 package fi.elsapalvelu.elsa.web.rest.virkailija
 
+import fi.elsapalvelu.elsa.required
+
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import java.security.Principal
 import fi.elsapalvelu.elsa.service.*
+import fi.elsapalvelu.elsa.service.koejakso.*
+import fi.elsapalvelu.elsa.service.tyoskentely.*
+import fi.elsapalvelu.elsa.service.arviointi.*
+import fi.elsapalvelu.elsa.service.suoritteet.*
+import fi.elsapalvelu.elsa.service.koulutus.*
+import fi.elsapalvelu.elsa.service.seuranta.*
+import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.kayttaja.*
+import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
-import fi.elsapalvelu.elsa.service.dto.KoejaksonVaiheDTO
-import fi.elsapalvelu.elsa.service.dto.KoejaksonVastuuhenkilonArvioDTO
+import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonVaiheDTO
+import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import tech.jhipster.web.util.ResponseUtil
-import java.net.URLEncoder
-import java.security.Principal
 import jakarta.validation.Valid
 
 private const val ENTITY_KOEJAKSON_VASTUUHENKILON_ARVIO = "koejakson_vastuuhenkilon_arvio"
@@ -35,7 +46,7 @@ class VirkailijaKoejaksoResource(
     ): ResponseEntity<Page<KoejaksonVaiheDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         val koejaksonVaiheet =
-            koejaksonVaiheetService.findAllByVirkailijaKayttajaUserId(user.id!!, criteria, pageable)
+            koejaksonVaiheetService.findAllByVirkailijaKayttajaUserId(user.id.required(), criteria, pageable)
         return ResponseEntity.ok(koejaksonVaiheet)
     }
 
@@ -46,7 +57,7 @@ class VirkailijaKoejaksoResource(
     ): ResponseEntity<KoejaksonVastuuhenkilonArvioDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val vastuuhenkilonArvioDTO =
-            koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id!!)
+            koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id.required())
         return ResponseUtil.wrapOrNotFound(vastuuhenkilonArvioDTO)
     }
 
@@ -56,22 +67,15 @@ class VirkailijaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val kayttaja = kayttajaService.findByUserId(user.id!!)
+        val kayttaja = kayttajaService.findByUserId(user.id.required())
         val asiakirja = asiakirjaService
             .findByIdAndLiitettykoejaksoonByYliopisto(
                 id,
-                kayttaja.orElse(null)?.yliopistot?.map { it.id!! })
+                kayttaja.orElse(null)?.yliopistot?.map { it.id.required() })
 
-        asiakirja?.asiakirjaData?.fileInputStream?.use {
-            return ResponseEntity.ok()
-                .header(
-                    HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + URLEncoder.encode(asiakirja.nimi, "UTF-8") + "\""
-                )
-                .header(HttpHeaders.CONTENT_TYPE, asiakirja.tyyppi + "; charset=UTF-8")
-                .body(it.readBytes())
-        }
-        return ResponseEntity.notFound().build()
+        return asiakirja?.asiakirjaData?.fileInputStream
+            ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
+            ?: ResponseEntity.notFound().build()
     }
 
     @GetMapping("/koejakso/vastuuhenkilon-arvio/{id}/liite/{asiakirjaId}")
@@ -81,31 +85,15 @@ class VirkailijaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id!!)
-            .orElse(null)?.let {
-            it.asiakirjat?.firstOrNull { asiakirja -> asiakirja.id == asiakirjaId }
-                ?.let { asiakirja ->
-                    asiakirjaService.findById(asiakirja.id!!)?.let { asiakirjaWithData ->
-                        asiakirjaWithData.asiakirjaData?.fileInputStream?.use { data ->
-                            return ResponseEntity.ok()
-                                .header(
-                                    HttpHeaders.CONTENT_DISPOSITION,
-                                    "attachment; filename=\"" + URLEncoder.encode(
-                                        asiakirja.nimi,
-                                        "UTF-8"
-                                    ) + "\""
-                                )
-                                .header(
-                                    HttpHeaders.CONTENT_TYPE,
-                                    asiakirja.tyyppi + "; charset=UTF-8"
-                                )
-                                .body(data.readBytes())
-                        }
-                    }
-                }
-        }
-
-        return ResponseEntity.notFound().build()
+        return koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id.required())
+            .orElse(null)
+            ?.asiakirjat?.firstOrNull { asiakirja -> asiakirja.id == asiakirjaId }
+            ?.let { asiakirja ->
+                asiakirjaService.findById(asiakirja.id.required())
+                    ?.asiakirjaData?.fileInputStream
+                    ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
+            }
+            ?: ResponseEntity.notFound().build()
     }
 
     @PutMapping("/koejakso/vastuuhenkilonarvio")
@@ -125,8 +113,8 @@ class VirkailijaKoejaksoResource(
 
         val vastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(
-                vastuuhenkilonArvioDTO.id!!,
-                user.id!!
+                vastuuhenkilonArvioDTO.id.required(),
+                user.id.required()
             )
 
         if (!vastuuhenkilonArvio.isPresent) {
@@ -153,7 +141,7 @@ class VirkailijaKoejaksoResource(
             )
         }
 
-        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id!!)
+        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id.required())
         return ResponseEntity.ok(result)
     }
 }

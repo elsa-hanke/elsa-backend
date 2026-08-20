@@ -1,10 +1,15 @@
 package fi.elsapalvelu.elsa.web.rest.yekkoulutettava
 
+import fi.elsapalvelu.elsa.required
+
+import java.time.LocalDate
+import org.springframework.web.bind.annotation.RequestParam
+import java.security.Principal
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
-import fi.elsapalvelu.elsa.service.ErikoistuvaLaakariService
-import fi.elsapalvelu.elsa.service.OpintooikeusService
-import fi.elsapalvelu.elsa.service.dto.LaillistamispaivaDTO
-import fi.elsapalvelu.elsa.service.impl.UserServiceImpl
+import fi.elsapalvelu.elsa.service.kayttaja.ErikoistuvaLaakariService
+import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
+import fi.elsapalvelu.elsa.service.dto.kayttaja.LaillistamispaivaDTO
+import fi.elsapalvelu.elsa.service.impl.kayttaja.UserServiceImpl
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -13,8 +18,6 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
-import java.security.Principal
-import java.time.LocalDate
 
 private const val ERIKOISTUVA_LAAKARI_ENTITY_NAME = "erikoistuvaLaakari"
 
@@ -36,10 +39,10 @@ class YekKoulutettavaMuutToiminnotResource(
     ) {
         val user = userService.getAuthenticatedUser(principal)
 
-        validateMuokkausoikeudet(principal, user.id!!, ERIKOISTUVA_LAAKARI_ENTITY_NAME)
+        validateMuokkausoikeudet(principal, user.id.required(), ERIKOISTUVA_LAAKARI_ENTITY_NAME)
 
         erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id!!,
+            user.id.required(),
             laillistamispaiva,
             laillistamispaivanLiite?.bytes,
             laillistamispaivanLiite?.originalFilename,
@@ -47,7 +50,7 @@ class YekKoulutettavaMuutToiminnotResource(
         )
 
         erikoistuvaLaakariService.updateLaakarikoulutusSuoritettuSuomiTaiBelgia(
-            user.id!!, laakarikoulutusSuoritettuSuomiTaiBelgia, laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
+            user.id.required(), laakarikoulutusSuoritettuSuomiTaiBelgia, laakarikoulutusSuoritettuMuuKuinSuomiTaiBelgia
         )
     }
 
@@ -56,8 +59,8 @@ class YekKoulutettavaMuutToiminnotResource(
         principal: Principal?
     ): ResponseEntity<LaillistamispaivaDTO> {
         val user = userService.getAuthenticatedUser(principal)
-        erikoistuvaLaakariService.getLaillistamispaiva(user.id!!)?.let {
-            return ResponseEntity.ok(it)
+        return erikoistuvaLaakariService.getLaillistamispaiva(user.id.required())?.let {
+            ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 

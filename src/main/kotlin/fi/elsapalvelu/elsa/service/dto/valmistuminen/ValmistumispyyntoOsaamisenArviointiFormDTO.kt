@@ -1,0 +1,17 @@
+package fi.elsapalvelu.elsa.service.dto.valmistuminen
+
+import java.io.Serializable
+
+data class ValmistumispyyntoOsaamisenArviointiFormDTO(
+
+    var osaaminenRiittavaValmistumiseen: Boolean? = null,
+
+    var korjausehdotus: String? = null
+
+): Serializable {
+    override fun toString() = "ValmistumispyyntoOsaamisenArviointiFormDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

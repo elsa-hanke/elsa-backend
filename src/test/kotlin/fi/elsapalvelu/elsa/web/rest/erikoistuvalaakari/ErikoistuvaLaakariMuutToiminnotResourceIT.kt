@@ -2,11 +2,21 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.enumeration.YliopistoEnum
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
+import fi.elsapalvelu.elsa.domain.koejakso.*
+import fi.elsapalvelu.elsa.domain.tyoskentely.*
+import fi.elsapalvelu.elsa.domain.arviointi.*
+import fi.elsapalvelu.elsa.domain.suoritteet.*
+import fi.elsapalvelu.elsa.domain.koulutus.*
+import fi.elsapalvelu.elsa.domain.seuranta.*
+import fi.elsapalvelu.elsa.domain.valmistuminen.*
+import fi.elsapalvelu.elsa.domain.kayttaja.*
+import fi.elsapalvelu.elsa.domain.perustiedot.*
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
-import fi.elsapalvelu.elsa.service.dto.UusiLahikouluttajaDTO
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.service.dto.kayttaja.UusiLahikouluttajaDTO
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -14,7 +24,7 @@ import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelypaikkaHelper.Companion.DEFAULT_NIMI
+import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelypaikkaHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -102,7 +112,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
             testLahikouluttaja?.user?.authorities?.contains(
                 Authority(name = KOULUTTAJA)
             )
-        )
+        ).isTrue()
 
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat).hasSize(1)
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto).isEqualTo(opintooikeus.yliopisto)
@@ -137,7 +147,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
             testLahikouluttaja?.user?.authorities?.contains(
                 Authority(name = KOULUTTAJA)
             )
-        )
+        ).isTrue()
 
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat).hasSize(1)
         assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto).isEqualTo(newOpintooikeus.yliopisto)
@@ -151,7 +161,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         initKouluttajaWithYliopistoAndErikoisala(opintooikeus.yliopisto, opintooikeus.erikoisala)
 
         val databaseSizeBeforeCreate = kayttajaRepository.findAll().size
-        val uusiLahikouluttajaDTO = UusiLahikouluttajaDTO(DEFAULT_NIMI, DEFAULT_EMAIL)
+         val uusiLahikouluttajaDTO = UusiLahikouluttajaDTO(TyoskentelypaikkaHelper.DEFAULT_NIMI, DEFAULT_EMAIL)
 
         restLahikouluttajatMockMvc.perform(
             post("/api/erikoistuva-laakari/lahikouluttajat")
@@ -191,9 +201,48 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         assertThat(yliopistotAndErikoisalatList[1].erikoisala).isEqualTo(opintooikeus.erikoisala)
     }
 
-    fun initKouluttajaWithYliopistoAndErikoisala(yliopisto: Yliopisto? = null, erikoisala: Erikoisala? = null) {
+    @Test
+    @Transactional
+    fun `test that existing vastuuhenkilo does not get erikoistuva yliopisto and erikoisala`() {
+        initKouluttajaWithYliopistoAndErikoisala(authority = Authority(name = VASTUUHENKILO))
+
+        val vastuuhenkiloBefore = kayttajaRepository.findOneByUserEmail(DEFAULT_EMAIL).get()
+        assertThat(vastuuhenkiloBefore.yliopistotAndErikoisalat).hasSize(1)
+        val yliopistotAndErikoisalatBefore = vastuuhenkiloBefore.yliopistotAndErikoisalat.map {
+            Triple(it.id, it.yliopisto?.id, it.erikoisala?.id)
+        }
+
+        val uusiLahikouluttajaDTO =
+            UusiLahikouluttajaDTO(DEFAULT_ETUNIMI, DEFAULT_SUKUNIMI, DEFAULT_EMAIL)
+
+        restLahikouluttajatMockMvc.perform(
+            post("/api/erikoistuva-laakari/lahikouluttajat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(uusiLahikouluttajaDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        em.flush()
+        em.clear()
+
+        val vastuuhenkiloAfter = kayttajaRepository.findOneByUserEmail(DEFAULT_EMAIL).get()
+        assertThat(vastuuhenkiloAfter.yliopistotAndErikoisalat).hasSize(1)
+        assertThat(vastuuhenkiloAfter.yliopistotAndErikoisalat.map {
+            Triple(it.id, it.yliopisto?.id, it.erikoisala?.id)
+        }).containsExactlyElementsOf(yliopistotAndErikoisalatBefore)
+    }
+
+    fun initKouluttajaWithYliopistoAndErikoisala(
+        yliopisto: Yliopisto? = null,
+        erikoisala: Erikoisala? = null,
+        authority: Authority = Authority(name = KOULUTTAJA)
+    ) {
         val kouluttajaUser =
-            KayttajaResourceWithMockUserIT.createEntity(DEFAULT_NIMI, DEFAULT_EMAIL, Authority(name = KOULUTTAJA))
+            KayttajaResourceWithMockUserIT.createEntity(
+                TyoskentelypaikkaHelper.DEFAULT_NIMI,
+                DEFAULT_EMAIL,
+                authority
+            )
         em.persist(kouluttajaUser)
         em.flush()
         val kouluttajaKayttaja = KayttajaHelper.createEntity(em, kouluttajaUser)

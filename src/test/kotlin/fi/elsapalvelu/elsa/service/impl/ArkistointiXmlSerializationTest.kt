@@ -19,7 +19,7 @@ import java.text.SimpleDateFormat
  * Any Jackson module compiled against databind < 2.18.0 will throw
  * NoSuchFieldError at runtime when Jackson databind 2.18.x is on the classpath.
  *
- * The crash happens in ArkistointiServiceImpl.muodostaSahke() →
+ * The crash happens in SahkePakettiBuilder.build() →
  *   XmlMapper().writeValueAsBytes(metadata)
  *
  * Test 1 mirrors the production code verbatim.
@@ -32,13 +32,13 @@ import java.text.SimpleDateFormat
 class ArkistointiXmlSerializationTest {
 
     /**
-     * Mirrors ArkistointiServiceImpl.muodostaSahke() line-for-line.
+     * Mirrors the mapper setup in SahkePakettiBuilder.
      * Will throw NoSuchFieldError: _anyGetterWriter if any Jackson module
      * on the classpath was compiled against databind < 2.18.0.
      */
     @Test
     fun `XmlMapper serializes ArkistointiMetadata without Jackson field name mismatch`() {
-        // Exact copy of the mapper setup in ArkistointiServiceImpl.muodostaSahke()
+        // Exact copy of the mapper setup in SahkePakettiBuilder.
         val mapper = XmlMapper()
         mapper.registerModule(JavaTimeModule())
         mapper.dateFormat = SimpleDateFormat("dd.MM.yyyy")
@@ -102,4 +102,3 @@ class ArkistointiXmlSerializationTest {
             .isEqualTo(databindDotted)
     }
 }
-

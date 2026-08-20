@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.dto.kayttajahallinta
 
-import java.io.Serializable
 import java.time.LocalDate
+import java.io.Serializable
 
 data class KayttajahallintaOpintooikeusDTO(
 
@@ -13,4 +13,8 @@ data class KayttajahallintaOpintooikeusDTO(
 
 ) : Serializable {
     override fun toString() = "KayttajahallintaOpintooikeusDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

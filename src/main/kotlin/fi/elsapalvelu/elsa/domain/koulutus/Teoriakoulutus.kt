@@ -1,0 +1,79 @@
+package fi.elsapalvelu.elsa.domain.koulutus
+
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode
+import java.io.Serializable
+import jakarta.persistence.*
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
+
+import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
+@Entity
+@Audited
+@Table(name = "teoriakoulutus")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+data class Teoriakoulutus(
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long? = null,
+
+    @get: NotNull
+    @Column(name = "koulutuksen_nimi", nullable = false)
+    var koulutuksenNimi: String? = null,
+
+    @get: NotNull
+    @Column(name = "koulutuksen_paikka", nullable = false)
+    var koulutuksenPaikka: String? = null,
+
+    @get: NotNull
+    @Column(name = "alkamispaiva", nullable = false)
+    var alkamispaiva: LocalDate? = null,
+
+    @Column(name = "paattymispaiva")
+    var paattymispaiva: LocalDate? = null,
+
+    @get: Min(value = 0)
+    @Column(name = "erikoistumiseen_hyvaksyttava_tuntimaara")
+    var erikoistumiseenHyvaksyttavaTuntimaara: Double? = null,
+
+    @OneToMany(
+        mappedBy = "teoriakoulutus",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    )
+    var todistukset: MutableSet<Asiakirja> = mutableSetOf(),
+
+    @NotNull
+    @ManyToOne(optional = false)
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+    var opintooikeus: Opintooikeus? = null
+
+) : Serializable {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Teoriakoulutus) return false
+
+        return id != null && other.id != null && id == other.id
+    }
+
+    override fun hashCode() = 31
+
+    override fun toString() = "Teoriakoulutus{" +
+        "id=$id" +
+        ", koulutuksenNimi='$koulutuksenNimi'" +
+        ", koulutuksenPaikka='$koulutuksenPaikka'" +
+        ", alkamispaiva='$alkamispaiva'" +
+        ", paattymispaiva='$paattymispaiva'" +
+        ", erikoistumiseenHyvaksyttavaTuntimaara=$erikoistumiseenHyvaksyttavaTuntimaara" +
+        "}"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

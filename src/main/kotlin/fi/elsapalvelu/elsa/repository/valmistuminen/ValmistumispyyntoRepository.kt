@@ -1,0 +1,25 @@
+package fi.elsapalvelu.elsa.repository.valmistuminen
+
+import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+
+interface ValmistumispyyntoRepository : JpaRepository<Valmistumispyynto, Long>,
+    JpaSpecificationExecutor<Valmistumispyynto> {
+
+    fun findByOpintooikeusId(opintooikeusId: Long): Valmistumispyynto?
+
+    fun findByIdAndOpintooikeusYliopistoIdAndOpintooikeusErikoisalaIdIn(
+        id: Long,
+        yliopistoId: Long,
+        erikoisalaIds: List<Long>
+    ): Valmistumispyynto?
+
+    fun findByIdAndOpintooikeusYliopistoId(
+        id: Long,
+        yliopistoId: Long
+    ): Valmistumispyynto?
+
+    fun existsByOpintooikeusId(opintooikeusId: Long): Boolean
+
+}

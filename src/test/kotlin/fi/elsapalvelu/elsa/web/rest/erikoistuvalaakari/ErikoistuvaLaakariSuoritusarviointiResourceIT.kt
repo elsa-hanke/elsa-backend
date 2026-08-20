@@ -3,9 +3,27 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
+import fi.elsapalvelu.elsa.domain.koejakso.*
+import fi.elsapalvelu.elsa.domain.tyoskentely.*
+import fi.elsapalvelu.elsa.domain.arviointi.*
+import fi.elsapalvelu.elsa.domain.suoritteet.*
+import fi.elsapalvelu.elsa.domain.koulutus.*
+import fi.elsapalvelu.elsa.domain.seuranta.*
+import fi.elsapalvelu.elsa.domain.valmistuminen.*
+import fi.elsapalvelu.elsa.domain.kayttaja.*
+import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.repository.*
+import fi.elsapalvelu.elsa.repository.koejakso.*
+import fi.elsapalvelu.elsa.repository.tyoskentely.*
+import fi.elsapalvelu.elsa.repository.arviointi.*
+import fi.elsapalvelu.elsa.repository.suoritteet.*
+import fi.elsapalvelu.elsa.repository.koulutus.*
+import fi.elsapalvelu.elsa.repository.seuranta.*
+import fi.elsapalvelu.elsa.repository.valmistuminen.*
+import fi.elsapalvelu.elsa.repository.kayttaja.*
+import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.mapper.SuoritusarviointiMapper
+import fi.elsapalvelu.elsa.service.mapper.arviointi.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -316,7 +334,7 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
         tempFile.deleteOnExit()
     }
 
-    fun initTest(userId: String? = DEFAULT_ID) {
+    fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -347,8 +365,6 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
     }
 
     companion object {
-
-        private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
 
         private val DEFAULT_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_TAPAHTUMAN_AJANKOHTA: LocalDate = LocalDate.now(ZoneId.systemDefault())
@@ -391,7 +407,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
+            val suoritusarvioinninArvioitavaKokonaisuus =
+                SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
             suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             return suoritusarviointi
@@ -426,7 +443,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             } else {
                 arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
             }
-            val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
+            val suoritusarvioinninArvioitavaKokonaisuus =
+                SuoritusarvioinninArvioitavaKokonaisuus(arvioitavaKokonaisuus = arvioitavaKokonaisuus, suoritusarviointi = suoritusarviointi)
             suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
             return suoritusarviointi

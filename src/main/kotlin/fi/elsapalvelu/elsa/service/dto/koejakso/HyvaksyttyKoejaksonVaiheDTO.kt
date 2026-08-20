@@ -1,0 +1,21 @@
+package fi.elsapalvelu.elsa.service.dto.koejakso
+
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTyyppi
+import java.io.Serializable
+
+data class HyvaksyttyKoejaksonVaiheDTO(
+
+    var id: Long? = null,
+
+    var tyyppi: KoejaksoTyyppi? = null,
+
+    var pvm: LocalDate? = null
+
+) : Serializable {
+    override fun toString() = "HyvaksyttyKoejaksonVaiheDTO"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

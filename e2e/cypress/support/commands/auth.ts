@@ -1,4 +1,10 @@
-import { E2E_ERIKOISTUVA_EMAIL, SSN_ERIKOISTUVA, SSN_KOULUTTAJA } from './credentials'
+import {
+  E2E_ERIKOISTUVA_EMAIL,
+  SSN_ERIKOISTUVA,
+  SSN_KOULUTTAJA,
+  SSN_VASTUUHENKILO,
+  SSN_VIRKAILIJA,
+} from './credentials'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -12,7 +18,7 @@ declare global {
        * @param email - If provided, fills in the "Aloita palvelun käyttö" form
        *                (shown only on first-ever login for a user with no e-mail).
        */
-      loginWithSuomifi(ssn?: string, email?: string): void
+      loginWithSuomifi(ssn?: string, email?: string, token?: string): void
 
       /**
        * Logs in as the resident physician (erikoistuva lääkäri).
@@ -27,14 +33,20 @@ declare global {
        * Intended for use after the kouluttaja has been seeded via db:seedKouluttaja
        * and their account activated via the verification-token invite flow.
        */
-      loginAsKouluttaja(): void
+      loginAsKouluttaja(token?: string): void
+
+      loginAsVastuuhenkilo(token?: string): void
+
+      loginAsVirkailija(token?: string): void
+
+      logout(): void
     }
   }
 }
 
 // ── loginWithSuomifi ─────────────────────────────────────────────────────────
-Cypress.Commands.add('loginWithSuomifi', (ssn = SSN_ERIKOISTUVA, email?: string) => {
-  cy.visit('/kirjautuminen')
+Cypress.Commands.add('loginWithSuomifi', (ssn = SSN_ERIKOISTUVA, email?: string, token?: string) => {
+  cy.visit(token ? `/kirjautuminen?token=${token}` : '/kirjautuminen')
   cy.contains('Kirjaudu sisään (Suomi.fi)').click()
 
   cy.origin('https://testi.apro.tunnistus.fi', () => {
@@ -67,45 +79,71 @@ Cypress.Commands.add('loginWithSuomifi', (ssn = SSN_ERIKOISTUVA, email?: string)
   }
 })
 
-// ── loginAsErikoistuva ───────────────────────────────────────────────────────
-Cypress.Commands.add('loginAsErikoistuva', () => {
+const assertLoggedIn = () => {
+  cy.location('origin', { timeout: 60000 }).should(
+    'eq',
+    new URL(Cypress.config('baseUrl') as string).origin
+  )
+  cy.location('pathname').should('not.eq', '/kirjautuminen')
+  cy.get('main[role="main"]').should('exist')
+}
+
+const validateLoggedInSession = () => {
+  cy.visit('/etusivu')
+  cy.url().should('not.include', '/kirjautuminen')
+}
+
+const loginWithCachedSession = (
+  sessionId: string | string[],
+  ssn: string,
+  email?: string,
+  token?: string
+) => {
   cy.session(
-    'erikoistuva',
+    sessionId,
     () => {
-      cy.loginWithSuomifi(SSN_ERIKOISTUVA, E2E_ERIKOISTUVA_EMAIL)
-      cy.url().should('not.include', '/kirjautuminen')
-      cy.get('main[role="main"]').should('exist')
+      cy.loginWithSuomifi(ssn, email, token)
+      assertLoggedIn()
     },
     {
-      // Re-validate: confirm the session is still alive by checking we land on
-      // etusivu after a visit.
-      validate() {
-        cy.visit('/etusivu')
-        cy.url().should('not.include', '/kirjautuminen')
-      },
+      validate: validateLoggedInSession,
     }
   )
+}
+
+// ── loginAsErikoistuva ───────────────────────────────────────────────────────
+Cypress.Commands.add('loginAsErikoistuva', () => {
+  loginWithCachedSession('erikoistuva', SSN_ERIKOISTUVA, E2E_ERIKOISTUVA_EMAIL)
 })
 
 // ── loginAsKouluttaja ────────────────────────────────────────────────────────
-Cypress.Commands.add('loginAsKouluttaja', () => {
-  cy.session(
-    'kouluttaja',
-    () => {
-      // The kouluttaja account must have been pre-seeded via db:seedKouluttaja and
-      // linked to this SSN through the verification-token invite flow beforehand.
-      cy.loginWithSuomifi(SSN_KOULUTTAJA)
-      cy.url().should('not.include', '/kirjautuminen')
-      cy.get('main[role="main"]').should('exist')
-    },
-    {
-      validate() {
-        cy.visit('/etusivu')
-        cy.url().should('not.include', '/kirjautuminen')
-      },
-    }
-  )
+Cypress.Commands.add('loginAsKouluttaja', (token?: string) => {
+  // The kouluttaja account must have been pre-seeded via db:seedKouluttaja and
+  // linked to this SSN through the verification-token invite flow beforehand.
+  loginWithCachedSession(['kouluttaja', token ?? 'linked'], SSN_KOULUTTAJA, undefined, token)
 })
 
-export {}
+// ── loginAsVastuuhenkilo ─────────────────────────────────────────────────────
+Cypress.Commands.add('loginAsVastuuhenkilo', (token?: string) => {
+  loginWithCachedSession(['vastuuhenkilo', token ?? 'linked'], SSN_VASTUUHENKILO, undefined, token)
+})
 
+// ── loginAsVirkailija ────────────────────────────────────────────────────────
+Cypress.Commands.add('loginAsVirkailija', (token?: string) => {
+  loginWithCachedSession(['virkailija', token ?? 'linked'], SSN_VIRKAILIJA, undefined, token)
+})
+
+Cypress.Commands.add('logout', () => {
+
+  cy.getCookie('XSRF-TOKEN').then((cookie) => {
+    cy.request({
+      method: 'POST',
+      url: '/api/logout',
+      headers: { 'X-XSRF-TOKEN': cookie?.value ?? '' },
+    })
+  })
+
+})
+
+
+export {}

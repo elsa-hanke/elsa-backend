@@ -42,6 +42,24 @@ async function deleteValmistumispyyntoRows(client: Client, el_id: number): Promi
   )
 }
 
+// ─── Seurantajakso cleanup ────────────────────────────────────────────────
+
+async function deleteSeurantajaksoRows(client: Client, el_id: number): Promise<void> {
+  await client.query(
+    `DELETE FROM seurantajakso_koulutusjakso
+     WHERE seurantajakso_id IN (
+       SELECT id FROM seurantajakso
+       WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)
+     )`,
+    [el_id]
+  )
+  await client.query(
+    `DELETE FROM seurantajakso
+     WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)`,
+    [el_id]
+  )
+}
+
 // ─── Koulutussuunnitelma cleanup ──────────────────────────────────────────────
 
 async function deleteKoulutussuunnitelmaRows(client: Client, el_id: number): Promise<void> {
@@ -72,6 +90,14 @@ async function fetchTyoskentelypaikkaIds(client: Client, el_id: number): Promise
 }
 
 async function deleteTyoskentelyjaksoRows(client: Client, el_id: number): Promise<void> {
+  await client.query(
+    `DELETE FROM suoritemerkinta
+     WHERE tyoskentelyjakso_id IN (
+       SELECT id FROM tyoskentelyjakso
+       WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)
+     )`,
+    [el_id]
+  )
   await client.query(
     `DELETE FROM suoritusarvioinnin_arvioitava_kokonaisuus
      WHERE suoritusarviointi_id IN (
@@ -130,6 +156,47 @@ async function deleteTyoskentelypaikkaRows(client: Client, paikkaIds: number[]):
   await client.query(`DELETE FROM tyoskentelypaikka WHERE id = ANY($1::bigint[])`, [paikkaIds])
 }
 
+// ─── Teoriakoulutus cleanup ───────────────────────────────────────────────────
+
+async function deleteTeoriakoulutusRows(client: Client, el_id: number): Promise<void> {
+  // Poistetaan ensin mahdolliset todistustiedostot (asiakirja) ennen teoriakoulutusrivejä.
+  // Asiakirja-rivit on jo poistettu opintooikeus_id:n kautta deleteOpintooikeusRows:ssa,
+  // mutta jos asiakirjalla on erillinen teoriakoulutus_id-viite, poistetaan se ensin.
+  await client.query(
+    `DELETE FROM asiakirja
+     WHERE teoriakoulutus_id IN (
+       SELECT id FROM teoriakoulutus
+       WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)
+     )`,
+    [el_id]
+  ).catch(() => {
+    // Sarake teoriakoulutus_id ei välttämättä ole olemassa kaikissa ympäristöissä – ohitetaan
+  })
+  await client.query(
+    `DELETE FROM teoriakoulutus
+     WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)`,
+    [el_id]
+  )
+}
+
+// ─── Paivakirjamerkinta cleanup ──────────────────────────────────────────────
+
+async function deletePaivakirjamerkintaRows(client: Client, el_id: number): Promise<void> {
+  await client.query(
+    `DELETE FROM rel_paivakirjamerkinta__aihekategoria
+     WHERE paivakirjamerkinta_id IN (
+       SELECT id FROM paivakirjamerkinta
+       WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)
+     )`,
+    [el_id]
+  )
+  await client.query(
+    `DELETE FROM paivakirjamerkinta
+     WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)`,
+    [el_id]
+  )
+}
+
 // ─── Opintooikeus cleanup ─────────────────────────────────────────────────────
 
 async function deleteOpintooikeusRows(client: Client, el_id: number): Promise<void> {
@@ -167,15 +234,19 @@ async function deleteErikoistuvaLaakari(client: Client, ids: UserIds): Promise<v
     }
 
     await deleteValmistumispyyntoRows(client, el_id)
+    await deleteSeurantajaksoRows(client, el_id)
     await deleteKoulutussuunnitelmaRows(client, el_id)
     await deleteTyoskentelyjaksoRows(client, el_id)
     await deleteTyoskentelypaikkaRows(client, paikkaIds)
+    await deletePaivakirjamerkintaRows(client, el_id)
+    await deleteTeoriakoulutusRows(client, el_id)
     await deleteOpintooikeusRows(client, el_id)
 
     await client.query(`DELETE FROM erikoistuva_laakari WHERE id = $1`, [el_id])
   }
 
   if (kayttaja_id) {
+    await client.query(`DELETE FROM kayttaja_yliopisto_erikoisala WHERE kayttaja_id = $1`, [kayttaja_id])
     await client.query(`DELETE FROM kayttaja WHERE id = $1`, [kayttaja_id])
   }
 

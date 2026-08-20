@@ -1,0 +1,80 @@
+package fi.elsapalvelu.elsa.service.mapper.koejakso
+
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
+import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonLoppukeskustelu
+import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonVastuuhenkilonArvioDTO
+import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.Mappings
+import org.mapstruct.ReportingPolicy
+
+import fi.elsapalvelu.elsa.service.mapper.EntityMapper
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.KayttajaMapper
+
+@Mapper(
+    componentModel = "spring",
+    uses = [KayttajaMapper::class],
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
+interface KoejaksonVastuuhenkilonArvioMapper :
+    EntityMapper<KoejaksonVastuuhenkilonArvioDTO, KoejaksonVastuuhenkilonArvio> {
+
+    @Mappings(
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.avatar",
+            target = "erikoistuvanAvatar"
+        ),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.nimi",
+            target = "erikoistuvanNimi"
+        ),
+        Mapping(source = "opintooikeus.yliopisto.nimi", target = "erikoistuvanYliopisto"),
+        Mapping(source = "opintooikeus.erikoisala.nimi", target = "erikoistuvanErikoisala"),
+        Mapping(source = "opintooikeus.opiskelijatunnus", target = "erikoistuvanOpiskelijatunnus"),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.email",
+            target = "erikoistuvanSahkoposti"
+        ),
+        Mapping(
+            source = "opintooikeus.erikoistuvaLaakari.kayttaja.user.phoneNumber",
+            target = "erikoistuvanPuhelinnumero"
+        ),
+        Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo.id"),
+        Mapping(source = "vastuuhenkilo.user.id", target = "vastuuhenkilo.kayttajaUserId"),
+        Mapping(
+            source = "vastuuhenkiloHyvaksynyt",
+            target = "vastuuhenkilo.sopimusHyvaksytty"
+        ),
+        Mapping(source = "vastuuhenkilonKuittausaika", target = "vastuuhenkilo.kuittausaika"),
+        Mapping(source = "virkailija.id", target = "virkailija.id"),
+        Mapping(
+            source = "virkailijaHyvaksynyt",
+            target = "virkailija.sopimusHyvaksytty"
+        ),
+        Mapping(
+            source = "vastuuhenkilo.user.email",
+            target = "vastuuhenkilonSahkoposti"
+        ),
+        Mapping(
+            source = "vastuuhenkilo.user.phoneNumber",
+            target = "vastuuhenkilonPuhelinnumero"
+        ),
+        Mapping(source = "virkailijanKuittausaika", target = "virkailija.kuittausaika")
+    )
+    override fun toDto(entity: KoejaksonVastuuhenkilonArvio): KoejaksonVastuuhenkilonArvioDTO
+
+    @Mappings(
+        Mapping(source = "vastuuhenkilo.id", target = "vastuuhenkilo"),
+        Mapping(source = "vastuuhenkilo.sopimusHyvaksytty", target = "vastuuhenkiloHyvaksynyt"),
+        Mapping(source = "vastuuhenkilo.kuittausaika", target = "vastuuhenkilonKuittausaika"),
+        Mapping(source = "virkailija.sopimusHyvaksytty", target = "virkailijaHyvaksynyt"),
+        Mapping(source = "virkailija.kuittausaika", target = "virkailijanKuittausaika")
+    )
+    override fun toEntity(dto: KoejaksonVastuuhenkilonArvioDTO): KoejaksonVastuuhenkilonArvio
+
+    fun fromId(id: Long?) = id?.let {
+        val loppukeskustelu = KoejaksonLoppukeskustelu()
+        loppukeskustelu.id = id
+        loppukeskustelu
+    }
+}

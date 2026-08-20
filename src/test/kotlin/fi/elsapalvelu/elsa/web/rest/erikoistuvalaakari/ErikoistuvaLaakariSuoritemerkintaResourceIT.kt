@@ -2,12 +2,21 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.repository.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.SuoritemerkintaRepository
+import fi.elsapalvelu.elsa.domain.koejakso.*
+import fi.elsapalvelu.elsa.domain.tyoskentely.*
+import fi.elsapalvelu.elsa.domain.arviointi.*
+import fi.elsapalvelu.elsa.domain.suoritteet.*
+import fi.elsapalvelu.elsa.domain.koulutus.*
+import fi.elsapalvelu.elsa.domain.seuranta.*
+import fi.elsapalvelu.elsa.domain.valmistuminen.*
+import fi.elsapalvelu.elsa.domain.kayttaja.*
+import fi.elsapalvelu.elsa.domain.perustiedot.*
+import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.suoritteet.SuoritemerkintaRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.service.dto.SuoritemerkinnanSuoriteDTO
-import fi.elsapalvelu.elsa.service.dto.UusiSuoritemerkintaDTO
-import fi.elsapalvelu.elsa.service.mapper.SuoritemerkintaMapper
+import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritemerkinnanSuoriteDTO
+import fi.elsapalvelu.elsa.service.dto.suoritteet.UusiSuoritemerkintaDTO
+import fi.elsapalvelu.elsa.service.mapper.suoritteet.SuoritemerkintaMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -141,7 +150,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initTest()
 
         val databaseSizeBeforeCreate = suoritemerkintaRepository.findAll().size
 
@@ -192,7 +201,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initTest()
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
 
@@ -276,7 +285,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initTest()
 
         val databaseSizeBeforeCreate = suoritemerkintaRepository.findAll().size
 
@@ -359,7 +368,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initTest()
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
 
@@ -483,7 +492,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             )
     }
 
-    fun initTest(userId: String? = DEFAULT_ID) {
+    fun initTest() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -515,10 +524,6 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
     }
 
     companion object {
-
-        private const val DEFAULT_ID = "c47f46ad-21c4-47e8-9c7c-ba44f60c8bae"
-        private const val DEFAULT_LOGIN = "johndoe"
-        private const val DEFAULT_EMAIL = "john.doe@example.com"
 
         private val DEFAULT_SUORITUSPAIVA: LocalDate = LocalDate.ofEpochDay(0L)
         private val UPDATED_SUORITUSPAIVA: LocalDate = LocalDate.now(ZoneId.systemDefault())

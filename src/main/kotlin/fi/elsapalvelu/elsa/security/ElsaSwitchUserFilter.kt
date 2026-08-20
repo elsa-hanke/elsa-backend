@@ -1,13 +1,17 @@
 package fi.elsapalvelu.elsa.security
 
+import fi.elsapalvelu.elsa.required
+
+import java.time.LocalDate
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.domain.Opintooikeus
-import fi.elsapalvelu.elsa.domain.enumeration.VastuuhenkilonTehtavatyyppiEnum
-import fi.elsapalvelu.elsa.repository.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.KouluttajavaltuutusRepository
-import fi.elsapalvelu.elsa.repository.OpintooikeusRepository
-import fi.elsapalvelu.elsa.repository.UserRepository
+import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import org.springframework.core.log.LogMessage
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.InternalAuthenticationServiceException
@@ -23,11 +27,9 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.filter.OncePerRequestFilter
-import org.springframework.web.util.UrlPathHelper
-import java.time.LocalDate
 import jakarta.persistence.EntityNotFoundException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -158,13 +160,13 @@ class ElsaSwitchUserFilter(
                     .orElseThrow { EntityNotFoundException("Käyttäjä ei ole kirjautunut") }
 
         val authorityNames =
-            userRepository.findByIdWithAuthorities(kirjautunutKayttaja.user?.id!!)
+            userRepository.findByIdWithAuthorities(kirjautunutKayttaja.user?.id.required())
                 .get().authorities.map { it.name }
 
-        if (authorityNames.contains(VASTUUHENKILO) && kirjautunutKayttaja.yliopistotAndErikoisalat.find {
+        if (authorityNames.contains(VASTUUHENKILO) && kirjautunutKayttaja.yliopistotAndErikoisalat.any {
                 it.erikoisala?.id == opintooikeus.erikoisala?.id &&
                     it.yliopisto?.id == opintooikeus.yliopisto?.id
-            } != null) return ERIKOISTUVA_LAAKARI_IMPERSONATED
+            }) return ERIKOISTUVA_LAAKARI_IMPERSONATED
 
         if (authorityNames.contains(VASTUUHENKILO) && opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
             && kirjautunutKayttaja.yliopistotAndErikoisalat.any {
@@ -172,13 +174,13 @@ class ElsaSwitchUserFilter(
                     && it.vastuuhenkilonTehtavat.map { t -> t.nimi }.contains(VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN) })
             return ERIKOISTUVA_LAAKARI_IMPERSONATED
 
-        if (authorityNames.contains(OPINTOHALLINNON_VIRKAILIJA) && kirjautunutKayttaja.yliopistot.find {
+        if (authorityNames.contains(OPINTOHALLINNON_VIRKAILIJA) && kirjautunutKayttaja.yliopistot.any {
                 it.id == opintooikeus.yliopisto?.id
-            } != null) return ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+            }) return ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 
         if (kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
-                opintooikeus.id!!,
-                kirjautunutKayttaja.user?.id!!,
+                opintooikeus.id.required(),
+                kirjautunutKayttaja.user?.id.required(),
                 LocalDate.now().minusDays(1)
             ).isPresent
         ) return ERIKOISTUVA_LAAKARI_IMPERSONATED
@@ -205,7 +207,7 @@ class ElsaSwitchUserFilter(
 
     companion object {
         private fun createMatcher(pattern: String): RequestMatcher {
-            return AntPathRequestMatcher(pattern, "GET", true, UrlPathHelper())
+            return PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, pattern)
         }
     }
 }

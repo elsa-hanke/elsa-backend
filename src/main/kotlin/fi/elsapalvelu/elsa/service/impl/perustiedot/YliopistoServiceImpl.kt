@@ -1,0 +1,48 @@
+package fi.elsapalvelu.elsa.service.impl.perustiedot
+
+import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
+import fi.elsapalvelu.elsa.service.perustiedot.YliopistoService
+import fi.elsapalvelu.elsa.service.dto.kayttaja.HakaYliopistoDTO
+import fi.elsapalvelu.elsa.service.dto.perustiedot.YliopistoDTO
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.HakaYliopistoMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.YliopistoMapper
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.*
+
+@Service
+@Transactional
+class YliopistoServiceImpl(
+    private val yliopistoRepository: YliopistoRepository,
+    private val yliopistoMapper: YliopistoMapper,
+    private val hakaYliopistoMapper: HakaYliopistoMapper
+) : YliopistoService {
+
+    override fun save(yliopistoDTO: YliopistoDTO): YliopistoDTO {
+        var yliopisto = yliopistoMapper.toEntity(yliopistoDTO)
+        yliopisto = yliopistoRepository.save(yliopisto)
+        return yliopistoMapper.toDto(yliopisto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAll(): List<YliopistoDTO> {
+        return yliopistoRepository.findAll()
+            .map(yliopistoMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findOne(id: Long): Optional<YliopistoDTO> {
+        return yliopistoRepository.findOneWithEagerRelationships(id)
+            .map(yliopistoMapper::toDto)
+    }
+
+    @Transactional(readOnly = true)
+    override fun findAllHaka(): List<HakaYliopistoDTO> {
+        return yliopistoRepository.findAllHaka()
+            .map(hakaYliopistoMapper::toDto)
+    }
+
+    override fun delete(id: Long) {
+        yliopistoRepository.deleteById(id)
+    }
+}

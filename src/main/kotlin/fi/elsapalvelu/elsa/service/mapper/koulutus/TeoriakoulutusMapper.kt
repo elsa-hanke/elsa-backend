@@ -1,0 +1,31 @@
+package fi.elsapalvelu.elsa.service.mapper.koulutus
+
+import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
+import fi.elsapalvelu.elsa.service.dto.koulutus.TeoriakoulutusDTO
+import org.mapstruct.*
+
+import fi.elsapalvelu.elsa.service.mapper.EntityMapper
+@Mapper(
+    componentModel = "spring", uses = [],
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
+interface TeoriakoulutusMapper :
+    EntityMapper<TeoriakoulutusDTO, Teoriakoulutus> {
+
+    override fun toDto(entity: Teoriakoulutus): TeoriakoulutusDTO
+
+    override fun toEntity(dto: TeoriakoulutusDTO): Teoriakoulutus
+
+    @Named("id")
+    @BeanMapping(ignoreByDefault = true)
+    @Mappings(
+        Mapping(target = "id", source = "id")
+    )
+    fun toDtoId(teoriakoulutus: Teoriakoulutus): TeoriakoulutusDTO
+
+    fun fromId(id: Long?) = id?.let {
+        val teoriakoulutus = Teoriakoulutus()
+        teoriakoulutus.id = id
+        teoriakoulutus
+    }
+}

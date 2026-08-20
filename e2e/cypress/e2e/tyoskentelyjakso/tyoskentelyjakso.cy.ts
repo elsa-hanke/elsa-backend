@@ -11,13 +11,10 @@
  *  Ensimmäisellä kirjautumisella backend suorittaa createWithoutOpintotietodata, joka luo
  *  erikoistuva_laakari + opintooikeus -tietueet. Erillistä siementämistä ei tarvita.
  */
-import {E2E_ERIKOISTUVA_EMAIL} from "../../support/commands";
 
 describe('Työskentelyjakso', () => {
   before(() => {
-    // Tyhjennetään kaikki tallennetut sessiot ja siivotaan testidata
-    Cypress.session.clearAllSavedSessions()
-    cy.task('db:cleanupErikoistuva', { email: E2E_ERIKOISTUVA_EMAIL })
+    cy.resetErikoistuvaE2eState()
     cy.loginAsErikoistuva()
   })
 
@@ -114,8 +111,14 @@ describe('Työskentelyjakso', () => {
       .type('28.02.2025')
       .blur()
     cy.contains('button', 'Tallenna').click()
-    // Tallennuksen jälkeen palataan työskentelyjakson sivulle
+    // Tallennuksen jälkeen ohjataan poissaolon detail-sivulle
     cy.url().should('not.include', '/poissaolot/uusi')
+    cy.url().should('match', /\/tyoskentelyjaksot\/poissaolot\/\d+$/)
+
+    // Varmistetaan, että poissaolon tiedot näkyvät detail-sivulla
+    cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
+    cy.contains(/15\.2\.2025|15\.02\.2025/i).should('be.visible')
+    cy.contains(/28\.2\.2025|28\.02\.2025/i).should('be.visible')
 
     // --- Vaihe 4: Näytetään päivitetty työkertymä listassa ---
     cy.visit('/tyoskentelyjaksot')
