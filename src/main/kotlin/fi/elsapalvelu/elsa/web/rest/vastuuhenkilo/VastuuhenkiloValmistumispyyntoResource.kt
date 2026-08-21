@@ -133,7 +133,7 @@ class VastuuhenkiloValmistumispyyntoResource(
                     id,
                     user.id.required(),
                     hyvaksyntaFormDTO
-            )
+                )
             AuditLoggingWrapper.info("PUT request completed for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id")
             return ResponseEntity.ok(valmistumispyynto)
         } catch (ex: InvalidPdfAttachmentException) {
