@@ -8,9 +8,11 @@ import fi.elsapalvelu.elsa.repository.koulutus.KoulutussuunnitelmaRepository
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.required
+import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
-import org.slf4j.LoggerFactory
+import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
+import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
@@ -30,10 +32,9 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
     private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository,
     private val seurantajaksoService: SeurantajaksoService,
     private val arviointiPdfService: ValmistumispyynnonArviointiPdfService,
-    private val suoritemerkintaPdfService: ValmistumispyynnonSuoritemerkintaPdfService
+    private val suoritemerkintaPdfService: ValmistumispyynnonSuoritemerkintaPdfService,
+    private val pdfContentValidator: PdfContentValidator
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
-
     fun luo(valmistumispyynto: Valmistumispyynto) {
         val opintooikeus = valmistumispyynto.opintooikeus ?: return
         val opintooikeusId = opintooikeus.id.required()
@@ -76,15 +77,29 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
 
         val motivaatiokirje = koulutussuunnitelma?.motivaatiokirjeAsiakirja ?: return
         val data = motivaatiokirje.asiakirjaData?.data
-        if (data == null || data.isEmpty()) {
-            log.warn(
-                "Motivaatiokirjeasiakirja ${motivaatiokirje.id} data on tyhjä tai null – ohitetaan"
+        if (
+            motivaatiokirje.tyyppi != MediaType.APPLICATION_PDF_VALUE ||
+            data == null ||
+            !pdfContentValidator.isValid(data)
+        ) {
+            throw InvalidPdfAttachmentException(
+                attachmentId = motivaatiokirje.id,
+                attachmentName = motivaatiokirje.nimi,
+                source = InvalidPdfAttachmentSource.MOTIVAATIOKIRJE
             )
-            return
         }
         val existingPdf = ByteArrayInputStream(outputStream.toByteArray())
         outputStream.reset()
-        pdfService.yhdistaPdf(existingPdf, ByteArrayInputStream(data), outputStream)
+        try {
+            pdfService.yhdistaPdf(existingPdf, ByteArrayInputStream(data), outputStream)
+        } catch (e: Exception) {
+            throw InvalidPdfAttachmentException(
+                attachmentId = motivaatiokirje.id,
+                attachmentName = motivaatiokirje.nimi,
+                source = InvalidPdfAttachmentSource.MOTIVAATIOKIRJE,
+                cause = e
+            )
+        }
     }
 
     private fun lisaaPaivakirjamerkinnat(

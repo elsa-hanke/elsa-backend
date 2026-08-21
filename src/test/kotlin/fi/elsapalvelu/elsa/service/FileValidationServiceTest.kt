@@ -14,12 +14,15 @@ import org.springframework.mock.web.MockMultipartFile
 class FileValidationServiceTest {
 
     private lateinit var asiakirjaService: AsiakirjaService
+    private lateinit var pdfContentValidator: PdfContentValidator
     private lateinit var fileValidationService: FileValidationService
 
     @BeforeEach
     fun setup() {
         asiakirjaService = mock(AsiakirjaService::class.java)
-        fileValidationService = FileValidationServiceImpl(asiakirjaService)
+        pdfContentValidator = mock(PdfContentValidator::class.java)
+        `when`(pdfContentValidator.isValid(any(ByteArray::class.java))).thenReturn(true)
+        fileValidationService = FileValidationServiceImpl(asiakirjaService, pdfContentValidator)
     }
 
     @Test
@@ -258,6 +261,37 @@ class FileValidationServiceTest {
             MediaType.IMAGE_PNG_VALUE,
             ByteArray(0)
         )
+
+        val result = fileValidationService.validate(listOf(file))
+
+        assertThat(result).isFalse
+    }
+
+    @Test
+    fun `validate should reject PDF when its content is not valid`() {
+        val file = MockMultipartFile(
+            "file",
+            "document.pdf",
+            MediaType.APPLICATION_PDF_VALUE,
+            "not a PDF".toByteArray()
+        )
+        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
+        `when`(pdfContentValidator.isValid(file.bytes)).thenReturn(false)
+
+        val result = fileValidationService.validate(listOf(file), 1L)
+
+        assertThat(result).isFalse
+    }
+
+    @Test
+    fun `validate without opintooikeusId should reject PDF when its content is not valid`() {
+        val file = MockMultipartFile(
+            "file",
+            "document.pdf",
+            MediaType.APPLICATION_PDF_VALUE,
+            "not a PDF".toByteArray()
+        )
+        `when`(pdfContentValidator.isValid(file.bytes)).thenReturn(false)
 
         val result = fileValidationService.validate(listOf(file))
 

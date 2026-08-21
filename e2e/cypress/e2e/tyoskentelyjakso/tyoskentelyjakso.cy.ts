@@ -13,38 +13,26 @@
  */
 
 describe('Työskentelyjakso', () => {
-  before(() => {
+  beforeEach(() => {
     cy.resetErikoistuvaE2eState()
     cy.loginAsErikoistuva()
   })
 
-  it('suorittaa koko Työskentelyjakson lisäämisen käyttötapauksen (case 4)', () => {
-    // --- Vaihe 1: Siirrytään työskentelyjaksojen listaukseen ---
+  const openAndFillNewTyoskentelyjakso = (tyoskentelypaikka: string) => {
     cy.visit('/tyoskentelyjaksot')
     cy.contains('h1', 'Työskentelyjaksot').should('be.visible')
-
-    // --- Vaihe 2: Täytetään ja lähetetään työskentelyjakso -lomake ---
     cy.visit('/tyoskentelyjaksot/uusi')
-    // Odotetaan, että lomake latautuu (varmistetaan että työskentelypaikan nimi -kenttä on näkyvissä)
     cy.get('.lisaa-tyoskentelyjakso').should('be.visible')
     cy.get('[data-testid="loading"]', { timeout: 10000 }).should('not.exist')
-    // Tyyppi – valitaan ensimmäinen saatavilla oleva radiovaihtoehto
-    cy.get('input[type="radio"][name="tyoskentelyjakso-tyyppi"]')
-      .first()
-      .click({ force: true })
-    // Työskentelypaikan nimi
+    cy.get('input[type="radio"][name="tyoskentelyjakso-tyyppi"]').first().click({ force: true })
     cy.contains('label', 'Työskentelypaikka')
       .parent()
       .find('input[type="text"]')
       .first()
       .clear()
-      .type('E2E Testisairaala')
-    // Kunta – valitaan ensimmäinen monivalintavaihtoehto
-    cy.contains('label', 'Kunta')
-      .parent()
-      .as('kuntaGroup')
+      .type(tyoskentelypaikka)
+    cy.contains('label', 'Kunta').parent().as('kuntaGroup')
     cy.selectFirstMultiselectOption(cy.get('@kuntaGroup'))
-    // Alkamispäivä
     cy.contains('label', 'Alkamispäivä')
       .parent()
       .find('input.date-input')
@@ -52,7 +40,6 @@ describe('Työskentelyjakso', () => {
       .clear()
       .type('01.01.2025')
       .blur()
-    // Päättymispäivä
     cy.contains('label', 'Päättymispäivä')
       .parent()
       .find('input.date-input')
@@ -61,17 +48,45 @@ describe('Työskentelyjakso', () => {
       .type('30.06.2027')
       .blur()
 
-    // Työaika (osaaikaprosentti) – pakollinen kenttä (50–100%)
     cy.get('input[type="number"]').first().clear().type('100')
-
-    // Käytännön koulutus – pakollinen radiovaihtoehto
     cy.get('input[type="radio"][name="kaytannon-koulutus-tyyppi"]').first().click({ force: true })
+  }
+
+  it('estää virheellisen sisällön lähettämisen PDF-tiedostona', () => {
+    openAndFillNewTyoskentelyjakso('E2E Virheellinen PDF')
+
+    cy.get('input[type="file"]')
+      .first()
+      .selectFile(
+        {
+          contents: Cypress.Buffer.from('DOCX content, not a PDF. '.repeat(512)),
+          fileName: 'virheellinen.pdf',
+          mimeType: 'application/pdf'
+        },
+        { force: true }
+      )
+
+    cy.intercept('POST', '**/erikoistuva-laakari/tyoskentelyjaksot').as(
+      'invalidTyoskentelyjaksoPost'
+    )
+    cy.contains('button', 'Lisää').click()
+
+    cy.wait('@invalidTyoskentelyjaksoPost', { timeout: 30000 })
+      .its('response.statusCode')
+      .should('eq', 400)
+    cy.url().should('include', '/tyoskentelyjaksot/uusi')
+    cy.contains(
+      '.toast-body',
+      'Työskentelyjakson tallentaminen epäonnistui: tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa'
+    ).should('be.visible')
+  })
+
+  it('suorittaa koko Työskentelyjakson lisäämisen käyttötapauksen (case 4)', () => {
+    // --- Vaihe 1–2: Täytetään ja lähetetään työskentelyjakso PDF-liitteineen ---
+    openAndFillNewTyoskentelyjakso('E2E Testisairaala')
 
     // Työtodistus – tiedoston liittäminen
-    cy.get('input[type="file"]').first().selectFile(
-      'cypress/fixtures/test.pdf',
-      { force: true }
-    )
+    cy.get('input[type="file"]').first().selectFile('cypress/fixtures/test.pdf', { force: true })
     cy.wait(1)
     // Lähetä lomake
     cy.contains('button', 'Lisää').click()
@@ -90,9 +105,7 @@ describe('Työskentelyjakso', () => {
     cy.contains('Lisää poissaolo').click()
     cy.url().should('include', '/poissaolot/uusi')
     // Poissaolon syy
-    cy.contains('label', 'Poissaolon syy')
-      .parent()
-      .as('syy')
+    cy.contains('label', 'Poissaolon syy').parent().as('syy')
     cy.selectFirstMultiselectOption(cy.get('@syy'))
     // Poissaolon alkamispäivä
     cy.contains('label', 'Alkamispäivä')

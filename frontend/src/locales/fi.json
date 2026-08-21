@@ -288,6 +288,7 @@
       "tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy": "päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ylittää 100%",
       "uuden-lahikouluttajan-voi-lisata-vain-erikoistuva-laakari": "uuden lahikouluttajan voi lisätä vain erikoistuja",
       "vastuuhenkilon-tehtavat-maaritettava-enintaan-yhdelle-vastuuhenkilolle": "jokaisen vastuuhenkilön tehtävän täytyy kuulua enintään yhdelle vastuuhenkilölle saman erikoisalan sisällä",
+      "valmistumispyynnon-liite-ei-ole-kelvollinen-pdf": "Valmistumispyyntöön liittyvä liite \"{attachmentName}\" ({attachmentContext}) ei ole kelvollinen PDF-tiedosto. Pyydä liitteen lisääjää poistamaan se tai korvaamaan se kelvollisella PDF-tiedostolla ja yritä hyväksyntää uudelleen.",
       "valmistumispyynto-ei-ole-muokattavissa": "valmistumispyyntö ei ole muokattavissa",
       "valmistumispyynto-on-jo-lahetetty": "valmistumispyyntö on jo lähetetty"
     },

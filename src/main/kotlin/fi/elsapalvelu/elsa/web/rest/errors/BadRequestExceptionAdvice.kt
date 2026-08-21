@@ -24,6 +24,13 @@ class BadRequestExceptionAdvice {
         body.setProperty("message", "error.${e.errorKey}")
         body.setProperty("params", e.entityName)
 
+        if (e is InvalidPdfAttachmentException) {
+            e.attachmentId?.let { body.setProperty("attachmentId", it) }
+            body.setProperty("attachmentName", e.attachmentName)
+            body.setProperty("attachmentSource", e.attachmentSource)
+            e.attachmentDate?.let { body.setProperty("attachmentDate", it) }
+        }
+
         return body
     }
 
