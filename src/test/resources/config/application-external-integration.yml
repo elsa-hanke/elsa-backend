@@ -102,31 +102,31 @@ application:
 external-integration:
   study-data:
     peppi-oulu:
-      hetu: ${EXTERNAL_INTEGRATION_PEPPI_OULU_HETU}
+      hetu: "260863-997M"
       assert-erikoisala-tunniste-list: true
       expected-study-right-id: ${EXTERNAL_INTEGRATION_PEPPI_OULU_EXPECTED_STUDY_RIGHT_ID:}
       expected-course-code: ${EXTERNAL_INTEGRATION_PEPPI_OULU_EXPECTED_COURSE_CODE:}
       expected-programme-identifier: ${EXTERNAL_INTEGRATION_PEPPI_OULU_EXPECTED_PROGRAMME_IDENTIFIER:}
     peppi-turku:
-      hetu: ${EXTERNAL_INTEGRATION_PEPPI_TURKU_HETU}
+      hetu: "010957-994N"
       assert-erikoisala-tunniste-list: true
       expected-study-right-id: ${EXTERNAL_INTEGRATION_PEPPI_TURKU_EXPECTED_STUDY_RIGHT_ID:}
       expected-course-code: ${EXTERNAL_INTEGRATION_PEPPI_TURKU_EXPECTED_COURSE_CODE:}
       expected-programme-identifier: ${EXTERNAL_INTEGRATION_PEPPI_TURKU_EXPECTED_PROGRAMME_IDENTIFIER:}
     peppi-uef:
-      hetu: ${EXTERNAL_INTEGRATION_PEPPI_UEF_HETU}
+      hetu: "130560-9972"
       assert-erikoisala-tunniste-list: false
       expected-study-right-id: ${EXTERNAL_INTEGRATION_PEPPI_UEF_EXPECTED_STUDY_RIGHT_ID:}
       expected-course-code: ${EXTERNAL_INTEGRATION_PEPPI_UEF_EXPECTED_COURSE_CODE:}
       expected-programme-identifier: ${EXTERNAL_INTEGRATION_PEPPI_UEF_EXPECTED_PROGRAMME_IDENTIFIER:}
     sisu-hy:
-      hetu: ${EXTERNAL_INTEGRATION_SISU_HY_HETU}
+      hetu: "210281-9988"
       assert-erikoisala-tunniste-list: true
       expected-study-right-id: ${EXTERNAL_INTEGRATION_SISU_HY_EXPECTED_STUDY_RIGHT_ID:}
       expected-course-code: ${EXTERNAL_INTEGRATION_SISU_HY_EXPECTED_COURSE_CODE:}
       expected-programme-identifier: ${EXTERNAL_INTEGRATION_SISU_HY_EXPECTED_PROGRAMME_IDENTIFIER:}
     sisu-tre:
-      hetu: ${EXTERNAL_INTEGRATION_SISU_TRE_HETU}
+      hetu: "170999-998Y"
       assert-erikoisala-tunniste-list: true
       expected-study-right-id: ${EXTERNAL_INTEGRATION_SISU_TRE_EXPECTED_STUDY_RIGHT_ID:}
       expected-course-code: ${EXTERNAL_INTEGRATION_SISU_TRE_EXPECTED_COURSE_CODE:}

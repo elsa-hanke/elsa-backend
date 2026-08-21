@@ -155,4 +155,5 @@ Desktop.ini
 *.key
 .java-version
 .env
+.env.replica
 .nvmrc

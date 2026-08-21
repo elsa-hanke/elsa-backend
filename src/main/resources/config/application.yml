@@ -231,6 +231,10 @@ jhipster:
 # ===================================================================
 
 application:
+  scheduling:
+    enabled: true
+  study-data-integrations:
+    enabled: true
   security:
     encoded-key:
     secret-key-algorithm: AES
