@@ -196,6 +196,44 @@ describe('Valmistumispyyntö', () => {
         expect(status).to.eq(200)
         expect(body.valmistumispyynto.tila).to.eq('ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA')
       })
+
+      // Legacy invalid PDF attachments block approval and the UI identifies the file
+      // and assessment so that it can be removed or replaced intentionally.
+      cy.intercept(
+        {
+          method: 'PUT',
+          url: `**/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
+          times: 1,
+        },
+        {
+          statusCode: 400,
+          headers: { 'content-type': 'application/problem+json' },
+          body: {
+            message: 'error.dataillegal.valmistumispyynnon-liite-ei-ole-kelvollinen-pdf',
+            attachmentId: 27536,
+            attachmentName: 'Leikkaustaitojen arviointityökalu.pdf',
+            attachmentSource: 'arviointi',
+            attachmentDate: '2023-02-23',
+          },
+        }
+      ).as('invalidPdfApproval')
+
+      cy.visit(`/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`)
+      cy.contains('button', 'Hyväksy').click()
+      cy.get('#confirm-send').should('be.visible').contains('button', 'Hyväksy').click()
+      cy.wait('@invalidPdfApproval').its('response.statusCode').should('eq', 400)
+      cy.contains(
+        'Valmistumispyynnön hyväksynnän lähetys epäonnistui: ' +
+          'Valmistumispyyntöön liittyvä liite "Leikkaustaitojen arviointityökalu.pdf" ' +
+          '(Arviointi 23.2.2023) ei ole kelvollinen PDF-tiedosto. ' +
+          'Pyydä liitteen lisääjää poistamaan se tai korvaamaan se kelvollisella ' +
+          'PDF-tiedostolla ja yritä hyväksyntää uudelleen.'
+      ).should('be.visible')
+      cy.location('pathname').should(
+        'eq',
+        `/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`
+      )
+
       cy.apiRequest({
         method: 'PUT',
         url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,

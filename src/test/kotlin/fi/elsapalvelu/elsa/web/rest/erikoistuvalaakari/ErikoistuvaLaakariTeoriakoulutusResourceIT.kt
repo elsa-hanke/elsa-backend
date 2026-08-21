@@ -9,7 +9,6 @@ import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.koulutus.TeoriakoulutusMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
-import fi.elsapalvelu.elsa.web.rest.createByteArray
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper.ASIAKIRJA_PDF_NIMI
@@ -645,8 +644,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         private const val DEFAULT_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA: Double = 5.0
         private const val UPDATED_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA: Double = 10.0
 
-        val DEFAULT_FILE: ByteArray = createByteArray(1, "0")
-        val UPDATED_FILE: ByteArray = createByteArray(1, "1")
+        val DEFAULT_FILE: ByteArray = AsiakirjaHelper.ASIAKIRJA_PDF_DATA
+        val UPDATED_FILE: ByteArray = AsiakirjaHelper.ASIAKIRJA_PDF_DATA
 
         private const val ENTITY_API_URL: String = "/api/erikoistuva-laakari/teoriakoulutukset"
         private const val ENTITY_API_URL_ID: String = ENTITY_API_URL + "/{id}"

@@ -1129,6 +1129,10 @@ export interface PaivakirjamerkintaLomake {
 export interface ElsaError {
   errorKey: string
   message: string
+  attachmentId?: number
+  attachmentName?: string
+  attachmentSource?: string
+  attachmentDate?: string
 }
 
 export type HakaYliopisto = {
