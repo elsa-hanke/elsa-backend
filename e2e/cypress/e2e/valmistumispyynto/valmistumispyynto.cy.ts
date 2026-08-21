@@ -219,6 +219,12 @@ describe('Valmistumispyyntö', () => {
       ).as('invalidPdfApproval')
 
       cy.visit(`/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`)
+      cy.contains('label', 'Matkapuhelinnumero')
+        .parent()
+        .find('input')
+        .clear()
+        .type('+358501234567')
+        .should('have.value', '+358501234567')
       cy.contains('button', 'Hyväksy').click()
       cy.get('#confirm-send').should('be.visible').contains('button', 'Hyväksy').click()
       cy.wait('@invalidPdfApproval').its('response.statusCode').should('eq', 400)
