@@ -15,6 +15,7 @@ import com.itextpdf.layout.properties.UnitValue
 import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfContentValidator
+import fi.elsapalvelu.elsa.service.PdfTextSanitizer
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_LUO_PDF
@@ -56,7 +57,7 @@ class PdfServiceImpl(
 
     override fun luoPdf(template: String, context: Context, outputStream: OutputStream) {
         pdfMetrics.trackOperation(OP_LUO_PDF) {
-            val content = templateEngine.process(template, context)
+            val content = sanitizeContent(templateEngine.process(template, context))
             val pdf = PdfADocument(
                 PdfWriter(outputStream),
                 PdfAConformanceLevel.PDF_A_2B,
@@ -144,6 +145,8 @@ class PdfServiceImpl(
             resultDocument.close()
         }
     }
+
+    private fun sanitizeContent(input: String): String = PdfTextSanitizer.sanitize(input)
 
     private fun invalidPdfAttachmentException(
         asiakirja: Asiakirja,

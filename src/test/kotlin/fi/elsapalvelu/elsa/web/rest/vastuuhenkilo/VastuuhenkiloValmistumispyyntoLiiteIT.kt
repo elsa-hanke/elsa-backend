@@ -527,6 +527,25 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         assertGeneratedTraineeDataDocumentIsValid(valmistumispyynto.id!!)
     }
 
+    @Test
+    @Transactional
+    fun approvalUsesHistoricalSanitizationForLegacyPrivateUseCharacters() {
+        persistKoulutussuunnitelma()
+        val seurantajakso = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, vastuuhenkilo)
+        seurantajakso.omaArviointi = "\uF0B7 ensimmäinen, \uF0A7 toinen, \uE123 poistetaan"
+        seurantajakso.hyvaksytty = true
+        em.persist(seurantajakso)
+        em.flush()
+
+        em.clear()
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id)
+            .andExpect(status().isOk)
+
+        assertGeneratedTraineeDataDocumentIsValid(valmistumispyynto.id!!)
+    }
+
     /**
      * A legacy empty motivation-letter PDF must block approval instead of being omitted.
      */

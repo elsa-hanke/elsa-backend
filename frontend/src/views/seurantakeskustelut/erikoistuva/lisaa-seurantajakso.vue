@@ -44,7 +44,6 @@
 </template>
 
 <script lang="ts">
-  import { AxiosError } from 'axios'
   import Vue from 'vue'
   import Component from 'vue-class-component'
 
@@ -57,14 +56,7 @@
   import SeurantajaksoForm from '@/forms/seurantajakso-form.vue'
   import SeurantajaksoHakuForm from '@/forms/seurantajakso-haku-form.vue'
   import store from '@/store'
-  import {
-    ElsaError,
-    Koulutusjakso,
-    KoulutusjaksoLomake,
-    Seurantajakso,
-    SeurantajaksonTiedot
-  } from '@/types'
-  import { formatPdfTextError } from '@/utils/pdfTextError'
+  import { Koulutusjakso, KoulutusjaksoLomake, Seurantajakso, SeurantajaksonTiedot } from '@/types'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -172,12 +164,7 @@
           }
         })
       } catch (err) {
-        const axiosError = err as AxiosError<ElsaError>
-        toastFail(
-          this,
-          formatPdfTextError(this, axiosError.response?.data) ??
-            this.$t('seurantajakson-lisaaminen-epaonnistui')
-        )
+        toastFail(this, this.$t('seurantajakson-lisaaminen-epaonnistui'))
       }
       params.saving = false
     }

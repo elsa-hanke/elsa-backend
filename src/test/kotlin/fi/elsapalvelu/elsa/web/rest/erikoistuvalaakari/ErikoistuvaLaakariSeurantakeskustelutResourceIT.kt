@@ -19,7 +19,6 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.seuranta.SeurantajaksoMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
-import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.collection.IsCollectionWithSize.hasSize
@@ -139,7 +138,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
 
     @Test
     @Transactional
-    fun createSeurantajaksoRejectsCharactersMissingFromPdfFonts() {
+    fun createSeurantajaksoAllowsCharactersMissingFromPdfFonts() {
         initTest()
         val databaseSizeBeforeCreate = seurantajaksoRepository.findAll().size
         val seurantajaksoDTO = seurantajaksoMapper.toDto(seurantajakso).apply {
@@ -153,20 +152,12 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
                 .content(convertObjectToJsonBytes(seurantajaksoDTO))
                 .with(csrf())
         )
-            .andExpect(status().isBadRequest)
-            .andExpect(
-                jsonPath("$.message").value(
-                    "error.${UnsupportedPdfCharactersException.ERROR_KEY}"
-                )
-            )
-            .andExpect(jsonPath("$.field").value("oma-arviointi-seurantajaksolta"))
-            .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
-            .andExpect(jsonPath("$.seurantajaksoId").doesNotExist())
-            .andExpect(
-                jsonPath("$.seurantajaksoStartDate").value(DEFAULT_ALKAMISPAIVA.toString())
-            )
+            .andExpect(status().isCreated)
 
-        assertThat(seurantajaksoRepository.findAll()).hasSize(databaseSizeBeforeCreate)
+        val seurantajaksot = seurantajaksoRepository.findAll()
+        assertThat(seurantajaksot).hasSize(databaseSizeBeforeCreate + 1)
+        assertThat(seurantajaksot.last().omaArviointi)
+            .isEqualTo("Erikoistuminen etenee suunnitellusti ✓")
     }
 
     @Test

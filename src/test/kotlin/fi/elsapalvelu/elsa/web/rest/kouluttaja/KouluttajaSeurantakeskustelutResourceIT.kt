@@ -19,7 +19,6 @@ import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.mapper.seuranta.SeurantajaksoMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
-import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.collection.IsCollectionWithSize.hasSize
@@ -254,7 +253,7 @@ class KouluttajaSeurantakeskustelutResourceIT {
 
     @Test
     @Transactional
-    fun updateSeurantajaksoRejectsCharactersMissingFromPdfFonts() {
+    fun updateSeurantajaksoAllowsCharactersMissingFromPdfFonts() {
         initTest()
         seurantajaksoRepository.saveAndFlush(seurantajakso)
 
@@ -270,17 +269,10 @@ class KouluttajaSeurantakeskustelutResourceIT {
                 .content(convertObjectToJsonBytes(seurantajaksoDTO))
                 .with(csrf())
         )
-            .andExpect(status().isBadRequest)
-            .andExpect(
-                jsonPath("$.message").value(
-                    "error.${UnsupportedPdfCharactersException.ERROR_KEY}"
-                )
-            )
-            .andExpect(jsonPath("$.field").value("lahikouluttajan-arviointi-jaksosta"))
-            .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
+            .andExpect(status().isOk)
 
         assertThat(seurantajaksoRepository.findById(seurantajakso.id!!).get().kouluttajanArvio)
-            .isNull()
+            .isEqualTo("Erikoistuminen etenee hyvin ✓")
     }
 
     @Test

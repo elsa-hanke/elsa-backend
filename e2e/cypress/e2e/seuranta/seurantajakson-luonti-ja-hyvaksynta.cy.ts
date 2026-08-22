@@ -23,15 +23,15 @@ describe('Seurantajakson luonti', () => {
     })
   })
 
-  it('estää PDF-fontista puuttuvien merkkien tallentamisen', () => {
+  it('sallii PDF-fontista puuttuvien merkkien tallentamisen', () => {
     cy.intercept(
       'GET',
       '**/erikoistuva-laakari/seurantakeskustelut/seurantajaksontiedot**'
-    ).as('getInvalidSeurantajaksonTiedot')
+    ).as('getUnsupportedCharacterSeurantajaksonTiedot')
     cy.intercept(
       'POST',
       '**/erikoistuva-laakari/seurantakeskustelut/seurantajakso'
-    ).as('postInvalidSeurantajakso')
+    ).as('postUnsupportedCharacterSeurantajakso')
 
     cy.visit('/seurantakeskustelut/seurantajakso/uusi')
     cy.contains('label', 'Seurantajakso alkaa')
@@ -47,7 +47,7 @@ describe('Seurantajakson luonti', () => {
       .type('30.06.2025')
       .blur()
     cy.contains('button', 'Hae tiedot').click()
-    cy.wait('@getInvalidSeurantajaksonTiedot')
+    cy.wait('@getUnsupportedCharacterSeurantajaksonTiedot')
       .its('response.statusCode')
       .should('eq', 200)
 
@@ -63,20 +63,30 @@ describe('Seurantajakson luonti', () => {
     cy.contains('button', 'Tallenna ja lähetä').click()
     cy.get('#confirm-modal').find('button').contains('Tallenna ja lähetä').click()
 
-    cy.wait('@postInvalidSeurantajakso').then(({ response }) => {
-      expect(response?.statusCode).to.eq(400)
-      expect(response?.body).to.include({
-        message: 'error.dataillegal.pdf-tiedostossa-tukemattomia-merkkeja',
-        field: 'oma-arviointi-seurantajaksolta',
-      })
-      expect(response?.body?.unsupportedCharacters).to.deep.equal(['✓ (U+2713)'])
+    cy.wait('@postUnsupportedCharacterSeurantajakso').then(({ request, response }) => {
+      expect(request.body.omaArviointi).to.eq('Erikoistuminen etenee suunnitellusti ✓')
+      expect(response?.statusCode).to.eq(201)
+      expect(response?.body?.id).to.be.a('number')
+      Cypress.env('unsupportedCharacterSeurantajaksoId', response?.body?.id)
     })
-    cy.contains(
-      'Kenttä "Oma arviointi seurantajaksolta" sisältää merkkejä, joita ei voida ' +
-        'lisätä arkistoitavaan PDF-tiedostoon: ✓ (U+2713). Poista tai korvaa merkit ' +
-        'ja tallenna uudelleen.'
-    ).should('be.visible')
-    cy.location('pathname').should('eq', '/seurantakeskustelut/seurantajakso/uusi')
+
+    cy.url().should('match', /\/seurantakeskustelut\/seurantajakso\/\d+$/)
+    cy.contains('Erikoistuminen etenee suunnitellusti ✓').should('be.visible')
+
+    cy.then(() => {
+      const seurantajaksoId = Number(Cypress.env('unsupportedCharacterSeurantajaksoId'))
+      cy.apiRequest({
+        method: 'GET',
+        url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${seurantajaksoId}`,
+      }).then(({ status, body }) => {
+        expect(status).to.eq(200)
+        expect(body.omaArviointi).to.eq('Erikoistuminen etenee suunnitellusti ✓')
+      })
+      cy.apiRequest({
+        method: 'DELETE',
+        url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${seurantajaksoId}`,
+      }).its('status').should('eq', 204)
+    })
   })
 
   it('erikoistuja luo seurantajakson ja tiedot säilyvät sivun uudelleenlatauksessa', () => {

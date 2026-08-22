@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.seuranta
 
 import fi.elsapalvelu.elsa.service.PdfTextValidator
+import fi.elsapalvelu.elsa.service.PdfTextSanitizer
 import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksoDTO
 import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import org.springframework.stereotype.Component
@@ -45,7 +46,8 @@ class SeurantajaksoPdfTextValidator(
         fields: List<Pair<String, String?>>
     ) {
         fields.forEach { (field, text) ->
-            val unsupportedCharacters = pdfTextValidator.findUnsupportedCharacters(text)
+            val sanitizedText = text?.let(PdfTextSanitizer::sanitize)
+            val unsupportedCharacters = pdfTextValidator.findUnsupportedCharacters(sanitizedText)
             if (unsupportedCharacters.isNotEmpty()) {
                 throw UnsupportedPdfCharactersException(
                     field = field,

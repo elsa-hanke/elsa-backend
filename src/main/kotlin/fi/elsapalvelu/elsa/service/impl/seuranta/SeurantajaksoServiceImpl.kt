@@ -58,16 +58,13 @@ class SeurantajaksoServiceImpl(
     private val teoriakoulutusService: TeoriakoulutusService,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
-    private val arviointiasteikkoMapper: ArviointiasteikkoMapper,
-    private val seurantajaksoPdfTextValidator: SeurantajaksoPdfTextValidator
+    private val arviointiasteikkoMapper: ArviointiasteikkoMapper
 ) : SeurantajaksoService {
 
     override fun create(
         seurantajaksoDTO: SeurantajaksoDTO,
         opintooikeusId: Long
     ): SeurantajaksoDTO? {
-        seurantajaksoPdfTextValidator.validateErikoistujanKentat(seurantajaksoDTO)
-
         opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let { opintooikeus ->
             var seurantajakso = seurantajaksoMapper.toEntity(seurantajaksoDTO)
             seurantajakso.opintooikeus = opintooikeus
@@ -123,7 +120,6 @@ class SeurantajaksoServiceImpl(
 
         if (seurantajakso.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id == userId
             && (seurantajakso.seurantakeskustelunYhteisetMerkinnat == null || seurantajakso.korjausehdotus != null)) {
-            seurantajaksoPdfTextValidator.validateErikoistujanKentat(seurantajaksoDTO)
             seurantajakso.omaArviointi = updatedSeurantajakso.omaArviointi
             seurantajakso.lisahuomioita = updatedSeurantajakso.lisahuomioita
             seurantajakso.seuraavanJaksonTavoitteet = updatedSeurantajakso.seuraavanJaksonTavoitteet
@@ -141,7 +137,6 @@ class SeurantajaksoServiceImpl(
             if (updatedSeurantajakso.korjausehdotus != null) {
                 seurantajakso.korjausehdotus = updatedSeurantajakso.korjausehdotus
             } else {
-                seurantajaksoPdfTextValidator.validateKouluttajanKentat(seurantajaksoDTO)
                 seurantajakso.edistyminenTavoitteidenMukaista = updatedSeurantajakso.edistyminenTavoitteidenMukaista
                 seurantajakso.huolenaiheet = updatedSeurantajakso.huolenaiheet
                 seurantajakso.kouluttajanArvio = updatedSeurantajakso.kouluttajanArvio
