@@ -19,6 +19,7 @@ import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.service.mapper.seuranta.SeurantajaksoMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
+import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.collection.IsCollectionWithSize.hasSize
@@ -249,6 +250,37 @@ class KouluttajaSeurantakeskustelutResourceIT {
         )
         assertThat(testSeurantajakso.jatkotoimetJaRaportointi).isEqualTo(DEFAULT_JATKOTOIMET)
         assertThat(testSeurantajakso.hyvaksytty).isFalse
+    }
+
+    @Test
+    @Transactional
+    fun updateSeurantajaksoRejectsCharactersMissingFromPdfFonts() {
+        initTest()
+        seurantajaksoRepository.saveAndFlush(seurantajakso)
+
+        val updatedSeurantajakso = seurantajaksoRepository.findById(seurantajakso.id!!).get()
+        em.detach(updatedSeurantajakso)
+        updatedSeurantajakso.edistyminenTavoitteidenMukaista = true
+        updatedSeurantajakso.kouluttajanArvio = "Erikoistuminen etenee hyvin ✓"
+        val seurantajaksoDTO = seurantajaksoMapper.toDto(updatedSeurantajakso)
+
+        restSeurantajaksoMockMvc.perform(
+            put(ENTITY_API_URL_ID, seurantajakso.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(seurantajaksoDTO))
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message").value(
+                    "error.${UnsupportedPdfCharactersException.ERROR_KEY}"
+                )
+            )
+            .andExpect(jsonPath("$.field").value("lahikouluttajan-arviointi-jaksosta"))
+            .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
+
+        assertThat(seurantajaksoRepository.findById(seurantajakso.id!!).get().kouluttajanArvio)
+            .isNull()
     }
 
     @Test

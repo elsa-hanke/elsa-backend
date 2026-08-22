@@ -39,8 +39,6 @@ class PdfServiceImpl(
 ) : PdfService {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val puaRegex = Regex("[\uE000-\uF8FF]")
-
     @Value("classpath:sRGB_CS_profile.icm")
     var colorProfile: Resource? = null
 
@@ -58,7 +56,7 @@ class PdfServiceImpl(
 
     override fun luoPdf(template: String, context: Context, outputStream: OutputStream) {
         pdfMetrics.trackOperation(OP_LUO_PDF) {
-            val content = sanitizeContent(templateEngine.process(template, context))
+            val content = templateEngine.process(template, context)
             val pdf = PdfADocument(
                 PdfWriter(outputStream),
                 PdfAConformanceLevel.PDF_A_2B,
@@ -146,11 +144,6 @@ class PdfServiceImpl(
             resultDocument.close()
         }
     }
-
-    private fun sanitizeContent(input: String): String =
-        input.replace("\uF0B7", "\u2022")   // Wingdings bullet → •
-            .replace("\uF0A7", "\u25E6")   // alternate bullet → ◦
-            .replace(puaRegex, "")         // remove remaining PUA chars
 
     private fun invalidPdfAttachmentException(
         asiakirja: Asiakirja,

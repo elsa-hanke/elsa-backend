@@ -21,6 +21,7 @@ import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
+import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -478,6 +479,52 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         performApproval(valmistumispyynto.id)
             .andExpect(status().isOk)
+    }
+
+    @Test
+    @Transactional
+    fun approvalIsBlockedWhenLegacySeurantajaksoContainsUnsupportedPdfCharacter() {
+        persistKoulutussuunnitelma()
+        val seurantajakso = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, vastuuhenkilo)
+        seurantajakso.omaArviointi = "Erikoistuminen etenee suunnitellusti ✓"
+        em.persist(seurantajakso)
+        em.flush()
+
+        val seurantajaksoId = seurantajakso.id
+        val seurantajaksoStartDate = seurantajakso.alkamispaiva
+        em.clear()
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id)
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message").value(
+                    "error.${UnsupportedPdfCharactersException.ERROR_KEY}"
+                )
+            )
+            .andExpect(jsonPath("$.field").value("oma-arviointi-seurantajaksolta"))
+            .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
+            .andExpect(jsonPath("$.seurantajaksoId").value(seurantajaksoId))
+            .andExpect(jsonPath("$.seurantajaksoStartDate").value(seurantajaksoStartDate.toString()))
+    }
+
+    @Test
+    @Transactional
+    fun approvalSucceedsWhenSeurantajaksoTextIsSupportedByPdfFonts() {
+        persistKoulutussuunnitelma()
+        val seurantajakso = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, vastuuhenkilo)
+        seurantajakso.omaArviointi = "Ääkköset ja tuettu nuoli →"
+        seurantajakso.hyvaksytty = true
+        em.persist(seurantajakso)
+        em.flush()
+
+        em.clear()
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id)
+            .andExpect(status().isOk)
+
+        assertGeneratedTraineeDataDocumentIsValid(valmistumispyynto.id!!)
     }
 
     /**

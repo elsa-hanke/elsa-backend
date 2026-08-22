@@ -19,6 +19,7 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.seuranta.SeurantajaksoMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
+import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.collection.IsCollectionWithSize.hasSize
@@ -134,6 +135,38 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
 
         val newKoulutus = koulutusjaksoRepository.findById(koulutusjakso.id!!)
         assertThat(newKoulutus.get().lukittu).isTrue
+    }
+
+    @Test
+    @Transactional
+    fun createSeurantajaksoRejectsCharactersMissingFromPdfFonts() {
+        initTest()
+        val databaseSizeBeforeCreate = seurantajaksoRepository.findAll().size
+        val seurantajaksoDTO = seurantajaksoMapper.toDto(seurantajakso).apply {
+            omaArviointi = "Erikoistuminen etenee suunnitellusti ✓"
+            hyvaksytty = null
+        }
+
+        restSeurantajaksoMockMvc.perform(
+            post("$ENTITY_API_URL/seurantajakso")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(seurantajaksoDTO))
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message").value(
+                    "error.${UnsupportedPdfCharactersException.ERROR_KEY}"
+                )
+            )
+            .andExpect(jsonPath("$.field").value("oma-arviointi-seurantajaksolta"))
+            .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
+            .andExpect(jsonPath("$.seurantajaksoId").doesNotExist())
+            .andExpect(
+                jsonPath("$.seurantajaksoStartDate").value(DEFAULT_ALKAMISPAIVA.toString())
+            )
+
+        assertThat(seurantajaksoRepository.findAll()).hasSize(databaseSizeBeforeCreate)
     }
 
     @Test
@@ -364,6 +397,29 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
         assertThat(testSeurantajakso.omaArviointi).isEqualTo(UPDATED_OMA_ARVIOINTI)
         assertThat(testSeurantajakso.lisahuomioita).isEqualTo(UPDATED_OMA_ARVIOINTI)
         assertThat(testSeurantajakso.seuraavanJaksonTavoitteet).isEqualTo(UPDATED_TAVOITTEET)
+    }
+
+    @Test
+    @Transactional
+    fun updateSeurantajaksoAllowsRemovingLegacyUnsupportedCharacter() {
+        initTest()
+        seurantajakso.omaArviointi = "Vanha teksti ✓"
+        seurantajaksoRepository.saveAndFlush(seurantajakso)
+
+        val updatedSeurantajakso = seurantajaksoRepository.findById(seurantajakso.id!!).get()
+        em.detach(updatedSeurantajakso)
+        updatedSeurantajakso.omaArviointi = "Korjattu teksti"
+        val seurantajaksoDTO = seurantajaksoMapper.toDto(updatedSeurantajakso)
+
+        restSeurantajaksoMockMvc.perform(
+            put(ENTITY_API_URL_ID, seurantajakso.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(seurantajaksoDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        assertThat(seurantajaksoRepository.findById(seurantajakso.id!!).get().omaArviointi)
+            .isEqualTo("Korjattu teksti")
     }
 
     @Test

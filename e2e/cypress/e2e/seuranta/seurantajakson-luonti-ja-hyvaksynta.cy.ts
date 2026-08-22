@@ -23,6 +23,62 @@ describe('Seurantajakson luonti', () => {
     })
   })
 
+  it('estää PDF-fontista puuttuvien merkkien tallentamisen', () => {
+    cy.intercept(
+      'GET',
+      '**/erikoistuva-laakari/seurantakeskustelut/seurantajaksontiedot**'
+    ).as('getInvalidSeurantajaksonTiedot')
+    cy.intercept(
+      'POST',
+      '**/erikoistuva-laakari/seurantakeskustelut/seurantajakso'
+    ).as('postInvalidSeurantajakso')
+
+    cy.visit('/seurantakeskustelut/seurantajakso/uusi')
+    cy.contains('label', 'Seurantajakso alkaa')
+      .parent()
+      .find('input.date-input')
+      .clear()
+      .type('01.01.2025')
+      .blur()
+    cy.contains('label', 'Seurantajakso päättyy')
+      .parent()
+      .find('input.date-input')
+      .clear()
+      .type('30.06.2025')
+      .blur()
+    cy.contains('button', 'Hae tiedot').click()
+    cy.wait('@getInvalidSeurantajaksonTiedot')
+      .its('response.statusCode')
+      .should('eq', 200)
+
+    cy.contains('label', 'Oma arviointi seurantajaksolta')
+      .parent()
+      .find('textarea')
+      .type('Erikoistuminen etenee suunnitellusti ✓')
+    cy.contains('label', 'Kouluttaja').parent().find('.multiselect').click()
+    cy.get('.multiselect--active .multiselect__option')
+      .contains(KOULUTTAJA_NIMI)
+      .click({ force: true })
+
+    cy.contains('button', 'Tallenna ja lähetä').click()
+    cy.get('#confirm-modal').find('button').contains('Tallenna ja lähetä').click()
+
+    cy.wait('@postInvalidSeurantajakso').then(({ response }) => {
+      expect(response?.statusCode).to.eq(400)
+      expect(response?.body).to.include({
+        message: 'error.dataillegal.pdf-tiedostossa-tukemattomia-merkkeja',
+        field: 'oma-arviointi-seurantajaksolta',
+      })
+      expect(response?.body?.unsupportedCharacters).to.deep.equal(['✓ (U+2713)'])
+    })
+    cy.contains(
+      'Kenttä "Oma arviointi seurantajaksolta" sisältää merkkejä, joita ei voida ' +
+        'lisätä arkistoitavaan PDF-tiedostoon: ✓ (U+2713). Poista tai korvaa merkit ' +
+        'ja tallenna uudelleen.'
+    ).should('be.visible')
+    cy.location('pathname').should('eq', '/seurantakeskustelut/seurantajakso/uusi')
+  })
+
   it('erikoistuja luo seurantajakson ja tiedot säilyvät sivun uudelleenlatauksessa', () => {
     cy.intercept(
       'GET',
