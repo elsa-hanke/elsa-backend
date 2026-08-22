@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.2...HEAD)
 
+- Replica profile [`#694`](https://github.com/elsa-hanke/elsa-backend/pull/694)(21 August 2026)
 - Release/v2.2.x merge [`#693`](https://github.com/elsa-hanke/elsa-backend/pull/693)(14 August 2026)
 
 ## [v2.2.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.1...v2.2.2) - 14 August 2026
