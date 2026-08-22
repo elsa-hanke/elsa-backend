@@ -31,6 +31,13 @@ class BadRequestExceptionAdvice {
             e.attachmentDate?.let { body.setProperty("attachmentDate", it) }
         }
 
+        if (e is UnsupportedPdfCharactersException) {
+            body.setProperty("field", e.field)
+            body.setProperty("unsupportedCharacters", e.unsupportedCharacters)
+            e.seurantajaksoId?.let { body.setProperty("seurantajaksoId", it) }
+            e.seurantajaksoStartDate?.let { body.setProperty("seurantajaksoStartDate", it) }
+        }
+
         return body
     }
 

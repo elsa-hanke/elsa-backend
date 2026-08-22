@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
+import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoPdfTextValidator
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource
@@ -33,7 +34,8 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
     private val seurantajaksoService: SeurantajaksoService,
     private val arviointiPdfService: ValmistumispyynnonArviointiPdfService,
     private val suoritemerkintaPdfService: ValmistumispyynnonSuoritemerkintaPdfService,
-    private val pdfContentValidator: PdfContentValidator
+    private val pdfContentValidator: PdfContentValidator,
+    private val seurantajaksoPdfTextValidator: SeurantajaksoPdfTextValidator
 ) {
     fun luo(valmistumispyynto: Valmistumispyynto) {
         val opintooikeus = valmistumispyynto.opintooikeus ?: return
@@ -127,6 +129,7 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
         val arviointiasteikko = valmistumispyynto.opintooikeus?.opintoopas?.arviointiasteikko
         val arviointiasteikonTasot = arviointiasteikko?.tasot?.associateBy { it.taso }
         seurantajaksoService.findByOpintooikeusId(opintooikeusId).forEach { seurantajakso ->
+            seurantajaksoPdfTextValidator.validateKaikkiKentat(seurantajakso)
             val seurantajaksonTiedot = seurantajaksoService.findSeurantajaksonTiedot(
                 seurantajakso.opintooikeusId.required(),
                 seurantajakso.alkamispaiva.required(),

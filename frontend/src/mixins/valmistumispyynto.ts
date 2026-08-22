@@ -2,6 +2,7 @@ import { Component, Vue } from 'vue-property-decorator'
 
 import { ElsaError, Valmistumispyynto } from '@/types'
 import { ValmistumispyynnonTila } from '@/utils/constants'
+import { formatPdfTextError, UNSUPPORTED_PDF_CHARACTERS_ERROR } from '@/utils/pdfTextError'
 
 const INVALID_PDF_ATTACHMENT_ERROR =
   'error.dataillegal.valmistumispyynnon-liite-ei-ole-kelvollinen-pdf'
@@ -106,6 +107,14 @@ export default class ValmistumispyyntoMixin extends Vue {
   formatValmistumispyyntoError(error?: ElsaError): string | undefined {
     if (!error?.message) {
       return undefined
+    }
+
+    if (error.message === UNSUPPORTED_PDF_CHARACTERS_ERROR) {
+      return formatPdfTextError(
+        this,
+        error,
+        'valmistumispyynnon-seurantajaksossa-pdf-tiedostossa-tukemattomia-merkkeja'
+      )
     }
 
     if (error.message !== INVALID_PDF_ATTACHMENT_ERROR) {

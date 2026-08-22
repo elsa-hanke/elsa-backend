@@ -1133,6 +1133,10 @@ export interface ElsaError {
   attachmentName?: string
   attachmentSource?: string
   attachmentDate?: string
+  field?: string
+  unsupportedCharacters?: string[]
+  seurantajaksoId?: number
+  seurantajaksoStartDate?: string
 }
 
 export type HakaYliopisto = {

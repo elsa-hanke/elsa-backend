@@ -240,6 +240,36 @@ describe('Valmistumispyyntö', () => {
         `/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`
       )
 
+      cy.intercept(
+        {
+          method: 'PUT',
+          url: `**/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
+          times: 1,
+        },
+        {
+          statusCode: 400,
+          headers: { 'content-type': 'application/problem+json' },
+          body: {
+            message: 'error.dataillegal.pdf-tiedostossa-tukemattomia-merkkeja',
+            field: 'oma-arviointi-seurantajaksolta',
+            unsupportedCharacters: ['✓ (U+2713)'],
+            seurantajaksoId: 123,
+            seurantajaksoStartDate: '2025-01-01',
+          },
+        }
+      ).as('invalidPdfTextApproval')
+
+      cy.contains('button', 'Hyväksy').click()
+      cy.get('#confirm-send').should('be.visible').contains('button', 'Hyväksy').click()
+      cy.wait('@invalidPdfTextApproval').its('response.statusCode').should('eq', 400)
+      cy.contains(
+        'Valmistumispyynnön hyväksynnän lähetys epäonnistui: ' +
+          'Valmistumispyyntöön liittyvän seurantajakson kenttä ' +
+          '"Oma arviointi seurantajaksolta" (1.1.2025) sisältää merkkejä, joita ei ' +
+          'voida lisätä arkistoitavaan PDF-tiedostoon: ✓ (U+2713). Pyydä kentän ' +
+          'täyttäjää poistamaan tai korvaamaan merkit ja yritä hyväksyntää uudelleen.'
+      ).should('be.visible')
+
       cy.apiRequest({
         method: 'PUT',
         url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,

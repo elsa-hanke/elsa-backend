@@ -15,6 +15,7 @@ import com.itextpdf.layout.properties.UnitValue
 import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfContentValidator
+import fi.elsapalvelu.elsa.service.PdfTextSanitizer
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_LUO_PDF
@@ -39,8 +40,6 @@ class PdfServiceImpl(
 ) : PdfService {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val puaRegex = Regex("[\uE000-\uF8FF]")
-
     @Value("classpath:sRGB_CS_profile.icm")
     var colorProfile: Resource? = null
 
@@ -147,10 +146,7 @@ class PdfServiceImpl(
         }
     }
 
-    private fun sanitizeContent(input: String): String =
-        input.replace("\uF0B7", "\u2022")   // Wingdings bullet → •
-            .replace("\uF0A7", "\u25E6")   // alternate bullet → ◦
-            .replace(puaRegex, "")         // remove remaining PUA chars
+    private fun sanitizeContent(input: String): String = PdfTextSanitizer.sanitize(input)
 
     private fun invalidPdfAttachmentException(
         asiakirja: Asiakirja,

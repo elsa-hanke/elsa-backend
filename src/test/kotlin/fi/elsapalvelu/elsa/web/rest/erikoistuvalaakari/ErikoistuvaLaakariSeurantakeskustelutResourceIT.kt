@@ -138,6 +138,30 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
 
     @Test
     @Transactional
+    fun createSeurantajaksoAllowsCharactersMissingFromPdfFonts() {
+        initTest()
+        val databaseSizeBeforeCreate = seurantajaksoRepository.findAll().size
+        val seurantajaksoDTO = seurantajaksoMapper.toDto(seurantajakso).apply {
+            omaArviointi = "Erikoistuminen etenee suunnitellusti ✓"
+            hyvaksytty = null
+        }
+
+        restSeurantajaksoMockMvc.perform(
+            post("$ENTITY_API_URL/seurantajakso")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(seurantajaksoDTO))
+                .with(csrf())
+        )
+            .andExpect(status().isCreated)
+
+        val seurantajaksot = seurantajaksoRepository.findAll()
+        assertThat(seurantajaksot).hasSize(databaseSizeBeforeCreate + 1)
+        assertThat(seurantajaksot.last().omaArviointi)
+            .isEqualTo("Erikoistuminen etenee suunnitellusti ✓")
+    }
+
+    @Test
+    @Transactional
     @Throws(Exception::class)
     fun createSeurantajaksoWithExistingId() {
         initTest()
@@ -364,6 +388,29 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
         assertThat(testSeurantajakso.omaArviointi).isEqualTo(UPDATED_OMA_ARVIOINTI)
         assertThat(testSeurantajakso.lisahuomioita).isEqualTo(UPDATED_OMA_ARVIOINTI)
         assertThat(testSeurantajakso.seuraavanJaksonTavoitteet).isEqualTo(UPDATED_TAVOITTEET)
+    }
+
+    @Test
+    @Transactional
+    fun updateSeurantajaksoAllowsRemovingLegacyUnsupportedCharacter() {
+        initTest()
+        seurantajakso.omaArviointi = "Vanha teksti ✓"
+        seurantajaksoRepository.saveAndFlush(seurantajakso)
+
+        val updatedSeurantajakso = seurantajaksoRepository.findById(seurantajakso.id!!).get()
+        em.detach(updatedSeurantajakso)
+        updatedSeurantajakso.omaArviointi = "Korjattu teksti"
+        val seurantajaksoDTO = seurantajaksoMapper.toDto(updatedSeurantajakso)
+
+        restSeurantajaksoMockMvc.perform(
+            put(ENTITY_API_URL_ID, seurantajakso.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(seurantajaksoDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        assertThat(seurantajaksoRepository.findById(seurantajakso.id!!).get().omaArviointi)
+            .isEqualTo("Korjattu teksti")
     }
 
     @Test
