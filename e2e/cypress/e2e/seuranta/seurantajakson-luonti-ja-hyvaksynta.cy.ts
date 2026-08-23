@@ -23,6 +23,10 @@ describe('Seurantajakson luonti', () => {
     })
   })
 
+  beforeEach(() => {
+    cy.loginAsErikoistuva()
+  })
+
   it('sallii PDF-fontista puuttuvien merkkien tallentamisen', () => {
     cy.intercept(
       'GET',
