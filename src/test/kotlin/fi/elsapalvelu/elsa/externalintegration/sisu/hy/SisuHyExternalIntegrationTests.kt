@@ -16,7 +16,6 @@ import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingS
 import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,7 +41,6 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(classes = [SisuHyExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
