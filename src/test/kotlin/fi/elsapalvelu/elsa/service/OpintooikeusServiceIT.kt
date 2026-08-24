@@ -96,6 +96,80 @@ class OpintooikeusServiceIT {
     }
 
     @Test
+    fun `reconcile after import keeps a valid selected oikeus`() {
+        val oikeusKaytossa = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
+        val aktiivinenOpintooikeus = erikoistuvaLaakari.aktiivinenOpintooikeus
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+
+        opintooikeusService.reconcileOpintooikeusKaytossaAfterImport(user.id!!)
+
+        assertTrue(oikeusKaytossa.kaytossa)
+        assertFalse(elOikeus.kaytossa)
+        assertFalse(yekOikeus.kaytossa)
+        assertEquals(aktiivinenOpintooikeus, erikoistuvaLaakari.aktiivinenOpintooikeus)
+        assertEquals(ERIKOISTUVA_LAAKARI, user.activeAuthority?.name)
+    }
+
+    @Test
+    fun `reconcile after import selects the only valid YEK oikeus`() {
+        val expiredOikeusKaytossa = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
+        val aktiivinenOpintooikeus = erikoistuvaLaakari.aktiivinenOpintooikeus
+        expire(expiredOikeusKaytossa)
+        expire(elOikeus)
+
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        user.activeAuthority = Authority(ERIKOISTUVA_LAAKARI)
+        em.flush()
+
+        opintooikeusService.reconcileOpintooikeusKaytossaAfterImport(user.id!!)
+
+        assertFalse(expiredOikeusKaytossa.kaytossa)
+        assertFalse(elOikeus.kaytossa)
+        assertTrue(yekOikeus.kaytossa)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa })
+        assertEquals(YEK_KOULUTETTAVA, user.activeAuthority?.name)
+        assertEquals(aktiivinenOpintooikeus, erikoistuvaLaakari.aktiivinenOpintooikeus)
+    }
+
+    @Test
+    fun `reconcile after import selects the only valid EL oikeus`() {
+        val validElOikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
+        expire(elOikeus)
+        expire(yekOikeus)
+        erikoistuvaLaakari.opintooikeudet.forEach { it.kaytossa = false }
+        yekOikeus.kaytossa = true
+
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        user.activeAuthority = Authority(YEK_KOULUTETTAVA)
+        em.flush()
+
+        opintooikeusService.reconcileOpintooikeusKaytossaAfterImport(user.id!!)
+
+        assertTrue(validElOikeus.kaytossa)
+        assertFalse(elOikeus.kaytossa)
+        assertFalse(yekOikeus.kaytossa)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa })
+        assertEquals(ERIKOISTUVA_LAAKARI, user.activeAuthority?.name)
+        assertEquals(validElOikeus.id, erikoistuvaLaakari.aktiivinenOpintooikeus)
+    }
+
+    @Test
+    fun `reconcile after import does not choose between multiple valid oikeudet`() {
+        val expiredOikeusKaytossa = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
+        expire(expiredOikeusKaytossa)
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        val activeAuthority = user.activeAuthority
+        em.flush()
+
+        opintooikeusService.reconcileOpintooikeusKaytossaAfterImport(user.id!!)
+
+        assertTrue(expiredOikeusKaytossa.kaytossa)
+        assertFalse(elOikeus.kaytossa)
+        assertFalse(yekOikeus.kaytossa)
+        assertEquals(activeAuthority, user.activeAuthority)
+    }
+
+    @Test
     fun `test set aktiivinen opintooikeus`() {
         opintooikeusService.setOpintooikeusKaytossa(erikoistuvaLaakari.kayttaja?.user?.id!!, yekOikeus.id!!)
         opintooikeusService.setAktiivinenOpintooikeusKaytossa(erikoistuvaLaakari.kayttaja?.user?.id!!)
@@ -337,5 +411,11 @@ class OpintooikeusServiceIT {
 
         assertTrue(expiredOikeus.kaytossa)
         assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
+    }
+
+    private fun expire(opintooikeus: Opintooikeus) {
+        opintooikeus.opintooikeudenPaattymispaiva = LocalDate.now().minusMonths(7)
+        opintooikeus.viimeinenKatselupaiva = LocalDate.now().minusDays(1)
+        opintooikeus.tila = OpintooikeudenTila.VALMISTUNUT
     }
 }

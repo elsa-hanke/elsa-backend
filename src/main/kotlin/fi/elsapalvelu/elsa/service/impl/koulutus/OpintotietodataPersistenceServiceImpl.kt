@@ -36,6 +36,7 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
+import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.koulutus.OpintotietodataPersistenceService
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietoOpintooikeusDataDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
@@ -70,7 +71,8 @@ class OpintotietodataPersistenceServiceImpl(
     private val opintooikeusHerateRepository: OpintooikeusHerateRepository,
     private val mailService: MailService,
     private val applicationProperties: ApplicationProperties,
-    private val env: Environment
+    private val env: Environment,
+    private val opintooikeusService: OpintooikeusService
 ) : OpintotietodataPersistenceService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -314,6 +316,7 @@ class OpintotietodataPersistenceServiceImpl(
         filteredOpintotietodataOpintooikeudet.sortedBy { it.opintooikeudenPaattymispaiva }.forEach {
             createOrUpdateOpintooikeus(it, userId, erikoistuvaLaakari)
         }
+        opintooikeusService.reconcileOpintooikeusKaytossaAfterImport(userId)
     }
 
     private fun getOpintohallintoEmailAddresses(yliopistot: Set<YliopistoEnum>): List<String> {

@@ -510,6 +510,72 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.PASSIIVINEN)
     }
 
+    @Test
+    @Transactional
+    fun shouldReconcileKaytossaAfterScheduledOpintooikeusUpdate() {
+        val currentDate = LocalDate.now()
+        `when`(clock.instant()).thenReturn(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+        val yliopisto = YliopistoEnum.OULUN_YLIOPISTO
+        val userId = initUserWithOpintooikeus(
+            opintooikeusId = opintooikeusId,
+            opintooikeudenMyontamispaiva = currentDate.minusYears(3),
+            opintooikeudenPaattymispaiva = currentDate.plusYears(2),
+            yliopistoEnum = yliopisto
+        )
+        val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)!!
+        val yliopistoEntity = yliopistoRepository.findOneByNimi(yliopisto)!!
+        val secondOpintoopas = em.findAll(Opintoopas::class)
+            .first { it.erikoisala == secondErikoisala && it.voimassaoloPaattyy == null }
+        val validAlternative = Opintooikeus(
+            yliopistoOpintooikeusId = secondOpintooikeusId,
+            opintooikeudenMyontamispaiva = currentDate.minusYears(1),
+            opintooikeudenPaattymispaiva = currentDate.plusYears(5),
+            viimeinenKatselupaiva = currentDate.plusYears(5).plusMonths(6),
+            opiskelijatunnus = opiskelijatunnus,
+            osaamisenArvioinninOppaanPvm = currentDate,
+            erikoistuvaLaakari = erikoistuvaLaakari,
+            yliopisto = yliopistoEntity,
+            erikoisala = secondErikoisala,
+            opintoopas = secondOpintoopas,
+            asetus = secondAsetus,
+            kaytossa = false,
+            tila = OpintooikeudenTila.AKTIIVINEN
+        )
+        em.persist(validAlternative)
+        erikoistuvaLaakari.opintooikeudet.add(validAlternative)
+        em.flush()
+
+        val opintotietodataDTO = OpintotietodataDTO(
+            syntymaaika,
+            opintooikeudet = listOf(
+                createOpintooikeusData(
+                    yliopisto,
+                    currentDate.minusYears(3),
+                    currentDate.minusMonths(7)
+                ).apply { tila = OpintooikeudenTila.VALMISTUNUT },
+                createSecondOpintooikeusData(
+                    yliopisto,
+                    currentDate.minusYears(1),
+                    currentDate.plusYears(5)
+                )
+            )
+        )
+
+        opintotietodataPersistenceService.createOrUpdateOpintotieto(userId, opintotietodataDTO)
+        em.flush()
+        em.clear()
+
+        val updatedOikeudet =
+            opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+        val expiredOikeus = updatedOikeudet.single {
+            it.yliopistoOpintooikeusId == opintooikeusId
+        }
+        val selectedOikeus = updatedOikeudet.single { it.kaytossa }
+        assertThat(expiredOikeus.kaytossa).isFalse()
+        assertThat(expiredOikeus.tila).isEqualTo(OpintooikeudenTila.VALMISTUNUT)
+        assertThat(selectedOikeus.yliopistoOpintooikeusId).isEqualTo(secondOpintooikeusId)
+    }
+
     @ParameterizedTest
     @EnumSource(YliopistoEnum::class)
     @Transactional

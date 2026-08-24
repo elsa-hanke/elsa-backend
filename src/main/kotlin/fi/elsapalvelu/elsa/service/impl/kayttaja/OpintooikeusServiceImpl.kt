@@ -138,6 +138,41 @@ class OpintooikeusServiceImpl(
         checkOpintooikeusKaytossaValid(validOikeudet, user)
     }
 
+    override fun reconcileOpintooikeusKaytossaAfterImport(userId: String) {
+        val opintooikeudet =
+            opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+        val validOikeudet = opintooikeudet.filter { it.isValidForUse() }
+        val oikeudetKaytossa = opintooikeudet.filter { it.kaytossa }
+        val validOikeusKaytossa = oikeudetKaytossa.singleOrNull()?.let { opintooikeus ->
+            validOikeudet.any { it.id == opintooikeus.id }
+        } == true
+
+        if (validOikeusKaytossa || validOikeudet.size != 1) {
+            return
+        }
+
+        val replacement = validOikeudet.single()
+        opintooikeudet.forEach { it.kaytossa = it.id == replacement.id }
+
+        val user = userRepository.findByIdWithAuthorities(userId)
+            .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+        user.activeAuthority = Authority(
+            name = if (replacement.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                YEK_KOULUTETTAVA
+            } else {
+                ERIKOISTUVA_LAAKARI
+            }
+        )
+        userRepository.save(user)
+
+        if (replacement.erikoisala?.id != YEK_ERIKOISALA_ID) {
+            replacement.erikoistuvaLaakari?.let {
+                it.aktiivinenOpintooikeus = replacement.id
+                erikoistuvaLaakariRepository.save(it)
+            }
+        }
+    }
+
     override fun setOpintooikeusKaytossa(userId: String, opintooikeusId: Long) {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { erikoistuva ->
             opintooikeusRepository.findOneByIdAndErikoistuvaLaakariIdAndBetweenDate(
@@ -268,5 +303,13 @@ class OpintooikeusServiceImpl(
                 userRepository.save(user)
             }
         }
+    }
+
+    private fun Opintooikeus.isValidForUse(): Boolean {
+        val currentDate = LocalDate.now(clock)
+        return opintooikeudenMyontamispaiva?.let { !currentDate.isBefore(it) } == true &&
+            viimeinenKatselupaiva?.let { !currentDate.isAfter(it) } == true &&
+            tila != OpintooikeudenTila.VANHENTUNUT &&
+            erikoisala?.liittynytElsaan == true
     }
 }

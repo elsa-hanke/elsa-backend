@@ -38,6 +38,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
@@ -84,6 +85,19 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         } else {
             erikoistuvaLaakari = existingErikoistuvaLaakari
         }
+    }
+
+    @Test
+    @Transactional
+    fun `get profile does not fail when no opintooikeus is selected`() {
+        erikoistuvaLaakari.opintooikeudet.forEach {
+            it.kaytossa = false
+            it.erikoisala?.liittynytElsaan = true
+        }
+        em.flush()
+
+        restLahikouluttajatMockMvc.perform(get("/api/erikoistuva-laakari"))
+            .andExpect(status().isOk)
     }
 
     @Test
