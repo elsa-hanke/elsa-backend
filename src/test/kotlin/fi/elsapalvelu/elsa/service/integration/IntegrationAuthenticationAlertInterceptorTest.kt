@@ -3,9 +3,12 @@ package fi.elsapalvelu.elsa.service.integration
 import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Request
+import okhttp3.Response
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -14,6 +17,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.net.SocketTimeoutException
 import javax.net.ssl.SSLHandshakeException
 
 class IntegrationAuthenticationAlertInterceptorTest {
@@ -81,6 +85,92 @@ class IntegrationAuthenticationAlertInterceptorTest {
             .isInstanceOf(SSLHandshakeException::class.java)
 
         verify(alertPublisherService).publishAlert(any(), any())
+    }
+
+    @Test
+    fun `single network failure does not publish an alert`() {
+        val alertPublisherService = Mockito.mock(AlertPublisherService::class.java)
+        val interceptor = IntegrationAuthenticationAlertInterceptor(
+            IntegrationAlertService(alertPublisherService),
+            IntegrationAlertKey.SISU_TRE_API_AUTHENTICATION,
+            "Tampereen Sisu",
+            alertOnNetworkFailure = true
+        )
+        val chain = Mockito.mock(Interceptor.Chain::class.java)
+        val request = Request.Builder().url("https://sisu.example.test/study-rights").build()
+        whenever(chain.request()).thenReturn(request)
+        whenever(chain.proceed(request)).thenThrow(SocketTimeoutException("timeout"))
+
+        assertThatThrownBy { interceptor.intercept(chain) }
+            .isInstanceOf(SocketTimeoutException::class.java)
+
+        verify(alertPublisherService, never()).publishAlert(any(), any())
+    }
+
+    @Test
+    fun `fifth consecutive network failure publishes an alert with error type`() {
+        val alertPublisherService = Mockito.mock(AlertPublisherService::class.java)
+        val interceptor = IntegrationAuthenticationAlertInterceptor(
+            IntegrationAlertService(alertPublisherService),
+            IntegrationAlertKey.SISU_TRE_API_AUTHENTICATION,
+            "Tampereen Sisu",
+            alertOnNetworkFailure = true
+        )
+        val chain = Mockito.mock(Interceptor.Chain::class.java)
+        val request = Request.Builder().url("https://sisu.example.test/study-rights").build()
+        whenever(chain.request()).thenReturn(request)
+        whenever(chain.proceed(request)).thenThrow(SocketTimeoutException("timeout"))
+
+        repeat(IntegrationAlertService.CONNECTIVITY_FAILURE_ALERT_THRESHOLD) {
+            assertThatThrownBy { interceptor.intercept(chain) }
+                .isInstanceOf(SocketTimeoutException::class.java)
+        }
+
+        verify(alertPublisherService).publishAlert(
+            any(),
+            org.mockito.kotlin.check {
+                assertThat(it).contains("Virhetyyppi: SocketTimeoutException")
+            }
+        )
+    }
+
+    @Test
+    fun `received HTTP response resets pending network failures`() {
+        val alertPublisherService = Mockito.mock(AlertPublisherService::class.java)
+        val interceptor = IntegrationAuthenticationAlertInterceptor(
+            IntegrationAlertService(alertPublisherService),
+            IntegrationAlertKey.PEPPI_OULU_AUTHENTICATION,
+            "Oulun Peppi",
+            alertOnNetworkFailure = true,
+            resetOnSuccessfulResponse = false
+        )
+        val chain = Mockito.mock(Interceptor.Chain::class.java)
+        val request = Request.Builder().url("https://peppi.example.test/graphql").build()
+        val response = Response.Builder()
+            .request(request)
+            .protocol(Protocol.HTTP_1_1)
+            .code(500)
+            .message("Internal Server Error")
+            .build()
+        whenever(chain.request()).thenReturn(request)
+        whenever(chain.proceed(request))
+            .thenThrow(SocketTimeoutException("timeout"))
+            .thenThrow(SocketTimeoutException("timeout"))
+            .thenReturn(response)
+            .thenThrow(SocketTimeoutException("timeout"))
+            .thenThrow(SocketTimeoutException("timeout"))
+
+        repeat(2) {
+            assertThatThrownBy { interceptor.intercept(chain) }
+                .isInstanceOf(SocketTimeoutException::class.java)
+        }
+        interceptor.intercept(chain)
+        repeat(2) {
+            assertThatThrownBy { interceptor.intercept(chain) }
+                .isInstanceOf(SocketTimeoutException::class.java)
+        }
+
+        verify(alertPublisherService, never()).publishAlert(any(), any())
     }
 
     @Test
