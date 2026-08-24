@@ -110,9 +110,9 @@ abstract class FetchingServiceExternalIntegrationBase : ExternalIntegrationTestS
                     .isNotEmpty
             }
 
-//            assertThat(it.tila)
-//                .describedAs("tila should be populated")
-//                .isNotNull
+            assertThat(it.tila)
+                .describedAs("tila should be populated")
+                .isNotNull
 
             assertThat(it.yliopisto)
                 .describedAs("yliopisto should match the provider")
