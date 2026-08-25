@@ -468,6 +468,65 @@ class VirkailijaEtusivuResourceIT {
 
     @Test
     @Transactional
+    fun `impersonated profile uses requested valid oikeus when selected oikeus is expired`() {
+        initTest()
+
+        val expiredOikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa()!!
+        expiredOikeus.opintooikeudenPaattymispaiva = LocalDate.now().minusMonths(7)
+        expiredOikeus.viimeinenKatselupaiva = LocalDate.now().minusDays(1)
+        expiredOikeus.tila = OpintooikeudenTila.VALMISTUNUT
+        val validOikeus = Opintooikeus(
+            yliopistoOpintooikeusId = "valid-alternative",
+            opintooikeudenMyontamispaiva = LocalDate.now().minusYears(1),
+            opintooikeudenPaattymispaiva = LocalDate.now().plusYears(2),
+            viimeinenKatselupaiva = LocalDate.now().plusYears(2).plusMonths(6),
+            opiskelijatunnus = expiredOikeus.opiskelijatunnus,
+            osaamisenArvioinninOppaanPvm = LocalDate.now(),
+            erikoistuvaLaakari = erikoistuvaLaakari1,
+            yliopisto = defaultYliopisto,
+            erikoisala = erikoisala1,
+            opintoopas = expiredOikeus.opintoopas,
+            asetus = asetus1,
+            kaytossa = false,
+            tila = OpintooikeudenTila.AKTIIVINEN
+        )
+        em.persist(validOikeus)
+        erikoistuvaLaakari1.opintooikeudet.add(validOikeus)
+        em.flush()
+
+        restEtusivuMockMvc.perform(
+            get("/api/login/impersonate?opintooikeusId=${validOikeus.id}")
+                .accept(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isFound)
+
+        val currentAuthentication = TestSecurityContextHolder.getContext().authentication
+        val switchAuthority = SwitchUserGrantedAuthority(
+            ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA,
+            currentAuthentication
+        )
+        val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
+        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
+            erikoistuvaLaakari1.kayttaja?.user?.id,
+            mapOf(
+                "nameID" to currentPrincipal.attributes["nameID"],
+                "opintooikeusId" to listOf(validOikeus.id)
+            )
+        )
+        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(
+            newPrincipal,
+            (currentAuthentication as Saml2Authentication).saml2Response,
+            listOf(switchAuthority)
+        )
+
+        restEtusivuMockMvc.perform(get("/api/erikoistuva-laakari"))
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.opintooikeusKaytossaId").value(validOikeus.id))
+            .andExpect(jsonPath("$.erikoisalaNimi").value(erikoisala1.nimi))
+    }
+
+    @Test
+    @Transactional
     fun testImpersonationNotAllowedWhenErikoistuvaNotInSameYliopisto() {
         initTest()
 

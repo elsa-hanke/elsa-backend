@@ -57,7 +57,7 @@ data class ErikoistuvaLaakari(
 ) : Serializable {
 
     fun getYliopistoNimi(): String? {
-        return this.getOpintooikeusKaytossa()?.yliopisto?.nimi.toString()
+        return this.getOpintooikeusKaytossa()?.yliopisto?.nimi?.toString()
     }
 
     fun getYliopistoId(): Long? {
@@ -73,7 +73,7 @@ data class ErikoistuvaLaakari(
     }
 
     fun getOpintooikeusKaytossa(): Opintooikeus? {
-        return this.opintooikeudet.find { it.kaytossa } ?: throw EntityNotFoundException()
+        return this.opintooikeudet.find { it.kaytossa }
     }
 
     override fun equals(other: Any?): Boolean {

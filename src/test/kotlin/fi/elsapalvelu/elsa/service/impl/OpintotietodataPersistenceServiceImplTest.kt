@@ -28,6 +28,7 @@ import fi.elsapalvelu.elsa.repository.valmistuminen.*
 import fi.elsapalvelu.elsa.repository.kayttaja.*
 import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
+import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -63,6 +64,7 @@ class OpintotietodataPersistenceServiceImplTest {
     @Mock private lateinit var mailService: MailService
     @Mock private lateinit var applicationProperties: ApplicationProperties
     @Mock private lateinit var env: Environment
+    @Mock private lateinit var opintooikeusService: OpintooikeusService
     @Mock private lateinit var cipher: Cipher
     @Mock private lateinit var originalKey: SecretKey
 
@@ -91,7 +93,8 @@ class OpintotietodataPersistenceServiceImplTest {
             opintooikeusHerateRepository,
             mailService,
             applicationProperties,
-            env
+            env,
+            opintooikeusService
         )
     }
 
