@@ -15,6 +15,8 @@ import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.constants.OPINTOOIKEUS_NOT_FOUND_ERROR
@@ -138,6 +140,15 @@ class OpintooikeusServiceImpl(
         checkOpintooikeusKaytossaValid(validOikeudet, user)
     }
 
+    override fun reconcileOpintooikeusKaytossaAfterImport(userId: String) {
+        val opintooikeudet =
+            opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+        val validOikeudet = opintooikeudet.filter { it.isValidForUse(clock) }
+        val user = userRepository.findByIdWithAuthorities(userId)
+            .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
+        reconcileOpintooikeusKaytossa(opintooikeudet, validOikeudet, user)
+    }
+
     override fun setOpintooikeusKaytossa(userId: String, opintooikeusId: Long) {
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let { erikoistuva ->
             opintooikeusRepository.findOneByIdAndErikoistuvaLaakariIdAndBetweenDate(
@@ -249,24 +260,74 @@ class OpintooikeusServiceImpl(
     }
 
     private fun checkOpintooikeusKaytossaValid(validOikeudet: List<Opintooikeus>, user: User) {
-        val opintooikeusKaytossa =
-            opintooikeusRepository.findOneByErikoistuvaLaakariKayttajaUserIdAndKaytossaTrue(user.id.required())
-                ?: return
-        if (LocalDate.now().isAfter(opintooikeusKaytossa.viimeinenKatselupaiva)
-            || opintooikeusKaytossa.tila == OpintooikeudenTila.VANHENTUNUT
-            || opintooikeusKaytossa.erikoisala?.liittynytElsaan == false
-        ) {
-            validOikeudet.elementAtOrNull(0)?.let {
-                opintooikeusKaytossa.kaytossa = false
-                it.kaytossa = true
+        val opintooikeudet =
+            opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(user.id.required())
+        reconcileOpintooikeusKaytossa(
+            opintooikeudet,
+            validOikeudet.filter { it.tila != OpintooikeudenTila.VANHENTUNUT },
+            user
+        )
+    }
 
-                if (it.erikoisala?.id == YEK_ERIKOISALA_ID) {
-                    user.activeAuthority = Authority(name = YEK_KOULUTETTAVA)
-                } else {
-                    user.activeAuthority = Authority(name = ERIKOISTUVA_LAAKARI)
-                }
-                userRepository.save(user)
+    private fun reconcileOpintooikeusKaytossa(
+        opintooikeudet: List<Opintooikeus>,
+        validOikeudet: List<Opintooikeus>,
+        user: User
+    ) {
+        val oikeudetKaytossa = opintooikeudet.filter { it.kaytossa }
+        val validOikeusKaytossa = oikeudetKaytossa.singleOrNull()?.let { opintooikeus ->
+            validOikeudet.any { it.id == opintooikeus.id }
+        } == true
+
+        if (validOikeusKaytossa) {
+            return
+        }
+
+        val replacement = getPreferredOpintooikeus(validOikeudet) ?: return
+        opintooikeudet.forEach { it.kaytossa = it.id == replacement.id }
+
+        getPreferredAuthority(user, validOikeudet)?.let {
+            user.activeAuthority = it
+        }
+        userRepository.save(user)
+
+        if (replacement.erikoisala?.id != YEK_ERIKOISALA_ID) {
+            replacement.erikoistuvaLaakari?.let {
+                it.aktiivinenOpintooikeus = replacement.id
+                erikoistuvaLaakariRepository.save(it)
             }
         }
     }
+}
+
+private fun getPreferredOpintooikeus(validOikeudet: List<Opintooikeus>): Opintooikeus? {
+    val elOikeudet = validOikeudet.filter { it.erikoisala?.id != YEK_ERIKOISALA_ID }
+    val aktiivinenOpintooikeus = elOikeudet.firstOrNull()?.erikoistuvaLaakari?.aktiivinenOpintooikeus
+    // Säilytetään käyttäjän aiempi aktiivinen EL-opinto-oikeus, jos se on edelleen voimassa.
+    return elOikeudet.firstOrNull { it.id == aktiivinenOpintooikeus }
+        ?: elOikeudet.firstOrNull()
+        ?: validOikeudet.firstOrNull()
+}
+
+private fun getPreferredAuthority(user: User, validOikeudet: List<Opintooikeus>): Authority? {
+    val authorityNames = user.authorities.map { it.name }
+    // Oletusroolin prioriteetti on EL, vastuuhenkilö, kouluttaja ja YEK. Muita rooleja ei poisteta.
+    val preferredAuthorityName = when {
+        validOikeudet.any { it.erikoisala?.id != YEK_ERIKOISALA_ID } &&
+            authorityNames.contains(ERIKOISTUVA_LAAKARI) -> ERIKOISTUVA_LAAKARI
+        authorityNames.contains(VASTUUHENKILO) -> VASTUUHENKILO
+        authorityNames.contains(KOULUTTAJA) -> KOULUTTAJA
+        validOikeudet.any { it.erikoisala?.id == YEK_ERIKOISALA_ID } &&
+            authorityNames.contains(YEK_KOULUTETTAVA) -> YEK_KOULUTETTAVA
+        else -> null
+    }
+    return user.authorities.firstOrNull { it.name == preferredAuthorityName }
+}
+
+private fun Opintooikeus.isValidForUse(clock: Clock): Boolean {
+    val currentDate = LocalDate.now(clock)
+    return opintooikeudenMyontamispaiva?.let { !currentDate.isBefore(it) } == true &&
+        viimeinenKatselupaiva?.let { !currentDate.isAfter(it) } == true &&
+        tila != OpintooikeudenTila.VANHENTUNUT &&
+        erikoisala?.liittynytElsaan == true
 }

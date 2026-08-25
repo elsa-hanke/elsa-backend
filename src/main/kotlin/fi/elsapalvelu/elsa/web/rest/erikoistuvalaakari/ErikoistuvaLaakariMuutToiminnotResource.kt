@@ -69,13 +69,15 @@ class ErikoistuvaLaakariMuutToiminnotResource(
                     (principal as Saml2Authentication).principal as Saml2AuthenticatedPrincipal
                 val opintooikeusId = samlPrincipal.getFirstAttribute("opintooikeusId") as Long
                 val opintooikeus = it.opintooikeudet?.find { oikeus -> oikeus.id == opintooikeusId }
+                it.opintooikeusKaytossaId = opintooikeus?.id
                 it.erikoisalaNimi = opintooikeus?.erikoisalaNimi
                 it.yliopisto = opintooikeus?.yliopistoNimi
                 it.yliopistoId = opintooikeus?.id.toString()
                 it.muokkausoikeudetVirkailijoilla = opintooikeus?.muokkausoikeudetVirkailijoilla
             } else {
                 it.muokkausoikeudetVirkailijoilla =
-                    it.opintooikeudet?.first { o -> o.id == it.opintooikeusKaytossaId }?.muokkausoikeudetVirkailijoilla
+                    it.opintooikeudet?.firstOrNull { o -> o.id == it.opintooikeusKaytossaId }
+                        ?.muokkausoikeudetVirkailijoilla
             }
             ResponseEntity.ok(it)
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
