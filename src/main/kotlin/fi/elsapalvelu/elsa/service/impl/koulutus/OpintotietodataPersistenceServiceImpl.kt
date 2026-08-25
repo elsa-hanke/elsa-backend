@@ -180,7 +180,7 @@ class OpintotietodataPersistenceServiceImpl(
                 filterOpintooikeudetByVoimassaDate(opintotietodataOpintooikeudet),
                 it
             )
-            updateOpintooikeudet(userId, opintotietodataOpintooikeudet, it)
+            createOrUpdateOpintooikeudet(userId, opintotietodataOpintooikeudet, it)
         }
     }
 
@@ -188,7 +188,7 @@ class OpintotietodataPersistenceServiceImpl(
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
             ?: throw EntityNotFoundException("Erikoistuvaa lääkäriä ei löydy.")
         opintotietodataDTO.opintooikeudet?.let {
-            updateOpintooikeudet(
+            createOrUpdateOpintooikeudet(
                 userId,
                 it,
                 erikoistuvaLaakari
@@ -294,7 +294,7 @@ class OpintotietodataPersistenceServiceImpl(
         }
     }
 
-    private fun updateOpintooikeudet(
+    private fun createOrUpdateOpintooikeudet(
         userId: String,
         opintotietodataOpintooikeudet: List<OpintotietoOpintooikeusDataDTO>,
         erikoistuvaLaakari: ErikoistuvaLaakari
