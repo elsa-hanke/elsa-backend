@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.2...HEAD)
 
+- feat: add email notification for production release in CI workflow [`#701`](https://github.com/elsa-hanke/elsa-backend/pull/701)(26 August 2026)
 - ELSA-1202 reconcileOpintooikeusKaytossaAfterImport [`#697`](https://github.com/elsa-hanke/elsa-backend/pull/697)(25 August 2026)
 - fix: enhance connectivity alert handling in IntegrationAlertService [`#698`](https://github.com/elsa-hanke/elsa-backend/pull/698)(24 August 2026)
 - Elsa-1199 UnsupportedPdfCharactersException [`#696`](https://github.com/elsa-hanke/elsa-backend/pull/696)(22 August 2026)
