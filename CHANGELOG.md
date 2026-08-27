@@ -1,7 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.2...HEAD)
+## [v2.3.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.2...v2.3.0) - 27 August 2026
 
+- fix: update Gradle wrapper to version 9.7.1 [`#702`](https://github.com/elsa-hanke/elsa-backend/pull/702)(27 August 2026)
 - feat: add email notification for production release in CI workflow [`#701`](https://github.com/elsa-hanke/elsa-backend/pull/701)(26 August 2026)
 - ELSA-1202 reconcileOpintooikeusKaytossaAfterImport [`#697`](https://github.com/elsa-hanke/elsa-backend/pull/697)(25 August 2026)
 - fix: enhance connectivity alert handling in IntegrationAlertService [`#698`](https://github.com/elsa-hanke/elsa-backend/pull/698)(24 August 2026)
