@@ -1,5 +1,7 @@
 # Changelog
 
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.0...HEAD)
+
 ## [v2.3.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.2...v2.3.0) - 27 August 2026
 
 - fix: update Gradle wrapper to version 9.7.1 [`#702`](https://github.com/elsa-hanke/elsa-backend/pull/702)(27 August 2026)
