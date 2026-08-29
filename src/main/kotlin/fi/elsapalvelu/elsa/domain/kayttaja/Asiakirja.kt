@@ -3,6 +3,8 @@ package fi.elsapalvelu.elsa.domain.kayttaja
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.annotations.SQLDelete
+import org.hibernate.annotations.SQLRestriction
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
@@ -17,6 +19,14 @@ import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 @Audited
 @Table(name = "asiakirja")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@SQLDelete(
+    sql = """
+        update asiakirja set poistettu = true, tyoskentelyjakso_id = null,
+        teoriakoulutus_id = null, arviointi_id = null, itsearviointi_id = null,
+        koejakson_vastuuhenkilon_arvio_id = null where id = ?
+    """
+)
+@SQLRestriction("poistettu = false")
 data class Asiakirja(
 
     @Id
@@ -56,10 +66,13 @@ data class Asiakirja(
     var lisattypvm: LocalDateTime? = null,
 
     @NotNull
+    @Column(name = "poistettu", nullable = false)
+    var poistettu: Boolean = false,
+
+    @NotNull
     @OneToOne(
         optional = false,
-        cascade = [CascadeType.ALL],
-        orphanRemoval = true,
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE],
         fetch = FetchType.LAZY
     )
     @JoinColumn(unique = true)

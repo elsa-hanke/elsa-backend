@@ -10,6 +10,12 @@ import org.springframework.stereotype.Repository
 interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
 
     @Query(
+        value = "select poistettu from asiakirja where id = :id",
+        nativeQuery = true
+    )
+    fun findPoistettuById(id: Long): Boolean?
+
+    @Query(
         """
         select a from Asiakirja a join a.opintooikeus o
         where o.id in :opintooikeusId and a.arviointi.id is null and a.itsearviointi.id is null

@@ -44,6 +44,8 @@ interface AsiakirjaService {
 
     fun findById(id: Long): AsiakirjaDTO?
 
+    fun warnIfDeleted(id: Long)
+
     fun delete(id: Long, opintooikeusId: Long)
 
     fun delete(ids: List<Long>, opintooikeusId: Long)

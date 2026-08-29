@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.mapper.kayttaja.AsiakirjaMapper
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -24,6 +25,8 @@ class AsiakirjaServiceImpl(
     private val koulutussuunnitelmaRepository: KoulutussuunnitelmaRepository,
     private val opintooikeusRepository: OpintooikeusRepository
 ) : AsiakirjaService {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     override fun create(
         asiakirjat: List<AsiakirjaDTO>,
@@ -81,6 +84,7 @@ class AsiakirjaServiceImpl(
                 return result
             }
         }
+        warnIfDeleted(id)
         return null
     }
 
@@ -108,6 +112,7 @@ class AsiakirjaServiceImpl(
                 return null
             }
         }
+        warnIfDeleted(id)
         return null
     }
 
@@ -123,6 +128,7 @@ class AsiakirjaServiceImpl(
                 return result
             }
         }
+        warnIfDeleted(id)
         return null
     }
 
@@ -134,6 +140,7 @@ class AsiakirjaServiceImpl(
                     ByteArrayInputStream(asiakirja.asiakirjaData?.data)
                 return result
             }
+        warnIfDeleted(id)
         return null
     }
 
@@ -150,6 +157,7 @@ class AsiakirjaServiceImpl(
                     return result
                 }
         }
+        warnIfDeleted(id)
         return null
     }
 
@@ -160,6 +168,7 @@ class AsiakirjaServiceImpl(
                 asiakirjaData?.fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data)
             }
         }
+        warnIfDeleted(id)
         return null
     }
 
@@ -170,7 +179,15 @@ class AsiakirjaServiceImpl(
                 asiakirjaData?.fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data)
             }
         }
+        warnIfDeleted(id)
         return null
+    }
+
+    @Transactional(readOnly = true)
+    override fun warnIfDeleted(id: Long) {
+        if (asiakirjaRepository.findPoistettuById(id) == true) {
+            log.warn("Pyydetty asiakirja {} on merkitty poistetuksi.", id)
+        }
     }
 
     override fun delete(id: Long, opintooikeusId: Long) {
