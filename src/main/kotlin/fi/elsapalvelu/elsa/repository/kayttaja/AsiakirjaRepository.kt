@@ -10,10 +10,10 @@ import org.springframework.stereotype.Repository
 interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
 
     @Query(
-        value = "select poistettu from asiakirja where id = :id",
+        value = "select exists(select 1 from asiakirja where id = :id and poistettu = true)",
         nativeQuery = true
     )
-    fun findPoistettuById(id: Long): Boolean?
+    fun existsDeletedById(id: Long): Boolean
 
     @Query(
         """

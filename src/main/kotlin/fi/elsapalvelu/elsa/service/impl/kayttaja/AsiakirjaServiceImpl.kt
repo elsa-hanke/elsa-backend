@@ -185,7 +185,7 @@ class AsiakirjaServiceImpl(
 
     @Transactional(readOnly = true)
     override fun warnIfDeleted(id: Long) {
-        if (asiakirjaRepository.findPoistettuById(id) == true) {
+        if (asiakirjaRepository.existsDeletedById(id)) {
             log.warn("Pyydetty asiakirja {} on merkitty poistetuksi.", id)
         }
     }

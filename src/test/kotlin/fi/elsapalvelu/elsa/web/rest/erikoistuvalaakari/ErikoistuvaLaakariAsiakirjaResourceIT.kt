@@ -303,20 +303,35 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         asiakirjaRepository.saveAndFlush(asiakirja)
 
         val databaseSizeBeforeDelete = asiakirjaRepository.findAll().size
+        val asiakirjaId = asiakirja.id!!
+        val asiakirjaDataId = asiakirja.asiakirjaData?.id!!
 
         restAsiakirjaMockMvc.perform(
-            delete("/api/erikoistuva-laakari/asiakirjat/{id}", asiakirja.id)
+            delete("/api/erikoistuva-laakari/asiakirjat/{id}", asiakirjaId)
                 .accept(MediaType.APPLICATION_JSON)
                 .with(csrf())
         ).andExpect(status().isNoContent)
 
+        em.flush()
+        em.clear()
+
         val asiakirjaList = asiakirjaRepository.findAll()
         assertThat(asiakirjaList).hasSize(databaseSizeBeforeDelete - 1)
+
+        val asiakirjaRowCount = em.createNativeQuery(
+            "select count(*) from asiakirja where id = :id"
+        ).setParameter("id", asiakirjaId).singleResult as Number
+        assertThat(asiakirjaRowCount.toLong()).isZero()
+
+        val dataRowCount = em.createNativeQuery(
+            "select count(*) from asiakirja_data where id = :id"
+        ).setParameter("id", asiakirjaDataId).singleResult as Number
+        assertThat(dataRowCount.toLong()).isZero()
     }
 
     @Test
     @Transactional
-    fun deletedAsiakirjaIsRetainedButHiddenAndRequestedDownloadIsLogged() {
+    fun internallySoftDeletedAsiakirjaIsRetainedButHiddenAndRequestedDownloadIsLogged() {
         initTest()
         asiakirjaRepository.saveAndFlush(asiakirja)
 
@@ -328,11 +343,9 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         serviceLogger.addAppender(logAppender)
 
         try {
-            restAsiakirjaMockMvc.perform(
-                delete("/api/erikoistuva-laakari/asiakirjat/{id}", asiakirjaId)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .with(csrf())
-            ).andExpect(status().isNoContent)
+            em.createNativeQuery(
+                "update asiakirja set poistettu = true where id = :id"
+            ).setParameter("id", asiakirjaId).executeUpdate()
 
             em.flush()
             em.clear()
