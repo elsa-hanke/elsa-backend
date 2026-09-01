@@ -17,6 +17,7 @@ import fi.elsapalvelu.elsa.repository.kayttaja.*
 import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
+import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.arviointi.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
@@ -49,9 +50,14 @@ class SuoritusarviointiServiceImpl(
     private val asiakirjaMapper: AsiakirjaMapper,
     private val arviointityokaluKysymysRepository: ArviointityokaluKysymysRepository,
     private val arviointityokaluKysymysVaihtoehtoRepository: ArviointityokaluKysymysVaihtoehtoRepository,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) : SuoritusarviointiService {
 
     override fun save(suoritusarviointiDTO: SuoritusarviointiDTO): SuoritusarviointiDTO {
+        validatePdfText(
+            suoritusarviointiDTO,
+            listOf("arvioitava-tapahtuma" to suoritusarviointiDTO.arvioitavaTapahtuma)
+        )
         var suoritusarviointi = suoritusarviointiMapper.toEntity(suoritusarviointiDTO)
         suoritusarviointi.arvioitavatKokonaisuudet.forEach {
             it.suoritusarviointi = suoritusarviointi
@@ -112,6 +118,13 @@ class SuoritusarviointiServiceImpl(
             !ObjectUtils.isEmpty(suoritusarviointiDTO.sanallinenItsearviointi)
         // Itsearvioinnin tekeminen
         if (isItsearviointiNotEmpty) {
+            validatePdfText(
+                suoritusarviointiDTO,
+                listOf(
+                    "sanallinen-itsearviointi" to suoritusarviointiDTO.sanallinenItsearviointi,
+                    *newAsiakirjat.map { "liitetiedoston-nimi" to it.nimi }.toTypedArray()
+                )
+            )
             suoritusarviointi.itsearviointiVaativuustaso =
                 suoritusarviointiDTO.itsearviointiVaativuustaso
             suoritusarviointi.sanallinenItsearviointi =
@@ -126,6 +139,10 @@ class SuoritusarviointiServiceImpl(
             mapAsiakirjat(suoritusarviointi, newAsiakirjat, deletedAsiakirjaIds, true)
         } else {
             // Arviointipyynnön muokkaus
+            validatePdfText(
+                suoritusarviointiDTO,
+                listOf("arvioitava-tapahtuma" to suoritusarviointiDTO.arvioitavaTapahtuma)
+            )
             suoritusarviointi.arvioitavaTapahtuma = suoritusarviointiDTO.arvioitavaTapahtuma
             suoritusarviointi.lisatiedot = suoritusarviointiDTO.lisatiedot
             suoritusarviointi.tapahtumanAjankohta = suoritusarviointiDTO.tapahtumanAjankohta
@@ -157,6 +174,7 @@ class SuoritusarviointiServiceImpl(
         newAsiakirjat: MutableSet<AsiakirjaDTO>,
         deletedAsiakirjaIds: MutableSet<Int>?
     ): Suoritusarviointi {
+        validateKouluttajanPdfText(suoritusarviointiDTO, newAsiakirjat)
         suoritusarviointi.vaativuustaso = suoritusarviointiDTO.vaativuustaso
         suoritusarviointi.sanallinenArviointi = suoritusarviointiDTO.sanallinenArviointi
         suoritusarviointi.arviointityokalut = arviointityokaluRepository.findAllByIdIn(
@@ -220,6 +238,32 @@ class SuoritusarviointiServiceImpl(
             )
         }
         return result
+    }
+
+    private fun validatePdfText(
+        suoritusarviointiDTO: SuoritusarviointiDTO,
+        fields: List<Pair<String, String?>>
+    ) {
+        pdfTextFieldValidator.validate(
+            fields = fields,
+            pdfSource = "suoritusarviointi",
+            sourceId = suoritusarviointiDTO.id,
+            sourceDate = suoritusarviointiDTO.tapahtumanAjankohta
+        )
+    }
+
+    private fun validateKouluttajanPdfText(
+        suoritusarviointiDTO: SuoritusarviointiDTO,
+        newAsiakirjat: Set<AsiakirjaDTO>
+    ) {
+        validatePdfText(
+            suoritusarviointiDTO,
+            listOf(
+                "sanallinen-kokonaisarviointi" to suoritusarviointiDTO.sanallinenArviointi,
+                "arviointi-perustuu-muu" to suoritusarviointiDTO.muuPeruste,
+                *newAsiakirjat.map { "liitetiedoston-nimi" to it.nimi }.toTypedArray()
+            )
+        )
     }
 
     @Transactional(readOnly = true)

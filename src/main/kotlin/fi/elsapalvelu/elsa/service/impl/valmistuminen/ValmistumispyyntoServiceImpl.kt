@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto.Companion.from
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyynnonTarkistusRepository
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.required
+import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.constants.ERIKOISALA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
@@ -58,7 +59,8 @@ class ValmistumispyyntoServiceImpl(
     private val asiakirjaService: ValmistumispyynnonAsiakirjaService,
     private val viimeistelyService: ValmistumispyynnonViimeistelyService,
     private val ilmoitusService: ValmistumispyynnonIlmoitusService,
-    private val tarkistusService: ValmistumispyynnonTarkistusService
+    private val tarkistusService: ValmistumispyynnonTarkistusService,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) : ValmistumispyyntoService {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -114,6 +116,7 @@ class ValmistumispyyntoServiceImpl(
         opintooikeusId: Long,
         uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
     ): ValmistumispyyntoDTO {
+        validateValmistumispyyntoPdfText(uusiValmistumispyyntoDTO)
         osapuoliService.haeOpintooikeus(opintooikeusId).let { opintooikeus ->
             osapuoliService.paivitaYhteystiedot(
                 opintooikeus.erikoistuvaLaakari?.kayttaja?.user,
@@ -149,6 +152,7 @@ class ValmistumispyyntoServiceImpl(
         opintooikeusId: Long,
         uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
     ): ValmistumispyyntoDTO {
+        validateValmistumispyyntoPdfText(uusiValmistumispyyntoDTO)
         osapuoliService.haeOpintooikeus(opintooikeusId).let { opintooikeus ->
             osapuoliService.paivitaYhteystiedot(
                 opintooikeus.erikoistuvaLaakari?.kayttaja?.user,
@@ -286,6 +290,7 @@ class ValmistumispyyntoServiceImpl(
 
     override fun updateTarkistusByVirkailijaUserId(id: Long, userId: String, valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO,
         laillistamistodistus: MultipartFile?): ValmistumispyynnonTarkistusDTO? {
+        validateVirkailijanPdfText(id, valmistumispyynnonTarkistusDTO)
         val kayttaja = osapuoliService.haeKayttaja(userId)
         val yliopisto = kayttaja.yliopistot.first()
         var tarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdAndValmistumispyyntoOpintooikeusYliopistoId(id, yliopisto.id.required())
@@ -351,6 +356,34 @@ class ValmistumispyyntoServiceImpl(
         }
 
         return null
+    }
+
+    private fun validateValmistumispyyntoPdfText(
+        uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
+    ) {
+        pdfTextFieldValidator.validate(
+            fields = listOf(
+                "selvitys-vanhentuneista-suorituksista-otsikko" to
+                    uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista
+            ),
+            pdfSource = "valmistumispyynto"
+        )
+    }
+
+    private fun validateVirkailijanPdfText(
+        id: Long,
+        tarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO
+    ) {
+        if (tarkistusDTO.korjausehdotus != null) return
+
+        pdfTextFieldValidator.validate(
+            fields = listOf(
+                "virkailijan-valmistumisen-yhteenveto" to tarkistusDTO.virkailijanYhteenveto,
+                "lisatiedot-vastuuhenkilolle" to tarkistusDTO.lisatiedotVastuuhenkilolle
+            ),
+            pdfSource = "valmistumispyynto",
+            sourceId = id
+        )
     }
 
     @Transactional(readOnly = true)

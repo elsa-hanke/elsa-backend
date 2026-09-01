@@ -42,6 +42,7 @@
     Suoritusarviointi
   } from '@/types'
   import { confirmDelete } from '@/utils/confirm'
+  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
   import { sortByAsc } from '@/utils/sort'
   import { toastFail, toastSuccess } from '@/utils/toast'
   import { tyoskentelyjaksoLabel } from '@/utils/tyoskentelyjakso'
@@ -116,8 +117,11 @@
           this.$router.push({
             name: 'arvioinnit'
           })
-        } catch {
-          toastFail(this, this.$t('arviointipyynnon-tallentaminen-epaonnistui'))
+        } catch (err) {
+          toastFail(
+            this,
+            formatPdfTextSaveError(this, err, this.$t('arviointipyynnon-tallentaminen-epaonnistui'))
+          )
         }
       } else {
         try {
@@ -129,8 +133,15 @@
             name: 'arviointipyynto-lahetetty',
             params: { arviointiId: `${arviointipyynto.id}` }
           })
-        } catch {
-          toastFail(this, this.$t('uuden-arviointipyynnon-lisaaminen-epaonnistui'))
+        } catch (err) {
+          toastFail(
+            this,
+            formatPdfTextSaveError(
+              this,
+              err,
+              this.$t('uuden-arviointipyynnon-lisaaminen-epaonnistui')
+            )
+          )
         }
       }
       params.saving = false

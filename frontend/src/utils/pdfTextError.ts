@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios'
 import Vue from 'vue'
 
 import { ElsaError } from '@/types'
@@ -24,4 +25,9 @@ export function formatPdfTextError(
     unsupportedCharacters: error.unsupportedCharacters?.join(', ') ?? '',
     seurantajaksoContext
   })}`
+}
+
+export function formatPdfTextSaveError(vm: Vue, error: unknown, fallback: unknown): string {
+  const axiosError = error as AxiosError<ElsaError>
+  return formatPdfTextError(vm, axiosError.response?.data) ?? `${fallback}`
 }
