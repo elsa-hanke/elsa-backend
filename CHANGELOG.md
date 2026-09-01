@@ -1,6 +1,10 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.0...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.1...HEAD)
+
+## [v2.3.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.0...v2.3.1) - 1 September 2026
+
+- ELSA-1207 Updated feedback email back [`#705`](https://github.com/elsa-hanke/elsa-backend/pull/705)(1 September 2026)
 
 ## [v2.3.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.2...v2.3.0) - 27 August 2026
 
