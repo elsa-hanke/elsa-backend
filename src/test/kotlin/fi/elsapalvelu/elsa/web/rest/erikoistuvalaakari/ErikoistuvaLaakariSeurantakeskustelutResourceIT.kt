@@ -138,7 +138,7 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
 
     @Test
     @Transactional
-    fun createSeurantajaksoAllowsCharactersMissingFromPdfFonts() {
+    fun createSeurantajaksoRejectsCharactersMissingFromPdfFonts() {
         initTest()
         val databaseSizeBeforeCreate = seurantajaksoRepository.findAll().size
         val seurantajaksoDTO = seurantajaksoMapper.toDto(seurantajakso).apply {
@@ -152,12 +152,16 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
                 .content(convertObjectToJsonBytes(seurantajaksoDTO))
                 .with(csrf())
         )
-            .andExpect(status().isCreated)
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message")
+                    .value("error.dataillegal.pdf-tiedostossa-tukemattomia-merkkeja")
+            )
+            .andExpect(jsonPath("$.field").value("oma-arviointi-seurantajaksolta"))
+            .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
+            .andExpect(jsonPath("$.seurantajaksoStartDate").value(DEFAULT_ALKAMISPAIVA.toString()))
 
-        val seurantajaksot = seurantajaksoRepository.findAll()
-        assertThat(seurantajaksot).hasSize(databaseSizeBeforeCreate + 1)
-        assertThat(seurantajaksot.last().omaArviointi)
-            .isEqualTo("Erikoistuminen etenee suunnitellusti ✓")
+        assertThat(seurantajaksoRepository.findAll()).hasSize(databaseSizeBeforeCreate)
     }
 
     @Test
@@ -411,6 +415,43 @@ class ErikoistuvaLaakariSeurantakeskustelutResourceIT {
 
         assertThat(seurantajaksoRepository.findById(seurantajakso.id!!).get().omaArviointi)
             .isEqualTo("Korjattu teksti")
+    }
+
+    @Test
+    @Transactional
+    fun updateSeurantajaksoRejectsCharactersMissingFromPdfFonts() {
+        initTest()
+        seurantajaksoRepository.saveAndFlush(seurantajakso)
+
+        val updatedSeurantajakso = seurantajaksoRepository.findById(seurantajakso.id!!).get()
+        em.detach(updatedSeurantajakso)
+        updatedSeurantajakso.seurantakeskustelunYhteisetMerkinnat =
+            "Yhteiset merkinnät ✓"
+        val seurantajaksoDTO = seurantajaksoMapper.toDto(updatedSeurantajakso)
+
+        restSeurantajaksoMockMvc.perform(
+            put(ENTITY_API_URL_ID, seurantajakso.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(seurantajaksoDTO))
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message")
+                    .value("error.dataillegal.pdf-tiedostossa-tukemattomia-merkkeja")
+            )
+            .andExpect(
+                jsonPath("$.field")
+                    .value("yhteiset-merkinnat-keskustelusta-ja-jatkosuunnitelmista")
+            )
+            .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
+            .andExpect(jsonPath("$.seurantajaksoId").value(seurantajakso.id))
+            .andExpect(jsonPath("$.seurantajaksoStartDate").value(DEFAULT_ALKAMISPAIVA.toString()))
+
+        assertThat(
+            seurantajaksoRepository.findById(seurantajakso.id!!).get()
+                .seurantakeskustelunYhteisetMerkinnat
+        ).isNull()
     }
 
     @Test
