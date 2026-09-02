@@ -24,6 +24,8 @@ interface OpintooikeusService {
 
     fun checkOpintooikeusAndRoles(user: User)
 
+    fun reconcileOpintooikeusKaytossaAfterImport(userId: String)
+
     fun setOpintooikeusKaytossa(userId: String, opintooikeusId: Long)
 
     fun setAktiivinenOpintooikeusKaytossa(userId: String)

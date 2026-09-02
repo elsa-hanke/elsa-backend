@@ -272,6 +272,7 @@
       "opinto-oppaalle-annettava-paattymispaiva": "opinto-oppaalle on annettava päättymispäivä, jos se ei ole uusin",
       "opinto-oppaan-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa": "opinto-oppaan voimassaolon päättymispäivä ei saa olla ennen alkamisaikaa",
       "opinto-oppaan-voimassaolo-ei-saa-olla-paallekkainen": "opinto-oppaan voimassaolo ei saa olla päällekkäinen toisen opinto-oppaan kanssa",
+      "pdf-tiedostossa-tukemattomia-merkkeja": "Kenttä \"{field}\" sisältää merkkejä, joita ei voida lisätä arkistoitavaan PDF-tiedostoon: {unsupportedCharacters}. Poista tai korvaa merkit ja tallenna uudelleen.",
       "paallekkaisten-poissaolojen-yhteenlaskettu-aika-ylittyy": "päällekkäisten poissaolojen päiväkohtainen kertymä ei voi ylittää 100%:a",
       "paallekkaisten-tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy": "päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ylittää 100%",
       "samalla-eppn-tunnuksella-loytyy-jo-toinen-kayttaja": "samalla yliopiston käyttäjätunnuksella / vierailijatunnuksella löytyy jo toinen käyttäjä",
@@ -288,6 +289,7 @@
       "tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy": "päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ylittää 100%",
       "uuden-lahikouluttajan-voi-lisata-vain-erikoistuva-laakari": "uuden lahikouluttajan voi lisätä vain erikoistuja",
       "vastuuhenkilon-tehtavat-maaritettava-enintaan-yhdelle-vastuuhenkilolle": "jokaisen vastuuhenkilön tehtävän täytyy kuulua enintään yhdelle vastuuhenkilölle saman erikoisalan sisällä",
+      "valmistumispyynnon-liite-ei-ole-kelvollinen-pdf": "Valmistumispyyntöön liittyvä liite \"{attachmentName}\" ({attachmentContext}) ei ole kelvollinen PDF-tiedosto. Pyydä liitteen lisääjää poistamaan se tai korvaamaan se kelvollisella PDF-tiedostolla ja yritä hyväksyntää uudelleen.",
       "valmistumispyynto-ei-ole-muokattavissa": "valmistumispyyntö ei ole muokattavissa",
       "valmistumispyynto-on-jo-lahetetty": "valmistumispyyntö on jo lähetetty"
     },
@@ -1558,6 +1560,7 @@
   "valmistumispyynnon-hyvaksynta": "Valmistumispyynnön hyväksyntä",
   "valmistumispyynnon-hyvaksynta-yek": "Valmistumispyynnön hyväksyntä",
   "valmistumispyynnon-liitteet": "Valmistumispyynnön liitteet",
+  "valmistumispyynnon-seurantajaksossa-pdf-tiedostossa-tukemattomia-merkkeja": "Valmistumispyyntöön liittyvän seurantajakson kenttä \"{field}\"{seurantajaksoContext} sisältää merkkejä, joita ei voida lisätä arkistoitavaan PDF-tiedostoon: {unsupportedCharacters}. Pyydä kentän täyttäjää poistamaan tai korvaamaan merkit ja yritä hyväksyntää uudelleen.",
   "valmistumispyynnon-tallentaminen-epaonnistui": "Valmistumispyynnön tallentaminen epäonnistui",
   "valmistumispyynnon-tarkistus": "Valmistumispyynnön tarkistus",
   "valmistumispyynnon-tarkistus-yek": "Valmistumispyynnön tarkistus",

@@ -463,7 +463,8 @@ class SecurityConfiguration(
         tokenUser: User?,
         hetu: String?
     ): Boolean =
-        (existingUser == null || !hasAnyRole(existingUser) ||
+        applicationProperties.getStudyDataIntegrations().enabled &&
+            (existingUser == null || !hasAnyRole(existingUser) ||
             hasErikoistuvaLaakariRole(existingUser) || hasYekKoulutettavaRole(existingUser) ||
             hasKouluttajaRole(existingUser)
             )

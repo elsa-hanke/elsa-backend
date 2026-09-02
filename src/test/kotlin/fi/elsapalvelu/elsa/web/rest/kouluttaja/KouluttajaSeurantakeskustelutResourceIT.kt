@@ -253,6 +253,30 @@ class KouluttajaSeurantakeskustelutResourceIT {
 
     @Test
     @Transactional
+    fun updateSeurantajaksoAllowsCharactersMissingFromPdfFonts() {
+        initTest()
+        seurantajaksoRepository.saveAndFlush(seurantajakso)
+
+        val updatedSeurantajakso = seurantajaksoRepository.findById(seurantajakso.id!!).get()
+        em.detach(updatedSeurantajakso)
+        updatedSeurantajakso.edistyminenTavoitteidenMukaista = true
+        updatedSeurantajakso.kouluttajanArvio = "Erikoistuminen etenee hyvin ✓"
+        val seurantajaksoDTO = seurantajaksoMapper.toDto(updatedSeurantajakso)
+
+        restSeurantajaksoMockMvc.perform(
+            put(ENTITY_API_URL_ID, seurantajakso.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(seurantajaksoDTO))
+                .with(csrf())
+        )
+            .andExpect(status().isOk)
+
+        assertThat(seurantajaksoRepository.findById(seurantajakso.id!!).get().kouluttajanArvio)
+            .isEqualTo("Erikoistuminen etenee hyvin ✓")
+    }
+
+    @Test
+    @Transactional
     fun updateSeurantajaksoWithMerkinnat() {
         initTest()
         seurantajakso = createUpdatedEntity(erikoistuvaLaakari, kouluttaja)

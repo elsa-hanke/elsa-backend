@@ -23,7 +23,8 @@ class ElsaBackendApp(
     private val env: Environment,
     erikoisalaSisuTutkintoohjelmaRepository: ErikoisalaSisuTutkintoohjelmaRepository,
     sisuTutkintoohjelmaFetchingService: SisuTutkintoohjelmaFetchingService,
-    sisuTutkintoohjelmaImportService: SisuTutkintoohjelmaImportService
+    sisuTutkintoohjelmaImportService: SisuTutkintoohjelmaImportService,
+    applicationProperties: ApplicationProperties
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -32,6 +33,7 @@ class ElsaBackendApp(
         Companion.erikoisalaSisuTutkintoohjelmaRepository = erikoisalaSisuTutkintoohjelmaRepository
         Companion.sisuTutkintoohjelmaFetchingService = sisuTutkintoohjelmaFetchingService
         Companion.sisuTutkintoohjelmaImportService = sisuTutkintoohjelmaImportService
+        Companion.applicationProperties = applicationProperties
     }
 
     @PostConstruct
@@ -67,14 +69,17 @@ class ElsaBackendApp(
         private lateinit var erikoisalaSisuTutkintoohjelmaRepository: ErikoisalaSisuTutkintoohjelmaRepository
         private lateinit var sisuTutkintoohjelmaFetchingService: SisuTutkintoohjelmaFetchingService
         private lateinit var sisuTutkintoohjelmaImportService: SisuTutkintoohjelmaImportService
+        private lateinit var applicationProperties: ApplicationProperties
 
         @JvmStatic
         fun main(args: Array<String>) {
             val env = runApplication<ElsaBackendApp>(*args) { DefaultProfileUtil.addDefaultProfile(this) }.environment
             logApplicationStartup(env)
 
-            if (env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT) && erikoisalaSisuTutkintoohjelmaRepository.findAll()
-                    .isEmpty()
+            if (
+                env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT) &&
+                applicationProperties.getStudyDataIntegrations().enabled &&
+                erikoisalaSisuTutkintoohjelmaRepository.findAll().isEmpty()
             ) {
                 runBlocking {
                     sisuTutkintoohjelmaFetchingService.fetch()?.let {

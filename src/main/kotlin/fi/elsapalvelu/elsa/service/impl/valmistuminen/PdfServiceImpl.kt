@@ -14,11 +14,15 @@ import com.itextpdf.layout.properties.ObjectFit
 import com.itextpdf.layout.properties.UnitValue
 import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
+import fi.elsapalvelu.elsa.service.PdfContentValidator
+import fi.elsapalvelu.elsa.service.PdfTextSanitizer
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_LUO_PDF
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_YHDISTA_ASIAKIRJAT
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_YHDISTA_PDF
+import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
+import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource
 import org.apache.pdfbox.Loader
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
@@ -31,12 +35,11 @@ import java.io.*
 @Service
 class PdfServiceImpl(
     private val templateEngine: SpringTemplateEngine,
-    private val pdfMetrics: PdfGenerationMetricsService
+    private val pdfMetrics: PdfGenerationMetricsService,
+    private val pdfContentValidator: PdfContentValidator
 ) : PdfService {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val puaRegex = Regex("[\uE000-\uF8FF]")
-
     @Value("classpath:sRGB_CS_profile.icm")
     var colorProfile: Resource? = null
 
@@ -84,6 +87,9 @@ class PdfServiceImpl(
             val result = PdfDocument(PdfWriter(outputStream))
             val resultDocument = Document(result)
             asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
+                if (!pdfContentValidator.isValid(it.asiakirjaData?.data)) {
+                    throw invalidPdfAttachmentException(it)
+                }
                 try {
                     val sanitizedData = sanitizePdf(it.asiakirjaData?.data)
                     PdfDocument(PdfReader(ByteArrayInputStream(sanitizedData))).use { srcDoc ->
@@ -92,8 +98,8 @@ class PdfServiceImpl(
                             result.addPage(page)
                         }
                     }
-                } catch (e: IOException) {
-                    log.warn("Asiakirjan ${it.id} lisäys epäonnistui", e)
+                } catch (e: Exception) {
+                    throw invalidPdfAttachmentException(it, e)
                 }
             }
             asiakirjat.filter { it.tyyppi == MediaType.IMAGE_JPEG_VALUE || it.tyyppi == MediaType.IMAGE_PNG_VALUE }
@@ -140,8 +146,16 @@ class PdfServiceImpl(
         }
     }
 
-    private fun sanitizeContent(input: String): String =
-        input.replace("\uF0B7", "\u2022")   // Wingdings bullet → •
-            .replace("\uF0A7", "\u25E6")   // alternate bullet → ◦
-            .replace(puaRegex, "")         // remove remaining PUA chars
+    private fun sanitizeContent(input: String): String = PdfTextSanitizer.sanitize(input)
+
+    private fun invalidPdfAttachmentException(
+        asiakirja: Asiakirja,
+        cause: Throwable? = null
+    ) = InvalidPdfAttachmentException(
+        attachmentId = asiakirja.id,
+        attachmentName = asiakirja.nimi,
+        source = InvalidPdfAttachmentSource.TYOSKENTELYJAKSO,
+        attachmentDate = asiakirja.tyoskentelyjakso?.alkamispaiva,
+        cause = cause
+    )
 }

@@ -22,7 +22,9 @@ object AsiakirjaHelper {
     const val ASIAKIRJA_PDF_TYYPPI = "application/pdf"
     const val ASIAKIRJA_PNG_TYYPPI = "image/png"
 
-    val ASIAKIRJA_PDF_DATA = byteArrayOf(0x2E, 0x38)
+    val ASIAKIRJA_PDF_DATA: ByteArray =
+        requireNotNull(AsiakirjaHelper::class.java.getResourceAsStream("/fixtures/valid.pdf"))
+            .use { it.readBytes() }
     val ASIAKIRJA_PNG_DATA = byteArrayOf(0x2E, 0x14)
 
     fun createEntity(

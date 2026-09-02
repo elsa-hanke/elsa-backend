@@ -18,6 +18,8 @@ class ApplicationProperties {
     private val arkistointi = Arkistointi()
     private val opintohallintoemail = Opintohallintoemail()
     private val alert = Alert()
+    private val scheduling = Scheduling()
+    private val studyDataIntegrations = StudyDataIntegrations()
 
     fun getCsrf(): Csrf {
         return csrf
@@ -41,6 +43,22 @@ class ApplicationProperties {
 
     fun getAlert(): Alert {
         return alert
+    }
+
+    fun getScheduling(): Scheduling {
+        return scheduling
+    }
+
+    fun getStudyDataIntegrations(): StudyDataIntegrations {
+        return studyDataIntegrations
+    }
+
+    class Scheduling {
+        var enabled: Boolean = true
+    }
+
+    class StudyDataIntegrations {
+        var enabled: Boolean = true
     }
 
     class Csrf {

@@ -20,6 +20,8 @@ import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksynta
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
+import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
+import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -36,9 +38,13 @@ import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
+import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import jakarta.persistence.EntityManager
 
 /**
@@ -48,8 +54,8 @@ import jakarta.persistence.EntityManager
  * These tests exercise the full HTTP → service → PDF generation stack so that
  * failures reproduce the real transaction rollback seen in production.
  *
- * Regression scenarios include non-PDF and empty attachments. Those inputs must
- * be skipped while valid PDFs are still merged into the generated document.
+ * Legacy attachments whose stored PDF metadata does not match their content must
+ * block approval with an actionable validation response. Valid PDFs are merged normally.
  *
  */
 @AutoConfigureMockMvc
@@ -76,6 +82,20 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     }
 
     private val emptyPdf: ByteArray = ByteArray(0)
+
+    private val docxContent: ByteArray by lazy {
+        ByteArrayOutputStream().use { output ->
+            ZipOutputStream(output).use { zip ->
+                zip.putNextEntry(ZipEntry("[Content_Types].xml"))
+                zip.write("<Types/>".toByteArray())
+                zip.closeEntry()
+                zip.putNextEntry(ZipEntry("word/document.xml"))
+                zip.write("<document/>".toByteArray())
+                zip.closeEntry()
+            }
+            output.toByteArray()
+        }
+    }
 
     /**
      * A real JPEG (1×1 px) representing an attachment that must not be merged as PDF.
@@ -211,6 +231,25 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         em.flush()
     }
 
+    private fun persistTyoskentelyjaksoWithAsiakirja(data: ByteArray) {
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
+        tyoskentelyjakso.opintooikeus = opintooikeus
+        em.persist(tyoskentelyjakso)
+        em.flush()
+
+        em.persist(
+            Asiakirja(
+                opintooikeus = opintooikeus,
+                tyoskentelyjakso = tyoskentelyjakso,
+                nimi = "tyotodistus.pdf",
+                tyyppi = MediaType.APPLICATION_PDF_VALUE,
+                lisattypvm = LocalDateTime.now(),
+                asiakirjaData = AsiakirjaData(data = data)
+            )
+        )
+        em.flush()
+    }
+
     private fun persistValmistumispyyntoOdottaaHyvaksyntaa(): Valmistumispyynto {
         val freshOpintooikeus = em.find(Opintooikeus::class.java, opintooikeus.id!!)
         val freshAnotherVastuuhenkilo = em.find(Kayttaja::class.java, anotherVastuuhenkilo.id!!)
@@ -308,14 +347,11 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     }
 
     /**
-     * ELSA-1127 – Zero-byte (empty) PDF attachment fixed.
-     *
-     * Empty blobs in [asiakirja_data] (LENGTH(data) = 0) are now skipped with a
-     * warning in [lisaaArvioinnit] instead of being passed to PdfReader.
+     * A legacy zero-byte assessment PDF must block approval instead of being omitted.
      */
     @Test
     @Transactional
-    fun approvalSucceedsBySkippingEmptyArviointiPdf() {
+    fun approvalIsBlockedWhenArviointiPdfIsEmpty() {
 
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.APPLICATION_PDF_VALUE, emptyPdf)
@@ -325,15 +361,71 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
         performApproval(valmistumispyynto.id)
-            .andExpect(status().isOk)
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message").value(
+                    "error.${InvalidPdfAttachmentException.ERROR_KEY}"
+                )
+            )
+            .andExpect(jsonPath("$.attachmentName").value("liite.pdf"))
+            .andExpect(jsonPath("$.attachmentSource").value("arviointi"))
+            .andExpect(jsonPath("$.attachmentDate").value("1970-01-01"))
     }
 
     /**
-     * ELSA-1127 – Zero-byte PDF in itsearviointi collection fixed.
+     * Legacy data can contain a DOCX whose stored name and MIME type claim it is a PDF.
+     * Approval must identify the affected assessment and require the file to be corrected.
      */
     @Test
     @Transactional
-    fun approvalSucceedsBySkippingEmptyItsearviointiPdf() {
+    fun approvalIsBlockedWhenDocxContentIsLabelledAsPdf() {
+
+        persistKoulutussuunnitelma()
+        persistSuoritusarviointiWithAsiakirja(MediaType.APPLICATION_PDF_VALUE, docxContent)
+
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id)
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message").value(
+                    "error.${InvalidPdfAttachmentException.ERROR_KEY}"
+                )
+            )
+            .andExpect(jsonPath("$.attachmentName").value("liite.pdf"))
+            .andExpect(jsonPath("$.attachmentSource").value("arviointi"))
+            .andExpect(jsonPath("$.attachmentDate").value("1970-01-01"))
+    }
+
+    /**
+     * A legacy invalid PDF attached to a work period must also block approval.
+     */
+    @Test
+    @Transactional
+    fun approvalIsBlockedWhenTyoskentelyjaksoPdfIsInvalid() {
+
+        persistKoulutussuunnitelma()
+        persistTyoskentelyjaksoWithAsiakirja(docxContent)
+
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.attachmentName").value("tyotodistus.pdf"))
+            .andExpect(jsonPath("$.attachmentSource").value("tyoskentelyjakso"))
+            .andExpect(jsonPath("$.attachmentDate").value("1970-01-01"))
+    }
+
+    /**
+     * A legacy zero-byte self-assessment PDF must block approval instead of being omitted.
+     */
+    @Test
+    @Transactional
+    fun approvalIsBlockedWhenItsearviointiPdfIsEmpty() {
 
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.APPLICATION_PDF_VALUE, emptyPdf, itsearviointi = true)
@@ -343,7 +435,10 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
         performApproval(valmistumispyynto.id)
-            .andExpect(status().isOk)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.attachmentName").value("liite.pdf"))
+            .andExpect(jsonPath("$.attachmentSource").value("itsearviointi"))
+            .andExpect(jsonPath("$.attachmentDate").value("1970-01-01"))
     }
 
     /**
@@ -386,17 +481,77 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
             .andExpect(status().isOk)
     }
 
+    @Test
+    @Transactional
+    fun approvalIsBlockedWhenLegacySeurantajaksoContainsUnsupportedPdfCharacter() {
+        persistKoulutussuunnitelma()
+        val seurantajakso = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, vastuuhenkilo)
+        seurantajakso.omaArviointi = "Erikoistuminen etenee suunnitellusti ✓"
+        em.persist(seurantajakso)
+        em.flush()
+
+        val seurantajaksoId = seurantajakso.id
+        val seurantajaksoStartDate = seurantajakso.alkamispaiva
+        em.clear()
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id)
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message").value(
+                    "error.${UnsupportedPdfCharactersException.ERROR_KEY}"
+                )
+            )
+            .andExpect(jsonPath("$.field").value("oma-arviointi-seurantajaksolta"))
+            .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
+            .andExpect(jsonPath("$.seurantajaksoId").value(seurantajaksoId))
+            .andExpect(jsonPath("$.seurantajaksoStartDate").value(seurantajaksoStartDate.toString()))
+    }
+
+    @Test
+    @Transactional
+    fun approvalSucceedsWhenSeurantajaksoTextIsSupportedByPdfFonts() {
+        persistKoulutussuunnitelma()
+        val seurantajakso = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, vastuuhenkilo)
+        seurantajakso.omaArviointi = "Ääkköset ja tuettu nuoli →"
+        seurantajakso.hyvaksytty = true
+        em.persist(seurantajakso)
+        em.flush()
+
+        em.clear()
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id)
+            .andExpect(status().isOk)
+
+        assertGeneratedTraineeDataDocumentIsValid(valmistumispyynto.id!!)
+    }
+
+    @Test
+    @Transactional
+    fun approvalUsesHistoricalSanitizationForLegacyPrivateUseCharacters() {
+        persistKoulutussuunnitelma()
+        val seurantajakso = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, vastuuhenkilo)
+        seurantajakso.omaArviointi = "\uF0B7 ensimmäinen, \uF0A7 toinen, \uE123 poistetaan"
+        seurantajakso.hyvaksytty = true
+        em.persist(seurantajakso)
+        em.flush()
+
+        em.clear()
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id)
+            .andExpect(status().isOk)
+
+        assertGeneratedTraineeDataDocumentIsValid(valmistumispyynto.id!!)
+    }
+
     /**
-     * ELSA-1127 – Empty motivaatiokirjeAsiakirja in Koulutussuunnitelma.
-     *
-     * [lisaaKoulutussuunnitelma] calls [yhdistaPdf] for the motivaatiokirje attachment.
-     * A zero-byte blob causes "PDF header not found" and rolls back the approval.
-     * The same defensive empty-data guard applied to [lisaaArvioinnit] is now also
-     * applied here – empty data is skipped with a warning.
+     * A legacy empty motivation-letter PDF must block approval instead of being omitted.
      */
     @Test
     @Transactional
-    fun approvalSucceedsWhenMotivaatiokirjeAsiakirjaIsEmpty() {
+    fun approvalIsBlockedWhenMotivaatiokirjeAsiakirjaIsEmpty() {
 
         persistKoulutussuunnitelmaWithMotivaatiokirje(emptyPdf)
 
@@ -404,9 +559,11 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
-        // FIXED: empty motivaatiokirje blob is skipped, approval succeeds
         performApproval(valmistumispyynto.id)
-            .andExpect(status().isOk)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.attachmentName").value("motivaatiokirje.pdf"))
+            .andExpect(jsonPath("$.attachmentSource").value("motivaatiokirje"))
+            .andExpect(jsonPath("$.attachmentDate").doesNotExist())
     }
 
     /**

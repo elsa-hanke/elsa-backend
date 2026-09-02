@@ -20,6 +20,8 @@ import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
+import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -135,6 +137,10 @@ class VastuuhenkiloValmistumispyyntoResource(
                 )
             AuditLoggingWrapper.info("PUT request completed for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id")
             return ResponseEntity.ok(valmistumispyynto)
+        } catch (ex: InvalidPdfAttachmentException) {
+            throw ex
+        } catch (ex: UnsupportedPdfCharactersException) {
+            throw ex
         } catch (ex: Exception) {
             log.error("PUT request failed for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id", ex)
             throw ex

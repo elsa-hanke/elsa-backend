@@ -1,7 +1,11 @@
 import { Component, Vue } from 'vue-property-decorator'
 
-import { Valmistumispyynto } from '@/types'
+import { ElsaError, Valmistumispyynto } from '@/types'
 import { ValmistumispyynnonTila } from '@/utils/constants'
+import { formatPdfTextError, UNSUPPORTED_PDF_CHARACTERS_ERROR } from '@/utils/pdfTextError'
+
+const INVALID_PDF_ATTACHMENT_ERROR =
+  'error.dataillegal.valmistumispyynnon-liite-ei-ole-kelvollinen-pdf'
 
 @Component({})
 export default class ValmistumispyyntoMixin extends Vue {
@@ -98,5 +102,32 @@ export default class ValmistumispyyntoMixin extends Vue {
 
   get useaVastuuhenkilo() {
     return this.vastuuhenkiloOsaamisenArvioija !== this.vastuuhenkiloHyvaksyja
+  }
+
+  formatValmistumispyyntoError(error?: ElsaError): string | undefined {
+    if (!error?.message) {
+      return undefined
+    }
+
+    if (error.message === UNSUPPORTED_PDF_CHARACTERS_ERROR) {
+      return formatPdfTextError(
+        this,
+        error,
+        'valmistumispyynnon-seurantajaksossa-pdf-tiedostossa-tukemattomia-merkkeja'
+      )
+    }
+
+    if (error.message !== INVALID_PDF_ATTACHMENT_ERROR) {
+      return `${this.$t(error.message)}`
+    }
+
+    const attachmentSource = error.attachmentSource ? `${this.$t(error.attachmentSource)}` : ''
+    const attachmentDate = error.attachmentDate ? this.$date(error.attachmentDate) : ''
+    const attachmentContext = [attachmentSource, attachmentDate].filter(Boolean).join(' ')
+
+    return `${this.$t(error.message, {
+      attachmentName: error.attachmentName ?? '',
+      attachmentContext
+    })}`
   }
 }

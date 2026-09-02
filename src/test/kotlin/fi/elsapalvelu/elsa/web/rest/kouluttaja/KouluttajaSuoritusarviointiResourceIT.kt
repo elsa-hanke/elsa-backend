@@ -132,6 +132,45 @@ class KouluttajaSuoritusarviointiResourceIT {
         assertThat(asiakirjaData?.data).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)
     }
 
+    @Test
+    @Transactional
+    fun updateSuoritusarviointiRejectsInvalidPdfContent() {
+        initTest()
+        suoritusarviointiRepository.saveAndFlush(suoritusarviointi)
+
+        val id = suoritusarviointi.id
+        assertNotNull(id)
+        val updatedSuoritusarviointi = suoritusarviointiRepository.findById(id).get()
+        em.detach(updatedSuoritusarviointi)
+        updatedSuoritusarviointi.arviointiAika = UPDATED_TAPAHTUMAN_AJANKOHTA
+        updatedSuoritusarviointi.arviointiPerustuu = ArvioinninPerustuminen.LASNA
+        updatedSuoritusarviointi.sanallinenArviointi = UPDATED_LISATIEDOT
+        updatedSuoritusarviointi.arvioitavatKokonaisuudet.forEach {
+            it.arviointiasteikonTaso = 5
+        }
+        updatedSuoritusarviointi.vaativuustaso = 5
+        val suoritusarviointiJson =
+            objectMapper.writeValueAsString(suoritusarviointiMapper.toDto(updatedSuoritusarviointi))
+
+        restSuoritusarviointiMockMvc.perform(
+            multipart("/api/kouluttaja/suoritusarvioinnit")
+                .file(
+                    MockMultipartFile(
+                        "arviointiFiles",
+                        "word-document.pdf",
+                        MediaType.APPLICATION_PDF_VALUE,
+                        "PK\u0003\u0004DOCX content".toByteArray()
+                    )
+                )
+                .param("suoritusarviointiJson", suoritusarviointiJson)
+                .with { it.method = "PUT"; it }
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        em.clear()
+        assertThat(suoritusarviointiRepository.findById(id).get().arviointiAsiakirjat).isEmpty()
+    }
+
     fun initMockFile() {
         tempFile = File.createTempFile("file", "pdf")
         tempFile.writeBytes(AsiakirjaHelper.ASIAKIRJA_PDF_DATA)

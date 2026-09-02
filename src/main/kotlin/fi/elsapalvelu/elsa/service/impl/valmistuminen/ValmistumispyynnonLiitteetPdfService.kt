@@ -8,7 +8,6 @@ import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
-import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import java.io.ByteArrayOutputStream
@@ -23,25 +22,16 @@ class ValmistumispyynnonLiitteetPdfService(
     private val valmistumispyyntoRepository: ValmistumispyyntoRepository,
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
-
     fun luo(valmistumispyynto: Valmistumispyynto): Asiakirja {
         val opintooikeus = valmistumispyynto.opintooikeus.required()
         val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusId(
             opintooikeus.id.required()
         )
         val outputStream = ByteArrayOutputStream()
-        try {
-            pdfService.yhdistaAsiakirjat(
-                tyoskentelyjaksot.flatMap { it.asiakirjat },
-                outputStream
-            )
-        } catch (exception: Exception) {
-            log.error(
-                "Virhe yhdistäessä asiakirjoja valmistumispyynnölle: ${valmistumispyynto.id}",
-                exception
-            )
-        }
+        pdfService.yhdistaAsiakirjat(
+            tyoskentelyjaksot.flatMap { it.asiakirjat },
+            outputStream
+        )
 
         val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT))
         val asiakirja = asiakirjaRepository.save(

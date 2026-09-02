@@ -24,6 +24,20 @@ class BadRequestExceptionAdvice {
         body.setProperty("message", "error.${e.errorKey}")
         body.setProperty("params", e.entityName)
 
+        if (e is InvalidPdfAttachmentException) {
+            e.attachmentId?.let { body.setProperty("attachmentId", it) }
+            body.setProperty("attachmentName", e.attachmentName)
+            body.setProperty("attachmentSource", e.attachmentSource)
+            e.attachmentDate?.let { body.setProperty("attachmentDate", it) }
+        }
+
+        if (e is UnsupportedPdfCharactersException) {
+            body.setProperty("field", e.field)
+            body.setProperty("unsupportedCharacters", e.unsupportedCharacters)
+            e.seurantajaksoId?.let { body.setProperty("seurantajaksoId", it) }
+            e.seurantajaksoStartDate?.let { body.setProperty("seurantajaksoStartDate", it) }
+        }
+
         return body
     }
 

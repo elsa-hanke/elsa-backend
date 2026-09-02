@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.web.rest.createByteArray
 import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 
@@ -45,8 +44,8 @@ object KoulutussuunnitelmaHelper {
     const val DEFAULT_ELAMANKENTTA_YKSITYINEN = false
     const val UPDATED_ELAMANKENTTA_YKSITYINEN = true
 
-    val DEFAULT_FILE: ByteArray = createByteArray(1, "0")
-    val UPDATED_FILE: ByteArray = createByteArray(1, "1")
+    val DEFAULT_FILE: ByteArray = AsiakirjaHelper.ASIAKIRJA_PDF_DATA
+    val UPDATED_FILE: ByteArray = AsiakirjaHelper.ASIAKIRJA_PDF_DATA
 
     fun createEntity(em: EntityManager, user: User? = null): Koulutussuunnitelma {
 

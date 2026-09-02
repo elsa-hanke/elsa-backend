@@ -1,6 +1,22 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.0...HEAD)
+
+## [v2.3.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.2...v2.3.0) - 27 August 2026
+
+- fix: update Gradle wrapper to version 9.7.1 [`#702`](https://github.com/elsa-hanke/elsa-backend/pull/702)(27 August 2026)
+- feat: add email notification for production release in CI workflow [`#701`](https://github.com/elsa-hanke/elsa-backend/pull/701)(26 August 2026)
+- ELSA-1202 reconcileOpintooikeusKaytossaAfterImport [`#697`](https://github.com/elsa-hanke/elsa-backend/pull/697)(25 August 2026)
+- fix: enhance connectivity alert handling in IntegrationAlertService [`#698`](https://github.com/elsa-hanke/elsa-backend/pull/698)(24 August 2026)
+- Elsa-1199 UnsupportedPdfCharactersException [`#696`](https://github.com/elsa-hanke/elsa-backend/pull/696)(22 August 2026)
+- Replica profile [`#694`](https://github.com/elsa-hanke/elsa-backend/pull/694)(21 August 2026)
+- Release/v2.2.x merge [`#693`](https://github.com/elsa-hanke/elsa-backend/pull/693)(14 August 2026)
+
+## [v2.2.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.1...v2.2.2) - 14 August 2026
+
+## [v2.2.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.0...v2.2.1) - 14 August 2026
+
+## [v2.2.0-1](https://github.com/elsa-hanke/elsa-backend/compare/v2.1.5...v2.2.0-1) - 14 August 2026
 
 - several improvements and refactorings focused on operational alerting for integration authentication failures [`#692`](https://github.com/elsa-hanke/elsa-backend/pull/692)(13 August 2026)
 - ELSA-1194: Olemassa olevan vastuuhenkilön lisääminen erikoistuvan arvioijaksi tai kouluttajaksi ei enää laajenna hänen käyttöoikeuksiaan tahattomasti. [`#691`](https://github.com/elsa-hanke/elsa-backend/pull/691)(13 August 2026)

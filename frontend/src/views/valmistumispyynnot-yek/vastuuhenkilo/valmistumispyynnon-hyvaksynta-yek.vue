@@ -569,11 +569,11 @@
         }
       } catch (err) {
         const axiosError = err as AxiosError<ElsaError>
-        const message = axiosError?.response?.data?.message
+        const message = this.formatValmistumispyyntoError(axiosError?.response?.data)
         toastFail(
           this,
           message
-            ? `${this.$t('valmistumispyynto-hyvaksynta-lahetys-epaonnistui')}: ${this.$t(message)}`
+            ? `${this.$t('valmistumispyynto-hyvaksynta-lahetys-epaonnistui')}: ${message}`
             : this.$t('valmistumispyynto-hyvaksynta-lahetys-epaonnistui')
         )
       }

@@ -29,6 +29,46 @@ stop-db:
 startb: kill8080 start-db
  ./gradlew bootRun
 
+startb-replica:
+  @exec env -u APPLICATION_SECURITY_ENCODED_KEY just --dotenv-path .env.replica _startb-replica
+
+_startb-replica: kill8080
+  #!/usr/bin/env sh
+  set -eu
+
+  if [ "${REPLICA_CONNECTION_CONFIRMED:-}" != "yes" ]; then
+    echo "Refusing to connect: set REPLICA_CONNECTION_CONFIRMED=yes after verifying that the target is the dev replica." >&2
+    exit 1
+  fi
+
+  : "${REPLICA_DB_URL:?Set REPLICA_DB_URL to the JDBC URL of the dev replica or local SSM tunnel.}"
+  : "${REPLICA_DB_USERNAME:?Set REPLICA_DB_USERNAME to the replica-only database user.}"
+  : "${REPLICA_DB_PASSWORD:?Set REPLICA_DB_PASSWORD to the replica-only database password.}"
+
+  export SPRING_PROFILES_ACTIVE=dev,replica
+
+  ./gradlew bootRun
+
+srt:
+  @exec just --dotenv-path .env.replica _start-replica-tunnel
+
+_start-replica-tunnel:
+  #!/usr/bin/env sh
+  set -eu
+
+  : "${AWS_PROFILE:?Set AWS_PROFILE to the approved dev AWS SSO profile.}"
+  : "${REPLICA_SSM_TARGET:?Set REPLICA_SSM_TARGET to the dev managed-instance or bastion ID.}"
+  : "${REPLICA_DB_HOST:?Set REPLICA_DB_HOST to the private replica RDS hostname.}"
+
+  replica_db_port="${REPLICA_DB_PORT:-5432}"
+  replica_local_port="${REPLICA_LOCAL_PORT:-15432}"
+
+  exec aws ssm start-session \
+    --profile "$AWS_PROFILE" \
+    --target "$REPLICA_SSM_TARGET" \
+    --document-name AWS-StartPortForwardingSessionToRemoteHost \
+    --parameters "{\"host\":[\"$REPLICA_DB_HOST\"],\"portNumber\":[\"$replica_db_port\"],\"localPortNumber\":[\"$replica_local_port\"]}"
+
 restartb:
   just kill8080
   pkill -f bootRun || true
@@ -75,6 +115,15 @@ br:
   just startf &
   wait
 
+brr:
+  #!/usr/bin/env sh
+  set -eu
+  trap 'kill 0' INT TERM EXIT
+  just build
+  just startb-replica &
+  just startf &
+  wait
+
 r:
   #!/usr/bin/env sh
   trap 'kill 0' INT TERM EXIT
@@ -110,3 +159,25 @@ psql +args='':
          -U elsaBackend                                       \
          {{ args }}
 
+psqlr +args='':
+  @exec just --dotenv-path .env.replica -- _psqlr {{ args }}
+
+_psqlr +args='':
+  #!/usr/bin/env sh
+  set -eu
+
+  : "${REPLICA_DB_URL:?Set REPLICA_DB_URL to the JDBC URL of the local replica tunnel.}"
+  : "${REPLICA_DB_USERNAME:?Set REPLICA_DB_USERNAME to the replica-only database user.}"
+  : "${REPLICA_DB_PASSWORD:?Set REPLICA_DB_PASSWORD to the replica-only database password.}"
+
+  replica_psql_url="${REPLICA_DB_URL#jdbc:}"
+  case "$replica_psql_url" in
+    postgresql://localhost:*/*|postgresql://127.0.0.1:*/*) ;;
+    *)
+      echo "Refusing to connect: REPLICA_DB_URL must use localhost or 127.0.0.1." >&2
+      exit 1
+      ;;
+  esac
+
+  export PGPASSWORD="$REPLICA_DB_PASSWORD"
+  exec psql "$replica_psql_url" --username "$REPLICA_DB_USERNAME" {{ args }}

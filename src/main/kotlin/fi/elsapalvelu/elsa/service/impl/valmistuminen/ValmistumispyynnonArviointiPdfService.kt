@@ -5,14 +5,18 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.required
+import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.mapper.arviointi.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
+import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
+import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.time.LocalDate
 import java.util.Locale
 
 @Service
@@ -20,7 +24,8 @@ class ValmistumispyynnonArviointiPdfService(
     private val pdfService: PdfService,
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
     private val suoritusarviointiMapper: SuoritusarviointiMapper,
-    private val arviointitietoService: ValmistumispyynnonArviointitietoService
+    private val arviointitietoService: ValmistumispyynnonArviointitietoService,
+    private val pdfContentValidator: PdfContentValidator
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -65,12 +70,16 @@ class ValmistumispyynnonArviointiPdfService(
                 yhdistaPdfAsiakirjat(
                     arviointi.arviointiAsiakirjat,
                     outputStream,
-                    "Arviointiasiakirja"
+                    "Arviointiasiakirja",
+                    InvalidPdfAttachmentSource.ARVIOINTI,
+                    arviointi.tapahtumanAjankohta
                 )
                 yhdistaPdfAsiakirjat(
                     arviointi.itsearviointiAsiakirjat,
                     outputStream,
-                    "Itsearviointiasiakirja"
+                    "Itsearviointiasiakirja",
+                    InvalidPdfAttachmentSource.ITSEARVIOINTI,
+                    arviointi.tapahtumanAjankohta
                 )
             }
     }
@@ -101,7 +110,9 @@ class ValmistumispyynnonArviointiPdfService(
     private fun yhdistaPdfAsiakirjat(
         asiakirjat: Collection<Asiakirja>,
         outputStream: ByteArrayOutputStream,
-        label: String
+        label: String,
+        source: InvalidPdfAttachmentSource,
+        attachmentDate: LocalDate?
     ) {
         asiakirjat.forEach { asiakirja ->
             if (asiakirja.tyyppi != MediaType.APPLICATION_PDF_VALUE) {
@@ -112,15 +123,27 @@ class ValmistumispyynnonArviointiPdfService(
                 return@forEach
             }
             val data = asiakirja.asiakirjaData?.data
-            if (data == null || data.isEmpty()) {
-                log.warn(
-                    "$label ${asiakirja.id} (${asiakirja.nimi}) data on tyhjä tai null – ohitetaan"
+            if (!pdfContentValidator.isValid(data)) {
+                throw InvalidPdfAttachmentException(
+                    attachmentId = asiakirja.id,
+                    attachmentName = asiakirja.nimi,
+                    source = source,
+                    attachmentDate = attachmentDate
                 )
-                return@forEach
             }
             val existingPdf = ByteArrayInputStream(outputStream.toByteArray())
             outputStream.reset()
-            pdfService.yhdistaPdf(existingPdf, ByteArrayInputStream(data), outputStream)
+            try {
+                pdfService.yhdistaPdf(existingPdf, ByteArrayInputStream(data), outputStream)
+            } catch (e: Exception) {
+                throw InvalidPdfAttachmentException(
+                    attachmentId = asiakirja.id,
+                    attachmentName = asiakirja.nimi,
+                    source = source,
+                    attachmentDate = attachmentDate,
+                    cause = e
+                )
+            }
         }
     }
 }
