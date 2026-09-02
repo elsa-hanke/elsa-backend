@@ -29,5 +29,12 @@ export function formatPdfTextError(
 
 export function formatPdfTextSaveError(vm: Vue, error: unknown, fallback: unknown): string {
   const axiosError = error as AxiosError<ElsaError>
-  return formatPdfTextError(vm, axiosError.response?.data) ?? `${fallback}`
+  const responseError = axiosError.response?.data
+  const pdfTextError = formatPdfTextError(vm, responseError)
+
+  if (pdfTextError) {
+    return pdfTextError
+  }
+
+  return responseError?.message ? `${fallback}: ${vm.$t(responseError.message)}` : `${fallback}`
 }
