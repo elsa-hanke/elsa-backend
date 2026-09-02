@@ -124,6 +124,7 @@
     Seurantajakso,
     SeurantajaksoHakuForm
   } from '@/types'
+  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -223,7 +224,10 @@
         modal.hide('confirm')
         toastSuccess(this, this.$t('koulutusjakso-lisatty'))
       } catch (err) {
-        toastFail(this, this.$t('uuden-koulutusjakson-lisaaminen-epaonnistui'))
+        toastFail(
+          this,
+          formatPdfTextSaveError(this, err, this.$t('uuden-koulutusjakson-lisaaminen-epaonnistui'))
+        )
       }
       params.saving = false
     }

@@ -253,7 +253,7 @@ class KouluttajaSeurantakeskustelutResourceIT {
 
     @Test
     @Transactional
-    fun updateSeurantajaksoAllowsCharactersMissingFromPdfFonts() {
+    fun updateSeurantajaksoRejectsCharactersMissingFromPdfFonts() {
         initTest()
         seurantajaksoRepository.saveAndFlush(seurantajakso)
 
@@ -269,10 +269,42 @@ class KouluttajaSeurantakeskustelutResourceIT {
                 .content(convertObjectToJsonBytes(seurantajaksoDTO))
                 .with(csrf())
         )
-            .andExpect(status().isOk)
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message")
+                    .value("error.dataillegal.pdf-tiedostossa-tukemattomia-merkkeja")
+            )
+            .andExpect(jsonPath("$.field").value("lahikouluttajan-arviointi-jaksosta"))
+            .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
+            .andExpect(jsonPath("$.seurantajaksoId").value(seurantajakso.id))
+            .andExpect(jsonPath("$.seurantajaksoStartDate").value(DEFAULT_ALKAMISPAIVA.toString()))
 
         assertThat(seurantajaksoRepository.findById(seurantajakso.id!!).get().kouluttajanArvio)
-            .isEqualTo("Erikoistuminen etenee hyvin ✓")
+            .isNull()
+    }
+
+    @Test
+    @Transactional
+    fun updateSeurantajaksoAllowsTrainerToSaveWhenTraineeHasLegacyUnsupportedCharacter() {
+        initTest()
+        seurantajakso.omaArviointi = "Vanha erikoistujan teksti ✓"
+        seurantajaksoRepository.saveAndFlush(seurantajakso)
+
+        val updatedSeurantajakso = seurantajaksoRepository.findById(seurantajakso.id!!).get()
+        em.detach(updatedSeurantajakso)
+        updatedSeurantajakso.edistyminenTavoitteidenMukaista = true
+        updatedSeurantajakso.kouluttajanArvio = DEFAULT_KOULUTTAJAN_ARVIO
+        val seurantajaksoDTO = seurantajaksoMapper.toDto(updatedSeurantajakso)
+
+        restSeurantajaksoMockMvc.perform(
+            put(ENTITY_API_URL_ID, seurantajakso.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(seurantajaksoDTO))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        assertThat(seurantajaksoRepository.findById(seurantajakso.id!!).get().kouluttajanArvio)
+            .isEqualTo(DEFAULT_KOULUTTAJAN_ARVIO)
     }
 
     @Test

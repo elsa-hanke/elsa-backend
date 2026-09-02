@@ -38,6 +38,7 @@
     SuoritemerkintaLomake,
     Vaativuustaso
   } from '@/types'
+  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -108,8 +109,15 @@
         this.$router.push({
           name: 'suoritemerkinnat'
         })
-      } catch {
-        toastFail(this, this.$t('uuden-suoritemerkinnan-lisaaminen-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatPdfTextSaveError(
+            this,
+            err,
+            this.$t('uuden-suoritemerkinnan-lisaaminen-epaonnistui')
+          )
+        )
       }
       params.saving = false
     }
