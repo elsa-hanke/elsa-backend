@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.1...HEAD)
 
+- ELSAINSI-56 Validointi koskien erikoismerkkejä [`#704`](https://github.com/elsa-hanke/elsa-backend/pull/704)(2 September 2026)
 - Update feedback email and enhance file validation logging [`#621`](https://github.com/elsa-hanke/elsa-backend/pull/621)(12 June 2026)
 - ELSA-1140 + e2e testit [`#608`](https://github.com/elsa-hanke/elsa-backend/pull/608)(5 June 2026)
 - ELSA-1140:  poistettu filteröinti YEK-käyttäjältä [`#578`](https://github.com/elsa-hanke/elsa-backend/pull/578)(25 May 2026)
