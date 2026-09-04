@@ -865,7 +865,6 @@
 </template>
 
 <script lang="ts">
-  import { AxiosError } from 'axios'
   import DOMPurify from 'dompurify'
   import { Component, Mixins } from 'vue-property-decorator'
   import { validationMixin } from 'vuelidate'
@@ -889,12 +888,12 @@
     ValmistumispyyntoArviointienTila,
     ValmistumispyyntoVirkailijanTarkistus,
     ValmistumispyynnonVirkailijanTarkistusLomake,
-    Asiakirja,
-    ElsaError
+    Asiakirja
   } from '@/types'
   import { confirmExit } from '@/utils/confirm'
   import { ValmistumispyynnonTila } from '@/utils/constants'
   import { mapFile, mapFiles } from '@/utils/fileMapper'
+  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
   import { toastSuccess, toastFail } from '@/utils/toast'
   import OpintosuoritusTab from '@/views/opintosuoritukset/opintosuoritus-tab.vue'
 
@@ -1163,13 +1162,9 @@
         }
         this.$router.replace({ name: 'valmistumispyynnot' })
       } catch (err) {
-        const axiosError = err as AxiosError<ElsaError>
-        const message = axiosError?.response?.data?.message
         toastFail(
           this,
-          message
-            ? `${this.$t('virkailijan-tarkistus-lahetys-epaonnistui')}: ${this.$t(message)}`
-            : this.$t('virkailijan-tarkistus-lahetys-epaonnistui')
+          formatPdfTextSaveError(this, err, this.$t('virkailijan-tarkistus-lahetys-epaonnistui'))
         )
       }
       this.sending = false
@@ -1212,13 +1207,9 @@
         toastSuccess(this, this.$t('virkailijan-tarkistus-palautettu-onnistuneesti'))
         this.$router.replace({ name: 'valmistumispyynnot' })
       } catch (err) {
-        const axiosError = err as AxiosError<ElsaError>
-        const message = axiosError?.response?.data?.message
         toastFail(
           this,
-          message
-            ? `${this.$t('virkailijan-tarkistus-palautus-epaonnistui')}: ${this.$t(message)}`
-            : this.$t('virkailijan-tarkistus-palautus-epaonnistui')
+          formatPdfTextSaveError(this, err, this.$t('virkailijan-tarkistus-palautus-epaonnistui'))
         )
       }
       this.sending = false

@@ -1,6 +1,24 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.0...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.2...HEAD)
+
+- ELSAINSI-56 Validointi koskien erikoismerkkejä [`#704`](https://github.com/elsa-hanke/elsa-backend/pull/704)(2 September 2026)
+- Update feedback email and enhance file validation logging [`#621`](https://github.com/elsa-hanke/elsa-backend/pull/621)(12 June 2026)
+- ELSA-1140 + e2e testit [`#608`](https://github.com/elsa-hanke/elsa-backend/pull/608)(5 June 2026)
+- ELSA-1140:  poistettu filteröinti YEK-käyttäjältä [`#578`](https://github.com/elsa-hanke/elsa-backend/pull/578)(25 May 2026)
+- ELSA-1134: korjattu testi toimimaan oikein (päivämäärä muotojen korjaus) [`#550`](https://github.com/elsa-hanke/elsa-backend/pull/550)(7 May 2026)
+- ELSA-1134: xml konversiotesti arkistointiin vaiheeseen  [`#549`](https://github.com/elsa-hanke/elsa-backend/pull/549)(7 May 2026)
+- ELSA-1135: jacksonVersion conflict fix + enhance error logging for exception handlers [`#548`](https://github.com/elsa-hanke/elsa-backend/pull/548)(7 May 2026)
+- enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
+- ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
+
+## [v2.3.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.1...v2.3.2) - 4 September 2026
+
+- fix: update siilo-koodi values in application.yml for archiving metadata [`#709`](https://github.com/elsa-hanke/elsa-backend/pull/709)(4 September 2026)
+
+## [v2.3.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.0...v2.3.1) - 1 September 2026
+
+- ELSA-1207 Updated feedback email back [`#705`](https://github.com/elsa-hanke/elsa-backend/pull/705)(1 September 2026)
 
 ## [v2.3.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.2.2...v2.3.0) - 27 August 2026
 

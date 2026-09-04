@@ -39,13 +39,15 @@
 </template>
 
 <script lang="ts">
+  import { AxiosError } from 'axios'
   import Vue from 'vue'
   import Component from 'vue-class-component'
 
   import { getSeurantajakso, getSeurantajaksonTiedot, putSeurantajakso } from '@/api/kouluttaja'
   import SeurantajaksoForm from '@/forms/seurantajakso-form.vue'
-  import { Seurantajakso, SeurantajaksonTiedot } from '@/types'
+  import { ElsaError, Seurantajakso, SeurantajaksonTiedot } from '@/types'
   import { SeurantajaksoTila } from '@/utils/constants'
+  import { formatPdfTextError } from '@/utils/pdfTextError'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -111,7 +113,12 @@
           }
         })
       } catch (err) {
-        toastFail(this, this.$t('seurantajakson-tallentaminen-epaonnistui'))
+        const axiosError = err as AxiosError<ElsaError>
+        toastFail(
+          this,
+          formatPdfTextError(this, axiosError.response?.data) ??
+            this.$t('seurantajakson-tallentaminen-epaonnistui')
+        )
       }
       params.saving = false
     }
