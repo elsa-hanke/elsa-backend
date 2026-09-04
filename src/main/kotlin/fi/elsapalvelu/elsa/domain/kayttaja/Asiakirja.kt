@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.domain.kayttaja
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.annotations.SQLRestriction
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
@@ -17,6 +18,7 @@ import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 @Audited
 @Table(name = "asiakirja")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@SQLRestriction("poistettu = false")
 data class Asiakirja(
 
     @Id
@@ -54,6 +56,10 @@ data class Asiakirja(
     @NotNull
     @Column(name = "lisattypvm", nullable = false)
     var lisattypvm: LocalDateTime? = null,
+
+    @NotNull
+    @Column(name = "poistettu", nullable = false)
+    var poistettu: Boolean = false,
 
     @NotNull
     @OneToOne(
