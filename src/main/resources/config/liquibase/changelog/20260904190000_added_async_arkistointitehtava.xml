@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="20260904190000-1" author="elsa">
+        <createTable tableName="arkistointitehtava">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="yliopisto" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="asiatyyppi" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tila" type="varchar(30)" defaultValue="ODOTTAA">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metatiedot" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metatietoversio" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+                <column name="idempotenssiavain" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="yrityskerrat" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="seuraava_kasittelyaika" type="timestamp" defaultValueComputed="${now}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kasittelyvaraus_paattyy" type="timestamp"/>
+            <column name="ulkoinen_toimitustunniste" type="varchar(255)"/>
+            <column name="virhekoodi" type="varchar(100)"/>
+            <column name="virhekuvaus" type="varchar(1000)"/>
+            <column name="created_date" type="timestamp" defaultValueComputed="${now}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="timestamp" defaultValueComputed="${now}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="onnistunut_toimitus_aika" type="timestamp"/>
+        </createTable>
+
+        <addAutoIncrement
+            tableName="arkistointitehtava"
+            columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"/>
+
+        <addUniqueConstraint
+            tableName="arkistointitehtava"
+            columnNames="idempotenssiavain"
+            constraintName="ux_arkistointitehtava_idempotenssiavain"/>
+
+        <createIndex
+            tableName="arkistointitehtava"
+            indexName="idx_arkistointitehtava_tila_kasittelyaika">
+            <column name="tila"/>
+            <column name="seuraava_kasittelyaika"/>
+        </createIndex>
+
+        <createIndex
+            tableName="arkistointitehtava"
+            indexName="idx_arkistointitehtava_tila_varaus">
+            <column name="tila"/>
+            <column name="kasittelyvaraus_paattyy"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260904190000-2" author="elsa">
+        <createTable tableName="arkistointitehtava_asiakirja">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="arkistointitehtava_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="asiakirja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="asiakirjatyyppi" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="jarjestys" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tiedostonimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sisaltotyyppi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sha256" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addAutoIncrement
+            tableName="arkistointitehtava_asiakirja"
+            columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"/>
+
+        <addForeignKeyConstraint
+            baseTableName="arkistointitehtava_asiakirja"
+            baseColumnNames="arkistointitehtava_id"
+            referencedTableName="arkistointitehtava"
+            referencedColumnNames="id"
+            constraintName="fk_arkistointitehtava_asiakirja__tehtava_id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="arkistointitehtava_asiakirja"
+            baseColumnNames="asiakirja_id"
+            referencedTableName="asiakirja"
+            referencedColumnNames="id"
+            constraintName="fk_arkistointitehtava_asiakirja__asiakirja_id"/>
+
+        <addUniqueConstraint
+            tableName="arkistointitehtava_asiakirja"
+            columnNames="arkistointitehtava_id, jarjestys"
+            constraintName="ux_arkistointitehtava_asiakirja__tehtava_jarjestys"/>
+
+    </changeSet>
+</databaseChangeLog>
