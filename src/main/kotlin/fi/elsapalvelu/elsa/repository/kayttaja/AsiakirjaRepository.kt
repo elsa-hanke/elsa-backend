@@ -3,11 +3,16 @@ package fi.elsapalvelu.elsa.repository.kayttaja
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 @Repository
 interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
+
+    @EntityGraph(attributePaths = ["asiakirjaData"])
+    @Query("select a from Asiakirja a where a.id = :id")
+    fun findOneWithDataById(id: Long): Asiakirja?
 
     @Query(
         """

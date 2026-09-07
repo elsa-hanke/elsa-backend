@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
-import org.springframework.beans.factory.annotation.Value
 import com.itextpdf.html2pdf.ConverterProperties
 import com.itextpdf.html2pdf.HtmlConverter
 import com.itextpdf.io.exceptions.IOException
@@ -12,8 +11,8 @@ import com.itextpdf.layout.element.Image
 import com.itextpdf.layout.font.FontProvider
 import com.itextpdf.layout.properties.ObjectFit
 import com.itextpdf.layout.properties.UnitValue
-import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
+import fi.elsapalvelu.elsa.service.PdfA2bService
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.PdfTextSanitizer
@@ -26,6 +25,7 @@ import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource
 import org.apache.pdfbox.Loader
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -38,12 +38,11 @@ class PdfServiceImpl(
     private val templateEngine: SpringTemplateEngine,
     private val pdfMetrics: PdfGenerationMetricsService,
     private val pdfContentValidator: PdfContentValidator,
-    private val pdfTextFieldValidator: PdfTextFieldValidator
+    private val pdfTextFieldValidator: PdfTextFieldValidator,
+    private val pdfA2bService: PdfA2bService
 ) : PdfService {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    @Value("classpath:sRGB_CS_profile.icm")
-    var colorProfile: Resource? = null
 
     @Value("classpath:fonts/LiberationSerif-Bold.ttf")
     var liberationSerifFontBold: Resource? = null
@@ -66,14 +65,7 @@ class PdfServiceImpl(
                     pdfSource = pdfSource(template)
                 )
             }
-            val pdf = PdfADocument(
-                PdfWriter(outputStream),
-                PdfAConformanceLevel.PDF_A_2B,
-                PdfOutputIntent(
-                    "Custom", "", "https://www.color.org",
-                    "sRGB IEC61966-2.1", colorProfile?.inputStream
-                )
-            )
+            val pdf = pdfA2bService.createDocument(outputStream)
             val provider = FontProvider()
             provider.addFont(liberationSerifFont?.file?.absolutePath)
             provider.addFont(liberationSerifFontBold?.file?.absolutePath)
@@ -92,15 +84,19 @@ class PdfServiceImpl(
         outputStream: OutputStream
     ) {
         pdfMetrics.trackOperation(OP_YHDISTA_ASIAKIRJAT) {
-            val result = PdfDocument(PdfWriter(outputStream))
+            val pdfOutput = ByteArrayOutputStream()
+            val result = pdfA2bService.createDocument(pdfOutput)
             val resultDocument = Document(result)
             asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
                 if (!pdfContentValidator.isValid(it.asiakirjaData?.data)) {
                     throw invalidPdfAttachmentException(it)
                 }
                 try {
-                    val sanitizedData = sanitizePdf(it.asiakirjaData?.data)
-                    PdfDocument(PdfReader(ByteArrayInputStream(sanitizedData))).use { srcDoc ->
+                    val normalizedData = pdfA2bService.normalize(
+                        sanitizePdf(it.asiakirjaData?.data),
+                        MediaType.APPLICATION_PDF_VALUE
+                    )
+                    PdfDocument(PdfReader(ByteArrayInputStream(normalizedData))).use { srcDoc ->
                         for (i in 1..srcDoc.numberOfPages) {
                             val page = srcDoc.getPage(i).copyTo(result)
                             result.addPage(page)
@@ -122,8 +118,9 @@ class PdfServiceImpl(
                     } catch (e: IOException) {
                         log.warn("Asiakirjan ${it.id} lisäys epäonnistui", e)
                     }
-                }
+            }
             resultDocument.close()
+            outputStream.write(pdfOutput.toByteArray())
         }
     }
 
@@ -143,14 +140,20 @@ class PdfServiceImpl(
         outputStream: OutputStream
     ) {
         pdfMetrics.trackOperation(OP_YHDISTA_PDF) {
-            val result = PdfDocument(PdfReader(source), PdfWriter(outputStream))
-            val resultDocument = Document(result)
+            val pdfOutput = ByteArrayOutputStream()
+            val result = pdfA2bService.createDocument(pdfOutput)
             val merger = PdfMerger(result)
-
-            val newDocument = PdfDocument(PdfReader(newPdf))
-            merger.merge(newDocument, 1, newDocument.numberOfPages)
-
-            resultDocument.close()
+            listOf(source, newPdf).forEach { input ->
+                val normalized = pdfA2bService.normalize(
+                    input.readAllBytes(),
+                    MediaType.APPLICATION_PDF_VALUE
+                )
+                PdfDocument(PdfReader(ByteArrayInputStream(normalized))).use { document ->
+                    merger.merge(document, 1, document.numberOfPages)
+                }
+            }
+            result.close()
+            outputStream.write(pdfOutput.toByteArray())
         }
     }
 
