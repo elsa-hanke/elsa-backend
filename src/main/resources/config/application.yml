@@ -365,3 +365,8 @@ application:
       kaytossa: false
     uef:
       kaytossa: false
+
+db-scheduler:
+  delay-startup-until-context-ready: true
+  polling-interval: 10s
+  threads: 2

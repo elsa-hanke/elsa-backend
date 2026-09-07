@@ -153,6 +153,7 @@ dependencies {
     implementation "org.hibernate.orm:hibernate-jcache:${hibernateVersion}"
     implementation "org.hibernate.orm:hibernate-envers:${hibernateVersion}"
     implementation "org.liquibase:liquibase-core"
+    implementation "com.github.kagkarlsson:db-scheduler-spring-boot-starter:${dbSchedulerVersion}"
     implementation "org.springframework.boot:spring-boot-starter-mail"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
@@ -176,6 +177,8 @@ dependencies {
     testImplementation "org.springframework.security:spring-security-test"
     testImplementation "com.squareup.okhttp3:mockwebserver:4.9.3"
     testImplementation "com.h2database:h2:2.4.240"
+    testImplementation "org.testcontainers:jdbc"
+    testImplementation "org.testcontainers:postgresql"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.9.0"
     implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.2.1'

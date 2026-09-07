@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <property name="schedulerBinaryType" value="bytea" dbms="postgresql"/>
+    <property name="schedulerBinaryType" value="varbinary" dbms="h2"/>
+    <property name="schedulerKeyType" value="text" dbms="postgresql"/>
+    <property name="schedulerKeyType" value="varchar(100)" dbms="h2"/>
+
+    <changeSet id="20260905090000-1" author="elsa">
+        <createTable tableName="scheduled_tasks">
+            <column name="task_name" type="${schedulerKeyType}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_instance" type="${schedulerKeyType}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_data" type="${schedulerBinaryType}"/>
+            <column name="execution_time" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="picked" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="picked_by" type="${schedulerKeyType}"/>
+            <column name="last_success" type="timestamp with time zone"/>
+            <column name="last_failure" type="timestamp with time zone"/>
+            <column name="consecutive_failures" type="integer"/>
+            <column name="last_heartbeat" type="timestamp with time zone"/>
+            <column name="version" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="priority" type="smallint"/>
+        </createTable>
+
+        <addPrimaryKey
+            tableName="scheduled_tasks"
+            columnNames="task_name, task_instance"
+            constraintName="pk_scheduled_tasks"/>
+
+        <createIndex tableName="scheduled_tasks" indexName="execution_time_idx">
+            <column name="execution_time"/>
+        </createIndex>
+        <createIndex tableName="scheduled_tasks" indexName="last_heartbeat_idx">
+            <column name="last_heartbeat"/>
+        </createIndex>
+        <createIndex tableName="scheduled_tasks" indexName="priority_execution_time_idx">
+            <column name="priority" descending="true"/>
+            <column name="execution_time"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260905090000-2" author="elsa">
+        <createTable tableName="arkistointi_job">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="university" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="case_type" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(30)" defaultValue="ODOTTAA">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="job_key" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_id" type="varchar(255)"/>
+            <column name="error_code" type="varchar(100)"/>
+            <column name="last_error" type="varchar(1000)"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="${now}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="${now}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completed_at" type="timestamp"/>
+        </createTable>
+
+        <addAutoIncrement
+            tableName="arkistointi_job"
+            columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"/>
+
+        <addUniqueConstraint
+            tableName="arkistointi_job"
+            columnNames="job_key"
+            constraintName="ux_arkistointi_job__job_key"/>
+
+        <createIndex tableName="arkistointi_job" indexName="idx_arkistointi_job__status">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260905090000-3" author="elsa">
+        <createTable tableName="arkistointi_job_asiakirja">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="job_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="asiakirja_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="asiakirjatyyppi" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="jarjestys" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tiedostonimi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sisaltotyyppi" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sha256" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addAutoIncrement
+            tableName="arkistointi_job_asiakirja"
+            columnName="id"
+            columnDataType="bigint"
+            generationType="ALWAYS"
+            incrementBy="1"
+            startWith="1"/>
+
+        <addForeignKeyConstraint
+            baseTableName="arkistointi_job_asiakirja"
+            baseColumnNames="job_id"
+            referencedTableName="arkistointi_job"
+            referencedColumnNames="id"
+            constraintName="fk_arkistointi_job_asiakirja__job_id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="arkistointi_job_asiakirja"
+            baseColumnNames="asiakirja_id"
+            referencedTableName="asiakirja"
+            referencedColumnNames="id"
+            constraintName="fk_arkistointi_job_asiakirja__asiakirja_id"/>
+
+        <addUniqueConstraint
+            tableName="arkistointi_job_asiakirja"
+            columnNames="job_id, jarjestys"
+            constraintName="ux_arkistointi_job_asiakirja__job_jarjestys"/>
+    </changeSet>
+</databaseChangeLog>
