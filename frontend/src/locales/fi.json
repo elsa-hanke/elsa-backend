@@ -285,7 +285,7 @@
       "terveyskeskuskoulutusjakson-hyvaksyntaa-ei-loydy": "Terveyskeskuskoulutusjakson hyväksyntää ei löydy",
       "terveyskeskuskoulutusjakson-vahimmaispituus-ei-tayty": "Terveyskeskuskoulutusjakson vähimmäispituus ei täyty",
       "terveyskeskuskoulutusjaksoon-liitettya-tyoskentelyjaksoa-ei-voi-paivittaa": "Terveyskeskuskoulutusjaksoon liitettyä työskentelyjaksoa ei voi päivittää",
-      "tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa": "tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa",
+      "tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa": "Liitetiedostoa ei voitu käsitellä tai samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos PDF-tiedosto avautuu normaalisti, tallenna se uudelleen PDF-muodossa ja yritä uudelleen.",
       "tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy": "päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ylittää 100%",
       "uuden-lahikouluttajan-voi-lisata-vain-erikoistuva-laakari": "uuden lahikouluttajan voi lisätä vain erikoistuja",
       "vastuuhenkilon-tehtavat-maaritettava-enintaan-yhdelle-vastuuhenkilolle": "jokaisen vastuuhenkilön tehtävän täytyy kuulua enintään yhdelle vastuuhenkilölle saman erikoisalan sisällä",
