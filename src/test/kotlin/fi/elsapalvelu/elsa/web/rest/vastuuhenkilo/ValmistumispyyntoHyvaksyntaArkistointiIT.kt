@@ -30,9 +30,12 @@ import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
-import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
-import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaReference
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaSnapshotService
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiChecksum
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobCreator
+import fi.elsapalvelu.elsa.service.arkistointi.job.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksyntaFormDTO
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -40,6 +43,7 @@ import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -97,6 +101,12 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     @MockitoBean
     private lateinit var arkistointiService: ArkistointiService
 
+    @MockitoBean
+    private lateinit var arkistointiJobCreator: ArkistointiJobCreator
+
+    @MockitoBean
+    private lateinit var asiakirjaSnapshotService: ArkistointiAsiakirjaSnapshotService
+
     /**
      * Mocked so that PDF generation (Thymeleaf rendering) is skipped entirely.
      * The private luoYhteenvetoPdf / luoLiitteetPdf / luoErikoistujanTiedotPdf methods
@@ -129,6 +139,16 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private var committedErikoistuvaLaakariId: Long? = null
     private var committedYliopistoId: Long? = null
     private val committedExtraErikoisalaIds: MutableList<Long> = mutableListOf()
+
+    @BeforeEach
+    fun stubArchivingDocumentSnapshots() {
+        whenever(asiakirjaSnapshotService.createReference(any(), any(), any())).thenAnswer { invocation ->
+            archiveReference(invocation.getArgument(1), invocation.getArgument(2))
+        }
+        whenever(asiakirjaSnapshotService.createLaillistamistodistusReference(any(), any())).thenAnswer { invocation ->
+            archiveReference(RecordType.LAILLISTAMISTODISTUS, invocation.getArgument(1))
+        }
+    }
 
     /**
      * Deletes rows committed by the non-@Transactional tests in FK-safe order
@@ -236,11 +256,6 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     fun updateValmistumispyyntoByHyvaksyjaUserId_archivingEnabled_usesGeneratedPersistedDocuments() {
         val valmistumispyyntoId = initTestInTransaction()
         whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
-        whenever(
-            arkistointiService.muodostaSahke(
-                any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
-        ).thenReturn(ArkistointiResult("/tmp/valmistumispyynto.zip", null))
 
         restMockMvc.perform(
             put("$ARKISTOINTI_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyyntoId)
@@ -249,33 +264,18 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                 .with(csrf())
         ).andExpect(status().isOk)
 
-        val asiakirjatCaptor = argumentCaptor<List<RecordProperties>>()
-        verify(arkistointiService).muodostaSahke(
-            any(),
-            asiakirjatCaptor.capture(),
-            any(),
-            any(),
-            any(),
-            any(),
-            any(),
-            any(),
-            any()
-        )
-        assertThat(asiakirjatCaptor.firstValue.map { it.type })
+        val requestCaptor = argumentCaptor<CreateArkistointiJobRequest>()
+        verify(arkistointiJobCreator).create(requestCaptor.capture())
+        assertThat(requestCaptor.firstValue.asiakirjat.map { it.asiakirjatyyppi })
             .containsExactly(
                 RecordType.YHTEENVETO,
-                RecordType.LIITE
+                RecordType.LIITE,
+                RecordType.LAILLISTAMISTODISTUS
             )
-
-        val persistedAsiakirjaIds = transactionTemplate.execute {
-            val valmistumispyynto = valmistumispyyntoRepository.findById(valmistumispyyntoId).orElseThrow()
-            listOf(
-                valmistumispyynto.yhteenvetoAsiakirja?.id,
-                valmistumispyynto.liitteetAsiakirja?.id
-            )
-        }
-        assertThat(asiakirjatCaptor.firstValue.map { it.asiakirja.id })
-            .containsExactlyElementsOf(persistedAsiakirjaIds)
+        assertThat(requestCaptor.firstValue.key)
+            .isEqualTo("valmistuminen:TAMPEREEN_YLIOPISTO:$valmistumispyyntoId")
+        verify(arkistointiService, never()).muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
+        verify(arkistointiService, never()).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
     }
 
     // -------------------------------------------------------------------------
@@ -314,13 +314,9 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         resourceLogger.addAppender(logAppender)
 
         try {
-            // Archiving is "enabled" for this test — muodostaSahke throws
+            // Archiving is enabled and job persistence fails.
             whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
-            whenever(
-                arkistointiService.muodostaSahke(
-                    any(), any(), any(), any(), any(), any(), any(), any(), any()
-                )
-            ).thenThrow(RuntimeException("Arkistointipalvelu ei vastaa"))
+            whenever(arkistointiJobCreator.create(any())).thenThrow(RuntimeException("Arkistointi-jobin tallennus epaonnistui"))
 
             // Act
             // Note on HTTP status: Spring Boot maps a rethrown JVM Error (OutOfMemoryError etc.)
@@ -351,7 +347,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                 .contains(valmistumispyyntoId.toString())
             assertThat(errorLogs[0].throwableProxy?.message)
                 .withFailMessage("Error log should include the original exception message")
-                .contains("Arkistointipalvelu ei vastaa")
+                .contains("Arkistointi-jobin tallennus epaonnistui")
 
             // Assert 2: DB rollback — kuittausaika must NOT be present in the committed state.
             // The service's @Transactional rolls back when the exception propagates, so the
@@ -405,11 +401,8 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
         try {
             whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
-            whenever(
-                arkistointiService.muodostaSahke(
-                    any(), any(), any(), any(), any(), any(), any(), any(), any()
-                )
-            ).thenThrow(OutOfMemoryError("Simuloitu muistivirhe arkistoinnissa"))
+            whenever(arkistointiJobCreator.create(any()))
+                .thenThrow(OutOfMemoryError("Simuloitu muistivirhe arkistointi-jobissa"))
 
             // BadRequestExceptionAdvice.handleError returns HTTP 500
             restMockMvc.perform(
@@ -428,7 +421,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                 )
                 .isNotEmpty
             assertThat(errorLogs[0].throwableProxy?.message)
-                .contains("Simuloitu muistivirhe arkistoinnissa")
+                .contains("Simuloitu muistivirhe arkistointi-jobissa")
 
             // DB must be rolled back
             val dbState = valmistumispyyntoRepository.findById(valmistumispyyntoId)
@@ -554,6 +547,22 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         }
     }
 
+    private fun archiveReference(type: RecordType, order: Int): ArkistointiAsiakirjaReference {
+        val data = "archive-$order".toByteArray()
+        return ArkistointiAsiakirjaReference(
+            asiakirja = Asiakirja(
+                id = (order + 1).toLong(),
+                nimi = "archive-$order.pdf",
+                tyyppi = MediaType.APPLICATION_PDF_VALUE,
+                asiakirjaData = AsiakirjaData(data = data)
+            ),
+            asiakirjatyyppi = type,
+            jarjestysnumero = order,
+            filename = "archive-$order.pdf",
+            contentType = MediaType.APPLICATION_PDF_VALUE,
+            sha256 = ArkistointiChecksum.sha256(data)
+        )
+    }
 
     private fun verifyEmailSent() {
         verify(mailService).sendEmailFromTemplate(

@@ -61,6 +61,18 @@ class ArkistointiJobCreatorImplTest {
     }
 
     @Test
+    fun `returns the existing job for an identical idempotency key`() {
+        val existing = ArkistointiJob(id = 42L, key = request().key)
+        whenever(repository.findByKey(request().key)).thenReturn(existing)
+
+        val result = creator.create(request())
+
+        assertThat(result).isSameAs(existing)
+        verify(repository, never()).saveAndFlush(any())
+        verify(scheduler, never()).schedule(any(), any())
+    }
+
+    @Test
     fun `checksum mismatch prevents job creation and scheduling`() {
         val request = request().copy(
             asiakirjat = listOf(request().asiakirjat.single().copy(sha256 = "a".repeat(64)))

@@ -24,6 +24,8 @@ class ArkistointiJobCreatorImpl(
             "Arkistointi-jobin asiakirjojen jarjestysnumeroiden on oltava yksilollisia"
         }
 
+        jobRepository.findByKey(pyynto.key)?.let { return it }
+
         pyynto.asiakirjat.forEach(::validateReference)
         val job = ArkistointiJob(
             university = pyynto.university,
