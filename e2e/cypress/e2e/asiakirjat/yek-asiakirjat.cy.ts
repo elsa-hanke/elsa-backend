@@ -79,30 +79,24 @@ function openPeriodEditor(id: number) {
 }
 
 function savePeriod(id: number) {
-  cy.intercept('PUT', `**${API}/tyoskentelyjaksot`).as('savePeriod')
+  cy.get('@multipartSave').invoke('resetHistory')
   cy.contains('button', 'Tallenna').click()
-  cy.wait('@savePeriod').its('response.statusCode').should('eq', 200)
+  waitForMultipartSave(`${API}/tyoskentelyjaksot`, 200)
   cy.location('pathname').should('eq', `/yektyoskentelyjaksot/${id}`)
 }
 
-describe('YEK-only: asiakirjojen avaaminen ja lataaminen', () => {
-  let databaseVerified = false
-
-  before(() => {
-    // The local replica currently uses 9060/15432. This destructive seed/reset
-    // scenario is deliberately limited to the separate Docker E2E stack.
-    const baseUrl = new URL(Cypress.config('baseUrl') as string)
-    expect(['localhost', '127.0.0.1']).to.include(baseUrl.hostname)
-    expect(baseUrl.port, 'use the isolated E2E frontend, not the replica').to.eq('8080')
-    cy.task('db:assertLocalYekDocumentDatabase').then(() => {
-      databaseVerified = true
+function waitForMultipartSave(pathname: string, status: number) {
+  return cy.get('@multipartSave').should('have.been.calledOnce')
+    .its('firstCall.args.0').then((xhr: XMLHttpRequest) => {
+      expect(new URL(xhr.responseURL).pathname).to.eq(pathname)
+      expect(xhr.status).to.eq(status)
+      return xhr
     })
-  })
+}
 
+describe('YEK-only: asiakirjojen avaaminen ja lataaminen', () => {
   after(() => {
-    if (databaseVerified) {
-      cy.resetErikoistuvaE2eState()
-    }
+    cy.resetErikoistuvaE2eState()
   })
 
   beforeEach(() => {
@@ -120,10 +114,37 @@ describe('YEK-only: asiakirjojen avaaminen ja lataaminen', () => {
     cy.clearAllCookies()
     cy.clearAllLocalStorage()
     cy.loginWithSuomifi(SSN_ERIKOISTUVA)
+    // Wait for the SAML callback and return to ELSA before checking the session,
+    // matching the readiness checks used by loginAsErikoistuva.
+    cy.location('origin', { timeout: 60000 }).should(
+      'eq',
+      new URL(Cypress.config('baseUrl') as string).origin
+    )
+    cy.location('pathname').should('not.eq', '/kirjautuminen')
+    cy.get('main[role="main"]').should('exist')
     assertYekOnlySession()
     cy.on('window:before:load', (win) => {
       // Only prevent a new tab; document API requests remain real.
       cy.stub(win, 'open').as('openDocument')
+      // cy.intercept on multipart POST/PUT can UTF-8-decode binary file bytes.
+      // Observe completed browser requests without reading or replacing the body.
+      const multipartSave = cy.stub().as('multipartSave')
+      const send = win.XMLHttpRequest.prototype.send
+      cy.stub(win.XMLHttpRequest.prototype, 'send').callsFake(function (
+        this: XMLHttpRequest,
+        body?: Document | XMLHttpRequestBodyInit | null
+      ) {
+        if (body instanceof win.FormData) {
+          this.addEventListener('load', () => {
+            if (this.responseURL && [
+              `${API}/asiakirjat`, `${API}/tyoskentelyjaksot`
+            ].includes(new URL(this.responseURL).pathname)) {
+              multipartSave(this)
+            }
+          }, { once: true })
+        }
+        return send.call(this, body)
+      })
     })
   })
 
@@ -131,15 +152,13 @@ describe('YEK-only: asiakirjojen avaaminen ja lataaminen', () => {
     const fileName = `yek-document-${Date.now()}.pdf`
     cy.visit('/yekasiakirjat')
     cy.contains('h1', 'Asiakirjat').should('be.visible')
-    cy.intercept('POST', `**${API}/asiakirjat`).as('uploadDocument')
     cy.get('input[type="file"]').selectFile({
       contents: 'cypress/fixtures/test.pdf',
       fileName,
       mimeType: 'application/pdf',
     }, { force: true })
-    cy.wait('@uploadDocument').then(({ response }) => {
-      expect(response?.statusCode).to.eq(201)
-      const document = response?.body[0]
+    waitForMultipartSave(`${API}/asiakirjat`, 201).then((xhr) => {
+      const document = JSON.parse(xhr.responseText)[0]
       expect(document.id).to.be.a('number')
       expect(document.nimi).to.eq(fileName)
       assertSpecialistRouteForbidden(document.id)

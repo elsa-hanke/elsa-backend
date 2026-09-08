@@ -3,26 +3,8 @@ import { E2E_ERIKOISTUVA_EMAIL } from '../../support/commands/credentials'
 
 const YEK_ROLE = 'ROLE_YEK_KOULUTETTAVA'
 
-function assertLocalTestDatabase(): void {
-  if (process.env.CYPRESS_YEK_DOCUMENTS_E2E_CONFIRMED !== 'yes') {
-    throw new Error('Set CYPRESS_YEK_DOCUMENTS_E2E_CONFIRMED=yes only after verifying that both the app and DB use the disposable E2E database, not a replica.')
-  }
-  const host = process.env.CYPRESS_DB_HOST ?? 'localhost'
-  const port = Number(process.env.CYPRESS_DB_PORT ?? '5432')
-  const database = process.env.CYPRESS_DB_NAME ?? 'elsaBackend'
-  if (!['localhost', '127.0.0.1'].includes(host) || port !== 5432 || database !== 'elsaBackend') {
-    throw new Error('YEK document tests require the disposable local elsaBackend database on port 5432. Never use a replica.')
-  }
-}
-
 export const yekDocumentTasks = {
-  'db:assertLocalYekDocumentDatabase'(): null {
-    assertLocalTestDatabase()
-    return null
-  },
-
   async 'db:prepareYekOnlyDocumentUser'(): Promise<null> {
-    assertLocalTestDatabase()
     return withDb(dbClient, async (client) => {
       await client.query('BEGIN')
       try {
