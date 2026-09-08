@@ -715,6 +715,52 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
 
     @Test
     @Transactional
+    fun updateAnotherUserTyoskentelyjaksoAsiakirjatShouldReturnForbiddenAndNotAddFile() {
+        val anotherUser = KayttajaResourceWithMockUserIT.createEntity()
+        em.persist(anotherUser)
+        em.flush()
+        YekKoulutettavaTyoskentelyjaksoHelper.createEntity(em, anotherUser)
+
+        initTest(anotherUser.id)
+        initMockFiles()
+
+        val asiakirja = AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso)
+        tyoskentelyjakso.asiakirjat.add(asiakirja)
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        restTyoskentelyjaksoMockMvc.perform(multipart("/api/yek-koulutettava/tyoskentelyjaksot/${tyoskentelyjakso.id}/asiakirjat")
+                .file(MockMultipartFile("addedFiles", AsiakirjaHelper.ASIAKIRJA_PNG_NIMI, AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI, tempFile2.readBytes()))
+                .param("deletedFiles", asiakirja.id!!.toString()).with { it.method = "PUT"; it }.with(csrf())).andExpect(status().isForbidden)
+
+        val unchangedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
+        assertThat(unchangedTyoskentelyjakso.asiakirjat).hasSize(1)
+        assertThat(unchangedTyoskentelyjakso.asiakirjat.first().id).isEqualTo(asiakirja.id)
+    }
+
+    @Test
+    @Transactional
+    fun updateAnotherUserTyoskentelyjaksoAsiakirjatShouldNotDeleteFile() {
+        val anotherUser = KayttajaResourceWithMockUserIT.createEntity()
+        em.persist(anotherUser)
+        em.flush()
+        YekKoulutettavaTyoskentelyjaksoHelper.createEntity(em, anotherUser)
+
+        initTest(anotherUser.id)
+
+        val asiakirja = AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso)
+        tyoskentelyjakso.asiakirjat.add(asiakirja)
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        restTyoskentelyjaksoMockMvc.perform(multipart("/api/yek-koulutettava/tyoskentelyjaksot/${tyoskentelyjakso.id}/asiakirjat")
+                .param("deletedFiles", asiakirja.id!!.toString()).with { it.method = "PUT"; it }.with(csrf())).andExpect(status().isForbidden)
+
+        val unchangedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
+        assertThat(unchangedTyoskentelyjakso.asiakirjat).hasSize(1)
+        assertThat(unchangedTyoskentelyjakso.asiakirjat.first().id).isEqualTo(asiakirja.id)
+    }
+
+    @Test
+    @Transactional
     fun getTerveyskeskuskoulutusjaksoTooShort() {
         initTest(kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO)
 

@@ -674,6 +674,46 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     }
 
     @Test
+    fun updateAnotherUserTyoskentelyjaksoAsiakirjatShouldReturnForbiddenAndNotAddFile() {
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
+        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
+
+        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initMockFiles()
+
+        val asiakirja = AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso)
+        tyoskentelyjakso.asiakirjat.add(asiakirja)
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        testMockMvc.perform(multipart("$API_TYOSKENTELYJAKSOT/${tyoskentelyjakso.id}/asiakirjat")
+                .file(MockMultipartFile("addedFiles", AsiakirjaHelper.ASIAKIRJA_PNG_NIMI, AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI, tempFile2.readBytes()))
+                .param("deletedFiles", asiakirja.id!!.toString()).with { it.method = "PUT"; it }.with(csrf())).andExpect(status().isForbidden)
+
+        val unchangedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
+        assertThat(unchangedTyoskentelyjakso.asiakirjat).hasSize(1)
+        assertThat(unchangedTyoskentelyjakso.asiakirjat.first().id).isEqualTo(asiakirja.id)
+    }
+
+    @Test
+    fun updateAnotherUserTyoskentelyjaksoAsiakirjatShouldNotDeleteFile() {
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
+        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
+
+        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+
+        val asiakirja = AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso)
+        tyoskentelyjakso.asiakirjat.add(asiakirja)
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        testMockMvc.perform(multipart("$API_TYOSKENTELYJAKSOT/${tyoskentelyjakso.id}/asiakirjat")
+                .param("deletedFiles", asiakirja.id!!.toString()).with { it.method = "PUT"; it }.with(csrf())).andExpect(status().isForbidden)
+
+        val unchangedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
+        assertThat(unchangedTyoskentelyjakso.asiakirjat).hasSize(1)
+        assertThat(unchangedTyoskentelyjakso.asiakirjat.first().id).isEqualTo(asiakirja.id)
+    }
+
+    @Test
     fun getTerveyskeskuskoulutusjaksoTooShort() {
         initTest(kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO)
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
