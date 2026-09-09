@@ -263,6 +263,7 @@
   "erittain-vaativa-kuvaus": "Erikoisalan tehtävänä erittäin vaativa, josta suoriutuminen on haastavaa myös valmiille erikoislääkärille. Vaatii erityistä ponnistelua ja tarvittaessa hankkimaan uusia tietoja ja taitoja.",
   "error": {
     "dataillegal": {
+      "tiedosto-ei-ole-kelvollinen": "Liitetiedostoa ei voitu käsitellä. Tarkista tiedosto. Jos PDF-tiedosto avautuu normaalisti, tallenna se uudelleen PDF-muodossa ja yritä uudelleen.",
       "arvioitavan-kokonaisuuden-voimassaoloa-ei-saa-lyhentaa": "arvioitavan kokonaisuuden voimassaoloa ei saa lyhentää, jos siihen liittyy suoritusarviointeja",
       "arvioitavan-kokonaisuuden-voimassaolon-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa": "arvioitavan kokonaisuuden voimassaolon päättymispäivä ei saa olla ennen alkamisaikaa",
       "erikoistuva-on-jo-valtuuttanut-kouluttajan": "erikoistuja on jo valtuuttanut kouluttajan",
