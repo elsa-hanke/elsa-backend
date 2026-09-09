@@ -77,7 +77,7 @@ describe('Työskentelyjakso', () => {
     cy.url().should('include', '/tyoskentelyjaksot/uusi')
     cy.contains(
       '.toast-body',
-      'Työskentelyjakson tallentaminen epäonnistui: tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa'
+      'Työskentelyjakson tallentaminen epäonnistui: Liitetiedostoa ei voitu käsitellä tai samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos PDF-tiedosto avautuu normaalisti, tallenna se uudelleen PDF-muodossa ja yritä uudelleen.'
     ).should('be.visible')
   })
 
