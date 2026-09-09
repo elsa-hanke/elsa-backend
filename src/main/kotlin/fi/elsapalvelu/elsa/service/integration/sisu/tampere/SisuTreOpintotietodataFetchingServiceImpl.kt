@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila.Companion.fromSisu
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
+import fi.elsapalvelu.elsa.security.currentUserIdLogField
 import fi.elsapalvelu.elsa.service.integration.AbstractOpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
 import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
@@ -45,13 +46,20 @@ class SisuTreOpintotietodataFetchingServiceImpl(
                 }
                 response.body?.string().let { body ->
                     objectMapper.readValue(body, StudyRightsResponse::class.java)?.let { studyRightResponse ->
+                        val acceptedStudyRights = studyRightResponse.studyrights?.filter {
+                            it.phase1EducationClassificationUrn == ERIKOISTUVA_LAAKARI_SISU_KOULUTUS ||
+                                it.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS ||
+                                it.specialisation == YEK_KOULUTETTAVA_SISU_TRE_KOULUTUS
+                        }
+                        if (studyRightResponse.studyrights?.isNotEmpty() == true && acceptedStudyRights.isNullOrEmpty()) {
+                            log.warn(
+                                "Tampereen Sisusta saatiin ${studyRightResponse.studyrights.size} opinto-oikeutta, " +
+                                    "mutta yksikään ei vastannut ELSA:n tukemia koulutuksia.${currentUserIdLogField()}"
+                            )
+                        }
                         OpintotietodataDTO(
                             syntymaaika = studyRightResponse.dateOfBirth?.tryParseToLocalDate(),
-                            opintooikeudet = studyRightResponse.studyrights?.filter {
-                                it.phase1EducationClassificationUrn == ERIKOISTUVA_LAAKARI_SISU_KOULUTUS ||
-                                    it.phase1EducationClassificationUrn == ERIKOISTUVA_HAMMASLAAKARI_SISU_KOULUTUS ||
-                                    it.specialisation == YEK_KOULUTETTAVA_SISU_TRE_KOULUTUS
-                            }?.map {
+                            opintooikeudet = acceptedStudyRights?.map {
                                 OpintotietoOpintooikeusDataDTO(
                                     id = it.id,
                                     opiskelijatunnus = studyRightResponse.studentNumber,

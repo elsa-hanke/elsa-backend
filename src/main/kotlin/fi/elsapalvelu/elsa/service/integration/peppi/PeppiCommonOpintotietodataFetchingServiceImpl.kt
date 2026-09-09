@@ -49,21 +49,31 @@ class PeppiCommonOpintotietodataFetchingServiceImpl(
                 }
                 response.body?.string().let { body ->
                     objectMapper.readValue(body, Student::class.java)?.let { student ->
+                        val acceptedEntitlements = student.entitlements?.filter { entitlement ->
+                            entitlement.koulutusKoodi == ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS ||
+                                entitlement.koulutusKoodi == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS ||
+                                entitlement.erikoisalat?.any {
+                                    it.avain == YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI
+                                } == true
+                        }
+                        if (acceptedEntitlements.isNullOrEmpty()) {
+                            log.info(
+                                "$yliopistoEnum: opintotietokysely onnistui, mutta ELSA:n tukemia opinto-oikeuksia " +
+                                    "ei löytynyt. Lähdejärjestelmän opinto-oikeuksia: " +
+                                    "${student.entitlements?.size ?: 0}.${currentUserIdLogField()}"
+                            )
+                        }
                         OpintotietodataDTO(
                             syntymaaika = student.birthDate?.tryParseToLocalDate(),
-                            opintooikeudet = student.entitlements?.filter { e ->
-                                e.koulutusKoodi == ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS ||
-                                    e.koulutusKoodi == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS ||
-                                    e.erikoisalat?.any { ea -> ea.avain == YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI } == true
-                            }?.map {
+                            opintooikeudet = acceptedEntitlements?.map {
                                 OpintotietoOpintooikeusDataDTO(
                                     id = it.opiskeluoikeusNumero,
                                     opintooikeudenAlkamispaiva = it.alkamispaiva?.tryParseToLocalDate(),
                                     opintooikeudenPaattymispaiva = it.paattymispaiva?.tryParseToLocalDate(),
                                     erikoisalaTunnisteList = it.erikoisalat?.map { e -> e.avain }?.filter { avain ->
                                         it.koulutusKoodi == ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS ||
-                                        it.koulutusKoodi == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS ||
-                                        avain == YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI },
+                                            it.koulutusKoodi == ERIKOISTUVA_HAMMASLAAKARI_PEPPI_KOULUTUS ||
+                                            avain == YEK_KOULUTETTAVA_PEPPI_VIRTAKOODI },
                                     asetus = convertPeppiAsetusString(it.asetus, endpointUrl),
                                     tila = fromPeppiOpintooikeudenTila(it.tila),
                                     yliopisto = yliopistoEnum
