@@ -53,6 +53,11 @@ describe('Teoriakoulutus', () => {
   // Esialustetaan tietokanta koko testisarjaa varten
   before(() => {
     cy.resetErikoistuvaE2eState()
+  })
+
+  // Cypress tyhjentää selaimen tilan testien välissä, joten palautetaan
+  // cy.session-välimuistiin tallennettu kirjautuminen ennen jokaista testiä.
+  beforeEach(() => {
     // Kirjautuminen luo erikoistuvan ja opinto-oikeuden (createWithoutOpintotietodata)
     cy.loginAsErikoistuva()
   })
