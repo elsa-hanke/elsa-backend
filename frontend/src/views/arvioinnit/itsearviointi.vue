@@ -31,6 +31,7 @@
   import { putSuoritusarviointi } from '@/api/erikoistuva'
   import ArviointiForm from '@/forms/arviointi-form.vue'
   import { Suoritusarviointi } from '@/types'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -101,8 +102,11 @@
           name: 'arviointi',
           params: { arviointiId: this.$route.params.arviointiId }
         })
-      } catch {
-        toastFail(this, this.$t('itsearvioinnin-tallentaminen-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('itsearvioinnin-tallentaminen-epaonnistui'))
+        )
       }
       params.saving = false
     }
