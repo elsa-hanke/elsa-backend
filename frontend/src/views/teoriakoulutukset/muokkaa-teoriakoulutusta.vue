@@ -28,7 +28,7 @@
   import { getTeoriakoulutus, putTeoriakoulutus } from '@/api/erikoistuva'
   import TeoriakoulutusForm from '@/forms/teoriakoulutus-form.vue'
   import { Teoriakoulutus } from '@/types'
-  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -94,7 +94,7 @@
       } catch (err) {
         toastFail(
           this,
-          formatPdfTextSaveError(this, err, this.$t('teoriakoulutuksen-muokkaus-epaonnistui'))
+          formatSaveError(this, err, this.$t('teoriakoulutuksen-muokkaus-epaonnistui'))
         )
       }
       params.saving = false
