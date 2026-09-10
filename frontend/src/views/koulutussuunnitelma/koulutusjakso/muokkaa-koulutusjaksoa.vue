@@ -31,6 +31,7 @@
   import { getKoulutusjakso, getKoulutusjaksoLomake, putKoulutusjakso } from '@/api/erikoistuva'
   import KoulutusjaksoForm from '@/forms/koulutusjakso-form.vue'
   import { Koulutusjakso, KoulutusjaksoLomake } from '@/types'
+  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -100,8 +101,11 @@
             koulutusjaksoId: `${koulutusjakso?.id}`
           }
         })
-      } catch {
-        toastFail(this, this.$t('koulutusjakson-muokkaus-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatPdfTextSaveError(this, err, this.$t('koulutusjakson-muokkaus-epaonnistui'))
+        )
       }
       params.saving = false
     }

@@ -36,6 +36,7 @@
     Tyoskentelyjakso,
     LaillistamistiedotLomakeKoulutettava
   } from '@/types'
+  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -110,13 +111,9 @@
           }
         })
       } catch (err) {
-        const axiosError = err as AxiosError<ElsaError>
-        const message = axiosError?.response?.data?.message
         toastFail(
           this,
-          message
-            ? `${this.$t('tyoskentelyjakson-tallentaminen-epaonnistui')}: ${this.$t(message)}`
-            : this.$t('tyoskentelyjakson-tallentaminen-epaonnistui')
+          formatPdfTextSaveError(this, err, this.$t('tyoskentelyjakson-tallentaminen-epaonnistui'))
         )
       }
       if (!value.laillistamistiedot.laillistamistiedotAdded) {

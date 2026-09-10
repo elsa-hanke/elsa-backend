@@ -36,6 +36,9 @@ class BadRequestExceptionAdvice {
             body.setProperty("unsupportedCharacters", e.unsupportedCharacters)
             e.seurantajaksoId?.let { body.setProperty("seurantajaksoId", it) }
             e.seurantajaksoStartDate?.let { body.setProperty("seurantajaksoStartDate", it) }
+            e.pdfSource?.let { body.setProperty("pdfSource", it) }
+            e.sourceId?.let { body.setProperty("sourceId", it) }
+            e.sourceDate?.let { body.setProperty("sourceDate", it) }
         }
 
         return body

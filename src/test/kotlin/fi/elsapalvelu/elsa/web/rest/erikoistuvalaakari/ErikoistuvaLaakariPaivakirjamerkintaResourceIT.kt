@@ -97,6 +97,37 @@ class ErikoistuvaLaakariPaivakirjamerkintaResourceIT {
     @Test
     @Transactional
     @Throws(Exception::class)
+    fun createPaivakirjamerkintaWithUnsupportedPdfCharacterIsRejected() {
+        initTest()
+        val databaseSizeBeforeCreate = paivakirjamerkintaRepository.findAll().size
+        val paivakirjamerkintaDTO = paivakirjamerkintaMapper.toDto(paivakirjamerkinta).apply {
+            reflektio = "Pohdinta ✓"
+        }
+
+        restPaivakirjamerkintaMockMvc.perform(
+            post(ENTITY_API_URL).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(paivakirjamerkintaDTO))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message")
+                    .value("error.dataillegal.pdf-tiedostossa-tukemattomia-merkkeja")
+            )
+            .andExpect(
+                jsonPath("$.field")
+                    .value("ajatuksia-opitusta-ja-sen-soveltamisesta")
+            )
+            .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
+            .andExpect(jsonPath("$.pdfSource").value("paivakirjamerkinta"))
+            .andExpect(jsonPath("$.sourceDate").value(DEFAULT_PAIVAMAARA.toString()))
+
+        assertThat(paivakirjamerkintaRepository.findAll()).hasSize(databaseSizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
+    @Throws(Exception::class)
     fun createPaivakirjamerkintaWithoutOpintooikeus() {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)

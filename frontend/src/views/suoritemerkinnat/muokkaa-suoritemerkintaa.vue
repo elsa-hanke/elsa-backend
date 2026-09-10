@@ -34,6 +34,7 @@
   import SuoritemerkintaForm from '@/forms/suoritemerkinta-form.vue'
   import { Suoritemerkinta, SuoritemerkintaLomake } from '@/types'
   import { confirmDelete } from '@/utils/confirm'
+  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
   import { toastFail, toastSuccess } from '@/utils/toast'
   import { tyoskentelyjaksoLabel } from '@/utils/tyoskentelyjakso'
 
@@ -136,8 +137,11 @@
             suoritemerkintaId: `${this.suoritemerkinta?.id}`
           }
         })
-      } catch {
-        toastFail(this, this.$t('suoritemerkinnan-tallentaminen-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatPdfTextSaveError(this, err, this.$t('suoritemerkinnan-tallentaminen-epaonnistui'))
+        )
       }
       params.saving = false
     }

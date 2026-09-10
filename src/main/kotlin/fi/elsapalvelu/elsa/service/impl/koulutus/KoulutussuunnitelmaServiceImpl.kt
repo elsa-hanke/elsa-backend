@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl.koulutus
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.repository.koulutus.KoulutussuunnitelmaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.koulutus.KoulutussuunnitelmaService
 import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutussuunnitelmaDTO
 import fi.elsapalvelu.elsa.service.mapper.koulutus.KoulutussuunnitelmaMapper
@@ -16,13 +17,28 @@ import java.time.LocalDateTime
 class KoulutussuunnitelmaServiceImpl(
     private val koulutussuunnitelmaRepository: KoulutussuunnitelmaRepository,
     private val koulutussuunnitelmaMapper: KoulutussuunnitelmaMapper,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) : KoulutussuunnitelmaService {
 
     override fun save(
         koulutussuunnitelmaDTO: KoulutussuunnitelmaDTO,
         opintooikeusId: Long
     ): KoulutussuunnitelmaDTO? {
+        pdfTextFieldValidator.validate(
+            fields = listOf(
+                "motivaatiokirje" to koulutussuunnitelmaDTO.motivaatiokirje,
+                "opiskelu-ja-tyohistoria" to koulutussuunnitelmaDTO.opiskeluJaTyohistoria,
+                "vahvuudet" to koulutussuunnitelmaDTO.vahvuudet,
+                "tulevaisuuden-visiointi" to koulutussuunnitelmaDTO.tulevaisuudenVisiointi,
+                "osaamisen-kartuttaminen" to koulutussuunnitelmaDTO.osaamisenKartuttaminen,
+                "elamankentta" to koulutussuunnitelmaDTO.elamankentta,
+                "motivaatiokirje-tiedostonimi" to
+                    koulutussuunnitelmaDTO.motivaatiokirjeAsiakirja?.nimi
+            ),
+            pdfSource = "koulutussuunnitelma",
+            sourceId = koulutussuunnitelmaDTO.id
+        )
         return koulutussuunnitelmaRepository.findOneByOpintooikeusId(opintooikeusId)
             ?.let { existingKoulutussuunnitelma ->
                 koulutussuunnitelmaDTO.id = existingKoulutussuunnitelma.id
