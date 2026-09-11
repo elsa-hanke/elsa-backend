@@ -34,6 +34,7 @@
   } from '@/api/erikoistuva'
   import PaivittainenMerkintaForm from '@/forms/paivittainen-merkinta-form.vue'
   import { Paivakirjamerkinta, PaivakirjamerkintaLomake } from '@/types'
+  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -102,7 +103,14 @@
           }
         })
       } catch (err) {
-        toastFail(this, this.$t('paivittaisen-merkinnan-muokkaaminen-epaonnistui'))
+        toastFail(
+          this,
+          formatPdfTextSaveError(
+            this,
+            err,
+            this.$t('paivittaisen-merkinnan-muokkaaminen-epaonnistui')
+          )
+        )
       }
       params.saving = false
     }

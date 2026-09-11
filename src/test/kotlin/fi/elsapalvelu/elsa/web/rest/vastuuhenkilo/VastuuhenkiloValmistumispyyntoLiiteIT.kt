@@ -42,6 +42,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.io.ByteArrayOutputStream
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -506,6 +507,38 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
             .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
             .andExpect(jsonPath("$.seurantajaksoId").value(seurantajaksoId))
             .andExpect(jsonPath("$.seurantajaksoStartDate").value(seurantajaksoStartDate.toString()))
+    }
+
+    @Test
+    @Transactional
+    fun approvalIsBlockedWhenLegacyDailyEntryContainsUnsupportedPdfCharacter() {
+        persistKoulutussuunnitelma()
+        val entryDate = LocalDate.of(2025, 5, 15)
+        em.persist(
+            Paivakirjamerkinta(
+                paivamaara = entryDate,
+                oppimistapahtumanNimi = "Ohjauskeskustelu",
+                muunAiheenNimi = "Muu aihe",
+                reflektio = "Pohdinta ✓",
+                yksityinen = false,
+                opintooikeus = opintooikeus
+            )
+        )
+        em.flush()
+
+        em.clear()
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id)
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message").value(
+                    "error.${UnsupportedPdfCharactersException.ERROR_KEY}"
+                )
+            )
+            .andExpect(jsonPath("$.field").value("pdf-osio-paivittaiset-merkinnat"))
+            .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
+            .andExpect(jsonPath("$.pdfSource").value("valmistumispyynto"))
     }
 
     @Test

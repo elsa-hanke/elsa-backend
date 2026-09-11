@@ -5,12 +5,15 @@ import java.time.LocalDate
 class UnsupportedPdfCharactersException(
     val field: String,
     val unsupportedCharacters: List<String>,
-    val seurantajaksoId: Long?,
-    val seurantajaksoStartDate: LocalDate?
+    val seurantajaksoId: Long? = null,
+    val seurantajaksoStartDate: LocalDate? = null,
+    val pdfSource: String? = null,
+    val sourceId: Long? = null,
+    val sourceDate: LocalDate? = null
 ) : BadRequestAlertException(
-    defaultMessage = "Seurantajakson kenttä '$field' sisältää PDF-fonteista puuttuvia merkkejä: " +
+    defaultMessage = "Kenttä '$field' sisältää PDF-fonteista puuttuvia merkkejä: " +
         unsupportedCharacters.joinToString(", "),
-    entityName = "seurantajakso",
+    entityName = pdfSource ?: "pdf",
     errorKey = ERROR_KEY
 ) {
     companion object {

@@ -65,6 +65,7 @@
                 <asiakirjat-content
                   :id="uid"
                   :asiakirjat="tyoskentelyjakso.asiakirjat"
+                  asiakirja-data-endpoint-url="yek-koulutettava/asiakirjat/"
                   :sorting-enabled="false"
                   :pagination-enabled="false"
                   :enable-search="false"
