@@ -126,8 +126,14 @@ external-integration:
       expected-course-code: ${EXTERNAL_INTEGRATION_SISU_HY_EXPECTED_COURSE_CODE:}
       expected-programme-identifier: ${EXTERNAL_INTEGRATION_SISU_HY_EXPECTED_PROGRAMME_IDENTIFIER:}
     sisu-tre:
-      hetu: "081159-999F"
+      hetu: "170999-998Y"
       assert-erikoisala-tunniste-list: true
       expected-study-right-id: ${EXTERNAL_INTEGRATION_SISU_TRE_EXPECTED_STUDY_RIGHT_ID:}
       expected-course-code: ${EXTERNAL_INTEGRATION_SISU_TRE_EXPECTED_COURSE_CODE:}
       expected-programme-identifier: ${EXTERNAL_INTEGRATION_SISU_TRE_EXPECTED_PROGRAMME_IDENTIFIER:}
+    sisu-tre-yek:
+      hetu: "081159-999F"
+      assert-erikoisala-tunniste-list: false
+      expected-study-right-id: ${EXTERNAL_INTEGRATION_SISU_TRE_YEK_EXPECTED_STUDY_RIGHT_ID:}
+      expected-course-code: ${EXTERNAL_INTEGRATION_SISU_TRE_YEK_EXPECTED_COURSE_CODE:}
+      expected-programme-identifier: ${EXTERNAL_INTEGRATION_SISU_TRE_YEK_EXPECTED_PROGRAMME_IDENTIFIER:}
