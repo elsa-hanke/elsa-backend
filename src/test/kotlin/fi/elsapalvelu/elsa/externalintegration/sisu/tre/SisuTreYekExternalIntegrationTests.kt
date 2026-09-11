@@ -38,11 +38,63 @@ class SisuTreYekExternalIntegrationTests : FetchingServiceExternalIntegrationBas
     override val expectedUniversity = YliopistoEnum.TAMPEREEN_YLIOPISTO
 
     override fun assertValidOpintotietodata(result: OpintotietodataDTO?, yliopisto: YliopistoEnum?) {
-        super.assertValidOpintotietodata(result, yliopisto)
+        assertThat(result)
+            .describedAs(
+                "fetchOpintotietodata returned null for $yliopisto – " +
+                    "the server responded but returned no data for the test hetu. " +
+                    "Check that the test hetu has active study rights in the target environment."
+            )
+            .isNotNull
+        assertThat(result!!.opintooikeudet)
+            .describedAs("fetchOpintotietodata should return at least one opintooikeus for test hetu")
+            .isNotNull
+            .isNotEmpty
 
-        val yekStudyRights = result?.opintooikeudet?.filter {
+        val opintooikeudet = result.opintooikeudet.orEmpty()
+        opintooikeudet.forEach {
+            log.info(
+                """
+                id=${it.id},
+                opintooikeudenAlkamispaiva=${it.opintooikeudenAlkamispaiva},
+                opintooikeudenPaattymispaiva=${it.opintooikeudenPaattymispaiva},
+                asetus=${it.asetus},
+                erikoisalaTunnisteList=${it.erikoisalaTunnisteList},
+                tila=${it.tila},
+                yliopisto=${it.yliopisto},
+                opiskelijatunnus=${it.opiskelijatunnus}
+                """.trimIndent()
+            )
+        }
+
+        assertThat(opintooikeudet).allSatisfy {
+            assertThat(it.id)
+                .describedAs("id should be populated")
+                .isNotBlank
+
+            assertThat(it.opintooikeudenAlkamispaiva)
+                .describedAs("start date should be populated")
+                .isNotNull
+
+            assertThat(it.opintooikeudenPaattymispaiva)
+                .describedAs("end date should be populated")
+                .isNotNull
+
+            assertThat(it.asetus)
+                .describedAs("asetus should be populated")
+                .isNotBlank
+
+            assertThat(it.yliopisto)
+                .describedAs("yliopisto should match the provider")
+                .isEqualTo(yliopisto)
+
+            assertThat(it.opintooikeudenPaattymispaiva)
+                .describedAs("end date should not be before start date")
+                .isAfterOrEqualTo(it.opintooikeudenAlkamispaiva)
+        }
+
+        val yekStudyRights = opintooikeudet.filter {
             it.erikoisalaTunnisteList?.contains(YEK_KOULUTETTAVA_SISU_TRE_KOULUTUS) == true
-        }.orEmpty()
+        }
 
         assertThat(yekStudyRights)
             .describedAs(
