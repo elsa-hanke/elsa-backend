@@ -2,6 +2,11 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.3...HEAD)
 
+- Bump js-yaml from 3.15.1 to 3.15.2 in /frontend [`#720`](https://github.com/elsa-hanke/elsa-backend/pull/720)(11 September 2026)
+- Bump svgo from 2.8.3 to 2.8.4 in /frontend [`#721`](https://github.com/elsa-hanke/elsa-backend/pull/721)(10 September 2026)
+- Improve logging for successful and unrecognized study rights [`#716`](https://github.com/elsa-hanke/elsa-backend/pull/716)(10 September 2026)
+- Bump joi from 17.6.0 to 17.13.7 in /frontend [`#717`](https://github.com/elsa-hanke/elsa-backend/pull/717)(10 September 2026)
+- Release v2.3.X merge [`#718`](https://github.com/elsa-hanke/elsa-backend/pull/718)(10 September 2026)
 - Bump fast-uri from 3.1.5 to 3.1.7 in /frontend [`#707`](https://github.com/elsa-hanke/elsa-backend/pull/707)(4 September 2026)
 - ELSAINSI-56 Validointi koskien erikoismerkkejä [`#704`](https://github.com/elsa-hanke/elsa-backend/pull/704)(2 September 2026)
 - Update feedback email and enhance file validation logging [`#621`](https://github.com/elsa-hanke/elsa-backend/pull/621)(12 June 2026)
