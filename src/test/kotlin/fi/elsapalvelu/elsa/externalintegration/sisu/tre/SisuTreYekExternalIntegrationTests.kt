@@ -45,7 +45,10 @@ class SisuTreYekExternalIntegrationTests : FetchingServiceExternalIntegrationBas
         }.orEmpty()
 
         assertThat(yekStudyRights)
-            .describedAs("at least one study right must have specialisation '$YEK_KOULUTETTAVA_SISU_TRE_KOULUTUS' (erikoisalaTunnisteList containing '$YEK_KOULUTETTAVA_SISU_TRE_KOULUTUS')")
+            .describedAs(
+                "at least one study right must have specialisation '$YEK_KOULUTETTAVA_SISU_TRE_KOULUTUS' " +
+                    "(erikoisalaTunnisteList containing '$YEK_KOULUTETTAVA_SISU_TRE_KOULUTUS')"
+            )
             .isNotEmpty
     }
 
