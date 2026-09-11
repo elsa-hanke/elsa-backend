@@ -53,6 +53,7 @@ interface TyoskentelyjaksoService {
 
     fun updateAsiakirjat(
         id: Long,
+        opintooikeusId: Long,
         addedFiles: Set<AsiakirjaDTO>?,
         deletedFiles: Set<Int>?
     ): TyoskentelyjaksoDTO?
