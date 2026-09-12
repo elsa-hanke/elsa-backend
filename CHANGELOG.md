@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.3...HEAD)
 
+- Bump baseline-browser-mapping from 2.10.30 to 2.11.21 in /frontend [`#719`](https://github.com/elsa-hanke/elsa-backend/pull/719)(11 September 2026)
 - Bump js-yaml from 3.15.1 to 3.15.2 in /frontend [`#720`](https://github.com/elsa-hanke/elsa-backend/pull/720)(11 September 2026)
 - Bump svgo from 2.8.3 to 2.8.4 in /frontend [`#721`](https://github.com/elsa-hanke/elsa-backend/pull/721)(10 September 2026)
 - Improve logging for successful and unrecognized study rights [`#716`](https://github.com/elsa-hanke/elsa-backend/pull/716)(10 September 2026)
