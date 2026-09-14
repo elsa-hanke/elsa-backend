@@ -62,6 +62,12 @@ springBoot {
     mainClass.set("fi.elsapalvelu.elsa.ElsaBackendApp")
 }
 
+dependencyManagement {
+    dependencies {
+        dependency "io.netty:netty-handler:4.1.137.Final"
+    }
+}
+
 test {
     useJUnitPlatform {
         excludeTags 'external-integration'

@@ -33,7 +33,7 @@
   import ArviointiForm from '@/forms/arviointi-form.vue'
   import { Suoritusarviointi } from '@/types'
   import { resolveRolePath } from '@/utils/apiRolePathResolver'
-  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -110,10 +110,7 @@
           params: { arviointiId: this.$route.params.arviointiId }
         })
       } catch (err) {
-        toastFail(
-          this,
-          formatPdfTextSaveError(this, err, this.$t('arvioinnin-tallentaminen-epaonnistui'))
-        )
+        toastFail(this, formatSaveError(this, err, this.$t('arvioinnin-tallentaminen-epaonnistui')))
       }
       params.saving = false
     }

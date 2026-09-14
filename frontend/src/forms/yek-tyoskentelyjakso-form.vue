@@ -286,6 +286,7 @@
       />
       <asiakirjat-content
         :asiakirjat="asiakirjatTableItems"
+        asiakirja-data-endpoint-url="yek-koulutettava/asiakirjat/"
         :sorting-enabled="false"
         :pagination-enabled="false"
         :enable-search="false"
