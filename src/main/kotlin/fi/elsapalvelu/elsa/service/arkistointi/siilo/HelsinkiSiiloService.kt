@@ -22,6 +22,10 @@ class HelsinkiSiiloService(
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
         .writeTimeout(15, TimeUnit.SECONDS)
+        .addNetworkInterceptor { chain ->
+            logOutgoingRequestHeaders(chain.request())
+            chain.proceed(chain.request())
+        }
         .build()
 
     fun laheta(zipFilePath: String, caseType: CaseType) {
@@ -75,6 +79,17 @@ class HelsinkiSiiloService(
                 log.warn("Tiedoston ${zipFile.name} poistaminen epäonnistui")
             }
         }
+    }
+
+    private fun logOutgoingRequestHeaders(request: Request) {
+        val headers = request.headers.names().associateWith { name ->
+            if (name.equals("X-Api-Key", ignoreCase = true)) {
+                "[redacted]"
+            } else {
+                request.header(name).orEmpty()
+            }
+        }
+        log.info("HY arkistointipyynnön headerit: $headers")
     }
 
     /**
