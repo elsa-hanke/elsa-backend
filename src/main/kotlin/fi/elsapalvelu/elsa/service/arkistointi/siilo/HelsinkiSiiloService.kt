@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.File
 import java.util.concurrent.TimeUnit
+import java.util.zip.ZipFile
 
 @Service
 class HelsinkiSiiloService(
@@ -36,6 +37,8 @@ class HelsinkiSiiloService(
             "Arkistointitiedostoa ei löydy: $zipFilePath"
         }
 
+        logPayloadDetails(zipFile, url, siiloKoodi)
+
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart(
@@ -51,7 +54,10 @@ class HelsinkiSiiloService(
             .post(requestBody)
             .build()
 
-        log.info("Lähetetään arkistointipaketti HY:lle osoitteeseen $url")
+        log.info(
+            "Lähetetään arkistointipaketti HY:lle osoitteeseen $url, " +
+                "multipart-rungon koko: ${requestBody.contentLength()} tavua"
+        )
         try {
             okHttpClient.newCall(request).execute().use { response ->
                 val responseBody = response.body?.string()
@@ -70,4 +76,34 @@ class HelsinkiSiiloService(
             }
         }
     }
+
+    /**
+     * Logs the exact payload we are about to send to the Helsinki Siilo endpoint: the ZIP
+     * file's name/size and, if it can be read as a ZIP, the name and (uncompressed) size of
+     * every entry inside it. This is useful for diagnosing cases where the receiving system
+     * returns an error (e.g. HTTP 403) that may be related to an unexpectedly small or
+     * otherwise malformed request body.
+     */
+    private fun logPayloadDetails(zipFile: File, url: String, siiloKoodi: String) {
+        log.info(
+            "HY arkistointipaketti valmis lähetettäväksi: siiloKoodi=$siiloKoodi, url=$url, " +
+                "tiedosto=${zipFile.name}, koko=${zipFile.length()} tavua"
+        )
+        try {
+            ZipFile(zipFile).use { zip ->
+                val entries = zip.entries().toList()
+                log.info("HY arkistointipaketin sisältö (${entries.size} tiedostoa):")
+                entries.forEach { entry ->
+                    log.info(
+                        "  - ${entry.name}: pakattu=${entry.compressedSize} tavua, " +
+                            "pakkaamaton=${entry.size} tavua"
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            log.warn("HY arkistointipaketin sisältöä ei voitu lukea ZIP-tiedostona: ${e.message}")
+        }
+    }
 }
+
+u
