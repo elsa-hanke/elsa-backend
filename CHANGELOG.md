@@ -19,7 +19,7 @@
 - enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
 - ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
 
-## [v2.3.3](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.2...v2.3.3) - 10 September 2026
+## [v2.3.3-1](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.2...v2.3.3-1) - 15 September 2026
 
 - Enhance error handling with localized messages for save operations [`#713`](https://github.com/elsa-hanke/elsa-backend/pull/713)(10 September 2026)
 - ELSA-1224 Erikoistuja ei saa auki Elsa-palveluun liitettyjä dokumentteja [`#712`](https://github.com/elsa-hanke/elsa-backend/pull/712)(10 September 2026)
