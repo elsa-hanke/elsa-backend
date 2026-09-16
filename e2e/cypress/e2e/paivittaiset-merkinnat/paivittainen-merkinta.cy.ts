@@ -124,4 +124,62 @@ describe('Päivittäinen merkintä', () => {
     cy.url().should('match', /\/paivittaiset-merkinnat\/\d+$/)
     cy.contains('Pohdinta sisältää vain tuettuja merkkejä.').should('be.visible')
   })
+
+  it(
+    'Oppimistapahtuma- ja muun aiheen nimi -kentät rajoittavat syötteen 255 merkkiin, ' +
+      'eikä tallennus epäonnistu liian pitkän tekstin vuoksi',
+    () => {
+      cy.visit('/paivittaiset-merkinnat/uusi')
+      cy.contains('h1', 'Lisää merkintä').should('be.visible')
+      cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
+
+      cy.contains('label', 'Päivämäärä')
+        .parent()
+        .find('input.date-input, input[type="text"]')
+        .first()
+        .clear()
+        .type('17.05.2025')
+        .blur()
+
+      const pitkaTeksti = 'a'.repeat(300)
+      const rajattuTeksti = 'a'.repeat(255)
+
+      // "Muu aihe" -kategoria paljastaa muun aiheen nimikentän
+      cy.get('input[name="paivakirja-merkinta-aihe"]').eq(5).check({ force: true })
+
+      // Oppimistapahtuma-kenttä ei salli yli 255 merkkiä
+      cy.contains('label', 'Oppimistapahtuma')
+        .parent()
+        .find('input[type="text"]')
+        .clear()
+        .type(pitkaTeksti, { delay: 0 })
+        .should('have.value', rajattuTeksti)
+
+      // Muun aiheen nimikenttä ei salli yli 255 merkkiä
+      cy.get('.pl-4 input[type="text"]')
+        .clear()
+        .type(pitkaTeksti, { delay: 0 })
+        .should('have.value', rajattuTeksti)
+
+      cy.contains('label', 'Ajatuksia opitusta ja sen soveltamisesta')
+        .parent()
+        .find('textarea')
+        .clear()
+        .type('E2E reflektio liian pitkän tekstin testiin.')
+
+      cy.intercept('POST', '**/erikoistuva-laakari/paivakirjamerkinnat').as(
+        'pitkaTekstiPaivakirjamerkintaPost'
+      )
+      cy.contains('button', 'Tallenna merkintä').click()
+
+      cy.wait('@pitkaTekstiPaivakirjamerkintaPost').then(({ request, response }) => {
+        expect(request.body.oppimistapahtumanNimi).to.eq(rajattuTeksti)
+        expect(request.body.muunAiheenNimi).to.eq(rajattuTeksti)
+        expect(response?.statusCode).to.eq(201)
+        expect(response?.body?.id).to.be.a('number')
+      })
+
+      cy.url().should('match', /\/paivittaiset-merkinnat\/\d+$/)
+    }
+  )
 })
