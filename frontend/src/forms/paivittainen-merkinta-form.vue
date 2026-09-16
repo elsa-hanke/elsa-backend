@@ -52,7 +52,7 @@
               ></b-form-input>
               <b-form-invalid-feedback>
                 {{
-                  $v.form.muunAiheenNimi.maxLength === false
+                  muunAiheenNimiTooLong
                     ? $t('tieto-on-liian-pitka-enintaan-255-merkkia')
                     : $t('pakollinen-tieto')
                 }}
@@ -77,7 +77,7 @@
         ></b-form-input>
         <b-form-invalid-feedback :id="`${uid}-feedback`">
           {{
-            $v.form.oppimistapahtumanNimi.maxLength === false
+            oppimistapahtumanNimiTooLong
               ? $t('tieto-on-liian-pitka-enintaan-255-merkkia')
               : $t('pakollinen-tieto')
           }}
@@ -244,6 +244,14 @@
 
     get muuAiheSelected() {
       return this.form.aihekategoriat.find((aihe) => aihe.muunAiheenNimi)
+    }
+
+    get oppimistapahtumanNimiTooLong(): boolean {
+      return this.$v.form.oppimistapahtumanNimi?.maxLength === false
+    }
+
+    get muunAiheenNimiTooLong(): boolean {
+      return this.$v.form.muunAiheenNimi?.maxLength === false
     }
 
     get aihekategoriatSorted() {
