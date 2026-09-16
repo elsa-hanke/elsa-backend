@@ -27,7 +27,7 @@ describe('Seurantajakson luonti', () => {
     cy.loginAsErikoistuva()
   })
 
-  it('sallii PDF-fontista puuttuvien merkkien tallentamisen', () => {
+  it('estää PDF-fontista puuttuvan merkin tallentamisen ja kertoo korjattavan kentän', () => {
     cy.intercept(
       'GET',
       '**/erikoistuva-laakari/seurantakeskustelut/seurantajaksontiedot**'
@@ -69,13 +69,38 @@ describe('Seurantajakson luonti', () => {
 
     cy.wait('@postUnsupportedCharacterSeurantajakso').then(({ request, response }) => {
       expect(request.body.omaArviointi).to.eq('Erikoistuminen etenee suunnitellusti ✓')
+      expect(response?.statusCode).to.eq(400)
+      expect(response?.body).to.include({
+        message: 'error.dataillegal.pdf-tiedostossa-tukemattomia-merkkeja',
+        field: 'oma-arviointi-seurantajaksolta',
+      })
+      expect(response?.body?.unsupportedCharacters).to.deep.eq(['✓ (U+2713)'])
+    })
+
+    cy.contains(
+      'Kenttä "Oma arviointi seurantajaksolta" sisältää merkkejä, joita ei voida ' +
+        'lisätä arkistoitavaan PDF-tiedostoon: ✓ (U+2713). Poista tai korvaa merkit ' +
+        'ja tallenna uudelleen.'
+    ).should('be.visible')
+    cy.contains('label', 'Oma arviointi seurantajaksolta')
+      .parent()
+      .find('textarea')
+      .should('have.value', 'Erikoistuminen etenee suunnitellusti ✓')
+      .clear()
+      .type('Erikoistuminen etenee suunnitellusti.')
+
+    cy.contains('button', 'Tallenna ja lähetä').click()
+    cy.get('#confirm-modal').find('button').contains('Tallenna ja lähetä').click()
+
+    cy.wait('@postUnsupportedCharacterSeurantajakso').then(({ request, response }) => {
+      expect(request.body.omaArviointi).to.eq('Erikoistuminen etenee suunnitellusti.')
       expect(response?.statusCode).to.eq(201)
       expect(response?.body?.id).to.be.a('number')
       Cypress.env('unsupportedCharacterSeurantajaksoId', response?.body?.id)
     })
 
     cy.url().should('match', /\/seurantakeskustelut\/seurantajakso\/\d+$/)
-    cy.contains('Erikoistuminen etenee suunnitellusti ✓').should('be.visible')
+    cy.contains('Erikoistuminen etenee suunnitellusti.').should('be.visible')
 
     cy.then(() => {
       const seurantajaksoId = Number(Cypress.env('unsupportedCharacterSeurantajaksoId'))
@@ -84,7 +109,7 @@ describe('Seurantajakson luonti', () => {
         url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${seurantajaksoId}`,
       }).then(({ status, body }) => {
         expect(status).to.eq(200)
-        expect(body.omaArviointi).to.eq('Erikoistuminen etenee suunnitellusti ✓')
+        expect(body.omaArviointi).to.eq('Erikoistuminen etenee suunnitellusti.')
       })
       cy.apiRequest({
         method: 'DELETE',

@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.service.kayttaja.AuthenticationTokenService
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
+import fi.elsapalvelu.elsa.service.integration.OkHttpClientBuilder
 import fi.elsapalvelu.elsa.service.impl.kayttaja.AuthenticationTokenClientBuilderImpl
 import fi.elsapalvelu.elsa.service.integration.sisu.tampere.SisuTreAuthenticationTokenServiceImpl
 import fi.elsapalvelu.elsa.service.integration.sisu.tampere.SisuTreClientBuilderImpl
@@ -19,6 +20,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
@@ -27,6 +29,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 import org.springframework.test.context.ActiveProfiles
 
 /**
@@ -91,6 +94,17 @@ class SisuTreExternalIntegrationTestApplication {
         Jackson2ObjectMapperBuilderCustomizer {
             it.featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         }
+
+    @Bean
+    @Primary
+    @Qualifier("SisuTre")
+    fun rawTrafficLoggingSisuTreClientBuilder(
+        sisuTreClientBuilder: SisuTreClientBuilderImpl
+    ): OkHttpClientBuilder = object : OkHttpClientBuilder {
+        override fun okHttpClient() = sisuTreClientBuilder.okHttpClient().newBuilder()
+            .addInterceptor(SisuTreRawTrafficLoggingInterceptor())
+            .build()
+    }
 
 
     @Bean

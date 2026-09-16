@@ -229,12 +229,18 @@ describe('Valmistumispyyntö', () => {
       cy.get('#confirm-send').should('be.visible').contains('button', 'Hyväksy').click()
       cy.wait('@invalidPdfApproval').its('response.statusCode').should('eq', 400)
       cy.contains(
+        '.toast-body',
         'Valmistumispyynnön hyväksynnän lähetys epäonnistui: ' +
           'Valmistumispyyntöön liittyvä liite "Leikkaustaitojen arviointityökalu.pdf" ' +
           '(Arviointi 23.2.2023) ei ole kelvollinen PDF-tiedosto. ' +
           'Pyydä liitteen lisääjää poistamaan se tai korvaamaan se kelvollisella ' +
           'PDF-tiedostolla ja yritä hyväksyntää uudelleen.'
-      ).should('be.visible')
+      )
+        .should('be.visible')
+        .closest('.toast')
+        .find('button.close')
+        .click()
+      cy.get('.toast-body').should('not.exist')
       cy.location('pathname').should(
         'eq',
         `/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`
@@ -255,6 +261,7 @@ describe('Valmistumispyyntö', () => {
             unsupportedCharacters: ['✓ (U+2713)'],
             seurantajaksoId: 123,
             seurantajaksoStartDate: '2025-01-01',
+            pdfSource: 'seurantajakso',
           },
         }
       ).as('invalidPdfTextApproval')
@@ -263,6 +270,7 @@ describe('Valmistumispyyntö', () => {
       cy.get('#confirm-send').should('be.visible').contains('button', 'Hyväksy').click()
       cy.wait('@invalidPdfTextApproval').its('response.statusCode').should('eq', 400)
       cy.contains(
+        '.toast-body',
         'Valmistumispyynnön hyväksynnän lähetys epäonnistui: ' +
           'Valmistumispyyntöön liittyvän seurantajakson kenttä ' +
           '"Oma arviointi seurantajaksolta" (1.1.2025) sisältää merkkejä, joita ei ' +

@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koulutus
 
 import fi.elsapalvelu.elsa.repository.koulutus.KoulutusjaksoRepository
+import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.arviointi.ArvioitavaKokonaisuusService
 import fi.elsapalvelu.elsa.service.koulutus.KoulutusjaksoService
 import fi.elsapalvelu.elsa.service.koulutus.KoulutussuunnitelmaService
@@ -18,12 +19,21 @@ class KoulutusjaksoServiceImpl(
     private val koulutussuunnitelmaService: KoulutussuunnitelmaService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val arvioitavaKokonaisuusService: ArvioitavaKokonaisuusService,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) : KoulutusjaksoService {
 
     override fun save(
         koulutusjaksoDTO: KoulutusjaksoDTO,
         opintooikeusId: Long
     ): KoulutusjaksoDTO? {
+        pdfTextFieldValidator.validate(
+            fields = listOf(
+                "koulutusjakson-nimi" to koulutusjaksoDTO.nimi,
+                "muut-osaamistavoitteet" to koulutusjaksoDTO.muutOsaamistavoitteet
+            ),
+            pdfSource = "koulutusjakso",
+            sourceId = koulutusjaksoDTO.id
+        )
         return koulutussuunnitelmaService.findOneByOpintooikeusId(opintooikeusId)?.let { koulutussuunnitelmaDTO ->
             koulutusjaksoDTO.koulutussuunnitelma = koulutussuunnitelmaDTO
 

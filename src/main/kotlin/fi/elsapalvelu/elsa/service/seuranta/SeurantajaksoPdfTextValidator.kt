@@ -1,14 +1,12 @@
 package fi.elsapalvelu.elsa.service.seuranta
 
-import fi.elsapalvelu.elsa.service.PdfTextValidator
-import fi.elsapalvelu.elsa.service.PdfTextSanitizer
+import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.dto.seuranta.SeurantajaksoDTO
-import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import org.springframework.stereotype.Component
 
 @Component
 class SeurantajaksoPdfTextValidator(
-    private val pdfTextValidator: PdfTextValidator
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) {
     fun validateErikoistujanKentat(seurantajakso: SeurantajaksoDTO) {
         validate(
@@ -45,17 +43,17 @@ class SeurantajaksoPdfTextValidator(
         seurantajakso: SeurantajaksoDTO,
         fields: List<Pair<String, String?>>
     ) {
-        fields.forEach { (field, text) ->
-            val sanitizedText = text?.let(PdfTextSanitizer::sanitize)
-            val unsupportedCharacters = pdfTextValidator.findUnsupportedCharacters(sanitizedText)
-            if (unsupportedCharacters.isNotEmpty()) {
-                throw UnsupportedPdfCharactersException(
-                    field = field,
-                    unsupportedCharacters = unsupportedCharacters.map { it.toString() },
-                    seurantajaksoId = seurantajakso.id,
-                    seurantajaksoStartDate = seurantajakso.alkamispaiva
-                )
-            }
-        }
+        pdfTextFieldValidator.validate(
+            fields = fields,
+            pdfSource = PDF_SOURCE,
+            sourceId = seurantajakso.id,
+            sourceDate = seurantajakso.alkamispaiva,
+            seurantajaksoId = seurantajakso.id,
+            seurantajaksoStartDate = seurantajakso.alkamispaiva
+        )
+    }
+
+    private companion object {
+        const val PDF_SOURCE = "seurantajakso"
     }
 }

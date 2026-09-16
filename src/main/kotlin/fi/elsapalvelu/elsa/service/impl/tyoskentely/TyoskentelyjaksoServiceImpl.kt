@@ -15,6 +15,7 @@ import fi.elsapalvelu.elsa.repository.perustiedot.KuntaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksoService
+import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksonPituusCounterService
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.koejakso.*
@@ -48,7 +49,8 @@ class TyoskentelyjaksoServiceImpl(
     private val tyoskentelyjaksoWithKeskeytysajatMapper: TyoskentelyjaksoWithKeskeytysajatMapper,
     private val asiakirjaMapper: AsiakirjaMapper,
     private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 
 ) : TyoskentelyjaksoService {
 
@@ -57,6 +59,7 @@ class TyoskentelyjaksoServiceImpl(
         opintooikeusId: Long,
         newAsiakirjat: MutableSet<AsiakirjaDTO>
     ): TyoskentelyjaksoDTO? {
+        validatePdfText(tyoskentelyjaksoDTO)
         opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let { opintooikeus ->
             tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO).apply {
                 this.opintooikeus = opintooikeus
@@ -91,6 +94,7 @@ class TyoskentelyjaksoServiceImpl(
         newAsiakirjat: MutableSet<AsiakirjaDTO>,
         deletedAsiakirjaIds: MutableSet<Int>?
     ): TyoskentelyjaksoDTO? {
+        validatePdfText(tyoskentelyjaksoDTO)
         tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(
             tyoskentelyjaksoDTO.id.required(),
             opintooikeusId
@@ -136,6 +140,17 @@ class TyoskentelyjaksoServiceImpl(
         }
 
         return null
+    }
+
+    private fun validatePdfText(tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
+        pdfTextFieldValidator.validate(
+            fields = listOf(
+                "tyoskentelypaikka" to tyoskentelyjaksoDTO.tyoskentelypaikka?.nimi
+            ),
+            pdfSource = "tyoskentelyjakso",
+            sourceId = tyoskentelyjaksoDTO.id,
+            sourceDate = tyoskentelyjaksoDTO.alkamispaiva
+        )
     }
 
     private fun mapAsiakirjat(

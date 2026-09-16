@@ -6,6 +6,7 @@ import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoritemerkintaRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
+import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.suoritteet.SuoritemerkintaService
 import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.dto.suoritteet.UusiSuoritemerkintaDTO
@@ -20,12 +21,17 @@ class SuoritemerkintaServiceImpl(
     private val suoritemerkintaRepository: SuoritemerkintaRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
-    private val suoritemerkintaMapper: SuoritemerkintaMapper
+    private val suoritemerkintaMapper: SuoritemerkintaMapper,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) : SuoritemerkintaService {
     override fun create(
         uusiSuoritemerkintaDTO: UusiSuoritemerkintaDTO,
         userId: String
     ): List<SuoritemerkintaDTO>? {
+        validatePdfText(
+            uusiSuoritemerkintaDTO.lisatiedot,
+            sourceDate = uusiSuoritemerkintaDTO.suorituspaiva
+        )
         tyoskentelyjaksoRepository.findByIdOrNull(uusiSuoritemerkintaDTO.tyoskentelyjaksoId.required())
             ?.let { tyoskentelyjakso ->
                 val kirjautunutErikoistuvaLaakari =
@@ -55,6 +61,11 @@ class SuoritemerkintaServiceImpl(
     }
 
     override fun save(suoritemerkintaDTO: SuoritemerkintaDTO, userId: String): SuoritemerkintaDTO? {
+        validatePdfText(
+            suoritemerkintaDTO.lisatiedot,
+            sourceId = suoritemerkintaDTO.id,
+            sourceDate = suoritemerkintaDTO.suorituspaiva
+        )
         tyoskentelyjaksoRepository.findByIdOrNull(suoritemerkintaDTO.tyoskentelyjaksoId.required())
             ?.let { tyoskentelyjakso ->
                 val kirjautunutErikoistuvaLaakari =
@@ -86,6 +97,19 @@ class SuoritemerkintaServiceImpl(
                 }
             }
         return null
+    }
+
+    private fun validatePdfText(
+        lisatiedot: String?,
+        sourceId: Long? = null,
+        sourceDate: LocalDate? = null
+    ) {
+        pdfTextFieldValidator.validate(
+            fields = listOf("lisatiedot" to lisatiedot),
+            pdfSource = "suoritemerkinta",
+            sourceId = sourceId,
+            sourceDate = sourceDate
+        )
     }
 
     @Transactional(readOnly = true)
