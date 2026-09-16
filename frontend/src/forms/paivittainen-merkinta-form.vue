@@ -47,10 +47,15 @@
                 v-model="form.muunAiheenNimi"
                 :state="validateState('muunAiheenNimi')"
                 :aria-describedby="`${uid}-feedback`"
+                maxlength="255"
                 @input="$emit('skipRouteExitConfirm', false)"
               ></b-form-input>
               <b-form-invalid-feedback>
-                {{ $t('pakollinen-tieto') }}
+                {{
+                  $v.form.muunAiheenNimi.maxLength === false
+                    ? $t('tieto-on-liian-pitka-enintaan-255-merkkia')
+                    : $t('pakollinen-tieto')
+                }}
               </b-form-invalid-feedback>
             </div>
           </div>
@@ -67,10 +72,15 @@
           v-model="form.oppimistapahtumanNimi"
           :state="validateState('oppimistapahtumanNimi')"
           :aria-describedby="`${uid}-feedback`"
+          maxlength="255"
           @input="$emit('skipRouteExitConfirm', false)"
         ></b-form-input>
         <b-form-invalid-feedback :id="`${uid}-feedback`">
-          {{ $t('pakollinen-tieto') }}
+          {{
+            $v.form.oppimistapahtumanNimi.maxLength === false
+              ? $t('tieto-on-liian-pitka-enintaan-255-merkkia')
+              : $t('pakollinen-tieto')
+          }}
         </b-form-invalid-feedback>
       </template>
     </elsa-form-group>
@@ -115,7 +125,7 @@
 <script lang="ts">
   import Component from 'vue-class-component'
   import { Prop, Vue } from 'vue-property-decorator'
-  import { required, requiredIf } from 'vuelidate/lib/validators'
+  import { maxLength, required, requiredIf } from 'vuelidate/lib/validators'
 
   import ElsaButton from '@/components/button/button.vue'
   import ElsaFormDatepicker from '@/components/datepicker/datepicker.vue'
@@ -143,7 +153,8 @@
     validations: {
       form: {
         oppimistapahtumanNimi: {
-          required
+          required,
+          maxLength: maxLength(255)
         },
         aihekategoriat: {
           required
@@ -151,7 +162,8 @@
         muunAiheenNimi: {
           required: requiredIf((value: Paivakirjamerkinta) => {
             return value.aihekategoriat.find((aihe) => aihe.id === paivakirjamerkintaMuuAiheId)
-          })
+          }),
+          maxLength: maxLength(255)
         }
       }
     }
