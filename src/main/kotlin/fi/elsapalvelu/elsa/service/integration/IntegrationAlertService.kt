@@ -107,7 +107,7 @@ class IntegrationAlertService(
     }
 
     companion object {
-        internal const val CONNECTIVITY_FAILURE_ALERT_THRESHOLD = 5
+        internal const val CONNECTIVITY_FAILURE_ALERT_THRESHOLD = 10
         internal const val CONNECTIVITY_RECOVERY_SUCCESS_THRESHOLD = 3
     }
 }
