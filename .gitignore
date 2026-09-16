@@ -5,6 +5,9 @@
 /src/test/javascript/coverage/
 infra/.env.e2e
 
+# Generated YEK document downloads from Cypress tests
+/e2e/cypress/downloads/yek-*.pdf
+
 ######################
 # Node
 ######################

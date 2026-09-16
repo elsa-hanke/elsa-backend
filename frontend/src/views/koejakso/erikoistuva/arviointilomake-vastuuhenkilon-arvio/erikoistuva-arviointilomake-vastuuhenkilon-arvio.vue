@@ -427,6 +427,7 @@
     VastuuhenkilonArvioLomakeErikoistuva
   } from '@/types'
   import { LomakeTilat, phoneNumber } from '@/utils/constants'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { mapFiles } from '@/utils/fileMapper'
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
@@ -662,7 +663,10 @@
         this.$emit('skipRouteExitConfirm', true)
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
       } catch (err) {
-        toastFail(this, this.$t('vastuuhenkilon-arvio-lahetys-epaonnistui'))
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('vastuuhenkilon-arvio-lahetys-epaonnistui'))
+        )
       }
     }
 
