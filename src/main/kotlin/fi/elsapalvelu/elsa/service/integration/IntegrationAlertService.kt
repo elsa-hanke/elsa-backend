@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap
 enum class IntegrationAlertKey {
     SISU_TRE_OAUTH,
     SISU_TRE_API_AUTHENTICATION,
+    SISU_TRE_INTERNAL_SERVER_ERROR,
     PEPPI_TURKU_AUTHENTICATION,
     PEPPI_UEF_AUTHENTICATION,
     PEPPI_OULU_AUTHENTICATION,
