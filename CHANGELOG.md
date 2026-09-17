@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.3...HEAD)
 
+- Päivämerkintä max length 255 [`#724`](https://github.com/elsa-hanke/elsa-backend/pull/724)(16 September 2026)
+- Replace Teams notifications with email notifications for stage / prod [`#723`](https://github.com/elsa-hanke/elsa-backend/pull/723)(16 September 2026)
+- Release v2.3.X merge [`#722`](https://github.com/elsa-hanke/elsa-backend/pull/722)(16 September 2026)
 - Bump baseline-browser-mapping from 2.10.30 to 2.11.21 in /frontend [`#719`](https://github.com/elsa-hanke/elsa-backend/pull/719)(11 September 2026)
 - Bump js-yaml from 3.15.1 to 3.15.2 in /frontend [`#720`](https://github.com/elsa-hanke/elsa-backend/pull/720)(11 September 2026)
 - Bump svgo from 2.8.3 to 2.8.4 in /frontend [`#721`](https://github.com/elsa-hanke/elsa-backend/pull/721)(10 September 2026)
