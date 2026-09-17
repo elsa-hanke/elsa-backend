@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap
 enum class IntegrationAlertKey {
     SISU_TRE_OAUTH,
     SISU_TRE_API_AUTHENTICATION,
+    SISU_TRE_INTERNAL_SERVER_ERROR,
     PEPPI_TURKU_AUTHENTICATION,
     PEPPI_UEF_AUTHENTICATION,
     PEPPI_OULU_AUTHENTICATION,
@@ -15,7 +16,9 @@ enum class IntegrationAlertKey {
 }
 
 /**
- * Suppresses duplicate operational alerts within one application instance.
+ * Suppresses duplicate operational alerts within one application instance, and publishes a
+ * follow-up "recovered" (OK) alert once the underlying problem goes away, so an operator
+ * monitoring the SNS topic can see that an active incident is over without having to guess.
  *
  * Authentication alerts are published immediately and remain active until a successful
  * operation. Connectivity alerts require consecutive failures for the same endpoint and
@@ -25,21 +28,26 @@ enum class IntegrationAlertKey {
 class IntegrationAlertService(
     private val alertPublisherService: AlertPublisherService
 ) {
-    private val activeAlerts = ConcurrentHashMap.newKeySet<IntegrationAlertKey>()
+    // Maps an active alert key to the subject it was originally published with, so the
+    // recovery alert can reference it.
+    private val activeAlerts = ConcurrentHashMap<IntegrationAlertKey, String>()
     private val connectivityAlertStates =
         ConcurrentHashMap<IntegrationConnectivityAlertKey, IntegrationConnectivityAlertState>()
 
     fun publishOnceUntilSuccess(key: IntegrationAlertKey, subject: String, message: String) {
-        if (activeAlerts.add(key)) {
+        if (activeAlerts.putIfAbsent(key, subject) == null) {
             alertPublisherService.publishAlert(subject, message)
         }
     }
 
     fun markSuccessful(key: IntegrationAlertKey) {
-        activeAlerts.remove(key)
+        val previousSubject = activeAlerts.remove(key)
+        if (previousSubject != null) {
+            publishRecoveryAlert(previousSubject)
+        }
     }
 
-    fun isActive(key: IntegrationAlertKey): Boolean = activeAlerts.contains(key)
+    fun isActive(key: IntegrationAlertKey): Boolean = activeAlerts.containsKey(key)
 
     fun recordConnectivityFailure(
         key: IntegrationAlertKey,
@@ -59,7 +67,8 @@ class IntegrationAlertService(
                 publishAlert = alertActive
                 IntegrationConnectivityAlertState(
                     consecutiveFailures = consecutiveFailures,
-                    alertActive = alertActive
+                    alertActive = alertActive,
+                    subject = if (alertActive) subject else null
                 )
             }
         }
@@ -71,6 +80,7 @@ class IntegrationAlertService(
 
     fun recordConnectivitySuccess(key: IntegrationAlertKey, endpoint: String) {
         val connectivityKey = IntegrationConnectivityAlertKey(key, endpoint)
+        var recoveredAlertSubject: String? = null
 
         connectivityAlertStates.computeIfPresent(connectivityKey) { _, currentState ->
             if (!currentState.alertActive) {
@@ -78,6 +88,7 @@ class IntegrationAlertService(
             } else {
                 val consecutiveSuccesses = currentState.consecutiveSuccesses + 1
                 if (consecutiveSuccesses >= CONNECTIVITY_RECOVERY_SUCCESS_THRESHOLD) {
+                    recoveredAlertSubject = currentState.subject
                     null
                 } else {
                     currentState.copy(
@@ -87,6 +98,19 @@ class IntegrationAlertService(
                 }
             }
         }
+
+        recoveredAlertSubject?.let { subject ->
+            publishRecoveryAlert(subject, endpoint)
+        }
+    }
+
+    private fun publishRecoveryAlert(originalSubject: String, endpoint: String? = null) {
+        val endpointSuffix = endpoint?.let { " Endpoint: $it." }.orEmpty()
+        alertPublisherService.publishAlert(
+            "$originalSubject - tilanne korjaantunut",
+            "Aiemmin ilmoitettu häiriö ($originalSubject) on korjaantunut, " +
+                "integraatio toimii jälleen normaalisti.$endpointSuffix"
+        )
     }
 
     fun updateGraphQlAuthentication(
@@ -120,5 +144,6 @@ private data class IntegrationConnectivityAlertKey(
 private data class IntegrationConnectivityAlertState(
     val consecutiveFailures: Int = 0,
     val consecutiveSuccesses: Int = 0,
-    val alertActive: Boolean = false
+    val alertActive: Boolean = false,
+    val subject: String? = null
 )

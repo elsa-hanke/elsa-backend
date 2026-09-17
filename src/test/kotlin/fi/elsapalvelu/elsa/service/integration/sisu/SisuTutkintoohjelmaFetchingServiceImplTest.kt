@@ -50,7 +50,8 @@ class SisuTutkintoohjelmaFetchingServiceImplTest {
             assertThat(runBlocking { service.fetch() }).isNotNull
             assertThat(runBlocking { service.fetch() }).isNull()
 
-            verify(alertPublisherService, times(2)).publishAlert(any(), any())
+            // Initial failure, recovery after the successful export, and a new failure.
+            verify(alertPublisherService, times(3)).publishAlert(any(), any())
         } finally {
             server.shutdown()
         }

@@ -39,7 +39,8 @@ class IntegrationAuthenticationAlertInterceptorTest {
                 client.newCall(Request.Builder().url(server.url("/student")).build()).execute().close()
             }
 
-            verify(alertPublisherService, times(2)).publishAlert(any(), any())
+            // 1 failure alert + 1 recovery alert (on the 200 response) + 1 failure alert again.
+            verify(alertPublisherService, times(3)).publishAlert(any(), any())
         } finally {
             server.shutdown()
         }
@@ -202,7 +203,8 @@ class IntegrationAuthenticationAlertInterceptorTest {
             alertService.markSuccessful(IntegrationAlertKey.SISU_TRE_OAUTH)
             client.newCall(Request.Builder().url(server.url("/study-rights")).build()).execute().close()
 
-            verify(alertPublisherService, times(2)).publishAlert(any(), any())
+            // 1 OAuth failure alert + 1 OAuth recovery alert + 1 API authentication failure alert.
+            verify(alertPublisherService, times(3)).publishAlert(any(), any())
         } finally {
             server.shutdown()
         }
@@ -218,3 +220,4 @@ class IntegrationAuthenticationAlertInterceptorTest {
         )
         .build()
 }
+
