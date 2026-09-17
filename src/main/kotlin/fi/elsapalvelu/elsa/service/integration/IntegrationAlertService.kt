@@ -104,7 +104,7 @@ class IntegrationAlertService(
     }
 
     private fun publishRecoveryAlert(originalSubject: String, endpoint: String? = null) {
-        val endpointSuffix = endpoint?.let { " Endpoint: $it." } ?: ""
+        val endpointSuffix = endpoint?.let { " Endpoint: $it." }.orEmpty()
         alertPublisherService.publishAlert(
             "$originalSubject - tilanne korjaantunut",
             "Aiemmin ilmoitettu häiriö ($originalSubject) on korjaantunut, " +
