@@ -1,7 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.3...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.4...HEAD)
 
+- Enhance alert system to publish recovery alerts for incidents [`#725`](https://github.com/elsa-hanke/elsa-backend/pull/725)(17 September 2026)
 - Päivämerkintä max length 255 [`#724`](https://github.com/elsa-hanke/elsa-backend/pull/724)(16 September 2026)
 - Replace Teams notifications with email notifications for stage / prod [`#723`](https://github.com/elsa-hanke/elsa-backend/pull/723)(16 September 2026)
 - Release v2.3.X merge [`#722`](https://github.com/elsa-hanke/elsa-backend/pull/722)(16 September 2026)
@@ -21,6 +22,10 @@
 - ELSA-1135: jacksonVersion conflict fix + enhance error logging for exception handlers [`#548`](https://github.com/elsa-hanke/elsa-backend/pull/548)(7 May 2026)
 - enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
 - ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
+
+## [v2.3.4](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.3...v2.3.4) - 17 September 2026
+
+- fix: update siilo-koodi values in application.yml for archiving metadata [`#726`](https://github.com/elsa-hanke/elsa-backend/pull/726)(17 September 2026)
 
 ## [v2.3.3-1](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.2...v2.3.3-1) - 15 September 2026
 
