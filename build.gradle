@@ -149,7 +149,7 @@ repositories {
 
 dependencies {
     constraints {
-        implementation("org.bouncycastle:bcprov-jdk18on:1.84")
+        implementation("org.bouncycastle:bcprov-jdk18on:1.85")
     }
 
     implementation "tech.jhipster:jhipster-framework:${jhipsterDependenciesVersion}"
