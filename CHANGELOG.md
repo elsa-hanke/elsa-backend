@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.4...HEAD)
 
+- fix: bump Bouncy Castle provider version to 1.85 in build.gradle [`#727`](https://github.com/elsa-hanke/elsa-backend/pull/727)(19 September 2026)
 - Enhance alert system to publish recovery alerts for incidents [`#725`](https://github.com/elsa-hanke/elsa-backend/pull/725)(17 September 2026)
 - Päivämerkintä max length 255 [`#724`](https://github.com/elsa-hanke/elsa-backend/pull/724)(16 September 2026)
 - Replace Teams notifications with email notifications for stage / prod [`#723`](https://github.com/elsa-hanke/elsa-backend/pull/723)(16 September 2026)
