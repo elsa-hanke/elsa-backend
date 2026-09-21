@@ -275,7 +275,7 @@ jobs:
     uses: ./.github/workflows/e2e.yml
     with:
       image-tag: ${{ needs.backend-build-image.outputs.image-tag }}
-      frontend-image-tag: ${{ needs.frontend-build-test-image.outputs.extra-tag != '' && needs.frontend-build-test-image.outputs.extra-tag || needs.frontend-build-test-image.outputs.image-tag }}
+      frontend-image-tag: ${{ needs.frontend-build-test-image.outputs.image-tag }}
     secrets: inherit
 
   external-integration-tests:
