@@ -43,7 +43,7 @@ axios.interceptors.response.use(
     return response
   },
   (error) => {
-    switch (error.response.status) {
+    switch (error.response?.status) {
       case 401:
       case 403:
         if (window.location.pathname !== '/kirjautuminen' && store.getters['auth/isLoggedIn']) {
