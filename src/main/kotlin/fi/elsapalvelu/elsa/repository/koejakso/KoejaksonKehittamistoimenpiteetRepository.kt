@@ -26,6 +26,9 @@ interface KoejaksonKehittamistoimenpiteetRepository :
 
     fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonKehittamistoimenpiteet>
 
+    // Account merging must include records awaiting the trainer's approval.
+    fun findAllByLahikouluttajaIdOrLahiesimiesId(lahikouluttajaId: Long, lahiesimiesId: Long): List<KoejaksonKehittamistoimenpiteet>
+
     @Query(
         "select k from KoejaksonKehittamistoimenpiteet k left join k.lahikouluttaja lk left join k.lahiesimies le " +
             "where lk.user.id = :userId or (le.user.id = :userId and (k.lahikouluttajaHyvaksynyt = true or (k.korjausehdotus != null and k.korjausehdotus != '')))"
