@@ -198,8 +198,9 @@ dependencies {
     implementation "net.javacrumbs.shedlock:shedlock-spring:4.33.0"
     implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.33.0"
     implementation "com.itextpdf:kernel:${itextVersion}"
-    implementation "com.itextpdf:html2pdf:5.0.5"
+    implementation "com.itextpdf:bouncy-castle-adapter:${itextVersion}"
     implementation "com.itextpdf:pdfa:${itextVersion}"
+    implementation "com.itextpdf:html2pdf:5.0.5"
     implementation("org.apache.pdfbox:pdfbox:3.0.5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation "org.springframework.integration:spring-integration-sftp"
