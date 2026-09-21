@@ -96,6 +96,76 @@ describe('Teoriakoulutus', () => {
     cy.contains('E2E Testipaikka').should('be.visible')
   })
 
+  it('säilyttää lomakkeen verkkovirheen jälkeen ja sallii tallennuksen uudelleen', () => {
+    const name = `E2E Verkkovirheen jälkeen ${Date.now()}`
+    const place = 'E2E Testipaikka'
+    const expectedCourse = {
+      koulutuksenNimi: name,
+      koulutuksenPaikka: place,
+      alkamispaiva: '2025-03-01',
+      paattymispaiva: '2025-03-02',
+      erikoistumiseenHyvaksyttavaTuntimaara: 8
+    }
+    let failSave = true
+    let savedId: number | undefined
+
+    cy.intercept('POST', '**/erikoistuva-laakari/teoriakoulutukset', (req) => {
+      // Keep failing until the user retries: browsers may retry network errors themselves.
+      if (failSave) {
+        req.alias = 'failedTeoriakoulutusSave'
+        req.destroy()
+      } else {
+        req.alias = 'retriedTeoriakoulutusSave'
+        req.continue()
+      }
+    })
+
+    cy.visit('/teoriakoulutukset/uusi')
+    cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
+    fillRequiredFields(name, place)
+    cy.contains('button', 'Tallenna teoriakoulutus').click()
+
+    cy.wait('@failedTeoriakoulutusSave', { timeout: 15000 }).should('have.property', 'error')
+    cy.get('.toast-body', { timeout: 15000 }).should(
+      'contain.text',
+      'Uuden teoriakoulutuksen lisääminen epäonnistui'
+    )
+    cy.location('pathname').should('eq', '/teoriakoulutukset/uusi')
+    cy.contains('button', 'Tallenna teoriakoulutus').should('not.be.disabled')
+    const retainedFields = [
+      ['Koulutuksen nimi', name],
+      ['Paikka', place],
+      ['Erikoistumiseen hyväksyttävä tuntimäärä', '8']
+    ]
+    retainedFields.forEach(([label, value]) => {
+      cy.contains('label', label).parent().find('input').first().should('have.value', value)
+    })
+
+    cy.then(() => {
+      failSave = false
+    })
+    cy.contains('button', 'Tallenna teoriakoulutus').click()
+    cy.wait('@retriedTeoriakoulutusSave', { timeout: 15000 }).then(({ response }) => {
+      expect(response?.statusCode).to.eq(201)
+      expect(response?.body?.id).to.be.a('number')
+      expect(response?.body).to.include(expectedCourse)
+      savedId = response?.body.id
+    })
+    cy.location('pathname').should('not.eq', '/teoriakoulutukset/uusi')
+
+    cy.intercept('GET', '**/erikoistuva-laakari/teoriakoulutukset').as('teoriakoulutuksetAfterRetry')
+    cy.visit('/teoriakoulutukset')
+    cy.wait('@teoriakoulutuksetAfterRetry').then(({ response }) => {
+      expect(response?.statusCode).to.eq(200)
+      const savedCourses = response?.body.teoriakoulutukset.filter(
+        (course: { koulutuksenNimi: string }) => course.koulutuksenNimi === name
+      )
+      expect(savedCourses).to.have.length(1)
+      expect(savedCourses[0]).to.include({ ...expectedCourse, id: savedId })
+    })
+    cy.contains(name).should('be.visible')
+  })
+
   it('näyttää PDF-validoinnin virhesyyn käyttäjälle', () => {
     cy.visit('/teoriakoulutukset/uusi')
     cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
