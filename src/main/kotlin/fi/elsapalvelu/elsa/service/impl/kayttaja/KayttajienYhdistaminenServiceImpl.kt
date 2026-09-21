@@ -57,9 +57,9 @@ class KayttajienYhdistaminenServiceImpl(
         val ensimmainenAuthority: Authority? = ensimmainenKayttaja.get().user?.activeAuthority
         val toinenAuthority: Authority? = toinenKayttaja.get().user?.activeAuthority
 
-        if (ensimmainenAuthority == Authority(ERIKOISTUVA_LAAKARI) || ensimmainenAuthority == Authority(YEK_KOULUTETTAVA)
-            && toinenAuthority == Authority(KOULUTTAJA))
-        {
+        if ((ensimmainenAuthority == Authority(ERIKOISTUVA_LAAKARI) || ensimmainenAuthority == Authority(YEK_KOULUTETTAVA))
+            && toinenAuthority == Authority(KOULUTTAJA)
+        ) {
             log.info(
                 "Käyttäjätilien yhdistäminen kutsuttu erikoistuvalle id {} ja kouluttajalle id {}",
                 ensimmainenKayttaja.get().id, toinenKayttaja.get().id
