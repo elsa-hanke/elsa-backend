@@ -132,6 +132,15 @@ export const accountMergeTasks = {
               'UPDATE erikoistuva_laakari SET aktiivinen_opintooikeus = NULL WHERE kayttaja_id = $1',
               [id]
             )
+            // Opening the retained trainee's page creates an empty training plan on read.
+            await db.query(
+              `DELETE FROM koulutussuunnitelma WHERE opintooikeus_id IN (
+                 SELECT o.id FROM opintooikeus o
+                 JOIN erikoistuva_laakari el ON el.id = o.erikoistuva_laakari_id
+                 WHERE el.kayttaja_id = $1
+               )`,
+              [id]
+            )
             await db.query(
               'DELETE FROM opintooikeus WHERE erikoistuva_laakari_id IN (SELECT id FROM erikoistuva_laakari WHERE kayttaja_id = $1)',
               [id]

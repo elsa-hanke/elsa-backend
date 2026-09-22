@@ -14,7 +14,7 @@ const OWNER_API = '/api/erikoistuva-laakari/koejakso'
 const APPROVAL_API = '/api/kouluttaja/koejakso/aloituskeskustelu'
 const OBJECTIVES = 'E2E yhdistämisen jälkeen säilyvät osaamistavoitteet'
 const TRAINER = /^\s*Kouluttaja\s*\*/
-const SUPERVISOR = /Lähiesihenkilö tai vastaava/
+const SUPERVISOR = /Lähiesihenkil[oö] tai vastaava/
 
 type FixtureUser = { id: number; token: string }
 type Fixture = { retained: FixtureUser; source: FixtureUser; admin: FixtureUser }
