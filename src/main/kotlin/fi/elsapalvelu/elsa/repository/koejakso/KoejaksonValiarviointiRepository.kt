@@ -25,7 +25,6 @@ interface KoejaksonValiarviointiRepository : JpaRepository<KoejaksonValiarvioint
 
     fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonValiarviointi>
 
-    // Account merging must include records awaiting the trainer's approval.
     fun findAllByLahikouluttajaIdOrLahiesimiesId(lahikouluttajaId: Long, lahiesimiesId: Long): List<KoejaksonValiarviointi>
 
     @Query(

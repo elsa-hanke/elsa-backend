@@ -25,7 +25,6 @@ interface KoejaksonLoppukeskusteluRepository : JpaRepository<KoejaksonLoppukesku
 
     fun findOneByIdAndLahiesimiesHyvaksynytTrue(id: Long): Optional<KoejaksonLoppukeskustelu>
 
-    // Account merging must include records awaiting the trainer's approval.
     fun findAllByLahikouluttajaIdOrLahiesimiesId(lahikouluttajaId: Long, lahiesimiesId: Long): List<KoejaksonLoppukeskustelu>
 
     @Query(

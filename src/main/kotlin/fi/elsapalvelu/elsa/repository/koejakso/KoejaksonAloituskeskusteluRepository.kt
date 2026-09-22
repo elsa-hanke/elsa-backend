@@ -25,7 +25,6 @@ interface KoejaksonAloituskeskusteluRepository : JpaRepository<KoejaksonAloitusk
 
     fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonAloituskeskustelu>
 
-    // Account merging must include drafts and records awaiting the trainer's approval.
     fun findAllByLahikouluttajaIdOrLahiesimiesId(lahikouluttajaId: Long, lahiesimiesId: Long): List<KoejaksonAloituskeskustelu>
 
     @Query(
