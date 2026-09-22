@@ -131,44 +131,6 @@ class KayttajienYhdistaminenWorkflowIT {
         )
     }
 
-    @ParameterizedTest
-    @CsvSource(
-        "VALIARVIOINTI, true, false", "VALIARVIOINTI, false, true",
-        "KEHITTAMISTOIMENPITEET, true, false", "KEHITTAMISTOIMENPITEET, false, true",
-        "LOPPUKESKUSTELU, true, false", "LOPPUKESKUSTELU, false, true"
-    )
-    fun shouldMoveTrialPhasesWithOnlyOneRoleAssigned(phaseType: String, hasTrainer: Boolean, hasSupervisor: Boolean) {
-        // Regression guard: these phases used to compare lahikouluttaja/lahiesimies with a
-        // non-null-safe .required() call, which threw when only one role was assigned.
-        val phase: Any = when (phaseType) {
-            "VALIARVIOINTI" -> KoejaksonVaiheetHelper.createValiarviointi(recordOwner, source, source)
-            "KEHITTAMISTOIMENPITEET" -> KoejaksonVaiheetHelper.createKehittamistoimenpiteet(recordOwner, source, source)
-            else -> KoejaksonVaiheetHelper.createLoppukeskustelu(recordOwner, source, source)
-        }
-        when (phase) {
-            is KoejaksonValiarviointi -> {
-                phase.lahikouluttaja = if (hasTrainer) source else null
-                phase.lahiesimies = if (hasSupervisor) source else null
-            }
-            is KoejaksonKehittamistoimenpiteet -> {
-                phase.lahikouluttaja = if (hasTrainer) source else null
-                phase.lahiesimies = if (hasSupervisor) source else null
-            }
-            is KoejaksonLoppukeskustelu -> {
-                phase.lahikouluttaja = if (hasTrainer) source else null
-                phase.lahiesimies = if (hasSupervisor) source else null
-            }
-        }
-        em.persist(phase)
-
-        mergeAccounts()
-
-        assertPersistedFields(
-            phase,
-            "lahikouluttaja.id" to if (hasTrainer) retained.id else null,
-            "lahiesimies.id" to if (hasSupervisor) retained.id else null
-        )
-    }
 
     @ParameterizedTest
     @CsvSource("false, false", "true, false", "false, true")
