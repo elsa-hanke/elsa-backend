@@ -14,3 +14,8 @@ export const KOULUTTAJA_EMAIL    = 'e2e-kouluttaja@test.elsa'
 export const ESIHENKILÖ_EMAIL    = 'e2e-esihenkilo@test.elsa'
 export const VASTUUHENKILO_EMAIL = 'e2e-vastuuhenkilo@test.elsa'
 export const VIRKAILIJA_EMAIL    = 'e2e-virkailija@test.elsa'
+
+// Separate accounts for the account-merge regression; the form owner stays separate.
+export const MERGE_RETAINED_EMAIL = 'e2e-merge-resident@test.elsa'
+export const MERGE_SOURCE_EMAIL = 'e2e-merge-trainer@test.elsa'
+export const MERGE_ADMIN_EMAIL = 'e2e-merge-admin@test.elsa'

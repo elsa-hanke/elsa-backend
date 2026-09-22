@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ArviointityokaluRepository : JpaRepository<Arviointityokalu, Long> {
 
+    fun findAllByKayttajaId(kayttajaId: Long): List<Arviointityokalu>
+
     @Query("select a from Arviointityokalu a left join a.kayttaja k left join k.user u where a.kaytossa = true and a.kayttaja is null or (u.id = ?1)")
     fun findAllByKayttajaIsNullOrKayttajaUserId(id: String): List<Arviointityokalu>
 

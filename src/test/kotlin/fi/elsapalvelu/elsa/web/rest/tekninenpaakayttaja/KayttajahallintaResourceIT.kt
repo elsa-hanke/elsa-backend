@@ -121,7 +121,7 @@ class KayttajahallintaResourceIT {
         initTest()
         flushAndClear()
 
-        assertSuccessfulMerge(mergeAccounts(), expectedSteps = 13)
+        assertSuccessfulMerge(mergeAccounts(), expectedSteps = 15)
         flushAndClear()
 
         assertMergedAccounts(traineeRole)
@@ -160,7 +160,7 @@ class KayttajahallintaResourceIT {
         flushAndClear()
 
         // The service omits the role-addition result when the trainer role already exists.
-        assertSuccessfulMerge(mergeAccounts(), expectedSteps = 12)
+        assertSuccessfulMerge(mergeAccounts(), expectedSteps = 14)
         flushAndClear()
 
         assertMergedAccounts(ERIKOISTUVA_LAAKARI)
