@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
+import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.service.mapper.kayttaja.AsiakirjaMapper
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.repository.findByIdOrNull
@@ -22,7 +23,8 @@ class ValmistumispyynnonAsiakirjaService(
     private val valmistumispyyntoRepository: ValmistumispyyntoRepository,
     private val asiakirjaRepository: AsiakirjaRepository,
     private val kayttajaRepository: KayttajaRepository,
-    private val asiakirjaMapper: AsiakirjaMapper
+    private val asiakirjaMapper: AsiakirjaMapper,
+    private val asiakirjaService: AsiakirjaService
 ) {
 
     @Transactional(readOnly = true)
@@ -43,11 +45,15 @@ class ValmistumispyynnonAsiakirjaService(
             valmistumispyynto.yhteenvetoAsiakirja?.id == asiakirjaId ||
                 valmistumispyynto.liitteetAsiakirja?.id == asiakirjaId
 
-        return if (onkoKayttajaOsapuoli && kuuluukoAsiakirjaValmistumispyyntoon) {
+        val asiakirja = if (onkoKayttajaOsapuoli && kuuluukoAsiakirjaValmistumispyyntoon) {
             asiakirjaRepository.findByIdOrNull(asiakirjaId)?.toLadattavaDto()
         } else {
             null
         }
+        if (asiakirja == null) {
+            asiakirjaService.warnIfDeleted(asiakirjaId)
+        }
+        return asiakirja
     }
 
     @Transactional(readOnly = true)
@@ -63,11 +69,15 @@ class ValmistumispyynnonAsiakirjaService(
             valmistumispyynto.yhteenvetoAsiakirja?.id == asiakirjaId ||
                 valmistumispyynto.liitteetAsiakirja?.id == asiakirjaId
 
-        return if (onkoSamaYliopisto && kuuluukoAsiakirjaValmistumispyyntoon) {
+        val asiakirja = if (onkoSamaYliopisto && kuuluukoAsiakirjaValmistumispyyntoon) {
             asiakirjaRepository.findByIdOrNull(asiakirjaId)?.toLadattavaDto()
         } else {
             null
         }
+        if (asiakirja == null) {
+            asiakirjaService.warnIfDeleted(asiakirjaId)
+        }
+        return asiakirja
     }
 
     @Transactional(readOnly = true)
@@ -83,7 +93,10 @@ class ValmistumispyynnonAsiakirjaService(
             return null
         }
 
-        val asiakirja = asiakirjaRepository.findByIdOrNull(asiakirjaId) ?: return null
+        val asiakirja = asiakirjaRepository.findByIdOrNull(asiakirjaId) ?: run {
+            asiakirjaService.warnIfDeleted(asiakirjaId)
+            return null
+        }
         if (asiakirja.tyoskentelyjakso?.opintooikeus?.id != valmistumispyynto.opintooikeus?.id) {
             return null
         }

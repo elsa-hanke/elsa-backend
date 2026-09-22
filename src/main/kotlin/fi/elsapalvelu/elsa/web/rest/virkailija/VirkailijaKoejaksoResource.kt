@@ -85,15 +85,20 @@ class VirkailijaKoejaksoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        return koejaksonVastuuhenkilonArvioService.findOneByIdAndVirkailijaUserId(id, user.id.required())
+        val vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioService
+            .findOneByIdAndVirkailijaUserId(id, user.id.required())
             .orElse(null)
-            ?.asiakirjat?.firstOrNull { asiakirja -> asiakirja.id == asiakirjaId }
+        val response = vastuuhenkilonArvio?.asiakirjat
+            ?.firstOrNull { asiakirja -> asiakirja.id == asiakirjaId }
             ?.let { asiakirja ->
                 asiakirjaService.findById(asiakirja.id.required())
                     ?.asiakirjaData?.fileInputStream
                     ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
             }
-            ?: ResponseEntity.notFound().build()
+        if (vastuuhenkilonArvio != null && response == null) {
+            asiakirjaService.warnIfDeleted(asiakirjaId)
+        }
+        return response ?: ResponseEntity.notFound().build()
     }
 
     @PutMapping("/koejakso/vastuuhenkilonarvio")
