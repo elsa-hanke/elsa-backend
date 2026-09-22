@@ -14,6 +14,13 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDPage
+import org.apache.pdfbox.pdmodel.PDPageContentStream
+import org.apache.pdfbox.pdmodel.common.PDRectangle
+import org.apache.pdfbox.pdmodel.font.PDType1Font
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts
+import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.util.UUID
@@ -96,9 +103,7 @@ object ArkistointiTestData {
         correlationId: String = createCorrelationId()
     ): ArkistointiTestInput {
         val opintooikeus = createOpintooikeus(scenario.yliopisto, correlationId)
-        val pdfBytes = ArkistointiTestData::class.java.getResourceAsStream("/fixtures/valid.pdf")
-            ?.readBytes()
-            ?: "%PDF-1.4 ELSA integration test".toByteArray()
+        val pdfBytes = createTestPdf(correlationId)
         val asiakirjat = scenario.recordTypes.mapIndexed { index, recordType ->
             val documentId = uniqueLong("$correlationId-document-$index")
             val name = "${recordType.name.lowercase()}_elsa_integration_$correlationId.pdf"
@@ -147,6 +152,59 @@ object ArkistointiTestData {
             kaytossa = true
             metadata = createTampereMetadata()
         }
+    }
+
+    private fun createTestPdf(correlationId: String): ByteArray {
+        val paragraph =
+            "ELSA integraatiotestin tuottama testiaineisto arkistointia varten. " +
+                "Correlation-id: $correlationId. Tama sisalto on tarkoituksella pidempi, " +
+                "jotta lahetettava paketti vastaa kooltaan oikeaa arkistoitavaa asiakirjaa " +
+                "eika vastaanottava jarjestelma tulkitse pyyntoa virheellisesti liian " +
+                "pieneksi tai puutteelliseksi. "
+
+        return renderPdf(paragraph, TEST_PDF_PAGE_COUNT)
+    }
+
+    private fun renderPdf(paragraph: String, pageCount: Int): ByteArray =
+        ByteArrayOutputStream().use { output ->
+            PDDocument().use { document ->
+                val font = PDType1Font(Standard14Fonts.FontName.HELVETICA)
+                repeat(pageCount) { pageIndex ->
+                    val page = PDPage(PDRectangle.A4)
+                    document.addPage(page)
+                    PDPageContentStream(document, page).use { stream ->
+                        stream.beginText()
+                        stream.setFont(font, 11f)
+                        stream.setLeading(14f)
+                        stream.newLineAtOffset(50f, 780f)
+                        stream.showText("Sivu ${pageIndex + 1}")
+                        stream.newLine()
+                        wrapText(paragraph, WRAP_LINE_LENGTH).forEach { line ->
+                            stream.showText(line)
+                            stream.newLine()
+                        }
+                        stream.endText()
+                    }
+                }
+                document.save(output)
+            }
+            output.toByteArray()
+        }
+
+    private fun wrapText(text: String, lineLength: Int): List<String> {
+        val words = text.split(" ")
+        val lines = mutableListOf<String>()
+        val currentLine = StringBuilder()
+        words.forEach { word ->
+            if (currentLine.length + word.length + 1 > lineLength) {
+                lines.add(currentLine.toString())
+                currentLine.clear()
+            }
+            if (currentLine.isNotEmpty()) currentLine.append(' ')
+            currentLine.append(word)
+        }
+        if (currentLine.isNotEmpty()) lines.add(currentLine.toString())
+        return lines
     }
 
     private fun createOpintooikeus(
@@ -256,4 +314,7 @@ object ArkistointiTestData {
     private val NON_IDENTIFIER_CHARACTER = Regex("[^A-Za-z0-9_-]")
     private const val UUID_SUFFIX_LENGTH = 8
     private const val MAX_CORRELATION_ID_LENGTH = 96
+    private const val WRAP_LINE_LENGTH = 90
+    private const val TEST_PDF_PAGE_COUNT = 200
 }
+
