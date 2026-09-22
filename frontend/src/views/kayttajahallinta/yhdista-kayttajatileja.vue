@@ -138,7 +138,7 @@
           name: 'kayttajahallinta'
         })
       } catch (e) {
-        toastFail(this, 'virhe')
+        toastFail(this, this.$t('kayttajatilien-yhdistaminen-epaonnistui'))
       }
     }
   }

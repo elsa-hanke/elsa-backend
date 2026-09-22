@@ -42,13 +42,15 @@ class KayttajienYhdistaminenServiceImpl(
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val suoritusarviointiRepository: SuoritusarviointiRepository,
+    private val suoritusarvioinninKommenttiRepository: SuoritusarvioinninKommenttiRepository,
+    private val arviointityokaluRepository: ArviointityokaluRepository,
     private val seurantajaksoRepository: SeurantajaksoRepository,
     private val entityManager: EntityManager
 ) : KayttajienYhdistaminenService {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun yhdistaKayttajatilit(kayttajienYhdistaminenDTo: KayttajienYhdistaminenDTO): List<KayttajienYhdistaminenResult> {
         val tilanne: ArrayList<KayttajienYhdistaminenResult> = arrayListOf()
         val ensimmainenKayttaja = kayttajaRepository.findById(kayttajienYhdistaminenDTo.ensimmainenKayttajaId.required())
@@ -76,6 +78,8 @@ class KayttajienYhdistaminenServiceImpl(
             kasitteleSeurantajaksot(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             kasitteleKoulutussopimuket(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             kasitteleSuoritusArvioinnnit(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
+            kasitteleArvioinninKommentit(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
+            kasitteleArviointityokalut(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             poistaVerificationToken(tilanne, toinenKayttaja.get())
             poistaToinenKayttaja(tilanne, toinenKayttaja.get())
             lisaaKayttajalleRooli(tilanne, ensimmainenKayttaja.get().user.required(), Authority(KOULUTTAJA))
@@ -90,12 +94,12 @@ class KayttajienYhdistaminenServiceImpl(
                 )
                 tilanne.add(KayttajienYhdistaminenResult("YhteinenSahkoposti", true))
             } catch (e: Exception) {
-                tilanne.add(KayttajienYhdistaminenResult("YhteinenSahkoposti", false))
-                log.error("YhteinenSahkoposti sähköpostin vaihto virhe {}", e.message.toString())
+                log.error("YhteinenSahkoposti sähköpostin vaihto virhe", e)
+                throw e
             }
 
             log.info(
-                "Käyttäjätilien yhdistäminen suoritettu erikoistuvalle id {} ja kouluttajalle id {}",
+                "Käyttäjätilien yhdistämisen muutokset valmisteltu erikoistuvalle id {} ja kouluttajalle id {}",
                 ensimmainenKayttaja.get().id, toinenKayttaja.get().id
             )
         } else {
@@ -104,9 +108,6 @@ class KayttajienYhdistaminenServiceImpl(
                 "user", "invalidauthorities"
             )
         }
-
-        // forced rollback for debugging reasons
-        // TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
 
         return tilanne
     }
@@ -141,8 +142,8 @@ class KayttajienYhdistaminenServiceImpl(
             }
             tilanne.add(KayttajienYhdistaminenResult("Kouluttajavaltuutukset", true))
         } catch (e: Exception) {
-            tilanne.add(KayttajienYhdistaminenResult("Kouluttajavaltuutukset", false))
-            log.error("Kouluttajavaltuutus käsittelyssä virhe {}", e.message.toString())
+            log.error("Kouluttajavaltuutus käsittelyssä virhe", e)
+            throw e
         }
     }
 
@@ -172,8 +173,8 @@ class KayttajienYhdistaminenServiceImpl(
             }
             tilanne.add(KayttajienYhdistaminenResult("KayttajaYliopistoErikoisalat", true))
         } catch (e: Exception) {
-            tilanne.add(KayttajienYhdistaminenResult("KayttajaYliopistoErikoisalat", false))
-            log.error("KayttajaYliopistoErikoisalat käsittelyssä virhe {}", e.message.toString())
+            log.error("KayttajaYliopistoErikoisalat käsittelyssä virhe", e)
+            throw e
         }
     }
 
@@ -206,8 +207,8 @@ class KayttajienYhdistaminenServiceImpl(
             }
             tilanne.add(KayttajienYhdistaminenResult("KoejaksonAloituskeskustelut", true))
         } catch (e: Exception) {
-            tilanne.add(KayttajienYhdistaminenResult("KoejaksonAloituskeskustelut", false))
-            log.error("KoejaksonAloituskeskustelut käsittelyssä virhe {}", e.message.toString())
+            log.error("KoejaksonAloituskeskustelut käsittelyssä virhe", e)
+            throw e
         }
     }
 
@@ -240,8 +241,8 @@ class KayttajienYhdistaminenServiceImpl(
             }
             tilanne.add(KayttajienYhdistaminenResult("KoejaksonValiarviointi", true))
         } catch (e: Exception) {
-            tilanne.add(KayttajienYhdistaminenResult("KoejaksonValiarviointi", false))
-            log.error("KoejaksonValiarviointi käsittelyssä virhe {}", e.message.toString())
+            log.error("KoejaksonValiarviointi käsittelyssä virhe", e)
+            throw e
         }
     }
 
@@ -274,8 +275,8 @@ class KayttajienYhdistaminenServiceImpl(
             }
             tilanne.add(KayttajienYhdistaminenResult("KoejaksonLoppukeskustelu", true))
         } catch (e: Exception) {
-            tilanne.add(KayttajienYhdistaminenResult("KoejaksonLoppukeskustelu", false))
-            log.error("KoejaksonLoppukeskustelu käsittelyssä virhe {}", e.message.toString())
+            log.error("KoejaksonLoppukeskustelu käsittelyssä virhe", e)
+            throw e
         }
     }
 
@@ -308,8 +309,8 @@ class KayttajienYhdistaminenServiceImpl(
             }
             tilanne.add(KayttajienYhdistaminenResult("KoejaksonKehittamistoimenpiteet", true))
         } catch (e: Exception) {
-            tilanne.add(KayttajienYhdistaminenResult("KoejaksonKehittamistoimenpiteet", false))
-            log.error("KoejaksonKehittamistoimenpiteet käsittelyssä virhe {}", e.message.toString())
+            log.error("KoejaksonKehittamistoimenpiteet käsittelyssä virhe", e)
+            throw e
         }
     }
 
@@ -337,8 +338,8 @@ class KayttajienYhdistaminenServiceImpl(
             }
             tilanne.add(KayttajienYhdistaminenResult("Koulutussopimuket", true))
         } catch (e: Exception) {
-            tilanne.add(KayttajienYhdistaminenResult("Koulutussopimuket", false))
-            log.error("Koulutussopimuket käsittelyssä virhe {}", e.message.toString())
+            log.error("Koulutussopimuket käsittelyssä virhe", e)
+            throw e
         }
     }
 
@@ -361,9 +362,29 @@ class KayttajienYhdistaminenServiceImpl(
             }
             tilanne.add(KayttajienYhdistaminenResult("SuoritusArvioinnnit", true))
         } catch (e: Exception) {
-            tilanne.add(KayttajienYhdistaminenResult("SuoritusArvioinnnit", false))
-            log.error("SuoritusArvioinnnit käsittelyssä virhe {}", e.message.toString())
+            log.error("SuoritusArvioinnnit käsittelyssä virhe", e)
+            throw e
         }
+    }
+
+    private fun kasitteleArvioinninKommentit(
+        tilanne: ArrayList<KayttajienYhdistaminenResult>, ensimmainenKayttaja: Kayttaja, toinenKayttaja: Kayttaja
+    ) {
+        suoritusarvioinninKommenttiRepository.findAllByKommentoijaId(toinenKayttaja.id.required()).forEach {
+            it.kommentoija = ensimmainenKayttaja
+            suoritusarvioinninKommenttiRepository.save(it)
+        }
+        tilanne.add(KayttajienYhdistaminenResult("SuoritusarvioinninKommentit", true))
+    }
+
+    private fun kasitteleArviointityokalut(
+        tilanne: ArrayList<KayttajienYhdistaminenResult>, ensimmainenKayttaja: Kayttaja, toinenKayttaja: Kayttaja
+    ) {
+        arviointityokaluRepository.findAllByKayttajaId(toinenKayttaja.id.required()).forEach {
+            it.kayttaja = ensimmainenKayttaja
+            arviointityokaluRepository.save(it)
+        }
+        tilanne.add(KayttajienYhdistaminenResult("Arviointityokalut", true))
     }
 
     private fun poistaVerificationToken(tilanne: ArrayList<KayttajienYhdistaminenResult>, toinenKayttaja: Kayttaja) {
@@ -384,8 +405,8 @@ class KayttajienYhdistaminenServiceImpl(
                 )
             }
         } catch (e: Exception) {
-            tilanne.add(KayttajienYhdistaminenResult("VerificationToken", false))
-            log.error("VerificationToken poistossa virhe {}", e.message.toString())
+            log.error("VerificationToken poistossa virhe", e)
+            throw e
         }
     }
 
@@ -401,8 +422,8 @@ class KayttajienYhdistaminenServiceImpl(
             )
             tilanne.add(KayttajienYhdistaminenResult("poistaToinenKayttaja", true))
         } catch (e: Exception) {
-            tilanne.add(KayttajienYhdistaminenResult("poistaToinenKayttaja", false))
-            log.error("poistaToinenKayttaja poistossa virhe {}", e.message.toString())
+            log.error("poistaToinenKayttaja poistossa virhe", e)
+            throw e
         }
     }
 
@@ -444,8 +465,8 @@ class KayttajienYhdistaminenServiceImpl(
                 }
                 tilanne.add(KayttajienYhdistaminenResult("Seurantajaksot", true))
             } catch (e: Exception) {
-                tilanne.add(KayttajienYhdistaminenResult("Seurantajaksot", false))
-                log.error("Seurantajaksot käsittelyssä virhe {}", e.message.toString())
+                log.error("Seurantajaksot käsittelyssä virhe", e)
+                throw e
             }
         }
 

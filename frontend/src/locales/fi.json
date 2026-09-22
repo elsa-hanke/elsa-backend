@@ -1893,6 +1893,7 @@
   "vahvista-kayttajatilien-yhdistaminen": "Vahvista käyttäjätilien yhdistäminen",
   "haluatko-varmasti-yhdistaa-kayttajatilit": "Haluatko varmasti yhdistää käyttäjätilit?",
   "kayttajatilien-yhdistaminen-onnistui": "Käyttäjätilien yhdistäminen onnistui",
+  "kayttajatilien-yhdistaminen-epaonnistui": "Käyttäjätilien yhdistäminen epäonnistui. Ota tarvittaessa yhteyttä tukeen.",
   "arviointityokalut": "Arviointityökalut",
   "arviointityokalut-kuvaus": "Hallinnoi kouluttajien arviointityökaluja.",
   "lisaa-arviointityokalu": "Lisää arviointityökalu",

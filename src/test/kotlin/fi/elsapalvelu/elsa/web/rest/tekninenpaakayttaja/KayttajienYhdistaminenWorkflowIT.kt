@@ -1,6 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
+import fi.elsapalvelu.elsa.domain.arviointi.Arviointityokalu
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokaluKysymys
+import fi.elsapalvelu.elsa.domain.arviointi.ArviointityokalunTila
+import fi.elsapalvelu.elsa.domain.arviointi.SuoritusarvioinninKommentti
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
@@ -15,6 +19,7 @@ import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajienYhdistaminenDTO
+import fi.elsapalvelu.elsa.service.dto.enumeration.ArviointityokaluKysymysTyyppi
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
@@ -26,6 +31,7 @@ import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
@@ -44,6 +50,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.Instant
 
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
@@ -125,9 +132,13 @@ class KayttajienYhdistaminenWorkflowIT {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = [false, true])
-    fun shouldMoveDraftAndSubmittedTrainingContracts(sent: Boolean) {
-        val contract = KoejaksonVaiheetHelper.createKoulutussopimus(recordOwner, otherTrainer).apply { lahetetty = sent }
+    @CsvSource("false, false", "true, false", "false, true")
+    fun shouldMoveDraftSubmittedAndReturnedTrainingContracts(sent: Boolean, returned: Boolean) {
+        val correction = if (returned) "Please correct the training site" else null
+        val contract = KoejaksonVaiheetHelper.createKoulutussopimus(recordOwner, otherTrainer).apply {
+            lahetetty = sent
+            korjausehdotus = correction
+        }
         val trainers = listOf(null, source, otherTrainer, source).mapIndexed { index, trainer ->
             KoulutussopimuksenKouluttaja(
                 koulutussopimus = contract,
@@ -152,6 +163,7 @@ class KayttajienYhdistaminenWorkflowIT {
             "opintooikeus.id" to recordOwner.getOpintooikeusKaytossa()!!.id,
             "vastuuhenkilo.id" to otherTrainer.id,
             "lahetetty" to sent,
+            "korjausehdotus" to correction,
             "koejaksonAlkamispaiva" to contract.koejaksonAlkamispaiva
         )
         val savedContract = em.find(KoejaksonKoulutussopimus::class.java, contract.id)
@@ -215,6 +227,107 @@ class KayttajienYhdistaminenWorkflowIT {
         }
     }
 
+    @ParameterizedTest
+    @CsvSource("TRAINER, false", "SUPERVISOR, false", "BOTH, false", "TRAINER, true", "SUPERVISOR, true", "BOTH, true")
+    fun shouldPreservePartialApprovalsAndReturnedForms(position: String, returned: Boolean) {
+        val trainer = if (position == "SUPERVISOR") otherTrainer else source
+        val supervisor = if (position == "TRAINER") otherTrainer else source
+        val correction = if (returned) "Please clarify the agreed objectives" else null
+        val phases = createTrialPhases(recordOwner, trainer, supervisor, false, !returned, correction)
+
+        mergeAccounts()
+
+        assertTrialPhases(
+            phases,
+            if (trainer == source) retained.id else otherTrainer.id,
+            if (supervisor == source) retained.id else otherTrainer.id,
+            recordOwner.getOpintooikeusKaytossa()!!.id,
+            false,
+            !returned,
+            correction
+        )
+    }
+
+    @Test
+    fun shouldMoveCommentsWithoutChangingTheirContentOrOtherAuthors() {
+        val evaluation = SuoritusarviointiHelper.createEntity(em).apply {
+            arvioinninAntaja = source
+            tyoskentelyjakso!!.opintooikeus = recordOwner.getOpintooikeusKaytossa()
+        }
+        em.persist(evaluation)
+        val comments = listOf(source, source, retained, recordOwner.kayttaja!!).mapIndexed { index, author ->
+            SuoritusarvioinninKommentti(
+                kommentoija = author,
+                suoritusarviointi = evaluation,
+                teksti = "Existing discussion comment $index",
+                luontiaika = Instant.parse("2025-01-15T10:00:00Z").plusSeconds(index.toLong()),
+                muokkausaika = Instant.parse("2025-01-16T11:00:00Z").plusSeconds(index.toLong())
+            ).also { em.persist(it) }
+        }
+
+        mergeAccounts()
+
+        assertPersistedFields(evaluation, "arvioinninAntaja.id" to retained.id)
+        comments.forEach {
+            assertPersistedFields(
+                it,
+                "kommentoija.id" to if (it.kommentoija == source) retained.id else it.kommentoija!!.id,
+                "suoritusarviointi.id" to evaluation.id,
+                "teksti" to it.teksti,
+                "luontiaika" to it.luontiaika,
+                "muokkausaika" to it.muokkausaika
+            )
+        }
+    }
+
+    @Test
+    fun shouldMoveAllLegacyOwnedToolVersionsAndPreserveTheirQuestions() {
+        val tools = listOf(source, source, retained, otherTrainer).mapIndexed { index, owner ->
+            Arviointityokalu(
+                kayttaja = owner,
+                nimi = "Legacy tool $index",
+                ohjeteksti = "Existing instructions",
+                versio = index + 1L,
+                kaytossa = index != 1,
+                tila = if (index == 0) ArviointityokalunTila.LUONNOS else ArviointityokalunTila.JULKAISTU,
+                luontiaika = Instant.parse("2025-01-15T10:00:00Z"),
+                muokkausaika = Instant.parse("2025-01-16T11:00:00Z")
+            ).also { tool ->
+                tool.kysymykset.add(ArviointityokaluKysymys(
+                    arviointityokalu = tool,
+                    otsikko = "Existing question $index",
+                    tyyppi = ArviointityokaluKysymysTyyppi.TEKSTIKENTTAKYSYMYS,
+                    pakollinen = true,
+                    jarjestysnumero = 1
+                ))
+                em.persist(tool)
+            }
+        }
+        tools.take(2).forEach { it.alkuperainenId = tools.first().id }
+        val questionIds = tools.map { it.kysymykset.single().id }
+
+        mergeAccounts()
+
+        tools.forEachIndexed { index, tool ->
+            assertPersistedFields(
+                tool,
+                "kayttaja.id" to if (tool.kayttaja == source) retained.id else tool.kayttaja?.id,
+                "nimi" to tool.nimi,
+                "ohjeteksti" to tool.ohjeteksti,
+                "versio" to tool.versio,
+                "alkuperainenId" to tool.alkuperainenId,
+                "kaytossa" to tool.kaytossa,
+                "tila" to tool.tila,
+                "luontiaika" to tool.luontiaika,
+                "muokkausaika" to tool.muokkausaika
+            )
+            val saved = em.find(Arviointityokalu::class.java, tool.id)
+            assertThat(saved.kysymykset.map { it.id }).containsExactly(questionIds[index])
+            assertThat(saved.kysymykset.single().otsikko).isEqualTo("Existing question $index")
+            assertThat(saved.kysymykset.single().pakollinen).isTrue()
+        }
+    }
+
     private fun createAccount(role: String): Kayttaja {
         val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(role)).apply {
             activeAuthority = Authority(role)
@@ -224,35 +337,43 @@ class KayttajienYhdistaminenWorkflowIT {
     }
 
     private fun createTrialPhases(
-        owner: ErikoistuvaLaakari, trainer: Kayttaja, supervisor: Kayttaja, approved: Boolean
+        owner: ErikoistuvaLaakari, trainer: Kayttaja, supervisor: Kayttaja, approved: Boolean,
+        trainerApproved: Boolean = approved, correction: String? = null
     ): List<Any> {
-        val approvalDate = if (approved) APPROVAL_DATE else null
+        val trainerApprovalDate = if (trainerApproved) APPROVAL_DATE else null
+        val supervisorApprovalDate = if (approved) APPROVAL_DATE.plusDays(1) else null
         val phases = listOf(
             KoejaksonVaiheetHelper.createAloituskeskustelu(owner, trainer, supervisor).apply {
-                lahikouluttajaHyvaksynyt = approved
+                lahetetty = correction == null
+                if (correction != null) erikoistuvanKuittausaika = null
+                lahikouluttajaHyvaksynyt = trainerApproved
                 lahiesimiesHyvaksynyt = approved
-                lahikouluttajanKuittausaika = approvalDate
-                lahiesimiehenKuittausaika = approvalDate
+                lahikouluttajanKuittausaika = trainerApprovalDate
+                lahiesimiehenKuittausaika = supervisorApprovalDate
+                korjausehdotus = correction
             },
             KoejaksonVaiheetHelper.createValiarviointi(owner, trainer, supervisor).apply {
-                lahikouluttajaHyvaksynyt = approved
+                lahikouluttajaHyvaksynyt = trainerApproved
                 lahiesimiesHyvaksynyt = approved
-                lahikouluttajanKuittausaika = approvalDate
-                lahiesimiehenKuittausaika = approvalDate
+                lahikouluttajanKuittausaika = trainerApprovalDate
+                lahiesimiehenKuittausaika = supervisorApprovalDate
+                korjausehdotus = correction
                 vahvuudet = "Existing strengths"
             },
             KoejaksonVaiheetHelper.createKehittamistoimenpiteet(owner, trainer, supervisor).apply {
-                lahikouluttajaHyvaksynyt = approved
+                lahikouluttajaHyvaksynyt = trainerApproved
                 lahiesimiesHyvaksynyt = approved
-                lahikouluttajanKuittausaika = approvalDate
-                lahiesimiehenKuittausaika = approvalDate
+                lahikouluttajanKuittausaika = trainerApprovalDate
+                lahiesimiehenKuittausaika = supervisorApprovalDate
+                korjausehdotus = correction
                 kehittamistoimenpiteetRiittavat = true
             },
             KoejaksonVaiheetHelper.createLoppukeskustelu(owner, trainer, supervisor).apply {
-                lahikouluttajaHyvaksynyt = approved
+                lahikouluttajaHyvaksynyt = trainerApproved
                 lahiesimiesHyvaksynyt = approved
-                lahikouluttajanKuittausaika = approvalDate
-                lahiesimiehenKuittausaika = approvalDate
+                lahikouluttajanKuittausaika = trainerApprovalDate
+                lahiesimiehenKuittausaika = supervisorApprovalDate
+                korjausehdotus = correction
                 jatkotoimenpiteet = "Existing next steps"
             }
         )
@@ -260,22 +381,26 @@ class KayttajienYhdistaminenWorkflowIT {
         return phases
     }
 
-    private fun assertTrialPhases(phases: List<Any>, trainerId: Long?, supervisorId: Long?, studyRightId: Long?, approved: Boolean) {
+    private fun assertTrialPhases(
+        phases: List<Any>, trainerId: Long?, supervisorId: Long?, studyRightId: Long?, approved: Boolean,
+        trainerApproved: Boolean = approved, correction: String? = null
+    ) {
         phases.forEach { phase ->
             assertPersistedFields(
                 phase,
                 "lahikouluttaja.id" to trainerId,
                 "lahiesimies.id" to supervisorId,
                 "opintooikeus.id" to studyRightId,
-                "lahikouluttajaHyvaksynyt" to approved,
+                "lahikouluttajaHyvaksynyt" to trainerApproved,
                 "lahiesimiesHyvaksynyt" to approved,
-                "lahikouluttajanKuittausaika" to if (approved) APPROVAL_DATE else null,
-                "lahiesimiehenKuittausaika" to if (approved) APPROVAL_DATE else null,
-                "korjausehdotus" to null
+                "lahikouluttajanKuittausaika" to if (trainerApproved) APPROVAL_DATE else null,
+                "lahiesimiehenKuittausaika" to if (approved) APPROVAL_DATE.plusDays(1) else null,
+                "korjausehdotus" to correction
             )
             when (phase) {
                 is KoejaksonAloituskeskustelu -> assertPersistedFields(
-                    phase, "koejaksonOsaamistavoitteet" to phase.koejaksonOsaamistavoitteet, "lahetetty" to true
+                    phase, "koejaksonOsaamistavoitteet" to phase.koejaksonOsaamistavoitteet,
+                    "lahetetty" to (correction == null), "erikoistuvanKuittausaika" to phase.erikoistuvanKuittausaika
                 )
                 is KoejaksonValiarviointi -> assertPersistedFields(phase, "vahvuudet" to phase.vahvuudet)
                 is KoejaksonKehittamistoimenpiteet -> assertPersistedFields(phase, "kehittamistoimenpiteetRiittavat" to true)
@@ -304,7 +429,7 @@ class KayttajienYhdistaminenWorkflowIT {
                 .content(convertObjectToJsonBytes(KayttajienYhdistaminenDTO(retained.id, source.id, "merged.workflow@example.com")))
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$").value(Matchers.hasSize<Int>(12)))
+            .andExpect(jsonPath("$").value(Matchers.hasSize<Int>(14)))
             .andExpect(jsonPath("$[*].onnistui").value(Matchers.everyItem(Matchers.equalTo(true))))
         em.flush()
         em.clear()
