@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.4...HEAD)
 
+- test: add end-to-end tests for koulutussopimuksen vastuuhenkilön hyväksyntä [`#734`](https://github.com/elsa-hanke/elsa-backend/pull/734)(22 September 2026)
+- e2e testi: koulutussopimuksen kouluttajan hyväksyntä [`#733`](https://github.com/elsa-hanke/elsa-backend/pull/733)(21 September 2026)
+- fix: simplify frontend image tag assignment in CI workflow [`#728`](https://github.com/elsa-hanke/elsa-backend/pull/728)(21 September 2026)
+- bouncycastle runtime exception fix  [`#729`](https://github.com/elsa-hanke/elsa-backend/pull/729)(21 September 2026)
 - fix: bump Bouncy Castle provider version to 1.85 in build.gradle [`#727`](https://github.com/elsa-hanke/elsa-backend/pull/727)(19 September 2026)
 - Enhance alert system to publish recovery alerts for incidents [`#725`](https://github.com/elsa-hanke/elsa-backend/pull/725)(17 September 2026)
 - Päivämerkintä max length 255 [`#724`](https://github.com/elsa-hanke/elsa-backend/pull/724)(16 September 2026)
