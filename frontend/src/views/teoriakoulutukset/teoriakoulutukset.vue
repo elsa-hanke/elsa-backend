@@ -5,8 +5,7 @@
       <b-row lg>
         <b-col>
           <h1>{{ $t('teoriakoulutukset') }}</h1>
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <p v-html="$t('teoriakoulutukset-ingressi', { opintooppaastaLinkki, kopiLinkki })" />
+          <p v-safe-html="$t('teoriakoulutukset-ingressi', { opintooppaastaLinkki, kopiLinkki })" />
           <elsa-vanha-asetus-varoitus />
           <elsa-button
             v-if="muokkausoikeudet"

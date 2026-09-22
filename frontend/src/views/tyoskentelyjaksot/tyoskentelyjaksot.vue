@@ -5,8 +5,7 @@
       <b-row lg>
         <b-col>
           <h1>{{ $t('tyoskentelyjaksot') }}</h1>
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <p v-html="$t('tyoskentelyjaksot-kuvaus', { opintooppaastaLinkki })" />
+          <p v-safe-html="$t('tyoskentelyjaksot-kuvaus', { opintooppaastaLinkki })" />
           <elsa-vanha-asetus-varoitus />
           <div v-if="muokkausoikeudet" class="d-flex flex-wrap mb-3 mb-lg-4">
             <elsa-button

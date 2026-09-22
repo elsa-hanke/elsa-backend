@@ -119,8 +119,7 @@
                 {{ kokonaisuus.arvioitavaKokonaisuus.kategoria.nimi }}:
                 {{ kokonaisuus.arvioitavaKokonaisuus.nimi }}
                 <elsa-popover :title="kokonaisuus.arvioitavaKokonaisuus.nimi">
-                  <!-- eslint-disable-next-line vue/no-v-html -->
-                  <p v-html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
+                  <p v-safe-html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
                 </elsa-popover>
               </b-td>
               <b-td>
@@ -320,8 +319,7 @@
             {{ kokonaisuus.arvioitavaKokonaisuus.kategoria.nimi }}:
             {{ kokonaisuus.arvioitavaKokonaisuus.nimi }}
             <elsa-popover :title="kokonaisuus.arvioitavaKokonaisuus.nimi">
-              <!-- eslint-disable-next-line vue/no-v-html -->
-              <p v-html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
+              <p v-safe-html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
             </elsa-popover>
           </elsa-form-group>
         </div>
@@ -422,8 +420,7 @@
               {{ kokonaisuus.arvioitavaKokonaisuus.kategoria.nimi }}:
               {{ kokonaisuus.arvioitavaKokonaisuus.nimi }}
               <elsa-popover :title="kokonaisuus.arvioitavaKokonaisuus.nimi">
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <p v-html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
+                <p v-safe-html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
               </elsa-popover>
             </elsa-form-group>
             <elsa-form-group :label="arviointiAsteikonNimi" :required="true" class="col-lg-12">
@@ -497,7 +494,6 @@
               {{ $t('arviointi-liite-tooltip') }}
             </elsa-popover>
           </template>
-          <!-- eslint-disable-next-line vue/no-v-html -->
           <span>{{ $t('arviointi-liitetiedostot-kuvaus-itsearviointi') }}</span>
           <asiakirjat-upload
             class="mt-3"

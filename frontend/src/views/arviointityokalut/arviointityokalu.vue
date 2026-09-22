@@ -51,8 +51,7 @@
                 :label="$t('ohjeteksti-arviointityokalun-kayttoon')"
                 class="col-sm-12 col-md-12 pr-md-3"
               >
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <div v-html="form.ohjeteksti"></div>
+                <div v-safe-html="form.ohjeteksti"></div>
               </elsa-form-group>
             </b-form-row>
             <b-form-row>
