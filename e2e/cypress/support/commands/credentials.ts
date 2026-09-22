@@ -4,6 +4,8 @@ export const SSN_ERIKOISTUVA = '210281-9988'
 
 // Kouluttajan SSN (Suomi.fi-tunnistautumista varten – varalla)
 export const SSN_KOULUTTAJA = '190956-9974'
+
+export const SSN_ESIHENKILO = '010280-952L'
 export const SSN_VASTUUHENKILO = '010190-900P'
 export const SSN_VIRKAILIJA = '031084-999W'
 
