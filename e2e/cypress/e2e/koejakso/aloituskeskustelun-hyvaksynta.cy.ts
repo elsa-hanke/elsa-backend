@@ -111,14 +111,16 @@ describe('Aloituskeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käy
   before(() => {
     cy.prepareKoejaksoE2e({ cleanupSupportUsers: true, storeTokens: true })
     cy.task('db:cleanupKouluttaja', { email: ESIHENKILÖ_EMAIL })
-    cy.task<{ kayttajaId: number; token: string }>('db:seedKouluttaja', {
+    cy.task<{ kayttajaId: number | string; token: string }>('db:seedKouluttaja', {
       email: ESIHENKILÖ_EMAIL,
       etunimi: 'Tessa',
       sukunimi: 'Testilä'
     }).then((result) => {
-      expect(result.kayttajaId).to.be.a('number').and.not.eq(Cypress.env('kouluttajaId'))
+      const kayttajaId = Number(result.kayttajaId)
+      expect(Number.isSafeInteger(kayttajaId), 'supervisor database ID').to.eq(true)
+      expect(kayttajaId).to.be.greaterThan(0).and.not.eq(Cypress.env('kouluttajaId'))
       expect(result.token).to.be.a('string').and.not.be.empty
-      esihenkiloId = result.kayttajaId
+      esihenkiloId = kayttajaId
       esihenkiloToken = result.token
     })
   })
@@ -299,7 +301,9 @@ describe('Aloituskeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käy
 
     cy.visit('/koejakso')
     cy.wait('@haeErikoistuvanKoejakso')
-    valiarvioinninLinkki().should('be.visible').and('not.have.attr', 'aria-disabled').click()
+    valiarvioinninLinkki().should('be.visible').and('not.have.attr', 'aria-disabled')
+    // Attribute assertions change the subject; query the link again before clicking.
+    valiarvioinninLinkki().click()
     cy.location('pathname').should('eq', '/koejakso/valiarviointi')
     cy.get(SIVU).contains('label', 'Kouluttaja').should('be.visible')
   })
