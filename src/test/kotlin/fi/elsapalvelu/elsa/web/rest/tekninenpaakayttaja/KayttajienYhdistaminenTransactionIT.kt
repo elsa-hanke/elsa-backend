@@ -67,14 +67,14 @@ class KayttajienYhdistaminenTransactionIT {
             retained = createAccount(ERIKOISTUVA_LAAKARI)
             source = createAccount(KOULUTTAJA)
             admin = createAccount(TEKNINEN_PAAKAYTTAJA)
-            token = VerificationToken(user = source.user).also { em.persist(it) }
+            token = VerificationToken(user = source.user).also { verificationToken -> em.persist(verificationToken) }
             tool = Arviointityokalu(
                 kayttaja = source,
                 nimi = "Tool belonging to the source account",
                 tila = ArviointityokalunTila.JULKAISTU,
                 luontiaika = Instant.parse("2025-01-15T10:00:00Z"),
                 muokkausaika = Instant.parse("2025-01-16T11:00:00Z")
-            ).also { em.persist(it) }
+            ).also { evaluationTool -> em.persist(evaluationTool) }
         }
         TestSecurityContextHolder.getContext().authentication = Saml2Authentication(
             DefaultSaml2AuthenticatedPrincipal(admin.user!!.id, emptyMap()),
@@ -86,8 +86,8 @@ class KayttajienYhdistaminenTransactionIT {
     @AfterEach
     fun cleanupCommittedFixture() {
         transactionTemplate.executeWithoutResult {
-            em.find(Arviointityokalu::class.java, tool.id)?.let { em.remove(it) }
-            em.find(VerificationToken::class.java, token.id)?.let { em.remove(it) }
+            em.find(Arviointityokalu::class.java, tool.id)?.let { evaluationTool -> em.remove(evaluationTool) }
+            em.find(VerificationToken::class.java, token.id)?.let { verificationToken -> em.remove(verificationToken) }
             em.flush()
             listOf(source, retained, admin).forEach { account ->
                 em.find(Kayttaja::class.java, account.id)?.let { em.remove(it) }
@@ -112,7 +112,7 @@ class KayttajienYhdistaminenTransactionIT {
             assertThat(em.find(VerificationToken::class.java, token.id)).isNull()
             val saved = em.find(User::class.java, retained.user!!.id)
             assertThat(saved.email).isEqualTo("committed.merge@example.com")
-            assertThat(saved.authorities.map { it.name }).containsExactlyInAnyOrder(ERIKOISTUVA_LAAKARI, KOULUTTAJA)
+            assertThat(saved.authorities.map { authority -> authority.name }).containsExactlyInAnyOrder(ERIKOISTUVA_LAAKARI, KOULUTTAJA)
             assertThat(em.find(Arviointityokalu::class.java, tool.id).kayttaja?.id).isEqualTo(retained.id)
         }
     }
@@ -146,10 +146,10 @@ class KayttajienYhdistaminenTransactionIT {
             assertThat(em.find(Kayttaja::class.java, source.id)).isNotNull
             val savedSource = em.find(User::class.java, source.user!!.id)
             assertThat(savedSource.email).isEqualTo(source.user!!.email)
-            assertThat(savedSource.authorities.map { it.name }).containsExactly(KOULUTTAJA)
+            assertThat(savedSource.authorities.map { authority -> authority.name }).containsExactly(KOULUTTAJA)
             val savedRetained = em.find(User::class.java, retained.user!!.id)
             assertThat(savedRetained.email).isEqualTo(retained.user!!.email)
-            assertThat(savedRetained.authorities.map { it.name }).containsExactly(ERIKOISTUVA_LAAKARI)
+            assertThat(savedRetained.authorities.map { authority -> authority.name }).containsExactly(ERIKOISTUVA_LAAKARI)
             assertThat(em.find(VerificationToken::class.java, token.id).user?.id).isEqualTo(source.user!!.id)
             val savedTool = em.find(Arviointityokalu::class.java, tool.id)
             assertThat(savedTool.kayttaja?.id).isEqualTo(source.id)
