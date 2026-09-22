@@ -221,7 +221,7 @@ class KayttajienYhdistaminenServiceImpl(
             val valiarvioinnit = koejaksonValiarviointiRepository
                 .findAllByLahikouluttajaIdOrLahiesimiesId(toinenKayttaja.id.required(), toinenKayttaja.id.required())
             valiarvioinnit.forEach {
-                if (it.lahikouluttaja.required().id.required().equals(toinenKayttaja.id.required())) {
+                if (it.lahikouluttaja?.id == toinenKayttaja.id) {
                     it.lahikouluttaja = ensimmainenKayttaja
                     log.info(
                         "KoejaksonValiarviointi id {} lahikouluttaja id vaihdettu käyttäjään id:llä {}",
@@ -229,7 +229,7 @@ class KayttajienYhdistaminenServiceImpl(
                         ensimmainenKayttaja.id
                     )
                 }
-                if (it.lahiesimies.required().id.required().equals(toinenKayttaja.id.required())) {
+                if (it.lahiesimies?.id == toinenKayttaja.id) {
                     it.lahiesimies = ensimmainenKayttaja
                     log.info(
                         "KoejaksonValiarviointi id {} lahiesimies id vaihdettu käyttäjään id:llä {}",
@@ -255,7 +255,7 @@ class KayttajienYhdistaminenServiceImpl(
             val loppukeskustelut = koejaksonLoppukeskusteluRepository
                 .findAllByLahikouluttajaIdOrLahiesimiesId(toinenKayttaja.id.required(), toinenKayttaja.id.required())
             loppukeskustelut.forEach {
-                if (it.lahikouluttaja.required().id.required().equals(toinenKayttaja.id.required())) {
+                if (it.lahikouluttaja?.id == toinenKayttaja.id) {
                     it.lahikouluttaja = ensimmainenKayttaja
                     log.info(
                         "KoejaksonLoppukeskustelu id {} lahikouluttaja id vaihdettu käyttäjään id:llä {}",
@@ -263,7 +263,7 @@ class KayttajienYhdistaminenServiceImpl(
                         ensimmainenKayttaja.id
                     )
                 }
-                if (it.lahiesimies.required().id.required().equals(toinenKayttaja.id.required())) {
+                if (it.lahiesimies?.id == toinenKayttaja.id) {
                     it.lahiesimies = ensimmainenKayttaja
                     log.info(
                         "KoejaksonLoppukeskustelu id {} lahiesimies id vaihdettu käyttäjään id:llä {}",
@@ -289,7 +289,7 @@ class KayttajienYhdistaminenServiceImpl(
             val kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetRepository
                 .findAllByLahikouluttajaIdOrLahiesimiesId(toinenKayttaja.id.required(), toinenKayttaja.id.required())
             kehittamistoimenpiteet.forEach {
-                if (it.lahikouluttaja.required().id.required().equals(toinenKayttaja.id.required())) {
+                if (it.lahikouluttaja?.id == toinenKayttaja.id) {
                     it.lahikouluttaja = ensimmainenKayttaja
                     log.info(
                         "KoejaksonKehittamistoimenpiteet id {} lahikouluttaja id vaihdettu käyttäjään id:llä {}",
@@ -297,7 +297,7 @@ class KayttajienYhdistaminenServiceImpl(
                         ensimmainenKayttaja.id
                     )
                 }
-                if (it.lahiesimies.required().id.required().equals(toinenKayttaja.id.required())) {
+                if (it.lahiesimies?.id == toinenKayttaja.id) {
                     it.lahiesimies = ensimmainenKayttaja
                     log.info(
                         "KoejaksonKehittamistoimenpiteet id {} lahiesimies id vaihdettu käyttäjään id:llä {}",
@@ -370,21 +370,41 @@ class KayttajienYhdistaminenServiceImpl(
     private fun kasitteleArvioinninKommentit(
         tilanne: ArrayList<KayttajienYhdistaminenResult>, ensimmainenKayttaja: Kayttaja, toinenKayttaja: Kayttaja
     ) {
-        suoritusarvioinninKommenttiRepository.findAllByKommentoijaId(toinenKayttaja.id.required()).forEach {
-            it.kommentoija = ensimmainenKayttaja
-            suoritusarvioinninKommenttiRepository.save(it)
+        try {
+            suoritusarvioinninKommenttiRepository.findAllByKommentoijaId(toinenKayttaja.id.required()).forEach {
+                it.kommentoija = ensimmainenKayttaja
+                suoritusarvioinninKommenttiRepository.save(it)
+                log.info(
+                    "SuoritusarvioinninKommentti id {} kommentoija id vaihdettu käyttäjään id:llä {}",
+                    it.id,
+                    ensimmainenKayttaja.id
+                )
+            }
+            tilanne.add(KayttajienYhdistaminenResult("SuoritusarvioinninKommentit", true))
+        } catch (e: Exception) {
+            log.error("SuoritusarvioinninKommentit käsittelyssä virhe", e)
+            throw e
         }
-        tilanne.add(KayttajienYhdistaminenResult("SuoritusarvioinninKommentit", true))
     }
 
     private fun kasitteleArviointityokalut(
         tilanne: ArrayList<KayttajienYhdistaminenResult>, ensimmainenKayttaja: Kayttaja, toinenKayttaja: Kayttaja
     ) {
-        arviointityokaluRepository.findAllByKayttajaId(toinenKayttaja.id.required()).forEach {
-            it.kayttaja = ensimmainenKayttaja
-            arviointityokaluRepository.save(it)
+        try {
+            arviointityokaluRepository.findAllByKayttajaId(toinenKayttaja.id.required()).forEach {
+                it.kayttaja = ensimmainenKayttaja
+                arviointityokaluRepository.save(it)
+                log.info(
+                    "Arviointityokalu id {} kayttaja id vaihdettu käyttäjään id:llä {}",
+                    it.id,
+                    ensimmainenKayttaja.id
+                )
+            }
+            tilanne.add(KayttajienYhdistaminenResult("Arviointityokalut", true))
+        } catch (e: Exception) {
+            log.error("Arviointityokalut käsittelyssä virhe", e)
+            throw e
         }
-        tilanne.add(KayttajienYhdistaminenResult("Arviointityokalut", true))
     }
 
     private fun poistaVerificationToken(tilanne: ArrayList<KayttajienYhdistaminenResult>, toinenKayttaja: Kayttaja) {
