@@ -1,6 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.4...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...HEAD)
+
+## [v2.4.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.4...v2.4.0) - 22 September 2026
 
 - ELSAINSI-71 Käyttäjätilien yhdistäminen epäonnistuu, jos kouluttajatili on valittu keskeneräiselle koejaksolomakkeelle [`#732`](https://github.com/elsa-hanke/elsa-backend/pull/732)(22 September 2026)
 - e2e test aloituskeskustelun hyväksyntä [`#735`](https://github.com/elsa-hanke/elsa-backend/pull/735)(22 September 2026)
