@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.4...HEAD)
 
+- ELSAINSI-71 Käyttäjätilien yhdistäminen epäonnistuu, jos kouluttajatili on valittu keskeneräiselle koejaksolomakkeelle [`#732`](https://github.com/elsa-hanke/elsa-backend/pull/732)(22 September 2026)
+- e2e test aloituskeskustelun hyväksyntä [`#735`](https://github.com/elsa-hanke/elsa-backend/pull/735)(22 September 2026)
 - test: add end-to-end tests for koulutussopimuksen vastuuhenkilön hyväksyntä [`#734`](https://github.com/elsa-hanke/elsa-backend/pull/734)(22 September 2026)
 - e2e testi: koulutussopimuksen kouluttajan hyväksyntä [`#733`](https://github.com/elsa-hanke/elsa-backend/pull/733)(21 September 2026)
 - fix: simplify frontend image tag assignment in CI workflow [`#728`](https://github.com/elsa-hanke/elsa-backend/pull/728)(21 September 2026)
