@@ -27,9 +27,12 @@ import fi.elsapalvelu.elsa.repository.seuranta.*
 import fi.elsapalvelu.elsa.repository.valmistuminen.*
 import fi.elsapalvelu.elsa.repository.kayttaja.*
 import fi.elsapalvelu.elsa.repository.perustiedot.*
+import fi.elsapalvelu.elsa.service.AvatarValidationResult
+import fi.elsapalvelu.elsa.service.AvatarValidator
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.kayttaja.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import net.coobird.thumbnailator.Thumbnails
 import net.coobird.thumbnailator.tasks.UnsupportedFormatException
 import org.apache.commons.text.similarity.LevenshteinDistance
@@ -41,7 +44,9 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.*
 import javax.crypto.Cipher
@@ -50,6 +55,7 @@ import javax.crypto.spec.IvParameterSpec
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityNotFoundException
 
+private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 
 @Service
 @Transactional
@@ -66,7 +72,8 @@ class UserServiceImpl(
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
     private val seurantajaksoRepository: SeurantajaksoRepository,
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+    private val avatarValidator: AvatarValidator
 ) : UserService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -136,28 +143,55 @@ class UserServiceImpl(
         user.email = omatTiedotDTO.email
         user.phoneNumber = omatTiedotDTO.phoneNumber
 
-        try {
-            if (omatTiedotDTO.avatarUpdated) {
-                omatTiedotDTO.avatar?.inputStream?.let {
+        if (omatTiedotDTO.avatarUpdated) {
+            val avatar = omatTiedotDTO.avatar
+            if (avatar == null || avatar.isEmpty) {
+                user.avatar = null
+            } else {
+                val bytes = avatar.bytes
+                val validationResult = avatarValidator.validate(bytes, avatar.contentType)
+                if (validationResult != AvatarValidationResult.VALID) {
+                    rejectAvatar(userId, avatar.originalFilename, "hylättiin, syy: $validationResult")
+                }
+
+                try {
                     val outputStream = ByteArrayOutputStream()
-                    Thumbnails.of(it)
+                    Thumbnails.of(ByteArrayInputStream(bytes))
                         .size(256, 256)
                         .outputQuality(0.8)
                         .outputFormat("jpg")
                         .toOutputStream(outputStream)
                     user.avatar = outputStream.toByteArray()
-                    it.close()
-                } ?: run {
-                    user.avatar = null
+                } catch (_: UnsupportedFormatException) {
+                    rejectAvatar(userId, avatar.originalFilename, "ei ole tuettu")
+                } catch (_: IOException) {
+                    rejectAvatar(userId, avatar.originalFilename, "käsittely epäonnistui")
+                } catch (_: OutOfMemoryError) {
+                    rejectAvatar(
+                        userId,
+                        avatar.originalFilename,
+                        "käsittely epäonnistui muistin loppumisen vuoksi"
+                    )
                 }
             }
-        } catch (_: UnsupportedFormatException) {
-            log.debug("Päivitettävä profiilikuva ei ole tuettu")
         }
 
         user = userRepository.save(user)
 
         return UserDTO(user)
+    }
+
+    /**
+     * Logs the reason an uploaded avatar was rejected and throws a [BadRequestAlertException]
+     * with a generic message, avoiding leaking internal validation details to the client.
+     */
+    private fun rejectAvatar(userId: String, originalFilename: String?, reason: String): Nothing {
+        log.warn("Käyttäjä: $userId - Ladattu profiilikuva '$originalFilename' $reason.")
+        throw BadRequestAlertException(
+            "Ladattu profiilikuva ei ole kelvollinen kuvatiedosto.",
+            KAYTTAJA_ENTITY_NAME,
+            "dataillegal.avatar-tiedosto-ei-kelpaa"
+        )
     }
 
     override fun updateEmail(email: String, userId: String) {
