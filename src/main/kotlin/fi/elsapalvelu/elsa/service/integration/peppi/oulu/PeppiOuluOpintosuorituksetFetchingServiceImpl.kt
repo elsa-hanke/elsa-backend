@@ -29,13 +29,18 @@ class PeppiOuluOpintosuorituksetFetchingServiceImpl(
         val response = peppiOuluClientBuilder.apolloClient()
             .query(OpintosuorituksetPeppiOuluQuery(id = hetu))
             .execute()
-            .checkErrors("Opintosuoritustietoja ei saatu haettua Oulun Pepistä", log) { authenticated ->
-                integrationAlertService.updateGraphQlAuthentication(
-                    IntegrationAlertKey.PEPPI_OULU_AUTHENTICATION,
-                    "Oulun Peppi",
-                    authenticated
-                )
-            }
+            .checkErrors("Opintosuoritustietoja ei saatu haettua Oulun Pepistä", log,
+                onAuthenticationResult = { authenticated ->
+                    integrationAlertService.updateGraphQlAuthentication(
+                        IntegrationAlertKey.PEPPI_OULU_AUTHENTICATION,
+                        "Oulun Peppi",
+                        authenticated
+                    )
+                },
+                onInvocationTargetExceptionResult = { isInvocationTargetException ->
+                    recordInvocationTargetExceptionResult(isInvocationTargetException)
+                }
+            )
 
         return response.data?.private_person_by_personal_identity_code?.attainments?.let {
             OpintosuorituksetPersistenceDTO(
@@ -72,4 +77,29 @@ class PeppiOuluOpintosuorituksetFetchingServiceImpl(
             vanhenemispaiva = osakokonaisuus.expiryDate?.tryParseToLocalDate(),
         )
     }
+
+    private fun recordInvocationTargetExceptionResult(isInvocationTargetException: Boolean) {
+        if (isInvocationTargetException) {
+            integrationAlertService.recordConnectivityFailure(
+                IntegrationAlertKey.PEPPI_OULU_INTERNAL_SERVER_ERROR,
+                INVOCATION_TARGET_EXCEPTION_ENDPOINT,
+                "Oulun Peppi opintosuoritusintegraatio palauttaa sisäisiä palvelinvirheitä",
+                "Oulun Peppi on palauttanut GraphQL-virheen " +
+                    "\"$INVOCATION_TARGET_EXCEPTION_ERROR\" " +
+                    "$CONNECTIVITY_FAILURE_COUNT kertaa peräkkäin. " +
+                    "Virhe ei liity yksittäiseen henkilötunnukseen."
+            )
+        } else {
+            integrationAlertService.recordConnectivitySuccess(
+                IntegrationAlertKey.PEPPI_OULU_INTERNAL_SERVER_ERROR,
+                INVOCATION_TARGET_EXCEPTION_ENDPOINT
+            )
+        }
+    }
 }
+
+private const val INVOCATION_TARGET_EXCEPTION_ERROR =
+    "Unexpected Internal Error: java.lang.reflect.InvocationTargetException"
+private const val INVOCATION_TARGET_EXCEPTION_ENDPOINT =
+    "Oulun Peppi GraphQL - private_person_by_personal_identity_code"
+private const val CONNECTIVITY_FAILURE_COUNT = IntegrationAlertService.CONNECTIVITY_FAILURE_ALERT_THRESHOLD

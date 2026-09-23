@@ -68,6 +68,62 @@ class ApolloResponseExtensionsTest {
         verify(log, never()).warn(any<String>())
     }
 
+    @Test
+    fun `InvocationTargetException error is warned, not thrown, and reported via callback`() {
+        val response = responseWithErrors(
+            Error.Builder("Unexpected Internal Error: java.lang.reflect.InvocationTargetException")
+                .path(listOf("private_person_by_personal_identity_code", "dateOfBirth"))
+                .build()
+        )
+        var reportedValue: Boolean? = null
+
+        val result = response.checkErrors(
+            "Opintotietoja ei saatu haettua",
+            log,
+            onInvocationTargetExceptionResult = { reportedValue = it }
+        )
+
+        assertThat(result).isSameAs(response)
+        assertThat(reportedValue).isTrue
+        verify(log).warn(any<String>())
+        verify(log, never()).error(any<String>())
+    }
+
+    @Test
+    fun `No value present error is not reported as an InvocationTargetException`() {
+        val response = responseWithErrors(
+            Error.Builder("Unexpected Internal Error: No value present")
+                .path(listOf("private_person_by_personal_identity_code", "dateOfBirth"))
+                .build()
+        )
+        var reportedValue: Boolean? = null
+
+        val result = response.checkErrors(
+            "Opintotietoja ei saatu haettua",
+            log,
+            onInvocationTargetExceptionResult = { reportedValue = it }
+        )
+
+        assertThat(result).isSameAs(response)
+        assertThat(reportedValue).isFalse
+        verify(log).warn(any<String>())
+        verify(log, never()).error(any<String>())
+    }
+
+    @Test
+    fun `successful response without errors reports InvocationTargetException callback as false`() {
+        val response = ApolloResponse.Builder(OpintotietodataSisuHyQuery("hetu"), uuid4()).build()
+        var reportedValue: Boolean? = null
+
+        response.checkErrors(
+            "Opintotietoja ei saatu haettua",
+            log,
+            onInvocationTargetExceptionResult = { reportedValue = it }
+        )
+
+        assertThat(reportedValue).isFalse
+    }
+
     private fun responseWithErrors(vararg errors: Error) =
         ApolloResponse.Builder(OpintotietodataSisuHyQuery("hetu"), uuid4())
             .errors(errors.toList())
