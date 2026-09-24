@@ -265,6 +265,7 @@
     "dataillegal": {
       "tiedosto-ei-ole-kelvollinen": "Liitetiedostoa ei voitu käsitellä. Tarkista tiedosto. Jos PDF-tiedosto avautuu normaalisti, tallenna se uudelleen PDF-muodossa ja yritä uudelleen.",
       "arvioitavan-kokonaisuuden-voimassaoloa-ei-saa-lyhentaa": "arvioitavan kokonaisuuden voimassaoloa ei saa lyhentää, jos siihen liittyy suoritusarviointeja",
+      "avatar-tiedosto-ei-kelpaa": "Ladattu profiilikuva ei ole kelvollinen kuvatiedosto. Tarkista, että tiedosto on JPEG-, PNG- tai WebP-muotoinen kuva eikä ylitä sallittua kokoa, ja yritä uudelleen.",
       "arvioitavan-kokonaisuuden-voimassaolon-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa": "arvioitavan kokonaisuuden voimassaolon päättymispäivä ei saa olla ennen alkamisaikaa",
       "erikoistuva-on-jo-valtuuttanut-kouluttajan": "erikoistuja on jo valtuuttanut kouluttajan",
       "kaikkia-valmistumispyynnon-tarvitsemia-tietoja-ei-loytynyt": "kaikkia valmistumispyynnön tarvitsemia tietoja ei löytynyt",
