@@ -19,6 +19,7 @@ import fi.elsapalvelu.elsa.service.koulutus.OpintosuoritusService
 import fi.elsapalvelu.elsa.service.koulutus.TeoriakoulutusService
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
@@ -41,25 +42,42 @@ class ValmistumispyynnonYhteenvetoPdfService(
     private val arviointitietoService: ValmistumispyynnonArviointitietoService
 ) {
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
     fun luo(
         tarkistus: ValmistumispyynnonTarkistusDTO,
         valmistumispyynto: Valmistumispyynto
-    ): Asiakirja = tallenna(
-        valmistumispyynto = valmistumispyynto,
-        template = "pdf/valmistumisenyhteenveto.html",
-        tiedostonimenAlku = "valmistumisen_yhteenveto",
-        context = luoContext(tarkistus, valmistumispyynto)
-    )
+    ): Asiakirja {
+        val kontekstinAlku = System.currentTimeMillis()
+        val context = luoContext(tarkistus, valmistumispyynto)
+        log.info(
+            "Yhteenvedon tiedot haettu [kesto=${System.currentTimeMillis() - kontekstinAlku} ms]"
+        )
+        return tallenna(
+            valmistumispyynto = valmistumispyynto,
+            template = "pdf/valmistumisenyhteenveto.html",
+            tiedostonimenAlku = "valmistumisen_yhteenveto",
+            context = context
+        )
+    }
 
     fun luoYek(
         tarkistus: ValmistumispyynnonTarkistusDTO,
         valmistumispyynto: Valmistumispyynto
-    ): Asiakirja = tallenna(
-        valmistumispyynto = valmistumispyynto,
-        template = "pdf/valmistumisenyhteenveto_yek.html",
-        tiedostonimenAlku = "valmistumisen_yhteenveto_yek",
-        context = luoYekContext(tarkistus, valmistumispyynto)
-    )
+    ): Asiakirja {
+        val kontekstinAlku = System.currentTimeMillis()
+        val context = luoYekContext(tarkistus, valmistumispyynto)
+        log.info(
+            "YEK-yhteenvedon tiedot haettu " +
+                "[kesto=${System.currentTimeMillis() - kontekstinAlku} ms]"
+        )
+        return tallenna(
+            valmistumispyynto = valmistumispyynto,
+            template = "pdf/valmistumisenyhteenveto_yek.html",
+            tiedostonimenAlku = "valmistumisen_yhteenveto_yek",
+            context = context
+        )
+    }
 
     private fun luoContext(
         tarkistus: ValmistumispyynnonTarkistusDTO,
@@ -267,8 +285,16 @@ class ValmistumispyynnonYhteenvetoPdfService(
         tiedostonimenAlku: String,
         context: Context
     ): Asiakirja {
+        val renderoinninAlku = System.currentTimeMillis()
         val outputStream = ByteArrayOutputStream()
         pdfService.luoPdf(template, context, outputStream)
+        val data = outputStream.toByteArray()
+        log.info(
+            "Yhteenveto renderoity [koko=${data.size} tavua, " +
+                "kesto=${System.currentTimeMillis() - renderoinninAlku} ms]"
+        )
+
+        val tallennuksenAlku = System.currentTimeMillis()
         val aikaleima = LocalDate.now().format(DateTimeFormatter.ofPattern(PAIVAMAARAFORMAATTI))
         val asiakirja = asiakirjaRepository.save(
             Asiakirja(
@@ -276,11 +302,14 @@ class ValmistumispyynnonYhteenvetoPdfService(
                 nimi = "${tiedostonimenAlku}_${aikaleima}.pdf",
                 tyyppi = MediaType.APPLICATION_PDF_VALUE,
                 lisattypvm = LocalDateTime.now(),
-                asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
+                asiakirjaData = AsiakirjaData(data = data)
             )
         )
         valmistumispyynto.yhteenvetoAsiakirja = asiakirja
         valmistumispyyntoRepository.save(valmistumispyynto)
+        log.info(
+            "Yhteenveto tallennettu [kesto=${System.currentTimeMillis() - tallennuksenAlku} ms]"
+        )
         return asiakirja
     }
 

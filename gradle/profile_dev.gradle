@@ -18,6 +18,15 @@ springBoot {
 bootRun {
     args = []
     jvmArgs = ["--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED", "--add-opens", "java.base/java.lang=ALL-UNNAMED"]
+
+    // Suorituskykymittauksia varten:
+    //   ./gradlew bootRun -PperinteinenYhdistely=true -PbootRunJvmArgs="-Xmx6g"
+    if (project.hasProperty("perinteinenYhdistely")) {
+        jvmArgs += ["-Delsa.pdf.perinteinen-yhdistely=${project.property('perinteinenYhdistely')}".toString()]
+    }
+    if (project.hasProperty("bootRunJvmArgs")) {
+        jvmArgs += project.property("bootRunJvmArgs").toString().split("\\s+").toList()
+    }
 }
 
 

@@ -36,10 +36,28 @@ import java.io.*
 class PdfServiceImpl(
     private val templateEngine: SpringTemplateEngine,
     private val pdfMetrics: PdfGenerationMetricsService,
-    private val pdfContentValidator: PdfContentValidator
+    private val pdfContentValidator: PdfContentValidator,
+    private val resourceRetriever: CachingResourceRetriever
 ) : PdfService {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+    /**
+     * Vain suorituskykymittauksia varten: palauttaa PDF-koosteen vanhaan, neliollisesti
+     * kasvavaan yhdistelyyn. Oletuksena pois paalta.
+     */
+    @Value("\${elsa.pdf.perinteinen-yhdistely:false}")
+    var perinteinenYhdistely: Boolean = false
+
+    /**
+     * iTextin "smart mode": yhdistelyssa samanlaiset objektit (fonttien osajoukot,
+     * varioprofiili, metatiedot) jaetaan sen sijaan etta ne kopioitaisiin jokaisesta
+     * lahdedokumentista erikseen. Pienentaa koosteen noin kahdeksasosaan. Katkaisin on
+     * olemassa vain siksi, etta tilan voi tarvittaessa kytkea pois ilman uutta julkaisua.
+     */
+    @Value("\${elsa.pdf.alykas-yhdistely:true}")
+    var alykasYhdistely: Boolean = true
+
     @Value("classpath:sRGB_CS_profile.icm")
     var colorProfile: Resource? = null
 
@@ -74,6 +92,7 @@ class PdfServiceImpl(
 
             val properties = ConverterProperties()
             properties.fontProvider = provider
+            properties.resourceRetriever = resourceRetriever
 
             HtmlConverter.convertToPdf(content, pdf, properties)
         }
@@ -84,7 +103,7 @@ class PdfServiceImpl(
         outputStream: OutputStream
     ) {
         pdfMetrics.trackOperation(OP_YHDISTA_ASIAKIRJAT) {
-            val result = PdfDocument(PdfWriter(outputStream))
+            val result = PdfDocument(luoKirjoittaja(outputStream))
             val resultDocument = Document(result)
             asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
                 if (!pdfContentValidator.isValid(it.asiakirjaData?.data)) {
@@ -146,7 +165,25 @@ class PdfServiceImpl(
         }
     }
 
+    override fun avaaKooste(ensimmainenDokumentti: ByteArray): PdfKooste {
+        if (perinteinenYhdistely) {
+            log.warn(
+                "PDF-kooste kaytetaan perinteisella, neliollisesti kasvavalla yhdistelylla " +
+                    "(elsa.pdf.perinteinen-yhdistely=true). Tama on tarkoitettu vain mittaamiseen."
+            )
+        }
+        return PdfKooste(ensimmainenDokumentti, pdfMetrics, perinteinenYhdistely, alykasYhdistely)
+    }
+
     private fun sanitizeContent(input: String): String = PdfTextSanitizer.sanitize(input)
+
+    /**
+     * Luo kirjoittajan, joka jakaa samanlaiset objektit lahdedokumenttien valilla, kun
+     * [alykasYhdistely] on paalla.
+     */
+    private fun luoKirjoittaja(outputStream: OutputStream): PdfWriter =
+        if (alykasYhdistely) PdfWriter(outputStream, WriterProperties().useSmartMode())
+        else PdfWriter(outputStream)
 
     private fun invalidPdfAttachmentException(
         asiakirja: Asiakirja,

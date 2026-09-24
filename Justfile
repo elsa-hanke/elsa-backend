@@ -32,7 +32,11 @@ startb: kill8080 start-db
 startb-replica:
   @exec env -u APPLICATION_SECURITY_ENCODED_KEY just --dotenv-path .env.replica _startb-replica
 
-_startb-replica: kill8080
+# Mittausajo: kayttaa vanhaa, neliollisesti kasvavaa PDF-yhdistelya (vain vertailua varten).
+startb-replica-perinteinen:
+  @exec env -u APPLICATION_SECURITY_ENCODED_KEY just --dotenv-path .env.replica _startb-replica "-PperinteinenYhdistely=true -PbootRunJvmArgs=-Xmx6g"
+
+_startb-replica gradle_args="": kill8080
   #!/usr/bin/env sh
   set -eu
 
@@ -47,7 +51,7 @@ _startb-replica: kill8080
 
   export SPRING_PROFILES_ACTIVE=dev,replica
 
-  ./gradlew bootRun
+  ./gradlew bootRun {{gradle_args}}
 
 srt:
   @exec just --dotenv-path .env.replica _start-replica-tunnel
@@ -121,6 +125,15 @@ brr:
   trap 'kill 0' INT TERM EXIT
   just build
   just startb-replica &
+  just startf &
+  wait
+
+brrp:
+  #!/usr/bin/env sh
+  set -eu
+  trap 'kill 0' INT TERM EXIT
+  just build
+  just startb-replica-perinteinen &
   just startf &
   wait
 
