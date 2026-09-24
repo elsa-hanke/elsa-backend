@@ -37,7 +37,7 @@ class PdfServiceImpl(
     private val templateEngine: SpringTemplateEngine,
     private val pdfMetrics: PdfGenerationMetricsService,
     private val pdfContentValidator: PdfContentValidator,
-    private val resourceRetriever: CachingResourceRetriever
+    private val resourceRetriever: PdfCachingResourceRetriever
 ) : PdfService {
 
     private val log = LoggerFactory.getLogger(javaClass)
