@@ -28,13 +28,13 @@ class ValmistumispyynnonSuoritemerkintaPdfService(
     fun lisaa(
         opintooikeusId: Long,
         valmistumispyynto: Valmistumispyynto,
-        kooste: PdfKooste
+        assembler: PdfAssembler
     ) {
         val arviointiasteikko = valmistumispyynto.opintooikeus?.opintoopas?.arviointiasteikko
         val arviointiasteikonTasot = arviointiasteikko?.tasot?.associateBy { it.taso }
         val kategoriat = luoKategoriat(opintooikeusId, valmistumispyynto)
-        lisaaYhteenveto(kategoriat, arviointiasteikko, arviointiasteikonTasot, kooste)
-        lisaaSuoritemerkinnat(kategoriat, arviointiasteikonTasot, kooste)
+        lisaaYhteenveto(kategoriat, arviointiasteikko, arviointiasteikonTasot, assembler)
+        lisaaSuoritemerkinnat(kategoriat, arviointiasteikonTasot, assembler)
     }
 
     private fun luoKategoriat(
@@ -76,7 +76,7 @@ class ValmistumispyynnonSuoritemerkintaPdfService(
         kategoriat: List<SuoritteenKategoriaWithSuoritemerkinnatDTO>,
         arviointiasteikko: Arviointiasteikko?,
         arviointiasteikonTasot: Map<Int?, ArviointiasteikonTaso>?,
-        kooste: PdfKooste
+        assembler: PdfAssembler
     ) {
         val locale = Locale.forLanguageTag("fi")
         val yhteenvetoStream = ByteArrayOutputStream()
@@ -89,13 +89,13 @@ class ValmistumispyynnonSuoritemerkintaPdfService(
             },
             yhteenvetoStream
         )
-        kooste.lisaa(yhteenvetoStream)
+        assembler.add(yhteenvetoStream)
     }
 
     private fun lisaaSuoritemerkinnat(
         kategoriat: List<SuoritteenKategoriaWithSuoritemerkinnatDTO>,
         arviointiasteikonTasot: Map<Int?, ArviointiasteikonTaso>?,
-        kooste: PdfKooste
+        assembler: PdfAssembler
     ) {
         val locale = Locale.forLanguageTag("fi")
         val yhteensa = kategoriat.sumOf { kategoria ->
@@ -124,7 +124,7 @@ class ValmistumispyynnonSuoritemerkintaPdfService(
                     )
                     val yhdistelynAlku = System.currentTimeMillis()
                     renderointiMs += yhdistelynAlku - renderoinninAlku
-                    kooste.lisaa(suoritemerkintaStream)
+                    assembler.add(suoritemerkintaStream)
                     yhdistelyMs += System.currentTimeMillis() - yhdistelynAlku
                     kasitelty++
                     if (kasitelty % EDISTYMISEN_LOKITUSVALI == 0) {
@@ -132,7 +132,7 @@ class ValmistumispyynnonSuoritemerkintaPdfService(
                             "Suoritemerkintoja kasitelty $kasitelty/$yhteensa " +
                                 "[kesto=${System.currentTimeMillis() - aloitettu} ms, " +
                                 "renderointi=$renderointiMs ms, yhdistely=$yhdistelyMs ms, " +
-                                "sivuja=${kooste.sivuja}]"
+                                "sivuja=${assembler.pages}]"
                         )
                     }
                 }

@@ -31,7 +31,7 @@ class ValmistumispyynnonArviointiPdfService(
     fun lisaa(
         opintooikeusId: Long,
         valmistumispyynto: Valmistumispyynto,
-        kooste: PdfKooste
+        assembler: PdfAssembler
     ) {
         val arviointiasteikko = valmistumispyynto.opintooikeus?.opintoopas?.arviointiasteikko
         val arviointiasteikonTasot = arviointiasteikko?.tasot?.associateBy { it.taso }
@@ -49,7 +49,7 @@ class ValmistumispyynnonArviointiPdfService(
             },
             yhteenvetoStream
         )
-        kooste.lisaa(yhteenvetoStream)
+        assembler.add(yhteenvetoStream)
 
         val arvioinnit = suoritusarviointiRepository
             .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
@@ -66,18 +66,18 @@ class ValmistumispyynnonArviointiPdfService(
                     },
                     arviointiStream
                 )
-                kooste.lisaa(arviointiStream)
+                assembler.add(arviointiStream)
 
                 yhdistaPdfAsiakirjat(
                     arviointi.arviointiAsiakirjat,
-                    kooste,
+                    assembler,
                     "Arviointiasiakirja",
                     InvalidPdfAttachmentSource.ARVIOINTI,
                     arviointi.tapahtumanAjankohta
                 )
                 yhdistaPdfAsiakirjat(
                     arviointi.itsearviointiAsiakirjat,
-                    kooste,
+                    assembler,
                     "Itsearviointiasiakirja",
                     InvalidPdfAttachmentSource.ITSEARVIOINTI,
                     arviointi.tapahtumanAjankohta
@@ -106,7 +106,7 @@ class ValmistumispyynnonArviointiPdfService(
 
     private fun yhdistaPdfAsiakirjat(
         asiakirjat: Collection<Asiakirja>,
-        kooste: PdfKooste,
+        assembler: PdfAssembler,
         label: String,
         source: InvalidPdfAttachmentSource,
         attachmentDate: LocalDate?
@@ -129,7 +129,7 @@ class ValmistumispyynnonArviointiPdfService(
                 )
             }
             try {
-                kooste.lisaa(data)
+                assembler.add(data)
             } catch (e: Exception) {
                 throw InvalidPdfAttachmentException(
                     attachmentId = asiakirja.id,

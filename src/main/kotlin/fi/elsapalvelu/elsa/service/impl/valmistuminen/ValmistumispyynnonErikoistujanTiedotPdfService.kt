@@ -44,17 +44,17 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
         val opintooikeusId = opintooikeus.id.required()
         val aloitettu = System.currentTimeMillis()
 
-        val data = luoKooste(opintooikeusId, valmistumispyynto).use { kooste ->
-            arviointiPdfService.lisaa(opintooikeusId, valmistumispyynto, kooste)
-            suoritemerkintaPdfService.lisaa(opintooikeusId, valmistumispyynto, kooste)
-            lisaaPaivakirjamerkinnat(opintooikeusId, kooste)
-            lisaaSeurantajaksot(opintooikeusId, valmistumispyynto, kooste)
+        val data = luoKooste(opintooikeusId, valmistumispyynto).use { assembler ->
+            arviointiPdfService.lisaa(opintooikeusId, valmistumispyynto, assembler)
+            suoritemerkintaPdfService.lisaa(opintooikeusId, valmistumispyynto, assembler)
+            lisaaPaivakirjamerkinnat(opintooikeusId, assembler)
+            lisaaSeurantajaksot(opintooikeusId, valmistumispyynto, assembler)
             log.info(
                 "Erikoistujan tiedot koottu [opintooikeusId=$opintooikeusId, " +
-                    "sivuja=${kooste.sivuja}, kesto=${System.currentTimeMillis() - aloitettu} ms]"
+                    "sivuja=${assembler.pages}, kesto=${System.currentTimeMillis() - aloitettu} ms]"
             )
             val kirjoituksenAlku = System.currentTimeMillis()
-            val tavut = kooste.valmis()
+            val tavut = assembler.finish()
             log.info(
                 "Erikoistujan tiedot kirjoitettu [opintooikeusId=$opintooikeusId, " +
                     "koko=${tavut.size / MIB} MiB, " +
@@ -86,7 +86,7 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
     private fun luoKooste(
         opintooikeusId: Long,
         @Suppress("UNUSED_PARAMETER") valmistumispyynto: Valmistumispyynto
-    ): PdfKooste {
+    ): PdfAssembler {
         val koulutussuunnitelma =
             koulutussuunnitelmaRepository.findOneByOpintooikeusId(opintooikeusId)
         val koulutussuunnitelmaStream = ByteArrayOutputStream()
@@ -97,16 +97,16 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
             },
             koulutussuunnitelmaStream
         )
-        val kooste = pdfService.avaaKooste(koulutussuunnitelmaStream.toByteArray())
+        val assembler = pdfService.openAssembler(koulutussuunnitelmaStream.toByteArray())
 
-        val motivaatiokirje = koulutussuunnitelma?.motivaatiokirjeAsiakirja ?: return kooste
+        val motivaatiokirje = koulutussuunnitelma?.motivaatiokirjeAsiakirja ?: return assembler
         val data = motivaatiokirje.asiakirjaData?.data
         if (
             motivaatiokirje.tyyppi != MediaType.APPLICATION_PDF_VALUE ||
             data == null ||
             !pdfContentValidator.isValid(data)
         ) {
-            kooste.close()
+            assembler.close()
             throw InvalidPdfAttachmentException(
                 attachmentId = motivaatiokirje.id,
                 attachmentName = motivaatiokirje.nimi,
@@ -114,9 +114,9 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
             )
         }
         try {
-            kooste.lisaa(data)
+            assembler.add(data)
         } catch (e: Exception) {
-            kooste.close()
+            assembler.close()
             throw InvalidPdfAttachmentException(
                 attachmentId = motivaatiokirje.id,
                 attachmentName = motivaatiokirje.nimi,
@@ -124,12 +124,12 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
                 cause = e
             )
         }
-        return kooste
+        return assembler
     }
 
     private fun lisaaPaivakirjamerkinnat(
         opintooikeusId: Long,
-        kooste: PdfKooste
+        assembler: PdfAssembler
     ) {
         val paivakirjamerkinnat =
             paivakirjamerkintaRepository.findAllByOpintooikeusId(opintooikeusId)
@@ -141,13 +141,13 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
             },
             paivakirjamerkinnatStream
         )
-        kooste.lisaa(paivakirjamerkinnatStream)
+        assembler.add(paivakirjamerkinnatStream)
     }
 
     private fun lisaaSeurantajaksot(
         opintooikeusId: Long,
         valmistumispyynto: Valmistumispyynto,
-        kooste: PdfKooste
+        assembler: PdfAssembler
     ) {
         val arviointiasteikko = valmistumispyynto.opintooikeus?.opintoopas?.arviointiasteikko
         val arviointiasteikonTasot = arviointiasteikko?.tasot?.associateBy { it.taso }
@@ -170,7 +170,7 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
                 },
                 seurantajaksoStream
             )
-            kooste.lisaa(seurantajaksoStream)
+            assembler.add(seurantajaksoStream)
         }
     }
 
