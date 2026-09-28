@@ -6,27 +6,12 @@ import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.config.LoginException
-import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.koejakso.*
-import fi.elsapalvelu.elsa.domain.tyoskentely.*
-import fi.elsapalvelu.elsa.domain.arviointi.*
-import fi.elsapalvelu.elsa.domain.suoritteet.*
-import fi.elsapalvelu.elsa.domain.koulutus.*
-import fi.elsapalvelu.elsa.domain.seuranta.*
-import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
-import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
-import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.repository.koejakso.*
-import fi.elsapalvelu.elsa.repository.tyoskentely.*
 import fi.elsapalvelu.elsa.repository.arviointi.*
-import fi.elsapalvelu.elsa.repository.suoritteet.*
-import fi.elsapalvelu.elsa.repository.koulutus.*
 import fi.elsapalvelu.elsa.repository.seuranta.*
-import fi.elsapalvelu.elsa.repository.valmistuminen.*
 import fi.elsapalvelu.elsa.repository.kayttaja.*
-import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.service.AvatarValidationResult
 import fi.elsapalvelu.elsa.service.AvatarValidator
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
@@ -143,42 +128,51 @@ class UserServiceImpl(
         user.email = omatTiedotDTO.email
         user.phoneNumber = omatTiedotDTO.phoneNumber
 
-        if (omatTiedotDTO.avatarUpdated) {
-            val avatar = omatTiedotDTO.avatar
-            if (avatar == null || avatar.isEmpty) {
-                user.avatar = null
-            } else {
-                val bytes = avatar.bytes
-                val validationResult = avatarValidator.validate(bytes, avatar.contentType)
-                if (validationResult != AvatarValidationResult.VALID) {
-                    rejectAvatar(userId, avatar.originalFilename, "hylättiin, syy: $validationResult")
-                }
-
-                try {
-                    val outputStream = ByteArrayOutputStream()
-                    Thumbnails.of(ByteArrayInputStream(bytes))
-                        .size(256, 256)
-                        .outputQuality(0.8)
-                        .outputFormat("jpg")
-                        .toOutputStream(outputStream)
-                    user.avatar = outputStream.toByteArray()
-                } catch (_: UnsupportedFormatException) {
-                    rejectAvatar(userId, avatar.originalFilename, "ei ole tuettu")
-                } catch (_: IOException) {
-                    rejectAvatar(userId, avatar.originalFilename, "käsittely epäonnistui")
-                } catch (_: OutOfMemoryError) {
-                    rejectAvatar(
-                        userId,
-                        avatar.originalFilename,
-                        "käsittely epäonnistui muistin loppumisen vuoksi"
-                    )
-                }
-            }
-        }
+        updateAvatar(user, omatTiedotDTO, userId)
 
         user = userRepository.save(user)
 
         return UserDTO(user)
+    }
+
+    private fun updateAvatar(user: User, omatTiedotDTO: OmatTiedotDTO, userId: String) {
+        if (!omatTiedotDTO.avatarUpdated) return
+
+        val avatar = omatTiedotDTO.avatar
+        if (avatar == null || avatar.isEmpty) {
+            user.avatar = null
+            return
+        }
+
+        user.avatar = convertAvatar(avatar.bytes, avatar.contentType, avatar.originalFilename, userId)
+    }
+
+    private fun convertAvatar(
+        bytes: ByteArray,
+        contentType: String?,
+        originalFilename: String?,
+        userId: String
+    ): ByteArray {
+        val validationResult = avatarValidator.validate(bytes, contentType)
+        if (validationResult != AvatarValidationResult.VALID) {
+            rejectAvatar(userId, originalFilename, "hylättiin, syy: $validationResult")
+        }
+
+        return try {
+            val outputStream = ByteArrayOutputStream()
+            Thumbnails.of(ByteArrayInputStream(bytes))
+                .size(256, 256)
+                .outputQuality(0.8)
+                .outputFormat("jpg")
+                .toOutputStream(outputStream)
+            outputStream.toByteArray()
+        } catch (_: UnsupportedFormatException) {
+            rejectAvatar(userId, originalFilename, "ei ole tuettu")
+        } catch (_: IOException) {
+            rejectAvatar(userId, originalFilename, "käsittely epäonnistui")
+        } catch (_: OutOfMemoryError) {
+            rejectAvatar(userId, originalFilename, "käsittely epäonnistui muistin loppumisen vuoksi")
+        }
     }
 
     /**
