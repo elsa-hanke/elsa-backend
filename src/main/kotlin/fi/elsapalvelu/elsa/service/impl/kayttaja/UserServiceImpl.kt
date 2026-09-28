@@ -42,6 +42,43 @@ import jakarta.persistence.EntityNotFoundException
 
 private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 
+private fun updateAvatar(
+    user: User,
+    omatTiedotDTO: OmatTiedotDTO,
+    avatarValidator: AvatarValidator,
+    rejectAvatar: (String?, String) -> Nothing
+) {
+    if (!omatTiedotDTO.avatarUpdated) return
+
+    val avatar = omatTiedotDTO.avatar
+    if (avatar == null || avatar.isEmpty) {
+        user.avatar = null
+        return
+    }
+
+    val bytes = avatar.bytes
+    val validationResult = avatarValidator.validate(bytes, avatar.contentType)
+    if (validationResult != AvatarValidationResult.VALID) {
+        rejectAvatar(avatar.originalFilename, "hylättiin, syy: $validationResult")
+    }
+
+    user.avatar = try {
+        val outputStream = ByteArrayOutputStream()
+        Thumbnails.of(ByteArrayInputStream(bytes))
+            .size(256, 256)
+            .outputQuality(0.8)
+            .outputFormat("jpg")
+            .toOutputStream(outputStream)
+        outputStream.toByteArray()
+    } catch (_: UnsupportedFormatException) {
+        rejectAvatar(avatar.originalFilename, "ei ole tuettu")
+    } catch (_: IOException) {
+        rejectAvatar(avatar.originalFilename, "käsittely epäonnistui")
+    } catch (_: OutOfMemoryError) {
+        rejectAvatar(avatar.originalFilename, "käsittely epäonnistui muistin loppumisen vuoksi")
+    }
+}
+
 @Service
 @Transactional
 class UserServiceImpl(
@@ -128,51 +165,13 @@ class UserServiceImpl(
         user.email = omatTiedotDTO.email
         user.phoneNumber = omatTiedotDTO.phoneNumber
 
-        updateAvatar(user, omatTiedotDTO, userId)
+        updateAvatar(user, omatTiedotDTO, avatarValidator) { originalFilename, reason ->
+            rejectAvatar(userId, originalFilename, reason)
+        }
 
         user = userRepository.save(user)
 
         return UserDTO(user)
-    }
-
-    private fun updateAvatar(user: User, omatTiedotDTO: OmatTiedotDTO, userId: String) {
-        if (!omatTiedotDTO.avatarUpdated) return
-
-        val avatar = omatTiedotDTO.avatar
-        if (avatar == null || avatar.isEmpty) {
-            user.avatar = null
-            return
-        }
-
-        user.avatar = convertAvatar(avatar.bytes, avatar.contentType, avatar.originalFilename, userId)
-    }
-
-    private fun convertAvatar(
-        bytes: ByteArray,
-        contentType: String?,
-        originalFilename: String?,
-        userId: String
-    ): ByteArray {
-        val validationResult = avatarValidator.validate(bytes, contentType)
-        if (validationResult != AvatarValidationResult.VALID) {
-            rejectAvatar(userId, originalFilename, "hylättiin, syy: $validationResult")
-        }
-
-        return try {
-            val outputStream = ByteArrayOutputStream()
-            Thumbnails.of(ByteArrayInputStream(bytes))
-                .size(256, 256)
-                .outputQuality(0.8)
-                .outputFormat("jpg")
-                .toOutputStream(outputStream)
-            outputStream.toByteArray()
-        } catch (_: UnsupportedFormatException) {
-            rejectAvatar(userId, originalFilename, "ei ole tuettu")
-        } catch (_: IOException) {
-            rejectAvatar(userId, originalFilename, "käsittely epäonnistui")
-        } catch (_: OutOfMemoryError) {
-            rejectAvatar(userId, originalFilename, "käsittely epäonnistui muistin loppumisen vuoksi")
-        }
     }
 
     /**
