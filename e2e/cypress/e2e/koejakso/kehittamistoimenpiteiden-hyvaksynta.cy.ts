@@ -100,10 +100,11 @@ describe('Kehittämistoimenpiteiden arviointi kouluttajan ja lähiesihenkilön k
     })
   }
 
-  const avaaArvioijanLomake = () => {
-    cy.intercept('GET', `**${API}/${lomake.id}`).as('haeKehittamistoimenpiteet')
+  const avaaArvioijanLomake = (alias: string) => {
+    // Each visit needs its own alias so a wait cannot consume an earlier approval state.
+    cy.intercept({ method: 'GET', url: `**${API}/${lomake.id}`, times: 1 }).as(alias)
     cy.visit(`/koejakso/kehittamistoimenpiteet/${lomake.id}`)
-    return cy.wait('@haeKehittamistoimenpiteet').then(({ response }) => {
+    return cy.wait(`@${alias}`).then(({ response }) => {
       expect(response?.statusCode).to.eq(200)
       // These fields are enriched from the midterm assessment on GET, not on POST/PUT.
       expect(response?.body.kehittamistoimenpiteetKuvaus).to.eq(TOIMENPITEET)
@@ -245,7 +246,9 @@ describe('Kehittämistoimenpiteiden arviointi kouluttajan ja lähiesihenkilön k
       cy.intercept('PUT', `**${API}`, (request) => {
         hyvaksyntapyynto(request.body)
       }).as('hyvaksyKehittamistoimenpiteet')
-      avaaArvioijanLomake().then((tallennettu) => tarkistaTallennus(tallennettu, null, null, null))
+      avaaArvioijanLomake('kouluttajanArvioEnnenHyvaksyntaa').then((tallennettu) =>
+        tarkistaTallennus(tallennettu, null, null, null)
+      )
       tarkistaTaustatNakyvissa()
 
       hyvaksyPainike().click()
@@ -277,7 +280,7 @@ describe('Kehittämistoimenpiteiden arviointi kouluttajan ja lähiesihenkilön k
       })
       cy.get('@hyvaksyntapyynto').should('have.been.calledOnce')
       cy.location('pathname').should('eq', '/koejakso')
-      avaaArvioijanLomake().then((tallennettu) => {
+      avaaArvioijanLomake('kouluttajanArvioHyvaksynnanJalkeen').then((tallennettu) => {
         tarkistaTallennus(tallennettu, riittavat, kouluttajanKuittausaika, null)
       })
       tarkistaTaustatNakyvissa()
@@ -301,7 +304,7 @@ describe('Kehittämistoimenpiteiden arviointi kouluttajan ja lähiesihenkilön k
       loppukeskustelunLinkki().should('be.visible').and('have.attr', 'aria-disabled', 'true')
 
       cy.loginAsEsihenkilo(esihenkiloToken)
-      avaaArvioijanLomake().then((tallennettu) => {
+      avaaArvioijanLomake('esihenkilonArvioEnnenHyvaksyntaa').then((tallennettu) => {
         tarkistaTallennus(tallennettu, riittavat, kouluttajanKuittausaika, null)
       })
       tarkistaTaustatNakyvissa()
@@ -332,7 +335,7 @@ describe('Kehittämistoimenpiteiden arviointi kouluttajan ja lähiesihenkilön k
       })
       cy.get('@hyvaksyntapyynto').should('have.been.calledTwice')
       cy.location('pathname').should('eq', '/koejakso')
-      avaaArvioijanLomake().then((tallennettu) => {
+      avaaArvioijanLomake('esihenkilonArvioHyvaksynnanJalkeen').then((tallennettu) => {
         tarkistaTallennus(tallennettu, riittavat, kouluttajanKuittausaika, esihenkilonKuittausaika)
       })
       cy.get(SIVU).contains('.alert-success', HYVAKSYTTY_TEKSTI).should('be.visible')
