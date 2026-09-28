@@ -47,7 +47,8 @@ const yhteenvetoEditor = () =>
     .should('be.visible')
     .its('0.contentDocument.body')
     .should('not.be.empty')
-    .then((body) => cy.wrap(body))
+    // cy.wrap keeps a raw iframe body as a DOM element; paragraph checks need jQuery.
+    .then((body: HTMLBodyElement) => cy.wrap(Cypress.$(body)))
 
 const tarkistaYhteenvedonKappaleet = (elementti: JQuery<HTMLElement>) => {
   const kappaleet = elementti
