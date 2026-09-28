@@ -379,7 +379,7 @@ class UserServiceImpl(
             }
         }
     }
-//muutos
+
     private fun deleteTokenUser(
         tokenKayttaja: Kayttaja,
         token: VerificationToken,
