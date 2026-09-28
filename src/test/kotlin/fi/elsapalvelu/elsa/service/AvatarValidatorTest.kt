@@ -78,6 +78,22 @@ class AvatarValidatorTest {
         assertThat(validator.validate(bytes, "image/png")).isEqualTo(AvatarValidationResult.VALID)
     }
 
+    @Test
+    fun `rejects a real large PNG file whose dimensions exceed the maximum`() {
+        val bytes = resource("/test_large_one_black_pixel.png")
+        assertThat(validator.validate(bytes, "image/png")).isEqualTo(AvatarValidationResult.TOO_LARGE_DIMENSIONS)
+    }
+
+    @Test
+    fun `rejects a real large JPEG file whose dimensions exceed the maximum`() {
+        val bytes = resource("/test_large_one_black_pixel.jpg")
+        assertThat(validator.validate(bytes, "image/jpeg")).isEqualTo(AvatarValidationResult.TOO_LARGE_DIMENSIONS)
+    }
+
+    private fun resource(path: String): ByteArray =
+        requireNotNull(javaClass.getResourceAsStream(path)) { "Missing test resource $path" }
+            .use { it.readBytes() }
+
     private fun image(width: Int, height: Int, format: String): ByteArray {
         val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
         val output = ByteArrayOutputStream()
