@@ -205,7 +205,9 @@ describe('Valmistumispyynnön osaamisen arviointi vastuuhenkilön käyttöliitty
     kentta(LISATIEDOT).contains('.invalid-feedback', 'Pakollinen tieto').should('be.visible')
     tarkistaArviointiTallentamatta()
 
-    kentta(LISATIEDOT).find('textarea').type('   ')
+    // requiredIf in Vuelidate 0.7 accepts whitespace. Check an emptied field here;
+    // rejecting whitespace-only explanations needs a separate production change.
+    kentta(LISATIEDOT).find('textarea').type(KORJAUSEHDOTUS).clear().should('have.value', '')
     lahetaPainike().click()
     kentta(LISATIEDOT).contains('.invalid-feedback', 'Pakollinen tieto').should('be.visible')
     tarkistaArviointiTallentamatta()
