@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...HEAD)
 
+- e2e testi: seurantajakson kouluttajan arviointi [`#745`](https://github.com/elsa-hanke/elsa-backend/pull/745)(29 September 2026)
+- e2e testi: koejakson virkailijan tarkistus [`#743`](https://github.com/elsa-hanke/elsa-backend/pull/743)(28 September 2026)
+- e2e testi: kehittämistoimenpiteiden hyvaksyntä [`#740`](https://github.com/elsa-hanke/elsa-backend/pull/740)(28 September 2026)
+
 ## [v2.4.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.4...v2.4.0) - 22 September 2026
 
 - ELSAINSI-71 Käyttäjätilien yhdistäminen epäonnistuu, jos kouluttajatili on valittu keskeneräiselle koejaksolomakkeelle [`#732`](https://github.com/elsa-hanke/elsa-backend/pull/732)(22 September 2026)
