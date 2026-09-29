@@ -158,12 +158,67 @@ class KayttajaResourceIT {
                 .param("avatarUpdated", "true")
                 .with { it.method = "PUT"; it }
                 .with(csrf())
-        ).andExpect(status().isOk)
+        ).andExpect(status().isBadRequest)
 
-        val updatedUser = userRepository.findOneByEmail(UPDATED_EMAIL).get()
-        assertThat(updatedUser.email).isEqualTo(UPDATED_EMAIL)
-        assertThat(updatedUser.phoneNumber).isEqualTo(UPDATED_PHONE_NUMBER)
-        assertThat(updatedUser.avatar).isNotEmpty
+        val notUpdatedUser = userRepository.findById(user.id!!).get()
+        assertThat(notUpdatedUser.avatar).isEqualTo(DEFAULT_AVATAR)
+    }
+
+    @Test
+    @Transactional
+    fun testUserDetailsUpdateWithDisallowedAvatarContentType() {
+        initTest()
+
+        val imageBaos = ByteArrayOutputStream()
+        ImageIO.write(
+            BufferedImage(256, 256, BufferedImage.TYPE_INT_RGB), "png", imageBaos
+        )
+
+        restKayttajaMockMvc.perform(
+            multipart("/api/kayttaja")
+                .file(
+                    MockMultipartFile(
+                        "avatar",
+                        "avatar.gif",
+                        "image/gif",
+                        imageBaos.toByteArray()
+                    )
+                )
+                .param("email", UPDATED_EMAIL)
+                .param("phoneNumber", UPDATED_PHONE_NUMBER)
+                .param("avatarUpdated", "true")
+                .with { it.method = "PUT"; it }
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val notUpdatedUser = userRepository.findById(user.id!!).get()
+        assertThat(notUpdatedUser.avatar).isEqualTo(DEFAULT_AVATAR)
+    }
+
+    @Test
+    @Transactional
+    fun testUserDetailsUpdateWithDecompressionBombAvatarIsRejected() {
+        initTest()
+
+        restKayttajaMockMvc.perform(
+            multipart("/api/kayttaja")
+                .file(
+                    MockMultipartFile(
+                        "avatar",
+                        "avatar.png",
+                        "image/png",
+                        pngDecompressionBomb(width = 50_000, height = 50_000)
+                    )
+                )
+                .param("email", UPDATED_EMAIL)
+                .param("phoneNumber", UPDATED_PHONE_NUMBER)
+                .param("avatarUpdated", "true")
+                .with { it.method = "PUT"; it }
+                .with(csrf())
+        ).andExpect(status().isBadRequest)
+
+        val notUpdatedUser = userRepository.findById(user.id!!).get()
+        assertThat(notUpdatedUser.avatar).isEqualTo(DEFAULT_AVATAR)
     }
 
     @Test
@@ -442,6 +497,48 @@ class KayttajaResourceIT {
             authorities
         )
         TestSecurityContextHolder.getContext().authentication = authentication
+    }
+
+    /**
+     * Builds a real, tiny, valid PNG (small pixel payload) but patches the IHDR chunk to
+     * declare the given (potentially huge) width/height, recalculating the chunk's CRC.
+     * This mimics a decompression-bomb file: cheap to transmit/store, but claiming an
+     * enormous decoded size, which the endpoint must reject before any image decoding.
+     */
+    private fun pngDecompressionBomb(width: Int, height: Int): ByteArray {
+        val imageBaos = ByteArrayOutputStream()
+        ImageIO.write(BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB), "png", imageBaos)
+        val original = imageBaos.toByteArray()
+
+        // PNG layout: 8-byte signature, then chunks of [length(4)][type(4)][data(length)][crc(4)].
+        // The IHDR chunk is always first and its data begins with width(4) then height(4).
+        val ihdrDataStart = 8 + 4 + 4
+        val patched = original.copyOf()
+
+        writeIntBigEndian(patched, ihdrDataStart, width)
+        writeIntBigEndian(patched, ihdrDataStart + 4, height)
+
+        val ihdrLength = readIntBigEndian(patched, 8)
+        val crc = java.util.zip.CRC32()
+        // CRC covers chunk type + chunk data (not the length field).
+        crc.update(patched, 12, 4 + ihdrLength)
+        writeIntBigEndian(patched, 8 + 4 + 4 + ihdrLength, crc.value.toInt())
+
+        return patched
+    }
+
+    private fun writeIntBigEndian(bytes: ByteArray, offset: Int, value: Int) {
+        bytes[offset] = (value ushr 24).toByte()
+        bytes[offset + 1] = (value ushr 16).toByte()
+        bytes[offset + 2] = (value ushr 8).toByte()
+        bytes[offset + 3] = value.toByte()
+    }
+
+    private fun readIntBigEndian(bytes: ByteArray, offset: Int): Int {
+        return ((bytes[offset].toInt() and 0xFF) shl 24) or
+            ((bytes[offset + 1].toInt() and 0xFF) shl 16) or
+            ((bytes[offset + 2].toInt() and 0xFF) shl 8) or
+            (bytes[offset + 3].toInt() and 0xFF)
     }
 
     companion object {
