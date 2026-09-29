@@ -1,11 +1,15 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.service.impl.kayttaja.AsiakirjaServiceImpl
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper.ASIAKIRJA_PDF_DATA
@@ -17,6 +21,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -298,15 +303,84 @@ class ErikoistuvaLaakariAsiakirjaResourceIT {
         asiakirjaRepository.saveAndFlush(asiakirja)
 
         val databaseSizeBeforeDelete = asiakirjaRepository.findAll().size
+        val asiakirjaId = asiakirja.id!!
+        val asiakirjaDataId = asiakirja.asiakirjaData?.id!!
 
         restAsiakirjaMockMvc.perform(
-            delete("/api/erikoistuva-laakari/asiakirjat/{id}", asiakirja.id)
+            delete("/api/erikoistuva-laakari/asiakirjat/{id}", asiakirjaId)
                 .accept(MediaType.APPLICATION_JSON)
                 .with(csrf())
         ).andExpect(status().isNoContent)
 
+        em.flush()
+        em.clear()
+
         val asiakirjaList = asiakirjaRepository.findAll()
         assertThat(asiakirjaList).hasSize(databaseSizeBeforeDelete - 1)
+
+        val asiakirjaRowCount = em.createNativeQuery(
+            "select count(*) from asiakirja where id = :id"
+        ).setParameter("id", asiakirjaId).singleResult as Number
+        assertThat(asiakirjaRowCount.toLong()).isZero()
+
+        val dataRowCount = em.createNativeQuery(
+            "select count(*) from asiakirja_data where id = :id"
+        ).setParameter("id", asiakirjaDataId).singleResult as Number
+        assertThat(dataRowCount.toLong()).isZero()
+    }
+
+    @Test
+    @Transactional
+    fun internallySoftDeletedAsiakirjaIsRetainedButHiddenAndRequestedDownloadIsLogged() {
+        initTest()
+        asiakirjaRepository.saveAndFlush(asiakirja)
+
+        val asiakirjaId = asiakirja.id!!
+        val asiakirjaDataId = asiakirja.asiakirjaData?.id!!
+        val serviceLogger = LoggerFactory.getLogger(AsiakirjaServiceImpl::class.java)
+            as ch.qos.logback.classic.Logger
+        val logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        serviceLogger.addAppender(logAppender)
+
+        try {
+            em.createNativeQuery(
+                "update asiakirja set poistettu = true where id = :id"
+            ).setParameter("id", asiakirjaId).executeUpdate()
+
+            em.flush()
+            em.clear()
+
+            val poistettu = em.createNativeQuery(
+                "select poistettu from asiakirja where id = :id"
+            ).setParameter("id", asiakirjaId).singleResult
+            assertThat(poistettu).isEqualTo(true)
+
+            val dataRowCount = em.createNativeQuery(
+                "select count(*) from asiakirja_data where id = :id"
+            ).setParameter("id", asiakirjaDataId).singleResult as Number
+            assertThat(dataRowCount.toLong()).isEqualTo(1)
+
+            assertThat(asiakirjaRepository.findById(asiakirjaId)).isEmpty
+
+            restAsiakirjaMockMvc.perform(get("/api/erikoistuva-laakari/asiakirjat"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$").value(Matchers.hasSize<Any>(0)))
+
+            restAsiakirjaMockMvc.perform(
+                get("/api/erikoistuva-laakari/asiakirjat/{id}", asiakirjaId)
+            ).andExpect(status().isNotFound)
+
+            assertThat(logAppender.list)
+                .anySatisfy { event ->
+                    assertThat(event.level).isEqualTo(Level.WARN)
+                    assertThat(event.formattedMessage)
+                        .contains(asiakirjaId.toString())
+                        .contains("merkitty poistetuksi")
+                }
+        } finally {
+            serviceLogger.detachAppender(logAppender)
+            logAppender.stop()
+        }
     }
 
     @Test

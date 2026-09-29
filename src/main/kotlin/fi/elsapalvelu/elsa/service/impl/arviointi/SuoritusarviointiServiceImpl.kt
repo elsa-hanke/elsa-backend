@@ -18,6 +18,7 @@ import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
+import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.service.arviointi.SuoritusarviointiService
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
@@ -47,6 +48,7 @@ class SuoritusarviointiServiceImpl(
     private val arviointityokaluRepository: ArviointityokaluRepository,
     private val mailService: MailService,
     private val asiakirjaRepository: AsiakirjaRepository,
+    private val asiakirjaService: AsiakirjaService,
     private val asiakirjaMapper: AsiakirjaMapper,
     private val arviointityokaluKysymysRepository: ArviointityokaluKysymysRepository,
     private val arviointityokaluKysymysVaihtoehtoRepository: ArviointityokaluKysymysVaihtoehtoRepository,
@@ -304,6 +306,7 @@ class SuoritusarviointiServiceImpl(
                 asiakirjaData = AsiakirjaDataDTO(fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data))
             )
         }
+        asiakirjaService.warnIfDeleted(asiakirjaId)
         return null
     }
 
@@ -334,6 +337,7 @@ class SuoritusarviointiServiceImpl(
                 asiakirjaData = AsiakirjaDataDTO(fileInputStream = ByteArrayInputStream(it.asiakirjaData?.data))
             )
         }
+        asiakirjaService.warnIfDeleted(asiakirjaId)
         return null
     }
 
