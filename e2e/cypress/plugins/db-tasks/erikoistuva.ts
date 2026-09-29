@@ -266,6 +266,17 @@ async function deleteErikoistuvaLaakari(client: Client, ids: UserIds): Promise<v
  *                         käyttö" screen is always shown on the next login.
  */
 export const erikoistuvaLaakariTasks = {
+  // Reset graduation requests without invalidating the resident's cached login
+  // or removing the approved trial period needed by the next test case.
+  async 'db:cleanupValmistumispyynto'({ email }: { email: string }): Promise<null> {
+    return withDb(dbClient, async (client: Client) => {
+      const ids = await fetchUserIds(client, email)
+      if (!ids?.el_id) return null
+      await deleteValmistumispyyntoRows(client, ids.el_id)
+      return null
+    })
+  },
+
   async 'db:cleanupErikoistuva'({ email }: { email: string }): Promise<null> {
     return withDb(dbClient, async (client: any) => {
       const ids = await fetchUserIds(client, email)
