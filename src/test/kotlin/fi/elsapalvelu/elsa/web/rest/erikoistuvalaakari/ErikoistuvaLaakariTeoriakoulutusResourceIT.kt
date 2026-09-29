@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
@@ -7,6 +8,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.mapper.koulutus.TeoriakoulutusMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -33,6 +35,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
@@ -61,6 +64,9 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
 
     @Autowired
     private lateinit var restTeoriakoulutusMockMvc: MockMvc
+
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
 
     private lateinit var teoriakoulutus: Teoriakoulutus
 
@@ -114,6 +120,60 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         )
         assertThat(testTeoriakoulutus.todistukset.firstOrNull()?.asiakirjaData?.data)
             .isEqualTo(DEFAULT_FILE)
+    }
+
+    @Test
+    @Transactional
+    fun `creates teoriakoulutus with a permission-restricted certificate and stores the original`() {
+        initTest()
+        val sizeBeforeCreate = teoriakoulutusRepository.count()
+        val certificate = PdfTestData.certificate(openingPassword = "")
+
+        val response = uploadCertificate(certificate).andExpect(status().isCreated).andReturn().response
+        val id = objectMapper.readTree(response.contentAsString).get("id").longValue()
+        em.flush()
+        em.clear()
+
+        assertThat(teoriakoulutusRepository.count()).isEqualTo(sizeBeforeCreate + 1)
+        val stored = teoriakoulutusRepository.findById(id).orElseThrow()
+        assertThat(stored.todistukset).hasSize(1)
+        val attachment = stored.todistukset.single()
+        assertThat(attachment.nimi).isEqualTo("restricted-certificate.pdf")
+        assertThat(attachment.tyyppi).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+        assertThat(attachment.asiakirjaData?.data).isEqualTo(certificate)
+    }
+
+    @Test
+    @Transactional
+    fun `rejects a certificate requiring an opening password without saving teoriakoulutus`() {
+        initTest()
+        val sizeBeforeCreate = teoriakoulutusRepository.count()
+        val certificate = PdfTestData.certificate(openingPassword = "required-password")
+
+        uploadCertificate(certificate).andExpect(status().isBadRequest)
+
+        assertThat(teoriakoulutusRepository.count()).isEqualTo(sizeBeforeCreate)
+    }
+
+    private fun uploadCertificate(certificate: ByteArray): ResultActions {
+        val dto = teoriakoulutusMapper.toDto(teoriakoulutus)
+        return restTeoriakoulutusMockMvc.perform(
+            multipart(ENTITY_API_URL)
+                .file(
+                    MockMultipartFile(
+                        "todistusFiles",
+                        "restricted-certificate.pdf",
+                        MediaType.APPLICATION_PDF_VALUE,
+                        certificate
+                    )
+                )
+                .param("koulutuksenNimi", dto.koulutuksenNimi)
+                .param("koulutuksenPaikka", dto.koulutuksenPaikka)
+                .param("alkamispaiva", dto.alkamispaiva.toString())
+                .param("paattymispaiva", dto.paattymispaiva.toString())
+                .param("erikoistumiseenHyvaksyttavaTuntimaara", dto.erikoistumiseenHyvaksyttavaTuntimaara.toString())
+                .with(csrf())
+        )
     }
 
     @Test

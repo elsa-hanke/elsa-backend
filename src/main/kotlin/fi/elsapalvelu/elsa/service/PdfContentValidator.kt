@@ -6,9 +6,10 @@ import com.itextpdf.kernel.pdf.PdfWriter
 import org.springframework.stereotype.Component
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 
 /**
- * Verifies that bytes are a readable, non-encrypted PDF whose pages iText can copy.
+ * Verifies that a PDF opens without a password and its prepared pages can be copied by iText.
  */
 @Component
 class PdfContentValidator {
@@ -19,7 +20,8 @@ class PdfContentValidator {
         }
 
         return try {
-            PdfDocument(PdfReader(ByteArrayInputStream(data))).use { source ->
+            val preparedData = PdfPreparation.prepare(data)
+            PdfDocument(PdfReader(ByteArrayInputStream(preparedData))).use { source ->
                 if (source.reader.isEncrypted || source.numberOfPages < 1) {
                     return false
                 }
@@ -31,6 +33,8 @@ class PdfContentValidator {
                 }
             }
             true
+        } catch (_: IOException) {
+            false
         } catch (_: RuntimeException) {
             false
         }
