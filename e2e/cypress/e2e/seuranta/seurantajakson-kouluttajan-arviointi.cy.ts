@@ -3,6 +3,7 @@ import { E2E_ERIKOISTUVA_EMAIL } from '../../support/commands/credentials'
 const SIVU = 'main[role="main"]'
 const VAHVISTUS = '#confirm-modal'
 const KOULUTTAJAN_API = '/api/kouluttaja/seurantakeskustelut/seurantajakso'
+const KOULUTTAJA_NIMI = 'Lassekalevi Hummaamistes'
 const EDISTYMINEN = 'Edistyminen on ollut sovittujen osaamistavoitteiden mukaista'
 const KOULUTTAJAN_ARVIO =
   'Kouluttajan arviointi jaksosta, erikoistujan etenemisestä ja seurantakeskustelusta'
@@ -109,7 +110,7 @@ describe('Seurantajakson kouluttajan arviointi käyttöliittymässä', () => {
     })
     expect(tallennettu.kouluttaja).to.include({
       id: seurantajakso.kouluttaja.id,
-      nimi: seurantajakso.kouluttaja.nimi
+      nimi: KOULUTTAJA_NIMI
     })
     expect(tallennettu.koulutusjaksot).to.deep.eq(seurantajakso.koulutusjaksot)
   }
