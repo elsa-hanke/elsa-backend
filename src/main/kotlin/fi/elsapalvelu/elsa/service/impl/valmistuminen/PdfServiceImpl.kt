@@ -15,6 +15,7 @@ import com.itextpdf.layout.properties.UnitValue
 import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfContentValidator
+import fi.elsapalvelu.elsa.service.PdfPreparation
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.PdfTextSanitizer
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
@@ -24,7 +25,6 @@ import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_YHDISTA_PDF
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource
-import org.apache.pdfbox.Loader
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
@@ -127,15 +127,7 @@ class PdfServiceImpl(
         }
     }
 
-    fun sanitizePdf(data: ByteArray?): ByteArray {
-        ByteArrayOutputStream().use { out ->
-            Loader.loadPDF(data).use { doc ->
-                doc.isAllSecurityToBeRemoved = true
-                doc.save(out)
-            }
-            return out.toByteArray()
-        }
-    }
+    fun sanitizePdf(data: ByteArray?): ByteArray = PdfPreparation.prepare(requireNotNull(data))
 
     override fun yhdistaPdf(
         source: InputStream,
@@ -143,14 +135,14 @@ class PdfServiceImpl(
         outputStream: OutputStream
     ) {
         pdfMetrics.trackOperation(OP_YHDISTA_PDF) {
-            val result = PdfDocument(PdfReader(source), PdfWriter(outputStream))
-            val resultDocument = Document(result)
-            val merger = PdfMerger(result)
-
-            val newDocument = PdfDocument(PdfReader(newPdf))
-            merger.merge(newDocument, 1, newDocument.numberOfPages)
-
-            resultDocument.close()
+            // The source is the generated combined document; the incoming PDF may
+            // be an uploaded certificate with copying restrictions.
+            val preparedData = newPdf.use { PdfPreparation.prepare(it.readBytes()) }
+            PdfDocument(PdfReader(source), PdfWriter(outputStream)).use { result ->
+                PdfDocument(PdfReader(ByteArrayInputStream(preparedData))).use { newDocument ->
+                    PdfMerger(result).merge(newDocument, 1, newDocument.numberOfPages)
+                }
+            }
         }
     }
 
