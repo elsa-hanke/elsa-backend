@@ -1,4 +1,4 @@
-name: ECR – Delete feature images
+name: ECR – Clean up untagged and branch images
 
 on:
   schedule:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   cleanup:
-    name: Delete ECR images tagged with feature-*, main-*, or release-* (except main-latest and release-latest)
+    name: Clean up ECR images while preserving releases and latest tags
     runs-on: ubuntu-latest
     environment: shared
 
@@ -22,48 +22,92 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
           aws-region: eu-west-1
 
-      - name: Delete feature-*, main-*, and release-* images from ECR
+      - name: Delete untagged and old branch images from ECR
+        shell: bash
         env:
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         run: |
-          REPO_NAME=$(echo "$ECR_REPOSITORY" | cut -d'/' -f2-)
+          set -euo pipefail
+
+          : "${ECR_REPOSITORY:?ECR_REPOSITORY must be set}"
+          REPO_NAME="${ECR_REPOSITORY#*/}"
           echo "Repository: $REPO_NAME"
+
+          select_image_ids() {
+            jq -c '[
+              .[] |
+              (.tags // []) as $tags |
+              select(
+                # Protect the whole image if ANY tag is a release or latest tag.
+                # All v* tags are protected, including versions such as v2.3.3-1.
+                ($tags | any(
+                  startswith("v") or
+                  . == "main-latest" or
+                  . == "release-latest" or
+                  . == "feature-latest"
+                ) | not)
+                and
+                (
+                  ($tags | length == 0) or
+                  ($tags | any(
+                    startswith("feature-") or
+                    startswith("main-") or
+                    startswith("release-")
+                  ))
+                )
+              ) |
+              { imageDigest: .digest }
+            ] | unique_by(.imageDigest)'
+          }
 
           ALL_IMAGES=$(aws ecr describe-images \
             --repository-name "$REPO_NAME" \
-            --filter tagStatus=TAGGED \
+            --filter tagStatus=ANY \
             --output json \
             --query 'imageDetails[*].{digest:imageDigest,tags:imageTags}')
 
-          echo "All tagged images: $ALL_IMAGES"
+          IMAGE_IDS=$(select_image_ids <<< "$ALL_IMAGES")
+          echo "Cleanup candidates: $IMAGE_IDS"
 
-          IMAGE_IDS=$(echo "$ALL_IMAGES" | jq '[
-            .[] |
-            select(
-              (.tags | any(startswith("feature") or startswith("main-") or startswith("release-")))
-              and
-              (.tags | any(. == "main-latest") | not)
-            ) |
-            { imageDigest: .digest }
-          ]')
-
-          echo "Images to delete: $IMAGE_IDS"
-
-          if [ "$IMAGE_IDS" = "[]" ] || [ -z "$IMAGE_IDS" ]; then
+          if [ "$IMAGE_IDS" = "[]" ]; then
             echo "No matching images found – nothing to delete."
             exit 0
           fi
 
-          TOTAL=$(echo "$IMAGE_IDS" | jq 'length')
-          echo "Total images to delete: $TOTAL"
+          TOTAL=$(jq 'length' <<< "$IMAGE_IDS")
+          echo "Total cleanup candidates: $TOTAL"
 
-           OFFSET=0
-           CHUNK_SIZE=100
-           while [ "$OFFSET" -lt "$TOTAL" ]; do
-             CHUNK=$(echo "$IMAGE_IDS" | jq --argjson o "$OFFSET" --argjson c "$CHUNK_SIZE" '.[$o:$o+$c]')
-             echo "Deleting images $OFFSET – $((OFFSET + CHUNK_SIZE - 1))..."
-             aws ecr batch-delete-image \
-               --repository-name "$REPO_NAME" \
-               --image-ids "$CHUNK"
-             OFFSET=$((OFFSET + CHUNK_SIZE))
-           done
+          OFFSET=0
+          CHUNK_SIZE=100
+          while [ "$OFFSET" -lt "$TOTAL" ]; do
+            CHUNK=$(jq -c --argjson o "$OFFSET" --argjson c "$CHUNK_SIZE" \
+              '.[$o:$o+$c]' <<< "$IMAGE_IDS")
+
+            # Re-read tags immediately before deletion: a candidate may now be protected.
+            # ECR does not support an atomic "delete only if still untagged" condition.
+            CURRENT_IMAGES=$(aws ecr describe-images \
+              --repository-name "$REPO_NAME" \
+              --image-ids "$CHUNK" \
+              --output json \
+              --query 'imageDetails[*].{digest:imageDigest,tags:imageTags}')
+            CURRENT_IMAGE_IDS=$(select_image_ids <<< "$CURRENT_IMAGES")
+
+            if [ "$CURRENT_IMAGE_IDS" != "[]" ]; then
+              echo "Deleting images: $CURRENT_IMAGE_IDS"
+              RESULT=$(aws ecr batch-delete-image \
+                --repository-name "$REPO_NAME" \
+                --image-ids "$CURRENT_IMAGE_IDS" \
+                --output json)
+              echo "$RESULT"
+
+              # ECR can report individual failures even when the CLI exits successfully.
+              if ! jq -e '.failures == []' <<< "$RESULT" > /dev/null; then
+                echo "ECR did not successfully delete every requested image." >&2
+                exit 1
+              fi
+            else
+              echo "Skipping batch: no images still qualify for cleanup."
+            fi
+
+            OFFSET=$((OFFSET + CHUNK_SIZE))
+          done
