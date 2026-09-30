@@ -70,7 +70,8 @@ class HelsinkiSiiloService(
                 if (!response.isSuccessful) {
                     throw RuntimeException(
                         "HY arkistointi epäonnistui: HTTP ${response.code} ${response.message}, " +
-                            "URL: $url. Palvelimen vastaus: ${responseBody?.take(500) ?: "(tyhjä)"}"
+                            "URL: $url. Palvelimen vastaus: ${responseBody?.take(500) ?: "(tyhjä)"}" +
+                        " Headers ${response.headers}"
                     )
                 }
                 log.info("HY arkistointivastaus: ${response.code} $responseBody")
