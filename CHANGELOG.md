@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...HEAD)
 
+- e2e testi: osaamisen arviointi [`#749`](https://github.com/elsa-hanke/elsa-backend/pull/749)(29 September 2026)
 - e2e testi: seurantajakson kouluttajan arviointi [`#745`](https://github.com/elsa-hanke/elsa-backend/pull/745)(29 September 2026)
 - e2e testi: koejakson virkailijan tarkistus [`#743`](https://github.com/elsa-hanke/elsa-backend/pull/743)(28 September 2026)
 - e2e testi: kehittämistoimenpiteiden hyvaksyntä [`#740`](https://github.com/elsa-hanke/elsa-backend/pull/740)(28 September 2026)
