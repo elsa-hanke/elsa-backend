@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import org.slf4j.LoggerFactory
@@ -19,6 +20,7 @@ class HelsinkiSiiloService(
 ) {
     private val log = LoggerFactory.getLogger(HelsinkiSiiloService::class.java)
     private val okHttpClient = OkHttpClient.Builder()
+        .protocols(listOf(Protocol.HTTP_1_1))
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
         .writeTimeout(15, TimeUnit.SECONDS)
