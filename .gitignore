@@ -161,3 +161,4 @@ Desktop.ini
 .env.replica
 .nvmrc
 /infra-live/
+/AGENTS.md

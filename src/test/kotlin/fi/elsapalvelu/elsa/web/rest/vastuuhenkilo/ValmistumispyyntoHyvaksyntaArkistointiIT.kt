@@ -3,6 +3,8 @@ package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
+import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfWriter
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
@@ -27,7 +29,9 @@ import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.PdfAssembler
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
+import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
@@ -40,6 +44,7 @@ import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -56,6 +61,8 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
 import java.time.LocalDate
 import jakarta.persistence.EntityManager
 
@@ -98,19 +105,55 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private lateinit var arkistointiService: ArkistointiService
 
     /**
-     * Mocked so that PDF generation (Thymeleaf rendering) is skipped entirely.
-     * The private luoYhteenvetoPdf / luoLiitteetPdf / luoErikoistujanTiedotPdf methods
-     * write to a ByteArrayOutputStream and then save the bytes to [asiakirjaRepository];
-     * with pdfService mocked the OutputStream stays empty (valid, just zero-byte PDF).
-     * This allows execution to reach the arkistointiService.muodostaSahke call.
+     * Mocked so that the heavy parts of PDF generation — Thymeleaf rendering, embedded fonts,
+     * the PDF/A colour profile — are skipped entirely. [stubPdfService] still makes `luoPdf`
+     * write a small *real* PDF and `openAssembler` return a *real* [PdfAssembler], because the
+     * calling services (e.g. ValmistumispyynnonArviointiPdfService) always call
+     * `assembler.add(...)`, even with zero entries (the template still renders an empty
+     * summary page) — the bytes must be something iText's PdfReader can actually parse.
+     * A full mock would make openAssembler() return null, which fails fast with
+     * "Parameter specified as non-null is null" the moment any PDF service tries to use it.
      */
-    @Suppress("UnusedPrivateProperty")
     @MockitoBean
     private lateinit var pdfService: PdfService
+
+    /**
+     * Real bean, not mocked: used only to construct the real [PdfAssembler] returned by the
+     * [pdfService] stub, so the assembly/merge logic under test is the production code path,
+     * not a mock of it.
+     */
+    @Autowired
+    private lateinit var pdfGenerationMetricsService: PdfGenerationMetricsService
 
     @MockitoBean
     private lateinit var mailService: MailService
 
+    /**
+     * [MockitoBean] resets [pdfService] before every test, so the stubbing has to be
+     * reapplied here rather than once in `init`.
+     */
+    @BeforeEach
+    fun stubPdfService() {
+        whenever(pdfService.luoPdf(any(), any(), any())).thenAnswer { invocation ->
+            val outputStream = invocation.getArgument<OutputStream>(2)
+            outputStream.write(minimalPdf())
+        }
+        whenever(pdfService.openAssembler(any())).thenAnswer { invocation ->
+            val firstDocument = invocation.getArgument<ByteArray>(0)
+            PdfAssembler(firstDocument, pdfGenerationMetricsService)
+        }
+    }
+
+    /**
+     * The smallest PDF iText will both write and read back: one blank page, no fonts, no
+     * PDF/A conformance. Good enough as a stand-in for a real rendered template, since none
+     * of these tests assert on the generated PDFs' visual content.
+     */
+    private fun minimalPdf(): ByteArray {
+        val out = ByteArrayOutputStream()
+        PdfDocument(PdfWriter(out)).use { it.addNewPage() }
+        return out.toByteArray()
+    }
 
     private lateinit var opintooikeus: Opintooikeus
     private lateinit var vastuuhenkilo: Kayttaja
