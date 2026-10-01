@@ -18,6 +18,8 @@ interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutusso
 
     fun findByOpintooikeusId(opintooikeusId: Long): Optional<KoejaksonKoulutussopimus>
 
+    fun findDistinctByKouluttajatKouluttajaId(kouluttajaId: Long): List<KoejaksonKoulutussopimus>
+
     @Query(
         "select ks " +
             "from KoejaksonKoulutussopimus ks join ks.kouluttajat ko join ko.kouluttaja k " +

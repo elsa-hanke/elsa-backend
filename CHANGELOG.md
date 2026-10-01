@@ -1,7 +1,26 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.3...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...HEAD)
 
+- ELSAINSI-59 Käyttäjä voi lisätä ja poistaa asiakirjoja muiden käyttäjien työskentelyjaksoista [`#710`](https://github.com/elsa-hanke/elsa-backend/pull/710)(1 October 2026)
+- e2e testi: osaamisen arviointi [`#749`](https://github.com/elsa-hanke/elsa-backend/pull/749)(29 September 2026)
+- e2e testi: seurantajakson kouluttajan arviointi [`#745`](https://github.com/elsa-hanke/elsa-backend/pull/745)(29 September 2026)
+- e2e testi: koejakson virkailijan tarkistus [`#743`](https://github.com/elsa-hanke/elsa-backend/pull/743)(28 September 2026)
+- e2e testi: kehittämistoimenpiteiden hyvaksyntä [`#740`](https://github.com/elsa-hanke/elsa-backend/pull/740)(28 September 2026)
+
+## [v2.4.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.4...v2.4.0) - 22 September 2026
+
+- ELSAINSI-71 Käyttäjätilien yhdistäminen epäonnistuu, jos kouluttajatili on valittu keskeneräiselle koejaksolomakkeelle [`#732`](https://github.com/elsa-hanke/elsa-backend/pull/732)(22 September 2026)
+- e2e test aloituskeskustelun hyväksyntä [`#735`](https://github.com/elsa-hanke/elsa-backend/pull/735)(22 September 2026)
+- test: add end-to-end tests for koulutussopimuksen vastuuhenkilön hyväksyntä [`#734`](https://github.com/elsa-hanke/elsa-backend/pull/734)(22 September 2026)
+- e2e testi: koulutussopimuksen kouluttajan hyväksyntä [`#733`](https://github.com/elsa-hanke/elsa-backend/pull/733)(21 September 2026)
+- fix: simplify frontend image tag assignment in CI workflow [`#728`](https://github.com/elsa-hanke/elsa-backend/pull/728)(21 September 2026)
+- bouncycastle runtime exception fix  [`#729`](https://github.com/elsa-hanke/elsa-backend/pull/729)(21 September 2026)
+- fix: bump Bouncy Castle provider version to 1.85 in build.gradle [`#727`](https://github.com/elsa-hanke/elsa-backend/pull/727)(19 September 2026)
+- Enhance alert system to publish recovery alerts for incidents [`#725`](https://github.com/elsa-hanke/elsa-backend/pull/725)(17 September 2026)
+- Päivämerkintä max length 255 [`#724`](https://github.com/elsa-hanke/elsa-backend/pull/724)(16 September 2026)
+- Replace Teams notifications with email notifications for stage / prod [`#723`](https://github.com/elsa-hanke/elsa-backend/pull/723)(16 September 2026)
+- Release v2.3.X merge [`#722`](https://github.com/elsa-hanke/elsa-backend/pull/722)(16 September 2026)
 - Bump baseline-browser-mapping from 2.10.30 to 2.11.21 in /frontend [`#719`](https://github.com/elsa-hanke/elsa-backend/pull/719)(11 September 2026)
 - Bump js-yaml from 3.15.1 to 3.15.2 in /frontend [`#720`](https://github.com/elsa-hanke/elsa-backend/pull/720)(11 September 2026)
 - Bump svgo from 2.8.3 to 2.8.4 in /frontend [`#721`](https://github.com/elsa-hanke/elsa-backend/pull/721)(10 September 2026)
@@ -19,7 +38,11 @@
 - enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
 - ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
 
-## [v2.3.3](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.2...v2.3.3) - 10 September 2026
+## [v2.3.4](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.3...v2.3.4) - 17 September 2026
+
+- fix: update siilo-koodi values in application.yml for archiving metadata [`#726`](https://github.com/elsa-hanke/elsa-backend/pull/726)(17 September 2026)
+
+## [v2.3.3-1](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.2...v2.3.3-1) - 15 September 2026
 
 - Enhance error handling with localized messages for save operations [`#713`](https://github.com/elsa-hanke/elsa-backend/pull/713)(10 September 2026)
 - ELSA-1224 Erikoistuja ei saa auki Elsa-palveluun liitettyjä dokumentteja [`#712`](https://github.com/elsa-hanke/elsa-backend/pull/712)(10 September 2026)

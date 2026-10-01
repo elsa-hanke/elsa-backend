@@ -24,8 +24,8 @@
               :options="lahikouluttajatList"
               :state="validateState('lahikouluttaja')"
               label="nimi"
-              track-by="nimi"
-              @select="onLahikouluttajaSelect"
+              track-by="id"
+              @input="onLahikouluttajaSelect"
             >
               <template #option="{ option }">
                 <div v-if="option.nimi">{{ optionDisplayName(option) }}</div>
@@ -54,8 +54,8 @@
               :options="lahiesimiesList"
               :state="validateState('lahiesimies')"
               label="nimi"
-              track-by="nimi"
-              @select="onLahiesimiesSelect"
+              track-by="id"
+              @input="onLahiesimiesSelect"
             >
               <template #option="{ option }">
                 <div v-if="option.nimi">{{ optionDisplayName(option) }}</div>
@@ -92,7 +92,7 @@
 <script lang="ts">
   import { AxiosError } from 'axios'
   import { BModal } from 'bootstrap-vue'
-  import { Component, Prop, Mixins } from 'vue-property-decorator'
+  import { Component, Prop, Mixins, Watch } from 'vue-property-decorator'
   import { validationMixin } from 'vuelidate'
   import { required } from 'vuelidate/lib/validators'
 
@@ -178,12 +178,12 @@
       return formatList(this, lahiesimiehet)
     }
 
-    onLahikouluttajaSelect(lahikouluttaja: KoejaksonVaiheHyvaksyja) {
+    onLahikouluttajaSelect(lahikouluttaja: KoejaksonVaiheHyvaksyja | null) {
       this.form.lahikouluttaja = lahikouluttaja
       this.$emit('lahikouluttajaSelect', this.form.lahikouluttaja)
     }
 
-    onLahiesimiesSelect(lahiesimies: KoejaksonVaiheHyvaksyja) {
+    onLahiesimiesSelect(lahiesimies: KoejaksonVaiheHyvaksyja | null) {
       this.form.lahiesimies = lahiesimies
       this.$emit('lahiesimiesSelect', this.form.lahiesimies)
     }
@@ -242,9 +242,17 @@
       return !this.$v.$anyError
     }
 
-    async mounted() {
-      this.form.lahikouluttaja = this.lahikouluttaja?.id ? this.lahikouluttaja : null
-      this.form.lahiesimies = this.lahiesimies?.id ? this.lahiesimies : null
+    @Watch('lahikouluttaja', { immediate: true })
+    onLahikouluttajaChanged(value: KoejaksonVaiheHyvaksyja | null) {
+      this.form.lahikouluttaja = value?.id ? value : null
+    }
+
+    @Watch('lahiesimies', { immediate: true })
+    onLahiesimiesChanged(value: KoejaksonVaiheHyvaksyja | null) {
+      this.form.lahiesimies = value?.id ? value : null
+    }
+
+    mounted() {
       this.loading = false
     }
   }

@@ -532,10 +532,11 @@ class TyoskentelyjaksoServiceImpl(
 
     override fun updateAsiakirjat(
         id: Long,
+        opintooikeusId: Long,
         addedFiles: Set<AsiakirjaDTO>?,
         deletedFiles: Set<Int>?
     ): TyoskentelyjaksoDTO? {
-        tyoskentelyjaksoRepository.findById(id).orElse(null)?.let {
+        tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
             if (it.liitettyTerveyskeskuskoulutusjaksoon) {
                 throw ValidationException("Terveyskeskuskoulutusjaksoon liitetyn työskentelyjakson asiakirjoja ei voi päivittää")
             }
