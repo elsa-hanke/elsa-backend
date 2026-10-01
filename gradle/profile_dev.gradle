@@ -18,12 +18,6 @@ springBoot {
 bootRun {
     args = []
     jvmArgs = ["--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED", "--add-opens", "java.base/java.lang=ALL-UNNAMED"]
-
-    // Esim. suuren aineiston ajoon:
-    //   ./gradlew bootRun -PbootRunJvmArgs="-Xmx6g"
-    if (project.hasProperty("bootRunJvmArgs")) {
-        jvmArgs += project.property("bootRunJvmArgs").toString().split("\\s+").toList()
-    }
 }
 
 

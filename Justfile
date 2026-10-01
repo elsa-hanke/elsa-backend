@@ -32,8 +32,7 @@ startb: kill8080 start-db
 startb-replica:
   @exec env -u APPLICATION_SECURITY_ENCODED_KEY just --dotenv-path .env.replica _startb-replica
 
-
-_startb-replica gradle_args="": kill8080
+_startb-replica: kill8080
   #!/usr/bin/env sh
   set -eu
 
@@ -48,7 +47,7 @@ _startb-replica gradle_args="": kill8080
 
   export SPRING_PROFILES_ACTIVE=dev,replica
 
-  ./gradlew bootRun {{gradle_args}}
+  ./gradlew bootRun
 
 srt:
   @exec just --dotenv-path .env.replica _start-replica-tunnel
