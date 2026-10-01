@@ -5,14 +5,12 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
-import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.File
 import java.util.concurrent.TimeUnit
-import java.util.zip.ZipFile
 
 @Service
 class HelsinkiSiiloService(
@@ -20,14 +18,9 @@ class HelsinkiSiiloService(
 ) {
     private val log = LoggerFactory.getLogger(HelsinkiSiiloService::class.java)
     private val okHttpClient = OkHttpClient.Builder()
-        .protocols(listOf(Protocol.HTTP_1_1))
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
         .writeTimeout(15, TimeUnit.SECONDS)
-        .addNetworkInterceptor { chain ->
-            logOutgoingRequestHeaders(chain.request())
-            chain.proceed(chain.request())
-        }
         .build()
 
     fun laheta(zipFilePath: String, caseType: CaseType) {
@@ -42,8 +35,6 @@ class HelsinkiSiiloService(
         require(zipFile.exists()) {
             "Arkistointitiedostoa ei löydy: $zipFilePath"
         }
-
-        logPayloadDetails(zipFile, url, siiloKoodi)
 
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
@@ -60,18 +51,14 @@ class HelsinkiSiiloService(
             .post(requestBody)
             .build()
 
-        log.info(
-            "Lähetetään arkistointipaketti HY:lle osoitteeseen $url, " +
-                "multipart-rungon koko: ${requestBody.contentLength()} tavua"
-        )
+        log.info("Lähetetään arkistointipaketti HY:lle osoitteeseen $url")
         try {
             okHttpClient.newCall(request).execute().use { response ->
                 val responseBody = response.body?.string()
                 if (!response.isSuccessful) {
                     throw RuntimeException(
                         "HY arkistointi epäonnistui: HTTP ${response.code} ${response.message}, " +
-                            "URL: $url. Palvelimen vastaus: ${responseBody?.take(500) ?: "(tyhjä)"}" +
-                        " Headers ${response.headers}"
+                            "URL: $url. Palvelimen vastaus: ${responseBody?.take(500) ?: "(tyhjä)"}"
                     )
                 }
                 log.info("HY arkistointivastaus: ${response.code} $responseBody")
@@ -83,45 +70,4 @@ class HelsinkiSiiloService(
             }
         }
     }
-
-    private fun logOutgoingRequestHeaders(request: Request) {
-        val headers = request.headers.names().associateWith { name ->
-            if (name.equals("X-Api-Key", ignoreCase = true)) {
-                "[redacted]"
-            } else {
-                request.header(name).orEmpty()
-            }
-        }
-        log.info("HY arkistointipyynnön headerit: $headers")
-    }
-
-    /**
-     * Logs the exact payload we are about to send to the Helsinki Siilo endpoint: the ZIP
-     * file's name/size and, if it can be read as a ZIP, the name and (uncompressed) size of
-     * every entry inside it. This is useful for diagnosing cases where the receiving system
-     * returns an error (e.g. HTTP 403) that may be related to an unexpectedly small or
-     * otherwise malformed request body.
-     */
-    private fun logPayloadDetails(zipFile: File, url: String, siiloKoodi: String) {
-        log.info(
-            "HY arkistointipaketti valmis lähetettäväksi: siiloKoodi=$siiloKoodi, url=$url, " +
-                "tiedosto=${zipFile.name}, koko=${zipFile.length()} tavua"
-        )
-        try {
-            ZipFile(zipFile).use { zip ->
-                val entries = zip.entries().toList()
-                log.info("HY arkistointipaketin sisältö (${entries.size} tiedostoa):")
-                entries.forEach { entry ->
-                    log.info(
-                        "  - ${entry.name}: pakattu=${entry.compressedSize} tavua, " +
-                            "pakkaamaton=${entry.size} tavua"
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            log.warn("HY arkistointipaketin sisältöä ei voitu lukea ZIP-tiedostona: ${e.message}")
-        }
-    }
 }
-
-
