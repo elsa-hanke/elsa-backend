@@ -165,6 +165,46 @@ export const opintoOikeusTasks = {
     })
   },
 
+  // ELSAINSI-73 test support: flips `kaytossa` from one existing opinto-oikeus
+  // row to another, directly in the DB - simulating a server-side change that
+  // happens *outside* the currently open browser tab (another tab switching
+  // active profile, or the nightly opintotieto import reconciling it). Unlike
+  // db:seedOpintooikeus with updateCurrent, this does not touch the rows'
+  // other fields and does not go through any frontend code, so it leaves an
+  // already-open tab's cached account state untouched - exactly the
+  // precondition the bug needs.
+  async 'db:switchOpintooikeusKaytossa'({
+    email,
+    fromId,
+    toId,
+  }: {
+    email: string
+    fromId: number
+    toId: number
+  }): Promise<null> {
+    return withDb(dbClient, async (client: Client) => {
+      const erikoistuva = await getErikoistujaLaakariId(client, email)
+      if (!erikoistuva) {
+        throw new Error(`Could not find erikoistuva with email ${email}`)
+      }
+
+      await client.query(
+        `UPDATE public.opintooikeus SET kaytossa = false WHERE id = $1 AND erikoistuva_laakari_id = $2`,
+        [fromId, erikoistuva]
+      )
+      await client.query(
+        `UPDATE public.opintooikeus SET kaytossa = true WHERE id = $1 AND erikoistuva_laakari_id = $2`,
+        [toId, erikoistuva]
+      )
+      await client.query(
+        `UPDATE public.erikoistuva_laakari SET aktiivinen_opintooikeus = $1 WHERE id = $2`,
+        [toId, erikoistuva]
+      )
+
+      return null
+    })
+  },
+
   async 'db:cleanupOpintooikeus'({
     email,
     id,
