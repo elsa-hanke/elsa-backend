@@ -12,10 +12,13 @@ import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.valmistuminen.TerveyskeskuskoulutusjaksonHyvaksyntaRepository
 import fi.elsapalvelu.elsa.required
+import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.constants.ERIKOISALA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.constants.OPINTOOIKEUS_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksotKoulutustyypitDTO
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.UusiValmistumispyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusDTO
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoSuoritustenTilaDTO
 import fi.elsapalvelu.elsa.service.mapper.koulutus.OpintosuoritusMapper
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksoService
@@ -39,8 +42,37 @@ class ValmistumispyynnonTarkistusService(
     private val teoriakoulutusRepository: TeoriakoulutusRepository,
     private val opintosuoritusMapper: OpintosuoritusMapper,
     private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
-    private val vanhentumisService: ValmistumispyynnonVanhentumisService
+    private val vanhentumisService: ValmistumispyynnonVanhentumisService,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) {
+
+    fun validateValmistumispyyntoPdfText(
+        uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
+    ) {
+        pdfTextFieldValidator.validate(
+            fields = listOf(
+                "selvitys-vanhentuneista-suorituksista-otsikko" to
+                    uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista
+            ),
+            pdfSource = "valmistumispyynto"
+        )
+    }
+
+    fun validateVirkailijanPdfText(
+        id: Long,
+        tarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO
+    ) {
+        if (tarkistusDTO.korjausehdotus != null) return
+
+        pdfTextFieldValidator.validate(
+            fields = listOf(
+                "virkailijan-valmistumisen-yhteenveto" to tarkistusDTO.virkailijanYhteenveto,
+                "lisatiedot-vastuuhenkilolle" to tarkistusDTO.lisatiedotVastuuhenkilolle
+            ),
+            pdfSource = "valmistumispyynto",
+            sourceId = id
+        )
+    }
 
     fun taydenna(dto: ValmistumispyynnonTarkistusDTO): ValmistumispyynnonTarkistusDTO {
         val opintooikeusId = dto.valmistumispyynto?.opintooikeusId ?: return dto
