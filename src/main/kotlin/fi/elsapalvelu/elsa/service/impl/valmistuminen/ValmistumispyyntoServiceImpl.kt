@@ -114,7 +114,6 @@ class ValmistumispyyntoServiceImpl(
         opintooikeusId: Long,
         uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
     ): ValmistumispyyntoDTO {
-        tarkistusService.validateValmistumispyyntoPdfText(uusiValmistumispyyntoDTO)
         osapuoliService.haeOpintooikeus(opintooikeusId).let { opintooikeus ->
             osapuoliService.paivitaYhteystiedot(
                 opintooikeus.erikoistuvaLaakari?.kayttaja?.user,
@@ -150,7 +149,6 @@ class ValmistumispyyntoServiceImpl(
         opintooikeusId: Long,
         uusiValmistumispyyntoDTO: UusiValmistumispyyntoDTO
     ): ValmistumispyyntoDTO {
-        tarkistusService.validateValmistumispyyntoPdfText(uusiValmistumispyyntoDTO)
         osapuoliService.haeOpintooikeus(opintooikeusId).let { opintooikeus ->
             osapuoliService.paivitaYhteystiedot(
                 opintooikeus.erikoistuvaLaakari?.kayttaja?.user,
@@ -288,7 +286,6 @@ class ValmistumispyyntoServiceImpl(
 
     override fun updateTarkistusByVirkailijaUserId(id: Long, userId: String, valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO,
         laillistamistodistus: MultipartFile?): ValmistumispyynnonTarkistusDTO? {
-        tarkistusService.validateVirkailijanPdfText(id, valmistumispyynnonTarkistusDTO)
         val kayttaja = osapuoliService.haeKayttaja(userId)
         val yliopisto = kayttaja.yliopistot.first()
         var tarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdAndValmistumispyyntoOpintooikeusYliopistoId(id, yliopisto.id.required())

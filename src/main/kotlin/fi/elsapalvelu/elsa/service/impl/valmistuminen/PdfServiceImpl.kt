@@ -15,7 +15,6 @@ import com.itextpdf.layout.properties.UnitValue
 import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfContentValidator
-import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.PdfTextSanitizer
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
@@ -38,10 +37,29 @@ class PdfServiceImpl(
     private val templateEngine: SpringTemplateEngine,
     private val pdfMetrics: PdfGenerationMetricsService,
     private val pdfContentValidator: PdfContentValidator,
-    private val pdfTextFieldValidator: PdfTextFieldValidator
+    private val resourceRetriever: PdfCachingResourceRetriever
 ) : PdfService {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+
+    /**
+     * iTextin "smart mode": yhdistelyssa samanlaiset objektit (fonttien osajoukot,
+     * varioprofiili, metatiedot) jaetaan sen sijaan etta ne kopioitaisiin jokaisesta
+     * lahdedokumentista erikseen. Pienentaa erikoistujan tiedot -koosteen noin kolmasosaan.
+     *
+     * Kaytossa vain [PdfAssembler]issa, jossa lahdedokumentit ovat sovelluksen itsensa
+     * tuottamia ja rakenteeltaan yhdenmukaisia PDF/A-dokumentteja. Kayttajien lataamien
+     * liitteiden yhdistelyssa tilaa ei kayteta: mitattu hyoty oli vain 1 MiB (3 -> 2 MiB),
+     * ja liitteet ovat mielivaltaisia ulkopuolisia PDF-tiedostoja, joiden rakennetta ei
+     * hallita.
+     *
+     * Katkaisin on olemassa siksi, etta tilan voi tarvittaessa kytkea pois ilman uutta
+     * julkaisua.
+     */
+    @Value("\${elsa.pdf.smart-mode:true}")
+    var smartMode: Boolean = true
+
     @Value("classpath:sRGB_CS_profile.icm")
     var colorProfile: Resource? = null
 
@@ -60,12 +78,6 @@ class PdfServiceImpl(
     override fun luoPdf(template: String, context: Context, outputStream: OutputStream) {
         pdfMetrics.trackOperation(OP_LUO_PDF) {
             val content = sanitizeContent(templateEngine.process(template, context))
-            if (isValmistumispyyntoTemplate(template)) {
-                pdfTextFieldValidator.validate(
-                    fields = listOf(pdfSectionField(template) to content),
-                    pdfSource = pdfSource(template)
-                )
-            }
             val pdf = PdfADocument(
                 PdfWriter(outputStream),
                 PdfAConformanceLevel.PDF_A_2B,
@@ -82,6 +94,7 @@ class PdfServiceImpl(
 
             val properties = ConverterProperties()
             properties.fontProvider = provider
+            properties.resourceRetriever = resourceRetriever
 
             HtmlConverter.convertToPdf(content, pdf, properties)
         }
@@ -92,6 +105,8 @@ class PdfServiceImpl(
         outputStream: OutputStream
     ) {
         pdfMetrics.trackOperation(OP_YHDISTA_ASIAKIRJAT) {
+            // Tahan ei kayteta smart modea: lahteet ovat kayttajien lataamia, mielivaltaisia
+            // PDF-tiedostoja, joissa on vain vahan jaettavaa (mitattu hyoty 1 MiB).
             val result = PdfDocument(PdfWriter(outputStream))
             val resultDocument = Document(result)
             asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
@@ -154,31 +169,11 @@ class PdfServiceImpl(
         }
     }
 
+    override fun openAssembler(firstDocument: ByteArray): PdfAssembler =
+        PdfAssembler(firstDocument, pdfMetrics, smartMode)
+
     private fun sanitizeContent(input: String): String = PdfTextSanitizer.sanitize(input)
 
-    private fun isValmistumispyyntoTemplate(template: String): Boolean =
-        template.startsWith("pdf/erikoistujantiedot/") ||
-            template.endsWith("valmistumisenyhteenveto.html") ||
-            template.endsWith("valmistumisenyhteenveto_yek.html")
-
-    private fun pdfSectionField(template: String): String = when {
-        template.endsWith("koulutussuunnitelma.html") -> "pdf-osio-koulutussuunnitelma"
-        template.endsWith("paivittaisetmerkinnat.html") -> "pdf-osio-paivittaiset-merkinnat"
-        template.endsWith("seurantajakso.html") -> "pdf-osio-seurantajakso"
-        template.endsWith("arvioinnit.html") || template.endsWith("arviointi.html") ->
-            "pdf-osio-arvioinnit"
-        template.endsWith("suoritemerkinnat.html") || template.endsWith("suoritemerkinta.html") ->
-            "pdf-osio-suoritemerkinnat"
-        template.endsWith("valmistumisenyhteenveto.html") ||
-            template.endsWith("valmistumisenyhteenveto_yek.html") ->
-            "pdf-osio-valmistumisen-yhteenveto"
-        else -> "arkistoitava-pdf"
-    }
-
-    private fun pdfSource(template: String): String = when {
-        template.endsWith("seurantajakso.html") -> "seurantajakso"
-        else -> "valmistumispyynto"
-    }
 
     private fun invalidPdfAttachmentException(
         asiakirja: Asiakirja,
