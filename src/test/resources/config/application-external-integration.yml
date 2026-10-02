@@ -120,7 +120,7 @@ external-integration:
       expected-course-code: ${EXTERNAL_INTEGRATION_PEPPI_UEF_EXPECTED_COURSE_CODE:}
       expected-programme-identifier: ${EXTERNAL_INTEGRATION_PEPPI_UEF_EXPECTED_PROGRAMME_IDENTIFIER:}
     sisu-hy:
-      hetu: "210281-9988"
+      hetu: "260698-9994"
       assert-erikoisala-tunniste-list: true
       expected-study-right-id: ${EXTERNAL_INTEGRATION_SISU_HY_EXPECTED_STUDY_RIGHT_ID:}
       expected-course-code: ${EXTERNAL_INTEGRATION_SISU_HY_EXPECTED_COURSE_CODE:}
