@@ -573,12 +573,28 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
+        val tyoskentelyjaksoId = tyoskentelyjakso.id
+        assertNotNull(tyoskentelyjaksoId)
+        val poistettavaAsiakirjaId = asiakirja.id
+        assertNotNull(poistettavaAsiakirjaId)
+
         restTyoskentelyjaksoMockMvc.perform(multipart("/api/yek-koulutettava/tyoskentelyjaksot/${tyoskentelyjakso.id}/asiakirjat")
                 .file(MockMultipartFile("addedFiles", AsiakirjaHelper.ASIAKIRJA_PNG_NIMI, AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI, tempFile2.readBytes()))
-                .param("deletedFiles", asiakirja.id!!.toString()).with { it.method = "PUT"; it }.with(csrf()))
+                .param("deletedFiles", poistettavaAsiakirjaId.toString()).with { it.method = "PUT"; it }.with(csrf()))
             .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.asiakirjat").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.asiakirjat[0].nimi").value(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI))
+
+        em.flush()
+        em.clear()
+
+        // Poistetun asiakirjan on hävittävä myös tietokannasta, ei vain vastauksen DTO:sta.
+        // Tyoskentelyjakso.asiakirjat-liitoksessa ei ole orphanRemoval-asetusta, joten
+        // poisto tehdään eksplisiittisesti TyoskentelyjaksoServiceImpl:ssä.
+        assertThat(asiakirjaRepository.findById(poistettavaAsiakirjaId)).isEmpty
+        val jaljellaOlevat = asiakirjaRepository.findAllByTyoskentelyjaksoId(tyoskentelyjaksoId)
+        assertThat(jaljellaOlevat).hasSize(1)
+        assertThat(jaljellaOlevat.first().nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI)
     }
 
     @Test
