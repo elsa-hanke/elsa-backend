@@ -48,6 +48,7 @@ import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import jakarta.persistence.EntityManager
+import java.util.Locale
 
 /**
  * Integration tests for the valmistumispyynto approval flow focusing on
@@ -859,7 +860,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
             PAIVITTAISET_MERKINNAT,
             SEURANTAJAKSON_YHTEENVETO
         )
-        val text = pages.joinToString(" ")
         listOf("Suoritemerkkiyksi", "Paivakirjamerkkiyksi", "Seurantamerkkiyksi").forEach { marker ->
             assertThat(pages.count { it.contains(marker) })
                 .withFailMessage("Expected \"%s\" on exactly one page", marker)
@@ -883,7 +883,9 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
             em.persist(it)
             em.flush()
         }
-        val markers = (1..ENTRY_COUNT).map { "Suoritemerkkijono%03d".format(it) }
+        val markers = (1..ENTRY_COUNT).map {
+            "Suoritemerkkijono%03d".format(Locale.ROOT, it)
+        }
         val firstDay = LocalDate.of(2020, 1, 1)
         markers.forEachIndexed { index, marker ->
             persistSuoritemerkinta(tyoskentelyjakso, marker, firstDay.plusDays(index.toLong()), suorite)
