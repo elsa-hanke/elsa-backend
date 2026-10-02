@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import jakarta.persistence.EntityManager
@@ -61,6 +62,7 @@ import jakarta.persistence.EntityManager
  */
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
+@Suppress("LargeClass")
 class VastuuhenkiloValmistumispyyntoLiiteIT {
 
     @Autowired
@@ -663,6 +665,175 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         performApproval(valmistumispyynto.id)
             .andExpect(status().isOk)
+    }
+
+    // ── PDF content regression tests ─────────────────────────────────────────
+    //
+    // These pin down what the generated PDFs actually contain so that the PDF
+    // generation can be optimised without silently changing the output.
+
+    /**
+     * The (non-YEK) summary PDF keeps its sections, in order, and the data that is
+     * filled in from the request.
+     */
+    @Test
+    @Transactional
+    fun approvalGeneratesSummaryPdfWithExpectedSectionsAndData() {
+
+        persistKoulutussuunnitelma()
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+        valmistumispyynto.valmistumispyynnonTarkistus!!.virkailijanYhteenveto = VIRKAILIJAN_YHTEENVETO
+        em.flush()
+
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+        val summary = requireNotNull(updated.yhteenvetoAsiakirja)
+        assertThat(summary.nimi)
+            .startsWith("valmistumisen_yhteenveto_")
+            .doesNotStartWith("valmistumisen_yhteenveto_yek")
+        assertThat(summary.tyyppi).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+
+        val text = PdfTestSupport.text(requireNotNull(summary.asiakirjaData?.data))
+        PdfTestSupport.assertContainsInOrder(
+            text,
+            "Erikoistumiskoulutuksen valmistumisen yhteenveto",
+            "Erikoistuva lääkäri",
+            "Osaamisen arviointi",
+            "Opintohallinnon virkailijan yhteenveto",
+            VIRKAILIJAN_YHTEENVETO,
+            "Työskentelyjaksot",
+            "Koulutukset",
+            "Muut tarkistukset",
+            "Tarkistanut"
+        )
+        assertThat(text).contains(
+            requireNotNull(updated.opintooikeus?.erikoistuvaLaakari?.kayttaja?.nimike),
+            requireNotNull(updated.virkailija?.nimike),
+            LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        )
+    }
+
+    /**
+     * The trainee data PDF starts with the koulutussuunnitelma section and is generated
+     * together with the other approval documents.
+     */
+    @Test
+    @Transactional
+    fun approvalGeneratesTraineeDataPdfStartingWithKoulutussuunnitelma() {
+
+        persistKoulutussuunnitelma()
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+        val traineeData = requireNotNull(updated.erikoistujanTiedotAsiakirja)
+        assertThat(traineeData.nimi).startsWith("koulutussuunnitelma_ja_osaaminen_")
+
+        val pages = PdfTestSupport.pageTexts(requireNotNull(traineeData.asiakirjaData?.data))
+        assertThat(pages.size).isGreaterThan(3)
+        assertThat(pages.first()).contains("Koulutussuunnitelma")
+    }
+
+    /**
+     * The attachments PDF merges every PDF work certificate, keeps the page order inside
+     * each attachment and appends images after all PDF pages.
+     */
+    @Test
+    @Transactional
+    fun approvalMergesPdfAttachmentsIntoLiitteetPdfPreservingPageOrder() {
+
+        persistKoulutussuunnitelma()
+
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
+        tyoskentelyjakso.opintooikeus = opintooikeus
+        em.persist(tyoskentelyjakso)
+        em.flush()
+
+        persistTyoskentelyjaksoAsiakirja(
+            tyoskentelyjakso, "alpha.pdf", MediaType.APPLICATION_PDF_VALUE,
+            PdfTestSupport.createPdf("AlphaSivuYksi", "AlphaSivuKaksi")
+        )
+        persistTyoskentelyjaksoAsiakirja(
+            tyoskentelyjakso, "beta.pdf", MediaType.APPLICATION_PDF_VALUE,
+            PdfTestSupport.createPdf("BetaSivuYksi")
+        )
+        persistTyoskentelyjaksoAsiakirja(
+            tyoskentelyjakso, "photo.jpg", MediaType.IMAGE_JPEG_VALUE, validJpeg
+        )
+        em.flush()
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+        val liitteet = requireNotNull(updated.liitteetAsiakirja)
+        assertThat(liitteet.nimi).startsWith("valmistumisen_yhteenvedon_liitteet_")
+
+        val pages = PdfTestSupport.pageTexts(requireNotNull(liitteet.asiakirjaData?.data))
+        // 2 + 1 PDF pages followed by the JPEG page.
+        assertThat(pages).hasSize(4)
+        val pdfPages = pages.take(3)
+        assertThat(pdfPages).containsExactlyInAnyOrder("AlphaSivuYksi", "AlphaSivuKaksi", "BetaSivuYksi")
+        assertThat(pdfPages.indexOf("AlphaSivuYksi")).isLessThan(pdfPages.indexOf("AlphaSivuKaksi"))
+        assertThat(pages.last()).isEmpty()
+    }
+
+    /**
+     * Without any attachments the approval still produces a (valid) attachments PDF.
+     */
+    @Test
+    @Transactional
+    fun approvalWithoutAttachmentsStillStoresLiitteetPdf() {
+
+        persistKoulutussuunnitelma()
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+        val data = requireNotNull(updated.liitteetAsiakirja?.asiakirjaData?.data)
+        assertThat(data).isNotEmpty
+        assertThat(PdfTestSupport.pageTexts(data).joinToString("")).isEmpty()
+    }
+
+    private fun persistTyoskentelyjaksoAsiakirja(
+        tyoskentelyjakso: Tyoskentelyjakso,
+        nimi: String,
+        tyyppi: String,
+        data: ByteArray
+    ) {
+        em.persist(
+            Asiakirja(
+                opintooikeus = opintooikeus,
+                tyoskentelyjakso = tyoskentelyjakso,
+                nimi = nimi,
+                tyyppi = tyyppi,
+                lisattypvm = LocalDateTime.now(),
+                asiakirjaData = AsiakirjaData(data = data)
+            )
+        )
+    }
+
+    private companion object {
+        const val VIRKAILIJAN_YHTEENVETO = "Virkailijanyhteenvetomarkkeri42"
     }
 
     private fun assertGeneratedTraineeDataDocumentIsValid(valmistumispyyntoId: Long) {

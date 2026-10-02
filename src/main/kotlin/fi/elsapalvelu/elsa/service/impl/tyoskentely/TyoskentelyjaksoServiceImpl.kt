@@ -12,6 +12,7 @@ import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi.*
 import fi.elsapalvelu.elsa.repository.perustiedot.ErikoisalaRepository
 import fi.elsapalvelu.elsa.repository.perustiedot.KuntaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksoService
@@ -50,7 +51,8 @@ class TyoskentelyjaksoServiceImpl(
     private val asiakirjaMapper: AsiakirjaMapper,
     private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
     private val opintooikeusRepository: OpintooikeusRepository,
-    private val pdfTextFieldValidator: PdfTextFieldValidator
+    private val pdfTextFieldValidator: PdfTextFieldValidator,
+    private val asiakirjaRepository: AsiakirjaRepository
 
 ) : TyoskentelyjaksoService {
 
@@ -173,9 +175,18 @@ class TyoskentelyjaksoServiceImpl(
             tyoskentelyjakso.asiakirjat.addAll(asiakirjaEntities)
         }
 
-        deletedAsiakirjaIds?.map { x -> x.toLong() }?.let {
-            tyoskentelyjakso.asiakirjat.removeIf { asiakirja ->
-                asiakirja.id in it
+        deletedAsiakirjaIds?.map { x -> x.toLong() }?.toSet()?.let { ids ->
+            // Tyoskentelyjakso-liitoksessa ei ole REMOVE-kaskadia eika orphanRemovalia, jotta
+            // tyoskentelyjakson poisto sailyttaa asiakirjat (ks. Tyoskentelyjakso.asiakirjat).
+            // Siksi kayttajan pyytama asiakirjan poisto tehdaan tassa eksplisiittisesti.
+            // Poistettavat haetaan tyoskentelyjakson omasta kokoelmasta, joten toisen
+            // tyoskentelyjakson asiakirjaa ei voi poistaa id:ta arvaamalla.
+            val poistettavat = tyoskentelyjakso.asiakirjat.filter { asiakirja ->
+                asiakirja.id != null && asiakirja.id in ids
+            }
+            if (poistettavat.isNotEmpty()) {
+                tyoskentelyjakso.asiakirjat.removeAll(poistettavat.toSet())
+                asiakirjaRepository.deleteAll(poistettavat)
             }
         }
 

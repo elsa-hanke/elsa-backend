@@ -22,6 +22,7 @@ import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.PdfTestSupport
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ValmistumispyynnonTarkistusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ValmistumispyyntoHelper
@@ -41,6 +42,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 private const val ENDPOINT_BASE_URL = "/api/vastuuhenkilo"
 private const val HYVAKSYNTA_ENDPOINT = "/valmistumispyynnon-hyvaksynta"
@@ -85,6 +87,46 @@ class VastuuhenkiloValmistumispyyntoRegressionIT : ResourceIntegrationTestBase()
         Loader.loadPDF(summaryData).use { pdf ->
             assertThat(pdf.numberOfPages).isGreaterThan(0)
         }
+    }
+
+    @Test
+    fun ackYekValmistumispyyntoSummaryPdfHasExpectedSectionsAndData() {
+        initYekReviewer()
+        val valmistumispyynto = persistYekRequestAwaitingApproval()
+
+        testMockMvc.perform(
+            put("$ENDPOINT_BASE_URL$HYVAKSYNTA_ENDPOINT/{id}", valmistumispyynto.id)
+                .contentType(APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null)))
+                .with(csrf())
+        ).andExpect(status().isOk)
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+
+        val text = PdfTestSupport.text(
+            requireNotNull(updated.yhteenvetoAsiakirja?.asiakirjaData?.data)
+        )
+        PdfTestSupport.assertContainsInOrder(
+            text,
+            "YEK-koulutuksen valmistumisen yhteenveto",
+            "Koulutettava lääkäri",
+            "Teoriakoulutus",
+            "Työskentelyjaksot",
+            "Muut tarkistukset",
+            "Tarkistanut"
+        )
+        assertThat(text).doesNotContain("Erikoistumiskoulutuksen valmistumisen yhteenveto")
+        assertThat(text).contains(
+            requireNotNull(updated.opintooikeus?.erikoistuvaLaakari?.kayttaja?.nimike),
+            requireNotNull(updated.virkailija?.nimike),
+            LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        )
+
+        // YEK approval does not generate the trainee data PDF, but does store attachments.
+        assertThat(updated.erikoistujanTiedotAsiakirja).isNull()
+        assertThat(updated.liitteetAsiakirja?.asiakirjaData?.data).isNotEmpty
     }
 
     @Test
