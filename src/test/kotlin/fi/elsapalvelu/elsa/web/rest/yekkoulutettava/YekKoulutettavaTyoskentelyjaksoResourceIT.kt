@@ -71,6 +71,7 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
     @Autowired private lateinit var kayttajaRepository: KayttajaRepository
     @Autowired private lateinit var kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository
     @Autowired private lateinit var opintooikeusRepository: OpintooikeusRepository
+    @Autowired private lateinit var asiakirjaRepository: AsiakirjaRepository
     @Autowired private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
     @Autowired private lateinit var kuntaMapper: KuntaMapper
     @Autowired private lateinit var erikoisalaMapper: ErikoisalaMapper
@@ -434,6 +435,36 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeDelete)
+    }
+
+    @Test
+    @Transactional
+    fun deleteTyoskentelyjaksoShouldRemoveAsiakirjaReferenceAndKeepAsiakirja() {
+        initTest()
+
+        tyoskentelyjakso.asiakirjat.add(AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso))
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        val tyoskentelyjaksoId = tyoskentelyjakso.id
+        assertNotNull(tyoskentelyjaksoId)
+        val asiakirjaId = tyoskentelyjakso.asiakirjat.first().id
+        assertNotNull(asiakirjaId)
+        assertThat(asiakirjaRepository.findAllByTyoskentelyjaksoId(tyoskentelyjaksoId)).hasSize(1)
+
+        restTyoskentelyjaksoMockMvc.perform(delete("/api/yek-koulutettava/tyoskentelyjaksot/{id}", tyoskentelyjaksoId).accept(MediaType.APPLICATION_JSON)
+                .with(csrf())).andExpect(status().isNoContent)
+
+        em.flush()
+        em.clear()
+
+        // Työskentelyjakso poistetaan, mutta asiakirja säilyy ilman viittausta työskentelyjaksoon
+        assertThat(tyoskentelyjaksoRepository.findById(tyoskentelyjaksoId)).isEmpty
+        assertThat(asiakirjaRepository.findAllByTyoskentelyjaksoId(tyoskentelyjaksoId)).isEmpty()
+
+        val asiakirja = asiakirjaRepository.findById(asiakirjaId).orElse(null)
+        assertNotNull(asiakirja)
+        assertThat(asiakirja.tyoskentelyjakso).isNull()
+        assertThat(asiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
     }
 
 
