@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfReader
@@ -7,9 +7,9 @@ import com.itextpdf.kernel.pdf.WriterProperties
 import com.itextpdf.kernel.utils.PdfMerger
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_YHDISTA_PDF
+import fi.elsapalvelu.elsa.service.valmistuminen.PdfAssembler
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.Closeable
 
 /**
  * Assembles the attachment documents of a graduation request into a single PDF document.
@@ -27,11 +27,11 @@ import java.io.Closeable
  * that shrank the stored document from 152 MiB to 47 MiB, which considerably shortens saving
  * it to the database - after the assembly, that is the largest phase of the work.
  */
-class PdfAssembler(
+class ItextPdfAssembler(
     firstDocument: ByteArray,
     private val pdfMetrics: PdfGenerationMetricsService,
     smartMode: Boolean = true
-) : Closeable {
+) : PdfAssembler {
 
     private val outputStream = ByteArrayOutputStream()
     private val target = PdfDocument(
@@ -43,10 +43,10 @@ class PdfAssembler(
 
     private var closed = false
 
-    val pages: Int
+    override val pages: Int
         get() = target.numberOfPages
 
-    fun add(pdf: ByteArray) {
+    override fun add(pdf: ByteArray) {
         pdfMetrics.trackOperation(OP_YHDISTA_PDF) {
             PdfDocument(PdfReader(ByteArrayInputStream(pdf))).use { source ->
                 merger.merge(source, 1, source.numberOfPages)
@@ -54,12 +54,7 @@ class PdfAssembler(
         }
     }
 
-    fun add(pdf: ByteArrayOutputStream) = add(pdf.toByteArray())
-
-    /**
-     * Closes the target document and returns the finished PDF as bytes.
-     */
-    fun finish(): ByteArray {
+    override fun finish(): ByteArray {
         close()
         return outputStream.toByteArray()
     }

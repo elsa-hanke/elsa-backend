@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.valmistuminen
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
-import fi.elsapalvelu.elsa.service.impl.valmistuminen.PdfAssembler
 import org.thymeleaf.context.Context
 import java.io.InputStream
 import java.io.OutputStream

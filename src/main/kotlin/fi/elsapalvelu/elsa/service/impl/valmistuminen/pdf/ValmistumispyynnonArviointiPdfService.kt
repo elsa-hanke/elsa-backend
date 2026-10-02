@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
@@ -6,7 +6,9 @@ import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.PdfContentValidator
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonArviointitietoService
 import fi.elsapalvelu.elsa.service.mapper.arviointi.SuoritusarviointiMapper
+import fi.elsapalvelu.elsa.service.valmistuminen.PdfAssembler
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource

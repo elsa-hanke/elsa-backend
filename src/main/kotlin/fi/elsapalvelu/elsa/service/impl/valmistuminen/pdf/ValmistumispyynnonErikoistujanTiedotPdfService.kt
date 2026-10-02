@@ -1,16 +1,14 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
-import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
-import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
-import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.koulutus.KoulutussuunnitelmaRepository
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
-import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.PdfContentValidator
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonAsiakirjanTallennusService
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoPdfTextValidator
+import fi.elsapalvelu.elsa.service.valmistuminen.PdfAssembler
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource
@@ -19,16 +17,12 @@ import org.springframework.stereotype.Service
 import org.slf4j.LoggerFactory
 import org.thymeleaf.context.Context
 import java.io.ByteArrayOutputStream
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Service
 class ValmistumispyynnonErikoistujanTiedotPdfService(
     private val pdfService: PdfService,
-    private val asiakirjaRepository: AsiakirjaRepository,
-    private val valmistumispyyntoRepository: ValmistumispyyntoRepository,
+    private val asiakirjanTallennusService: ValmistumispyynnonAsiakirjanTallennusService,
     private val koulutussuunnitelmaRepository: KoulutussuunnitelmaRepository,
     private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository,
     private val seurantajaksoService: SeurantajaksoService,
@@ -64,19 +58,11 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
         }
 
         val tallennuksenAlku = System.currentTimeMillis()
-        val aikaleima =
-            LocalDate.now().format(DateTimeFormatter.ofPattern(PAIVAMAARAFORMAATTI))
-        val asiakirja = asiakirjaRepository.save(
-            Asiakirja(
-                opintooikeus = opintooikeus,
-                nimi = "koulutussuunnitelma_ja_osaaminen_${aikaleima}.pdf",
-                tyyppi = MediaType.APPLICATION_PDF_VALUE,
-                lisattypvm = LocalDateTime.now(),
-                asiakirjaData = AsiakirjaData(data = data)
-            )
-        )
-        valmistumispyynto.erikoistujanTiedotAsiakirja = asiakirja
-        valmistumispyyntoRepository.save(valmistumispyynto)
+        asiakirjanTallennusService.tallenna(
+            valmistumispyynto,
+            "koulutussuunnitelma_ja_osaaminen",
+            data
+        ) { pyynto, tallennettu -> pyynto.erikoistujanTiedotAsiakirja = tallennettu }
         log.info(
             "Erikoistujan tiedot tallennettu [opintooikeusId=$opintooikeusId, " +
                 "kesto=${System.currentTimeMillis() - tallennuksenAlku} ms]"
@@ -175,7 +161,6 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
     }
 
     private companion object {
-        const val PAIVAMAARAFORMAATTI = "yyyyMMdd"
         const val MIB = 1024 * 1024
         val SUOMEN_LOCALE: Locale = Locale.forLanguageTag("fi")
     }
