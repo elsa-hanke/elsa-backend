@@ -52,6 +52,45 @@ object PdfTestSupport {
         }
     }
 
+
+    /**
+     * The index (0-based) of every page whose text starts with one of the given section
+     * headings, paired with that heading, in page order. Pages that continue a section
+     * (do not start with a heading) are left out, so a section that spills over to a second
+     * page does not disturb the sequence, but a duplicated or missing section does.
+     */
+    fun headingSequence(pages: List<String>, headings: List<String>): List<String> =
+        pages.mapNotNull { page ->
+            headings.firstOrNull { heading ->
+                page == heading || page.startsWith("$heading ")
+            }
+        }
+
+    /** Names of all fonts used on the pages, with the subset prefix ("ABCDEF+") removed. */
+    fun fontNames(data: ByteArray): Set<String> =
+        Loader.loadPDF(data).use { pdf ->
+            pdf.pages.flatMap { page ->
+                val resources = page.resources
+                resources.fontNames.mapNotNull { name ->
+                    resources.getFont(name)?.name?.substringAfter('+')
+                }
+            }.toSet()
+        }
+
+    /**
+     * Asserts that the document still declares PDF/A conformance (XMP `pdfaid`) and carries
+     * its output intent. These documents are archived, and merging rewrites the object tree.
+     */
+    fun assertPdfA(data: ByteArray) {
+        Loader.loadPDF(data).use { pdf ->
+            val catalog = pdf.documentCatalog
+            val xmp = catalog.metadata?.exportXMPMetadata()?.use { it.readBytes().toString(Charsets.UTF_8) }
+            assertThat(xmp).withFailMessage("The PDF has no XMP metadata").isNotNull()
+            assertThat(xmp).withFailMessage("The XMP metadata has no PDF/A identification").contains("pdfaid:part")
+            assertThat(catalog.outputIntents).withFailMessage("The PDF has no output intent").isNotEmpty()
+        }
+    }
+
     /** Builds a small valid PDF where page N contains [pageTexts]\[N-1\] (ASCII only). */
     fun createPdf(vararg pageTexts: String): ByteArray =
         PDDocument().use { document ->
