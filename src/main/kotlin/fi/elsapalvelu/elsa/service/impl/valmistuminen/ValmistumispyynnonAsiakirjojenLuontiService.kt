@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
-import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
+import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType.LIITE
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType.YHTEENVETO
@@ -22,7 +22,7 @@ class ValmistumispyynnonAsiakirjojenLuontiService(
         tarkistus: ValmistumispyynnonTarkistusDTO,
         valmistumispyynto: Valmistumispyynto
     ): List<RecordProperties> {
-        val yek = valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
+        val yek = valmistumispyynto.isYek()
         if (yek) {
             val yhteenveto = mittaa("yhteenveto (YEK)") {
                 yhteenvetoPdfService.luoYek(tarkistus, valmistumispyynto)

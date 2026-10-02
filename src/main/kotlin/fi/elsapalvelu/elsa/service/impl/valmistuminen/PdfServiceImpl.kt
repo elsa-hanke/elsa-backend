@@ -17,6 +17,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.PdfTextSanitizer
+import fi.elsapalvelu.elsa.service.valmistuminen.PdfAssembler
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_LUO_PDF
@@ -50,7 +51,7 @@ class PdfServiceImpl(
      * varioprofiili, metatiedot) jaetaan sen sijaan etta ne kopioitaisiin jokaisesta
      * lahdedokumentista erikseen. Pienentaa erikoistujan tiedot -koosteen noin kolmasosaan.
      *
-     * Kaytossa vain [PdfAssembler]issa, jossa lahdedokumentit ovat sovelluksen itsensa
+     * Kaytossa vain [ItextPdfAssembler]issa, jossa lahdedokumentit ovat sovelluksen itsensa
      * tuottamia ja rakenteeltaan yhdenmukaisia PDF/A-dokumentteja. Kayttajien lataamien
      * liitteiden yhdistelyssa tilaa ei kayteta: mitattu hyoty oli vain 1 MiB (3 -> 2 MiB),
      * ja liitteet ovat mielivaltaisia ulkopuolisia PDF-tiedostoja, joiden rakennetta ei
@@ -178,7 +179,7 @@ class PdfServiceImpl(
     }
 
     override fun openAssembler(firstDocument: ByteArray): PdfAssembler =
-        PdfAssembler(firstDocument, pdfMetrics, smartMode)
+        ItextPdfAssembler(firstDocument, pdfMetrics, smartMode)
 
     private fun sanitizeContent(input: String): String = PdfTextSanitizer.sanitize(input)
 

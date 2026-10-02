@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoriteWithSuoritemerkinnatDTO
 import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritteenKategoriaWithSuoritemerkinnatDTO
 import fi.elsapalvelu.elsa.service.mapper.suoritteet.SuoritemerkintaMapper
+import fi.elsapalvelu.elsa.service.valmistuminen.PdfAssembler
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

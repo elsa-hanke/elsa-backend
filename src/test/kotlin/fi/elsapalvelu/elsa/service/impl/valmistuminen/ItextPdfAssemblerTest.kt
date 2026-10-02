@@ -16,13 +16,13 @@ import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
-class PdfAssemblerTest {
+class ItextPdfAssemblerTest {
 
     private val pdfMetrics = PdfGenerationMetricsService(SimpleMeterRegistry())
 
     @Test
     fun `assembles all documents into a single PDF in the right order`() {
-        val assembler = PdfAssembler(pdf("First"), pdfMetrics)
+        val assembler = ItextPdfAssembler(pdf("First"), pdfMetrics)
         assembler.add(pdf("Second"))
         assembler.add(pdf("Third"))
 
@@ -34,7 +34,7 @@ class PdfAssemblerTest {
 
     @Test
     fun `the page count grows with every addition`() {
-        PdfAssembler(pdf("First"), pdfMetrics).use { assembler ->
+        ItextPdfAssembler(pdf("First"), pdfMetrics).use { assembler ->
             assertThat(assembler.pages).isEqualTo(1)
             assembler.add(pdf("Second"))
             assertThat(assembler.pages).isEqualTo(2)
@@ -45,7 +45,7 @@ class PdfAssemblerTest {
     fun `produces the same result as merging one document at a time`() {
         val documents = (1..5).map { pdf("Page $it") }
 
-        val assembler = PdfAssembler(documents.first(), pdfMetrics)
+        val assembler = ItextPdfAssembler(documents.first(), pdfMetrics)
         documents.drop(1).forEach(assembler::add)
         val assembledResult = assembler.finish()
 
@@ -58,7 +58,7 @@ class PdfAssemblerTest {
 
     @Test
     fun `finish is safe to call even if the assembler is already closed`() {
-        val assembler = PdfAssembler(pdf("First"), pdfMetrics)
+        val assembler = ItextPdfAssembler(pdf("First"), pdfMetrics)
         val result = assembler.finish()
 
         assembler.close()
@@ -71,11 +71,11 @@ class PdfAssemblerTest {
     fun `smart mode produces the same content as without it`() {
         val documents = (1..12).map { pdfWithFont("Page $it") }
 
-        val smart = PdfAssembler(documents.first(), pdfMetrics, smartMode = true)
+        val smart = ItextPdfAssembler(documents.first(), pdfMetrics, smartMode = true)
         documents.drop(1).forEach(smart::add)
         val smartResult = smart.finish()
 
-        val plain = PdfAssembler(documents.first(), pdfMetrics, smartMode = false)
+        val plain = ItextPdfAssembler(documents.first(), pdfMetrics, smartMode = false)
         documents.drop(1).forEach(plain::add)
         val plainResult = plain.finish()
 
@@ -87,11 +87,11 @@ class PdfAssemblerTest {
     fun `smart mode does not copy the same fonts from every source document`() {
         val documents = (1..12).map { pdfWithFont("Page $it") }
 
-        val smart = PdfAssembler(documents.first(), pdfMetrics, smartMode = true)
+        val smart = ItextPdfAssembler(documents.first(), pdfMetrics, smartMode = true)
         documents.drop(1).forEach(smart::add)
         val smartResult = smart.finish()
 
-        val plain = PdfAssembler(documents.first(), pdfMetrics, smartMode = false)
+        val plain = ItextPdfAssembler(documents.first(), pdfMetrics, smartMode = false)
         documents.drop(1).forEach(plain::add)
         val plainResult = plain.finish()
 

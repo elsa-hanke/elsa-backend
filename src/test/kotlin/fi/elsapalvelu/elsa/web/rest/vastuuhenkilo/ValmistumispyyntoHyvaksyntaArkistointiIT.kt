@@ -29,7 +29,7 @@ import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.impl.valmistuminen.PdfAssembler
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ItextPdfAssembler
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
@@ -107,7 +107,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     /**
      * Mocked so that the heavy parts of PDF generation — Thymeleaf rendering, embedded fonts,
      * the PDF/A colour profile — are skipped entirely. [stubPdfService] still makes `luoPdf`
-     * write a small *real* PDF and `openAssembler` return a *real* [PdfAssembler], because the
+     * write a small *real* PDF and `openAssembler` return a *real* [ItextPdfAssembler], because the
      * calling services (e.g. ValmistumispyynnonArviointiPdfService) always call
      * `assembler.add(...)`, even with zero entries (the template still renders an empty
      * summary page) — the bytes must be something iText's PdfReader can actually parse.
@@ -118,7 +118,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private lateinit var pdfService: PdfService
 
     /**
-     * Real bean, not mocked: used only to construct the real [PdfAssembler] returned by the
+     * Real bean, not mocked: used only to construct the real [ItextPdfAssembler] returned by the
      * [pdfService] stub, so the assembly/merge logic under test is the production code path,
      * not a mock of it.
      */
@@ -140,7 +140,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         }
         whenever(pdfService.openAssembler(any())).thenAnswer { invocation ->
             val firstDocument = invocation.getArgument<ByteArray>(0)
-            PdfAssembler(firstDocument, pdfGenerationMetricsService)
+            ItextPdfAssembler(firstDocument, pdfGenerationMetricsService)
         }
     }
 

@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto.Companion.fromValmistumispyyntoErikoistuja
+import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyynnonTarkistusRepository
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.required
@@ -127,7 +128,7 @@ class ValmistumispyyntoServiceImpl(
                 erikoistujanKuittausaika = LocalDate.now()
             )
             valmistumispyyntoRepository.save(valmistumispyynto).let { saved ->
-                if (saved.opintooikeus?.erikoisala?.id != YEK_ERIKOISALA_ID) {
+                if (!saved.isYek()) {
                     val vastuuhenkiloOsaamisenArvioijaUser =
                         osapuoliService.haeOsaamisenArvioija(
                         opintooikeus.yliopisto?.id.required(),
@@ -163,7 +164,7 @@ class ValmistumispyyntoServiceImpl(
                 erikoistujanKuittausaika = LocalDate.now()
                 this.selvitysVanhentuneistaSuorituksista = uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista
 
-                if (opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                if (opintooikeus.isYek()) {
                     virkailijanPalautusaika = null
                 } else if (vastuuhenkiloOsaamisenArvioijaKuittausaika != null) {
                     virkailijanPalautusaika = null
@@ -171,7 +172,7 @@ class ValmistumispyyntoServiceImpl(
                 }
             }.let {
                 valmistumispyyntoRepository.save(it).let { saved ->
-                    if (it.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                    if (it.isYek()) {
                         ilmoitusService.lahetaIlmoitusVirkailijanTarkastuksesta(saved)
                     } else if (saved.vastuuhenkiloOsaamisenArvioijaKuittausaika == null) {
                         val vastuuhenkiloOsaamisenArvioijaUser =
@@ -456,7 +457,7 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = osapuoliService.haeYliopisto(kayttaja)
         val tarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdForHyvaksyja(id, yliopisto.id.required())
             ?: throw osapuoliService.valmistumispyyntoaEiLoydy()
-        val yek = tarkistus.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
+        val yek = tarkistus.valmistumispyynto?.opintooikeus.isYek()
         if (tilaService.haeVastuuhenkilonRoolit(kayttaja, yek).isEmpty()) {
             throw osapuoliService.valmistumispyyntoaEiLoydy()
         }
