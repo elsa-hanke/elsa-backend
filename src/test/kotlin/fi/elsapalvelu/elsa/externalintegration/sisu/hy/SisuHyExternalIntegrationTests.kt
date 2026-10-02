@@ -1,10 +1,14 @@
 package fi.elsapalvelu.elsa.externalintegration.sisu.hy
 
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.network.okHttpClient
 import com.fasterxml.jackson.databind.DeserializationFeature
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.externalintegration.FetchingServiceExternalIntegrationBase
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
+import fi.elsapalvelu.elsa.required
+import fi.elsapalvelu.elsa.service.integration.GraphQLClientBuilder
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.IntegrationAlertService
@@ -16,10 +20,10 @@ import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingS
 import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
@@ -28,6 +32,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 import org.springframework.test.context.ActiveProfiles
 
 /**
@@ -42,7 +47,6 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(classes = [SisuHyExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
@@ -93,6 +97,31 @@ class SisuHyExternalIntegrationTestApplication {
         Jackson2ObjectMapperBuilderCustomizer {
             it.featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         }
+
+    @Bean
+    @Primary
+    @Qualifier("SisuHy")
+    fun rawTrafficLoggingSisuHyClientBuilder(
+        sisuHyClientBuilder: SisuHyClientBuilderImpl,
+        applicationProperties: ApplicationProperties
+    ): GraphQLClientBuilder = object : GraphQLClientBuilder {
+        private val loggingOkHttpClient by lazy {
+            sisuHyClientBuilder.okHttpClient().newBuilder()
+                .addInterceptor(SisuHyRawTrafficLoggingInterceptor())
+                .build()
+        }
+
+        private val loggingApolloClient by lazy {
+            ApolloClient.Builder()
+                .serverUrl(applicationProperties.getSecurity().getSisuHy().graphqlEndpointUrl.required())
+                .okHttpClient(loggingOkHttpClient)
+                .build()
+        }
+
+        override fun okHttpClient() = loggingOkHttpClient
+
+        override fun apolloClient() = loggingApolloClient
+    }
 
     @Bean
     fun yliopistoRepository(): YliopistoRepository = Mockito.mock(YliopistoRepository::class.java)
