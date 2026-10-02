@@ -62,6 +62,7 @@ import jakarta.persistence.EntityManager
  */
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
+@Suppress("LargeClass")
 class VastuuhenkiloValmistumispyyntoLiiteIT {
 
     @Autowired
