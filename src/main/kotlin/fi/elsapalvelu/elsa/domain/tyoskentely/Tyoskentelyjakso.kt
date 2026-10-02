@@ -82,10 +82,15 @@ data class Tyoskentelyjakso(
     @Column(name = "liitetty_koejaksoon")
     var liitettyKoejaksoon: Boolean = false,
 
+    // Asiakirja voi olla olemassa ilman työskentelyjaksoa (Asiakirja.tyoskentelyjakso on
+    // optional ja asiakirja.tyoskentelyjakso_id on nullable). Työskentelyjakson poisto saa
+    // poistaa vain viittauksen, ei itse asiakirjaa, joten tässä ei saa olla REMOVE-kaskadia
+    // eikä orphanRemoval-asetusta. Viittauksen nollaus tehdään
+    // AsiakirjaService.removeTyoskentelyjaksoReference-metodissa ja käyttäjän pyytämä
+    // asiakirjan poisto TyoskentelyjaksoServiceImpl.mapAsiakirjat-metodissa.
     @OneToMany(
         mappedBy = "tyoskentelyjakso",
-        cascade = [CascadeType.ALL],
-        orphanRemoval = true,
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE],
         fetch = FetchType.LAZY
     )
     var asiakirjat: MutableSet<Asiakirja> = mutableSetOf(),
