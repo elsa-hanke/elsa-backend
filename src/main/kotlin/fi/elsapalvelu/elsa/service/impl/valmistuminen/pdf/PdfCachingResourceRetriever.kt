@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
 import com.itextpdf.styledxmlparser.resolver.resource.DefaultResourceRetriever
 import org.slf4j.LoggerFactory

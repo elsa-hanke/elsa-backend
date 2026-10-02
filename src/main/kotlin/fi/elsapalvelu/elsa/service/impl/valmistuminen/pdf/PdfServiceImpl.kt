@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
 import org.springframework.beans.factory.annotation.Value
 import com.itextpdf.html2pdf.ConverterProperties

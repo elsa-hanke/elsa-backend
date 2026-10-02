@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
@@ -12,6 +12,8 @@ import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.arviointi.ArviointiasteikkoService
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksotTilastotDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusDTO
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonArviointitietoService
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonAsiakirjanTallennusService
 import fi.elsapalvelu.elsa.service.koulutus.OpintosuoritusService
 import fi.elsapalvelu.elsa.service.koulutus.TeoriakoulutusService
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksoService

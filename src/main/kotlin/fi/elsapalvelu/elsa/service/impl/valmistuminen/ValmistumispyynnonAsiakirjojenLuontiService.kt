@@ -7,6 +7,9 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType.LIITE
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType.YHTEENVETO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusDTO
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.ValmistumispyynnonErikoistujanTiedotPdfService
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.ValmistumispyynnonLiitteetPdfService
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.ValmistumispyynnonYhteenvetoPdfService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 

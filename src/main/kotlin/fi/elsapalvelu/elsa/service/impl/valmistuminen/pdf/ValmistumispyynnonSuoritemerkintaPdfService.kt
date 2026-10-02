@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
 import fi.elsapalvelu.elsa.domain.arviointi.Arviointiasteikko
 import fi.elsapalvelu.elsa.domain.arviointi.ArviointiasteikonTaso
