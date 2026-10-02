@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...HEAD)
 
+- Add PDF content assertions and regression tests [`#752`](https://github.com/elsa-hanke/elsa-backend/pull/752)(2 October 2026)
+- Enable HelsinkiArkistointiExternalIntegrationTests [`#711`](https://github.com/elsa-hanke/elsa-backend/pull/711)(1 October 2026)
 - ELSAINSI-59 Käyttäjä voi lisätä ja poistaa asiakirjoja muiden käyttäjien työskentelyjaksoista [`#710`](https://github.com/elsa-hanke/elsa-backend/pull/710)(1 October 2026)
 - e2e testi: osaamisen arviointi [`#749`](https://github.com/elsa-hanke/elsa-backend/pull/749)(29 September 2026)
 - e2e testi: seurantajakson kouluttajan arviointi [`#745`](https://github.com/elsa-hanke/elsa-backend/pull/745)(29 September 2026)
