@@ -1,6 +1,7 @@
 import {
   VASTUUHENKILO_EMAIL,
 } from '../../support/commands/credentials'
+import { downloadPdfPages, expectTextInOrder } from '../../support/pdf'
 import {
   acceptRequirements,
   fillContactInformation,
@@ -75,6 +76,29 @@ describe('YEK-valmistumispyynnön hyväksyntä', () => {
             expect(headers['content-type']).to.include('application/pdf')
             expect(documentBody.length).to.be.greaterThan(0)
           })
+
+          // Regression guard for PDF generation: the summary keeps its sections and data.
+          downloadPdfPages(
+            `/api/vastuuhenkilo/valmistumispyynto/${valmistumispyyntoId}/asiakirja/${body.valmistumispyynto.yhteenvetoAsiakirjaId}`
+          ).then((pages) => {
+            expect(pages.length).to.be.greaterThan(0)
+            const text = pages.join(' ')
+            expectTextInOrder(
+              text,
+              'YEK-koulutuksen valmistumisen yhteenveto',
+              'Koulutettava lääkäri',
+              'Teoriakoulutus',
+              'Työskentelyjaksot',
+              'Muut tarkistukset',
+              'Tarkistanut'
+            )
+            expect(text).to.not.include('Erikoistumiskoulutuksen valmistumisen yhteenveto')
+          })
+
+          // The attachments PDF is a valid, parseable PDF.
+          downloadPdfPages(
+            `/api/vastuuhenkilo/valmistumispyynto/${valmistumispyyntoId}/asiakirja/${body.valmistumispyynto.liitteetAsiakirjaId}`
+          ).its('length').should('be.greaterThan', 0)
         })
       }
     )
