@@ -72,6 +72,7 @@ private const val API_TYOSKENTELYJAKSOT = "/api/erikoistuva-laakari/tyoskentelyj
 
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
+@Suppress("LargeClass")
 class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase() {
 
     @Autowired private lateinit var tyoskentelyjaksoRepository: TyoskentelyjaksoRepository
