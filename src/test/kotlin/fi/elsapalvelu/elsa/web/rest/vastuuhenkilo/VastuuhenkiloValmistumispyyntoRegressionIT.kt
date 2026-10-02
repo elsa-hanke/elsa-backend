@@ -93,13 +93,22 @@ class VastuuhenkiloValmistumispyyntoRegressionIT : ResourceIntegrationTestBase()
     fun ackYekValmistumispyyntoSummaryPdfHasExpectedSectionsAndData() {
         initYekReviewer()
         val valmistumispyynto = persistYekRequestAwaitingApproval()
+        // Distinct, recognisable names (job titles are too low-cardinality to prove anything).
+        requireNotNull(valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user)
+            .apply { firstName = "Eeva"; lastName = "Erikoistuja" }
+        requireNotNull(valmistumispyynto.virkailija?.user)
+            .apply { firstName = "Veera"; lastName = "Virkailija" }
+        requireNotNull(vastuuhenkilo.user).apply { firstName = "Heikki"; lastName = "Hyvaksyja" }
+        em.flush()
 
+        val before = LocalDate.now()
         testMockMvc.perform(
             put("$ENDPOINT_BASE_URL$HYVAKSYNTA_ENDPOINT/{id}", valmistumispyynto.id)
                 .contentType(APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null)))
                 .with(csrf())
         ).andExpect(status().isOk)
+        val after = LocalDate.now()
 
         em.flush()
         em.clear()
@@ -118,11 +127,13 @@ class VastuuhenkiloValmistumispyyntoRegressionIT : ResourceIntegrationTestBase()
             "Tarkistanut"
         )
         assertThat(text).doesNotContain("Erikoistumiskoulutuksen valmistumisen yhteenveto")
-        assertThat(text).contains(
-            requireNotNull(updated.opintooikeus?.erikoistuvaLaakari?.kayttaja?.nimike),
-            requireNotNull(updated.virkailija?.nimike),
-            LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-        )
+        assertThat(text).contains("Eeva Erikoistuja", "Veera Virkailija", "Heikki Hyvaksyja")
+        // Accept the date from either side of a possible midnight rollover during the request.
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        assertThat(listOf(before, after).map { it.format(formatter) }.any { text.contains(it) })
+            .withFailMessage("Expected the approval date (%s or %s) in the summary", before, after)
+            .isTrue()
+        PdfTestSupport.assertPdfA(requireNotNull(updated.yhteenvetoAsiakirja?.asiakirjaData?.data))
 
         // YEK approval does not generate the trainee data PDF, but does store attachments.
         assertThat(updated.erikoistujanTiedotAsiakirja).isNull()
