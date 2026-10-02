@@ -26,7 +26,7 @@ class SisuHyRawTrafficLoggingInterceptorTest {
         val client = OkHttpClient.Builder()
             .addInterceptor(SisuHyRawTrafficLoggingInterceptor(output::add))
             .build()
-        val requestBody = "{\"query\":\"query OpintotietodataSisuHy($id: ID!) { ... }\",\"variables\":{\"id\":\"210281-9988\"}}"
+        val requestBody = "{\"query\":\"query OpintotietodataSisuHy($: ID!) { ... }\",\"variables\":{\"id\":\"210281-9988\"}}"
         val request = Request.Builder()
             .url(server.url("/secure/sisu/graphql"))
             .header("X-Api-Key", "super-secret-api-key")
