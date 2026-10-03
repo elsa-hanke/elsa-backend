@@ -84,7 +84,6 @@ private const val ARKISTOINTI_HYVAKSYNTA_ENDPOINT = "/api/vastuuhenkilo/valmistu
  */
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
-@Suppress("LargeClass")
 class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
     @Autowired
@@ -309,43 +308,23 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     fun updateValmistumispyyntoByHyvaksyjaUserId_archivingEnabled_usesGeneratedPersistedDocuments() {
         val valmistumispyyntoId = initTestInTransaction()
         whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
-        whenever(
-            arkistointiService.muodostaSahke(
-                any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+        whenever(arkistointiService.muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
         ).thenReturn(ArkistointiResult("/tmp/valmistumispyynto.zip", null))
 
         restMockMvc.perform(
             put("$ARKISTOINTI_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyyntoId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null)))
-                .with(csrf())
-        ).andExpect(status().isOk)
+                .with(csrf())).andExpect(status().isOk)
 
         val asiakirjatCaptor = argumentCaptor<List<RecordProperties>>()
-        verify(arkistointiService).muodostaSahke(
-            any(),
-            asiakirjatCaptor.capture(),
-            any(),
-            any(),
-            any(),
-            any(),
-            any(),
-            any(),
-            any()
-        )
+        verify(arkistointiService).muodostaSahke(any(), asiakirjatCaptor.capture(), any(), any(), any(), any(), any(), any(), any())
         assertThat(asiakirjatCaptor.firstValue.map { it.type })
-            .containsExactly(
-                RecordType.YHTEENVETO,
-                RecordType.LIITE
-            )
+            .containsExactly(RecordType.YHTEENVETO, RecordType.LIITE)
 
         val persistedAsiakirjaIds = transactionTemplate.execute {
             val valmistumispyynto = valmistumispyyntoRepository.findById(valmistumispyyntoId).orElseThrow()
-            listOf(
-                valmistumispyynto.yhteenvetoAsiakirja?.id,
-                valmistumispyynto.liitteetAsiakirja?.id
-            )
+            listOf(valmistumispyynto.yhteenvetoAsiakirja?.id, valmistumispyynto.liitteetAsiakirja?.id)
         }
         assertThat(asiakirjatCaptor.firstValue.map { it.asiakirja.id })
             .containsExactlyElementsOf(persistedAsiakirjaIds)
@@ -379,9 +358,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         val valmistumispyyntoId: Long = initTestInTransaction()
 
         // Capture ERROR logs from the controller (where log.error is emitted on rethrow)
-        val resourceLogger = LoggerFactory.getLogger(
-            VastuuhenkiloValmistumispyyntoResource::class.java
-        ) as ch.qos.logback.classic.Logger
+        val resourceLogger = LoggerFactory.getLogger(VastuuhenkiloValmistumispyyntoResource::class.java) as ch.qos.logback.classic.Logger
         val logAppender = ListAppender<ILoggingEvent>()
         logAppender.start()
         resourceLogger.addAppender(logAppender)
@@ -389,10 +366,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         try {
             // Archiving is "enabled" for this test — muodostaSahke throws
             whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
-            whenever(
-                arkistointiService.muodostaSahke(
-                    any(), any(), any(), any(), any(), any(), any(), any(), any()
-                )
+            whenever(arkistointiService.muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
             ).thenThrow(RuntimeException("Arkistointipalvelu ei vastaa"))
 
             // Act
@@ -415,13 +389,9 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
             // Assert 1: ERROR must be logged — proves the explicit catch (ex: Error) block catches Error, not just Exception
             val errorLogs = logAppender.list.filter { it.level == Level.ERROR }
-            assertThat(errorLogs)
-                .withFailMessage("Expected an ERROR log entry from VastuuhenkiloValmistumispyyntoResource")
-                .isNotEmpty
+            assertThat(errorLogs).withFailMessage("Expected an ERROR log entry from VastuuhenkiloValmistumispyyntoResource").isNotEmpty
             val errorMessage = errorLogs[0].formattedMessage
-            assertThat(errorMessage)
-                .withFailMessage("Error log should reference the PUT endpoint path")
-                .contains(valmistumispyyntoId.toString())
+            assertThat(errorMessage).withFailMessage("Error log should reference the PUT endpoint path").contains(valmistumispyyntoId.toString())
             assertThat(errorLogs[0].throwableProxy?.message)
                 .withFailMessage("Error log should include the original exception message")
                 .contains("Arkistointipalvelu ei vastaa")
@@ -469,19 +439,14 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         val valmistumispyyntoId: Long = initTestInTransaction()
 
         // BadRequestExceptionAdvice.handleError is where log.error fires for Error subclasses
-        val adviceLogger = LoggerFactory.getLogger(
-            fi.elsapalvelu.elsa.web.rest.errors.BadRequestExceptionAdvice::class.java
-        ) as ch.qos.logback.classic.Logger
+        val adviceLogger = LoggerFactory.getLogger(fi.elsapalvelu.elsa.web.rest.errors.BadRequestExceptionAdvice::class.java) as ch.qos.logback.classic.Logger
         val logAppender = ListAppender<ILoggingEvent>()
         logAppender.start()
         adviceLogger.addAppender(logAppender)
 
         try {
             whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
-            whenever(
-                arkistointiService.muodostaSahke(
-                    any(), any(), any(), any(), any(), any(), any(), any(), any()
-                )
+            whenever(arkistointiService.muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
             ).thenThrow(OutOfMemoryError("Simuloitu muistivirhe arkistoinnissa"))
 
             // BadRequestExceptionAdvice.handleError returns HTTP 500
@@ -498,17 +463,13 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                 .withFailMessage(
                     "Expected ERROR log from BadRequestExceptionAdvice — " +
                         "handleError(Error) must log at ERROR level"
-                )
-                .isNotEmpty
-            assertThat(errorLogs[0].throwableProxy?.message)
-                .contains("Simuloitu muistivirhe arkistoinnissa")
+                ).isNotEmpty
+            assertThat(errorLogs[0].throwableProxy?.message).contains("Simuloitu muistivirhe arkistoinnissa")
 
             // DB must be rolled back
             val dbState = valmistumispyyntoRepository.findById(valmistumispyyntoId)
             assertThat(dbState).isPresent
-            assertThat(dbState.get().vastuuhenkiloHyvaksyjaKuittausaika)
-                .withFailMessage("Transaction must roll back even when a JVM Error is thrown")
-                .isNull()
+            assertThat(dbState.get().vastuuhenkiloHyvaksyjaKuittausaika).withFailMessage("Transaction must roll back even when a JVM Error is thrown").isNull()
 
             verifyEmailNotSent()
         } finally {
@@ -563,8 +524,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
             val firstApproval = executor.submit<Int> {
                 putHyvaksynta(valmistumispyyntoId).response.status
             }
-            assertThat(firstApprovalInsideTransaction.await(30, TimeUnit.SECONDS))
-                .withFailMessage("The first approval never reached the archiving step")
+            assertThat(firstApprovalInsideTransaction.await(30, TimeUnit.SECONDS)).withFailMessage("The first approval never reached the archiving step")
                 .isTrue()
 
             val secondApproval = putHyvaksynta(valmistumispyyntoId)
@@ -628,14 +588,11 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         }
 
         assertThat(thrown).isInstanceOf(BadRequestAlertException::class.java)
-        assertThat((thrown as BadRequestAlertException).errorKey)
-            .isEqualTo("dataillegal.valmistumispyynto-ei-ole-muokattavissa")
+        assertThat((thrown as BadRequestAlertException).errorKey).isEqualTo("dataillegal.valmistumispyynto-ei-ole-muokattavissa")
         verifyEmailSent()
     }
 
-    private fun putHyvaksynta(
-        valmistumispyyntoId: Long,
-        sender: Saml2Authentication = vastuuhenkiloAuthentication,
+    private fun putHyvaksynta(valmistumispyyntoId: Long, sender: Saml2Authentication = vastuuhenkiloAuthentication,
         form: ValmistumispyyntoHyvaksyntaFormDTO = ValmistumispyyntoHyvaksyntaFormDTO(null)
     ): MvcResult =
         restMockMvc.perform(
@@ -670,17 +627,14 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         val secondId = initSecondStudentValmistumispyynto()
         val gate = gateFirstArchivingCall()
         val approver = vastuuhenkilo.user!!
-        val unchangedContactDetails =
-            ValmistumispyyntoHyvaksyntaFormDTO(null, approver.email, approver.phoneNumber)
+        val unchangedContactDetails = ValmistumispyyntoHyvaksyntaFormDTO(null, approver.email, approver.phoneNumber)
 
         val executor = Executors.newSingleThreadExecutor()
         try {
             val firstApproval = executor.submit<Int> {
                 putHyvaksynta(firstId, form = unchangedContactDetails).response.status
             }
-            assertThat(gate.firstEntered.await(30, TimeUnit.SECONDS))
-                .withFailMessage("The first approval never reached the archiving step")
-                .isTrue()
+            assertThat(gate.firstEntered.await(30, TimeUnit.SECONDS)).withFailMessage("The first approval never reached the archiving step").isTrue()
 
             val secondApproval = putHyvaksynta(secondId, form = unchangedContactDetails)
 
@@ -689,11 +643,8 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                     "Approving a DIFFERENT valmistumispyynto must not be blocked or rejected by the lock " +
                         "of another one, but returned %s",
                     secondApproval.response.status
-                )
-                .isEqualTo(200)
-            assertThat(firstApproval.isDone)
-                .withFailMessage("The first approval was supposed to still be running (parallel execution)")
-                .isFalse()
+                ).isEqualTo(200)
+            assertThat(firstApproval.isDone).withFailMessage("The first approval was supposed to still be running (parallel execution)").isFalse()
 
             gate.release.countDown()
             assertThat(firstApproval.get(30, TimeUnit.SECONDS)).isEqualTo(200)
@@ -723,18 +674,14 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     fun updateValmistumispyyntoByHyvaksyjaUserId_whenUnauthorizedPersonTriesDuringApproval_isRefusedAndDoesNotDisturbRunningApproval() {
         val valmistumispyyntoId = initTestInTransaction()
         val gate = gateFirstArchivingCall()
-        val unauthorizedAuthentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(anotherVastuuhenkilo.user!!.id, mapOf()),
-            "test",
+        val unauthorizedAuthentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(anotherVastuuhenkilo.user!!.id, mapOf()), "test",
             listOf(SimpleGrantedAuthority(VASTUUHENKILO))
         )
 
         val executor = Executors.newSingleThreadExecutor()
         try {
             val approval = executor.submit<Int> { putHyvaksynta(valmistumispyyntoId).response.status }
-            assertThat(gate.firstEntered.await(30, TimeUnit.SECONDS))
-                .withFailMessage("The approval never reached the archiving step")
-                .isTrue()
+            assertThat(gate.firstEntered.await(30, TimeUnit.SECONDS)).withFailMessage("The approval never reached the archiving step").isTrue()
 
             val refused = putHyvaksynta(valmistumispyyntoId, sender = unauthorizedAuthentication)
 
@@ -768,10 +715,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private fun gateFirstArchivingCall(): ArchivingGate {
         val gate = ArchivingGate()
         whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
-        whenever(
-            arkistointiService.muodostaSahke(
-                any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+        whenever(arkistointiService.muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
         ).thenAnswer {
             if (gate.calls.incrementAndGet() == 1) {
                 gate.firstEntered.countDown()
@@ -792,18 +736,10 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                 valmistumispyyntoId
             )
             assertThat(saved.vastuuhenkiloHyvaksyjaKuittausaika).isEqualTo(LocalDate.now())
-            val linked = listOfNotNull(
-                saved.yhteenvetoAsiakirja,
-                saved.liitteetAsiakirja,
-                saved.erikoistujanTiedotAsiakirja
-            ).size
-            val stored = (em.createNativeQuery(
-                "SELECT COUNT(*) FROM asiakirja WHERE opintooikeus_id = $opintooikeusId"
-            ).singleResult as Number).toInt()
+            val linked = listOfNotNull(saved.yhteenvetoAsiakirja, saved.liitteetAsiakirja, saved.erikoistujanTiedotAsiakirja).size
+            val stored = (em.createNativeQuery("SELECT COUNT(*) FROM asiakirja WHERE opintooikeus_id = $opintooikeusId").singleResult as Number).toInt()
             assertThat(linked).isGreaterThan(0)
-            assertThat(stored)
-                .withFailMessage("Expected one document set ($linked documents) but found $stored")
-                .isEqualTo(linked)
+            assertThat(stored).withFailMessage("Expected one document set ($linked documents) but found $stored").isEqualTo(linked)
         }
     }
 
