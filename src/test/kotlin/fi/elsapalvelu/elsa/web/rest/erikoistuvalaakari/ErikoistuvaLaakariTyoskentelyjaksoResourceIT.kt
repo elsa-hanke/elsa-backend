@@ -431,9 +431,53 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
 
         testMockMvc.perform(delete("$API_TYOSKENTELYJAKSOT/{id}", tyoskentelyjakso.id).accept(APPLICATION_JSON)
-                .with(csrf())).andExpect(status().isBadRequest)
+                .with(csrf())).andExpect(status().isForbidden)
 
         assertThat(tyoskentelyjaksoRepository.findAll()).hasSize(tyoskentelyjaksoTableSizeBeforeDelete)
+    }
+
+    @Test
+    fun deleteAnotherUserTyoskentelyjaksoShouldNotDetachAsiakirjaOrKoulutusjakso() {
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
+        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
+
+        // Kirjautunut käyttäjä on erikoistuvaLaakari, työskentelyjakso kuuluu toiselle käyttäjälle (user)
+        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+
+        tyoskentelyjakso.asiakirjat.add(AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso))
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        val tyoskentelyjaksoId = tyoskentelyjakso.id
+        assertNotNull(tyoskentelyjaksoId)
+        val asiakirjaId = tyoskentelyjakso.asiakirjat.first().id
+        assertNotNull(asiakirjaId)
+
+        val koulutusjakso = KoulutusjaksoHelper.createEntity(em, user)
+        koulutusjakso.tyoskentelyjaksot = mutableSetOf(tyoskentelyjakso)
+        koulutusjaksoRepository.saveAndFlush(koulutusjakso)
+        val koulutusjaksoId = koulutusjakso.id
+        assertNotNull(koulutusjaksoId)
+
+        testMockMvc.perform(delete("$API_TYOSKENTELYJAKSOT/{id}", tyoskentelyjaksoId).accept(APPLICATION_JSON)
+                .with(csrf())).andExpect(status().isForbidden)
+
+        em.flush()
+        em.clear()
+
+        // Epäonnistunut poisto ei saa muuttaa toisen käyttäjän tietoja
+        assertThat(tyoskentelyjaksoRepository.findById(tyoskentelyjaksoId)).isPresent
+        assertThat(asiakirjaRepository.findById(asiakirjaId).orElseThrow().tyoskentelyjakso?.id).isEqualTo(tyoskentelyjaksoId)
+        assertThat(asiakirjaRepository.findAllByTyoskentelyjaksoId(tyoskentelyjaksoId)).hasSize(1)
+        assertThat(koulutusjaksoRepository.findAllByTyoskentelyjaksoId(tyoskentelyjaksoId)).hasSize(1)
+        assertThat(koulutusjaksoRepository.findById(koulutusjaksoId).orElseThrow().tyoskentelyjaksot?.map { it.id })
+            .containsExactly(tyoskentelyjaksoId)
+    }
+
+    @Test
+    fun deleteNonExistentTyoskentelyjaksoShouldReturnForbidden() {
+        initTest()
+
+        testMockMvc.perform(delete("$API_TYOSKENTELYJAKSOT/{id}", Long.MAX_VALUE).accept(APPLICATION_JSON)
+                .with(csrf())).andExpect(status().isForbidden)
     }
 
     @Test
@@ -478,6 +522,57 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         assertNotNull(asiakirja)
         assertThat(asiakirja.tyoskentelyjakso).isNull()
         assertThat(asiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
+    }
+
+    @Test
+    fun deleteTyoskentelyjaksoShouldRemoveBothReferencesAndKeepEntities() {
+        initTest()
+
+        tyoskentelyjakso.asiakirjat.add(AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso))
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        val tyoskentelyjaksoId = tyoskentelyjakso.id
+        assertNotNull(tyoskentelyjaksoId)
+        val asiakirjaId = tyoskentelyjakso.asiakirjat.first().id
+        assertNotNull(asiakirjaId)
+
+        val koulutusjakso = KoulutusjaksoHelper.createEntity(em, user)
+        koulutusjakso.tyoskentelyjaksot = mutableSetOf(tyoskentelyjakso)
+        koulutusjaksoRepository.saveAndFlush(koulutusjakso)
+        val koulutusjaksoId = koulutusjakso.id
+        assertNotNull(koulutusjaksoId)
+
+        testMockMvc.perform(delete("$API_TYOSKENTELYJAKSOT/{id}", tyoskentelyjaksoId).accept(APPLICATION_JSON).with(csrf())).andExpect(status().isNoContent)
+
+        em.flush()
+        em.clear()
+
+        assertThat(tyoskentelyjaksoRepository.findById(tyoskentelyjaksoId)).isEmpty
+        assertThat(asiakirjaRepository.findById(asiakirjaId).orElseThrow().tyoskentelyjakso).isNull()
+        assertThat(koulutusjaksoRepository.findById(koulutusjaksoId).orElseThrow().tyoskentelyjaksot ?: mutableSetOf()).isEmpty()
+    }
+
+    @Test
+    fun deleteOwnTyoskentelyjaksoWithSuoritusarviointiShouldKeepReferences() {
+        initTest()
+
+        tyoskentelyjakso.asiakirjat.add(AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso))
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        val tyoskentelyjaksoId = tyoskentelyjakso.id
+        assertNotNull(tyoskentelyjaksoId)
+        val asiakirjaId = tyoskentelyjakso.asiakirjat.first().id
+        assertNotNull(asiakirjaId)
+
+        em.detach(tyoskentelyjakso)
+        suoritusarviointiRepository.saveAndFlush(SuoritusarviointiHelper.createEntity(em, user))
+
+        testMockMvc.perform(delete("$API_TYOSKENTELYJAKSOT/{id}", tyoskentelyjaksoId).accept(APPLICATION_JSON).with(csrf())).andExpect(status().isBadRequest)
+
+        em.flush()
+        em.clear()
+
+        // Poisto estyy, jolloin viittauksiakaan ei saa irrottaa
+        assertThat(tyoskentelyjaksoRepository.findById(tyoskentelyjaksoId)).isPresent
+        assertThat(asiakirjaRepository.findById(asiakirjaId).orElseThrow().tyoskentelyjakso?.id).isEqualTo(tyoskentelyjaksoId)
     }
 
     @Test
