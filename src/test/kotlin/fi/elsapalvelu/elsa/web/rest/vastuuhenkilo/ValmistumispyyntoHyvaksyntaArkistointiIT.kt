@@ -176,6 +176,9 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private var committedOpintooikeusId: Long? = null
     private var committedErikoistuvaLaakariId: Long? = null
     private var committedYliopistoId: Long? = null
+    private var committedSecondValmistumispyyntoId: Long? = null
+    private var committedSecondOpintooikeusId: Long? = null
+    private var committedSecondErikoistuvaLaakariId: Long? = null
     private val committedExtraErikoisalaIds: MutableList<Long> = mutableListOf()
 
     /**
@@ -215,6 +218,24 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
             // before opintooikeus.
             em.createNativeQuery("DELETE FROM asiakirja WHERE opintooikeus_id = $ooId").executeUpdate()
             em.createNativeQuery("DELETE FROM valmistumispyynto WHERE id = $vpId").executeUpdate()
+            committedSecondValmistumispyyntoId?.let { secondVpId ->
+                em.createNativeQuery("DELETE FROM valmistumispyynnon_tarkistus WHERE valmistumispyynto_id = $secondVpId").executeUpdate()
+                em.createNativeQuery(
+                    "UPDATE valmistumispyynto SET yhteenveto_asiakirja_id = NULL, " +
+                        "liitteet_asiakirja_id = NULL, erikoistujan_tiedot_asiakirja_id = NULL " +
+                        "WHERE id = $secondVpId"
+                ).executeUpdate()
+                committedSecondOpintooikeusId?.let {
+                    em.createNativeQuery("DELETE FROM asiakirja WHERE opintooikeus_id = $it").executeUpdate()
+                }
+                em.createNativeQuery("DELETE FROM valmistumispyynto WHERE id = $secondVpId").executeUpdate()
+                committedSecondOpintooikeusId?.let {
+                    em.createNativeQuery("DELETE FROM opintooikeus WHERE id = $it").executeUpdate()
+                }
+                committedSecondErikoistuvaLaakariId?.let {
+                    em.createNativeQuery("DELETE FROM erikoistuva_laakari WHERE id = $it").executeUpdate()
+                }
+            }
             em.createNativeQuery("DELETE FROM rel_kayttaja__yliopisto WHERE yliopisto_id = $yId").executeUpdate()
             em.createNativeQuery(
                 "DELETE FROM rel_kayttaja_yliopisto_erikoisala__tehtavatyyppi " +
@@ -237,6 +258,9 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         committedOpintooikeusId = null
         committedErikoistuvaLaakariId = null
         committedYliopistoId = null
+        committedSecondValmistumispyyntoId = null
+        committedSecondOpintooikeusId = null
+        committedSecondErikoistuvaLaakariId = null
         committedExtraErikoisalaIds.clear()
     }
 
@@ -608,15 +632,215 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         verifyEmailSent()
     }
 
-    private fun putHyvaksynta(valmistumispyyntoId: Long): MvcResult =
+    private fun putHyvaksynta(
+        valmistumispyyntoId: Long,
+        sender: Saml2Authentication = vastuuhenkiloAuthentication,
+        form: ValmistumispyyntoHyvaksyntaFormDTO = ValmistumispyyntoHyvaksyntaFormDTO(null)
+    ): MvcResult =
         restMockMvc.perform(
             put("$ARKISTOINTI_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyyntoId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null)))
+                .content(convertObjectToJsonBytes(form))
                 .with(csrf())
                 // Explicit, because the request may run on a thread other than the test thread.
-                .with(withAuthentication(vastuuhenkiloAuthentication))
+                .with(withAuthentication(sender))
         ).andReturn()
+
+    // -------------------------------------------------------------------------
+    // Concurrency guard — what the lock must NOT block
+    // -------------------------------------------------------------------------
+
+    /**
+     * The lock is per valmistumispyynto, not global and not per approver.
+     *
+     * Given: the approval of student 1 is in progress (held inside its transaction, row lock taken)
+     * When:  the SAME approver approves the valmistumispyynto of student 2
+     * Then:  the second approval is not blocked or rejected: it completes with 200 while the first
+     *        one is still running, and afterwards each valmistumispyynto has its own complete
+     *        document set and its own e-mails (2 runs, 2 e-mail sets, no mixing of documents).
+     *
+     * The approver's contact details in the form are the stored ones on purpose: an approval that
+     * *changes* them updates the approver's user row, which every concurrent approval by the same
+     * approver then waits for until the first one commits.
+     */
+    @Test
+    fun updateValmistumispyyntoByHyvaksyjaUserId_whenApprovalOfAnotherStudentInProgress_runsInParallelWithoutBeingBlocked() {
+        val firstId = initTestInTransaction()
+        val secondId = initSecondStudentValmistumispyynto()
+        val gate = gateFirstArchivingCall()
+        val approver = vastuuhenkilo.user!!
+        val unchangedContactDetails =
+            ValmistumispyyntoHyvaksyntaFormDTO(null, approver.email, approver.phoneNumber)
+
+        val executor = Executors.newSingleThreadExecutor()
+        try {
+            val firstApproval = executor.submit<Int> {
+                putHyvaksynta(firstId, form = unchangedContactDetails).response.status
+            }
+            assertThat(gate.firstEntered.await(30, TimeUnit.SECONDS))
+                .withFailMessage("The first approval never reached the archiving step")
+                .isTrue()
+
+            val secondApproval = putHyvaksynta(secondId, form = unchangedContactDetails)
+
+            assertThat(secondApproval.response.status)
+                .withFailMessage(
+                    "Approving a DIFFERENT valmistumispyynto must not be blocked or rejected by the lock " +
+                        "of another one, but returned %s",
+                    secondApproval.response.status
+                )
+                .isEqualTo(200)
+            assertThat(firstApproval.isDone)
+                .withFailMessage("The first approval was supposed to still be running (parallel execution)")
+                .isFalse()
+
+            gate.release.countDown()
+            assertThat(firstApproval.get(30, TimeUnit.SECONDS)).isEqualTo(200)
+        } finally {
+            gate.release.countDown()
+            executor.shutdownNow()
+        }
+
+        assertThat(gate.calls.get()).isEqualTo(2)
+        verifyEmailSent(times = 2)
+        assertOwnCompleteDocumentSet(firstId, opintooikeus.id!!)
+        assertOwnCompleteDocumentSet(secondId, committedSecondOpintooikeusId!!)
+    }
+
+    /**
+     * The lock belongs to the valmistumispyynto, so it is not something another person can use to
+     * disturb a running approval: a person who is not the approver of the valmistumispyynto is
+     * turned away by the authorization check that runs before the lock is ever taken.
+     *
+     * Given: the approval is in progress (lock held)
+     * When:  another vastuuhenkilo, who has no right to approve it, sends an approval
+     * Then:  the request is refused (not 200, and not the "already in progress" 409, which would
+     *        mean it got as far as the lock), and the running approval completes as the rightful
+     *        approver with one e-mail set.
+     */
+    @Test
+    fun updateValmistumispyyntoByHyvaksyjaUserId_whenUnauthorizedPersonTriesDuringApproval_isRefusedAndDoesNotDisturbRunningApproval() {
+        val valmistumispyyntoId = initTestInTransaction()
+        val gate = gateFirstArchivingCall()
+        val unauthorizedAuthentication = Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(anotherVastuuhenkilo.user!!.id, mapOf()),
+            "test",
+            listOf(SimpleGrantedAuthority(VASTUUHENKILO))
+        )
+
+        val executor = Executors.newSingleThreadExecutor()
+        try {
+            val approval = executor.submit<Int> { putHyvaksynta(valmistumispyyntoId).response.status }
+            assertThat(gate.firstEntered.await(30, TimeUnit.SECONDS))
+                .withFailMessage("The approval never reached the archiving step")
+                .isTrue()
+
+            val refused = putHyvaksynta(valmistumispyyntoId, sender = unauthorizedAuthentication)
+
+            assertThat(refused.response.status).isNotEqualTo(200).isNotEqualTo(409)
+
+            gate.release.countDown()
+            assertThat(approval.get(30, TimeUnit.SECONDS)).isEqualTo(200)
+        } finally {
+            gate.release.countDown()
+            executor.shutdownNow()
+        }
+
+        assertThat(gate.calls.get()).isEqualTo(1)
+        verifyEmailSent()
+        transactionTemplate.execute {
+            val saved = em.find(
+                fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto::class.java,
+                valmistumispyyntoId
+            )
+            assertThat(saved.vastuuhenkiloHyvaksyja?.id).isEqualTo(vastuuhenkilo.id)
+        }
+    }
+
+    /** Makes the FIRST archiving call block inside the approval transaction; later calls pass through. */
+    private class ArchivingGate {
+        val firstEntered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        val calls = AtomicInteger(0)
+    }
+
+    private fun gateFirstArchivingCall(): ArchivingGate {
+        val gate = ArchivingGate()
+        whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
+        whenever(
+            arkistointiService.muodostaSahke(
+                any(), any(), any(), any(), any(), any(), any(), any(), any()
+            )
+        ).thenAnswer {
+            if (gate.calls.incrementAndGet() == 1) {
+                gate.firstEntered.countDown()
+                check(gate.release.await(30, TimeUnit.SECONDS)) {
+                    "Test did not release the held approval in time"
+                }
+            }
+            ArkistointiResult("/tmp/valmistumispyynto.zip", null)
+        }
+        return gate
+    }
+
+    /** Every stored asiakirja of the opintooikeus is linked to its valmistumispyynto: one set, no orphans. */
+    private fun assertOwnCompleteDocumentSet(valmistumispyyntoId: Long, opintooikeusId: Long) {
+        transactionTemplate.execute {
+            val saved = em.find(
+                fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto::class.java,
+                valmistumispyyntoId
+            )
+            assertThat(saved.vastuuhenkiloHyvaksyjaKuittausaika).isEqualTo(LocalDate.now())
+            val linked = listOfNotNull(
+                saved.yhteenvetoAsiakirja,
+                saved.liitteetAsiakirja,
+                saved.erikoistujanTiedotAsiakirja
+            ).size
+            val stored = (em.createNativeQuery(
+                "SELECT COUNT(*) FROM asiakirja WHERE opintooikeus_id = $opintooikeusId"
+            ).singleResult as Number).toInt()
+            assertThat(linked).isGreaterThan(0)
+            assertThat(stored)
+                .withFailMessage("Expected one document set ($linked documents) but found $stored")
+                .isEqualTo(linked)
+        }
+    }
+
+    /**
+     * A second student with their own opintooikeus and a valmistumispyynto waiting for the same
+     * approver (same yliopisto and erikoisala). Call after [initTestInTransaction].
+     */
+    private fun initSecondStudentValmistumispyynto(): Long = transactionTemplate.execute {
+        val firstOpintooikeus = em.find(Opintooikeus::class.java, committedOpintooikeusId!!)
+        val erikoistuvaLaakariUser = KayttajaResourceWithMockUserIT.createEntity(
+            authority = Authority(ERIKOISTUVA_LAAKARI)
+        )
+        em.persist(erikoistuvaLaakariUser)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(
+            em,
+            erikoistuvaLaakariUser,
+            erikoisala = firstOpintooikeus.erikoisala,
+            opintoopas = firstOpintooikeus.opintoopas,
+            yliopisto = firstOpintooikeus.yliopisto
+        )
+        em.persist(erikoistuvaLaakari)
+        val secondOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
+
+        val valmistumispyynto = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
+            secondOpintooikeus,
+            em.find(Kayttaja::class.java, anotherVastuuhenkilo.id!!),
+            em.find(Kayttaja::class.java, virkailija.id!!)
+        )
+        em.persist(valmistumispyynto)
+        em.persist(
+            ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
+        )
+        em.flush()
+        committedSecondValmistumispyyntoId = valmistumispyynto.id!!
+        committedSecondOpintooikeusId = secondOpintooikeus.id
+        committedSecondErikoistuvaLaakariId = erikoistuvaLaakari.id
+        valmistumispyynto.id!!
+    }!!
 
     private fun initTestInTransaction(): Long = transactionTemplate.execute {
         // --- Setup: run inside a dedicated transaction that is committed before the service call ---
@@ -731,8 +955,8 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     }
 
 
-    private fun verifyEmailSent() {
-        verify(mailService).sendEmailFromTemplate(
+    private fun verifyEmailSent(times: Int = 1) {
+        verify(mailService, org.mockito.kotlin.times(times)).sendEmailFromTemplate(
             any<User>(),
             any<List<String>>(),
             eq("valmistumispyyntoHyvaksytty.html"),
@@ -740,7 +964,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
             any<Array<String>>(),
             any()
         )
-        verify(mailService).sendEmailFromTemplate(
+        verify(mailService, org.mockito.kotlin.times(times)).sendEmailFromTemplate(
             anyOrNull<String>(),
             any<List<String>>(),
             eq("valmistumispyyntoHyvaksyttyVirkailija.html"),
