@@ -158,9 +158,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun createTyoskentelyjaksoWithExistingId() {
         initTest()
-
         val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
-
         tyoskentelyjakso.id = 1L
         val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoMapper.toDto(tyoskentelyjakso))
 
@@ -172,9 +170,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun createTyoskentelyjaksoWithExistingTyoskentelypaikkaId() {
         initTest()
-
         val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
-
         tyoskentelyjakso.tyoskentelypaikka!!.id = 1L
         val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoMapper.toDto(tyoskentelyjakso))
 
@@ -186,9 +182,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun createTyoskentelyjaksoWithInvalidDates() {
         initTest()
-
         val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
-
         tyoskentelyjakso.alkamispaiva = LocalDate.of(2020, 1, 25)
         tyoskentelyjakso.paattymispaiva = LocalDate.of(2020, 1, 5)
         val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoMapper.toDto(tyoskentelyjakso))
@@ -201,7 +195,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun getTyoskentelyjakso() {
         initTest()
-
         tyoskentelyjakso.asiakirjat.add(AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso))
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
@@ -225,7 +218,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     fun getAnotherUserTyoskentelyjakso() {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
-
         initTest(erikoistuvaLaakari.kayttaja?.user?.id)
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
@@ -350,7 +342,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         assertThat(tyoskentelyjakso.suoritusarvioinnit).isEmpty()
 
         val suoritusarviointiTapahtumanAjankohta = LocalDate.of(2020, 1, 20)
-
         tyoskentelyjakso.suoritusarvioinnit.add(SuoritusarviointiHelper.createEntity(em, user, suoritusarviointiTapahtumanAjankohta))
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
