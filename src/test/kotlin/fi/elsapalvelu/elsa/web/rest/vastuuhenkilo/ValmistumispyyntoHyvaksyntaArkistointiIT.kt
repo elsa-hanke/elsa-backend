@@ -84,6 +84,7 @@ private const val ARKISTOINTI_HYVAKSYNTA_ENDPOINT = "/api/vastuuhenkilo/valmistu
  */
 @AutoConfigureMockMvc
 @SpringBootTest(classes = [ElsaBackendApp::class])
+@Suppress("LargeClass")
 class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
     @Autowired
