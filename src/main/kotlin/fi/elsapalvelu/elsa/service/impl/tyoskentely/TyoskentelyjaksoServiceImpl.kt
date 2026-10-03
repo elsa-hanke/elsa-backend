@@ -13,6 +13,7 @@ import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi.*
 import fi.elsapalvelu.elsa.repository.perustiedot.ErikoisalaRepository
 import fi.elsapalvelu.elsa.repository.perustiedot.KuntaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
+import fi.elsapalvelu.elsa.repository.koulutus.KoulutusjaksoRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksoService
@@ -33,6 +34,7 @@ import fi.elsapalvelu.elsa.service.mapper.tyoskentely.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.service.mapper.tyoskentely.TyoskentelyjaksoWithKeskeytysajatMapper
 import jakarta.validation.ValidationException
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -52,7 +54,8 @@ class TyoskentelyjaksoServiceImpl(
     private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val pdfTextFieldValidator: PdfTextFieldValidator,
-    private val asiakirjaRepository: AsiakirjaRepository
+    private val asiakirjaRepository: AsiakirjaRepository,
+    private val koulutusjaksoRepository: KoulutusjaksoRepository
 
 ) : TyoskentelyjaksoService {
 
@@ -286,13 +289,28 @@ class TyoskentelyjaksoServiceImpl(
     }
 
     override fun delete(id: Long, opintooikeusId: Long): Boolean {
-        tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
-            if (!it.hasTapahtumia() && !it.liitettyTerveyskeskuskoulutusjaksoon) {
-                tyoskentelyjaksoRepository.deleteById(it.id.required())
-                return true
-            }
+        // Omistajuus tarkistetaan ennen kuin mitään tietoa muutetaan. Vieraan tai olemattoman
+        // työskentelyjakson osalta vastaus on sama (403), jotta id:n olemassaoloa ei voi arvailla.
+        val tyoskentelyjakso =
+            tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)
+                ?: throw AccessDeniedException("Työskentelyjakso ei kuulu käyttäjän opintooikeuteen")
+
+        if (tyoskentelyjakso.hasTapahtumia() || tyoskentelyjakso.liitettyTerveyskeskuskoulutusjaksoon) {
+            return false
         }
-        return false
+
+        // Viittausten siivous ja poisto tehdään samassa transaktiossa. Asiakirjat ja koulutusjaksot
+        // säilyvät, vain viittaus poistettavaan työskentelyjaksoon poistetaan.
+        val asiakirjat = asiakirjaRepository.findAllByTyoskentelyjaksoId(id)
+        asiakirjat.forEach { it.tyoskentelyjakso = null }
+        asiakirjaRepository.saveAll(asiakirjat)
+
+        koulutusjaksoRepository.findAllByTyoskentelyjaksoId(id).forEach { koulutusjakso ->
+            koulutusjakso.tyoskentelyjaksot?.removeIf { it.id == id }
+        }
+
+        tyoskentelyjaksoRepository.deleteById(id)
+        return true
     }
 
     @Transactional(readOnly = true)
