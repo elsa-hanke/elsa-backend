@@ -521,10 +521,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         val muodostaSahkeCalls = AtomicInteger(0)
 
         whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
-        whenever(
-            arkistointiService.muodostaSahke(
-                any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+        whenever(arkistointiService.muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
         ).thenAnswer {
             if (muodostaSahkeCalls.incrementAndGet() == 1) {
                 firstApprovalInsideTransaction.countDown()
@@ -552,8 +549,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                     secondApproval.response.status
                 )
                 .isEqualTo(409)
-            assertThat(secondApproval.response.contentAsString)
-                .contains("error.dataillegal.valmistumispyynnon-hyvaksynta-on-jo-kaynnissa")
+            assertThat(secondApproval.response.contentAsString).contains("error.dataillegal.valmistumispyynnon-hyvaksynta-on-jo-kaynnissa")
 
             releaseFirstApproval.countDown()
             assertThat(firstApproval.get(30, TimeUnit.SECONDS)).isEqualTo(200)
