@@ -29,8 +29,14 @@ import fi.elsapalvelu.elsa.service.mapper.valmistuminen.ValmistumispyynnonTarkis
 import fi.elsapalvelu.elsa.service.mapper.valmistuminen.ValmistumispyyntoMapper
 import fi.elsapalvelu.elsa.service.mapper.valmistuminen.ValmistumispyyntoOsaamisenArviointiMapper
 import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
+import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import fi.elsapalvelu.elsa.web.rest.errors.ValmistumispyynnonHyvaksyntaKaynnissaException
 import jakarta.persistence.EntityNotFoundException
+import jakarta.persistence.LockTimeoutException
+import jakarta.persistence.PessimisticLockException
 import org.slf4j.LoggerFactory
+import org.springframework.dao.PessimisticLockingFailureException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -233,6 +239,11 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = osapuoliService.haeYliopisto(kayttaja)
         log.info("Kayttaja ja yliopisto haettu [valmistumispyyntoId=$id, yliopistoId=${yliopisto.id}]")
 
+        // The row lock must be taken before anything else loads the valmistumispyynto, so the state
+        // checked below is the locked, current one. It is held until this transaction ends.
+        lukitseValmistumispyynto(id)
+        log.info("Valmistumispyynto lukittu hyvaksyntaa varten [valmistumispyyntoId=$id]")
+
         val valmistumispyynto = osapuoliService.haeValmistumispyynto(
             id,
             kayttaja,
@@ -240,6 +251,16 @@ class ValmistumispyyntoServiceImpl(
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         )
         log.info("Valmistumispyynto haettu [valmistumispyyntoId=$id]")
+
+        // The controller checks this before the transaction starts, but an approval that finished
+        // in between must not be repeated.
+        if (!osapuoliService.onkoLopullinenHyvaksyntaAvoin(valmistumispyynto)) {
+            throw BadRequestAlertException(
+                "Valmistumispyyntö ei ole muokattavissa.",
+                VALMISTUMISPYYNTO_ENTITY_NAME,
+                "dataillegal.valmistumispyynto-ei-ole-muokattavissa"
+            )
+        }
 
         osapuoliService.paivitaYhteystiedot(
             kayttaja.user,
@@ -286,6 +307,19 @@ class ValmistumispyyntoServiceImpl(
         }
     }
 
+
+    private fun lukitseValmistumispyynto(id: Long): Valmistumispyynto {
+        val lukittu = try {
+            valmistumispyyntoRepository.findByIdForHyvaksynta(id)
+        } catch (ex: PessimisticLockingFailureException) {
+            throw ValmistumispyynnonHyvaksyntaKaynnissaException(id, ex)
+        } catch (ex: PessimisticLockException) {
+            throw ValmistumispyynnonHyvaksyntaKaynnissaException(id, ex)
+        } catch (ex: LockTimeoutException) {
+            throw ValmistumispyynnonHyvaksyntaKaynnissaException(id, ex)
+        }
+        return lukittu ?: throw osapuoliService.valmistumispyyntoaEiLoydy()
+    }
 
     override fun updateTarkistusByVirkailijaUserId(id: Long, userId: String, valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO,
         laillistamistodistus: MultipartFile?): ValmistumispyynnonTarkistusDTO? {

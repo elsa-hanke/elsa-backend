@@ -25,6 +25,7 @@ import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.ItextPdfAssembler
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
+import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
@@ -32,6 +33,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksyntaFormDTO
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import org.assertj.core.api.Assertions.assertThat
@@ -49,13 +51,19 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication as withAuthentication
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.time.LocalDate
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import jakarta.persistence.EntityManager
 
 private const val ARKISTOINTI_HYVAKSYNTA_ENDPOINT = "/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta"
@@ -88,6 +96,9 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
     @Autowired
     private lateinit var transactionTemplate: TransactionTemplate
+
+    @Autowired
+    private lateinit var valmistumispyyntoService: ValmistumispyyntoService
 
     /**
      * Overrides the real [ArkistointiService] bean for the whole test class.
@@ -151,6 +162,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private lateinit var vastuuhenkilo: Kayttaja
     private lateinit var anotherVastuuhenkilo: Kayttaja
     private lateinit var virkailija: Kayttaja
+    private lateinit var vastuuhenkiloAuthentication: Saml2Authentication
 
     /**
      * IDs of entities committed by non-@Transactional tests 2 and 3.
@@ -478,6 +490,137 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Concurrency guard — one approval at a time per valmistumispyynto
+    // -------------------------------------------------------------------------
+
+    /**
+     * Reproduces the production incident (the same valmistumispyynto approved four times).
+     *
+     * The first approval is held *inside* its transaction — after it has taken the row lock and
+     * saved the kuittausaika, while archiving ([ArkistointiService.muodostaSahke]) is still
+     * running — by a latch. While it is held, a second approval of the same valmistumispyynto is
+     * sent.
+     *
+     * Given: an approval is in progress for the valmistumispyynto
+     * When:  a second approval for the same valmistumispyynto arrives
+     * Then:  - the second one is rejected with 409 and the "approval is already in progress"
+     *          message key, without doing any work
+     *        - the first one completes normally (200)
+     *        - exactly one archiving run, one document set and one approval e-mail were produced
+     *
+     * Without the guard the second request runs the whole approval too, so it returns 200,
+     * archiving runs twice, a second document set is created and the e-mails go out twice.
+     */
+    @Test
+    fun updateValmistumispyyntoByHyvaksyjaUserId_whenApprovalAlreadyInProgress_rejectsSecondRequestWith409() {
+        val valmistumispyyntoId = initTestInTransaction()
+
+        val firstApprovalInsideTransaction = CountDownLatch(1)
+        val releaseFirstApproval = CountDownLatch(1)
+        val muodostaSahkeCalls = AtomicInteger(0)
+
+        whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
+        whenever(
+            arkistointiService.muodostaSahke(
+                any(), any(), any(), any(), any(), any(), any(), any(), any()
+            )
+        ).thenAnswer {
+            if (muodostaSahkeCalls.incrementAndGet() == 1) {
+                firstApprovalInsideTransaction.countDown()
+                check(releaseFirstApproval.await(30, TimeUnit.SECONDS)) {
+                    "Test did not release the first approval in time"
+                }
+            }
+            ArkistointiResult("/tmp/valmistumispyynto.zip", null)
+        }
+
+        val executor = Executors.newSingleThreadExecutor()
+        try {
+            val firstApproval = executor.submit<Int> {
+                putHyvaksynta(valmistumispyyntoId).response.status
+            }
+            assertThat(firstApprovalInsideTransaction.await(30, TimeUnit.SECONDS))
+                .withFailMessage("The first approval never reached the archiving step")
+                .isTrue()
+
+            val secondApproval = putHyvaksynta(valmistumispyyntoId)
+
+            assertThat(secondApproval.response.status)
+                .withFailMessage(
+                    "Second concurrent approval must be rejected with 409 Conflict, was %s",
+                    secondApproval.response.status
+                )
+                .isEqualTo(409)
+            assertThat(secondApproval.response.contentAsString)
+                .contains("error.dataillegal.valmistumispyynnon-hyvaksynta-on-jo-kaynnissa")
+
+            releaseFirstApproval.countDown()
+            assertThat(firstApproval.get(30, TimeUnit.SECONDS)).isEqualTo(200)
+        } finally {
+            releaseFirstApproval.countDown()
+            executor.shutdownNow()
+        }
+
+        // One approval, one archiving run, one e-mail set.
+        assertThat(muodostaSahkeCalls.get()).isEqualTo(1)
+        verifyEmailSent()
+
+        // One document set: every generated asiakirja is still linked to the valmistumispyynto,
+        // i.e. no orphan documents from a second run.
+        transactionTemplate.execute {
+            val saved = em.find(Valmistumispyynto::class.java, valmistumispyyntoId)
+            assertThat(saved.vastuuhenkiloHyvaksyjaKuittausaika).isEqualTo(LocalDate.now())
+            val linked = listOfNotNull(
+                saved.yhteenvetoAsiakirja,
+                saved.liitteetAsiakirja,
+                saved.erikoistujanTiedotAsiakirja
+            ).size
+            val stored = (em.createNativeQuery(
+                "SELECT COUNT(*) FROM asiakirja WHERE opintooikeus_id = ${opintooikeus.id}"
+            ).singleResult as Number).toInt()
+            assertThat(linked).isGreaterThan(0)
+            assertThat(stored)
+                .withFailMessage("Expected one document set ($linked documents) but found $stored")
+                .isEqualTo(linked)
+        }
+    }
+
+    /**
+     * An approval that completed between the controller's "is it open" check and the start of
+     * the service transaction must not be repeated: the state is re-checked under the lock.
+     * (Over HTTP the controller check would already stop a plain sequential retry, so this calls
+     * the service directly.)
+     */
+    @Test
+    fun updateValmistumispyyntoByHyvaksyjaUserId_whenAlreadyApproved_rejectsRepeatedApprovalAndSendsOneEmailSet() {
+        val valmistumispyyntoId = initTestInTransaction()
+        whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(false)
+        val userId = vastuuhenkilo.user!!.id!!
+        val form = ValmistumispyyntoHyvaksyntaFormDTO(null)
+
+        valmistumispyyntoService.updateValmistumispyyntoByHyvaksyjaUserId(valmistumispyyntoId, userId, form)
+
+        val thrown = org.assertj.core.api.Assertions.catchThrowable {
+            valmistumispyyntoService.updateValmistumispyyntoByHyvaksyjaUserId(valmistumispyyntoId, userId, form)
+        }
+
+        assertThat(thrown).isInstanceOf(BadRequestAlertException::class.java)
+        assertThat((thrown as BadRequestAlertException).errorKey)
+            .isEqualTo("dataillegal.valmistumispyynto-ei-ole-muokattavissa")
+        verifyEmailSent()
+    }
+
+    private fun putHyvaksynta(valmistumispyyntoId: Long): MvcResult =
+        restMockMvc.perform(
+            put("$ARKISTOINTI_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyyntoId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null)))
+                .with(csrf())
+                // Explicit, because the request may run on a thread other than the test thread.
+                .with(withAuthentication(vastuuhenkiloAuthentication))
+        ).andReturn()
+
     private fun initTestInTransaction(): Long = transactionTemplate.execute {
         // --- Setup: run inside a dedicated transaction that is committed before the service call ---
         // This is necessary because this test method is NOT @Transactional (by design — we need
@@ -514,6 +657,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
             authorities
         )
         TestSecurityContextHolder.getContext().authentication = authentication
+        vastuuhenkiloAuthentication = authentication
 
         val erikoistuvaLaakariUser = KayttajaResourceWithMockUserIT.createEntity(
             authority = Authority(ERIKOISTUVA_LAAKARI)
