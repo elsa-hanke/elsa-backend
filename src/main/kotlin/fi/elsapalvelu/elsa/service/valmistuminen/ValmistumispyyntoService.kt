@@ -2,16 +2,8 @@ package fi.elsapalvelu.elsa.service.valmistuminen
 
 import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
-import fi.elsapalvelu.elsa.service.dto.*
-import fi.elsapalvelu.elsa.service.dto.koejakso.*
-import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
-import fi.elsapalvelu.elsa.service.dto.arviointi.*
 import fi.elsapalvelu.elsa.service.dto.suoritteet.*
-import fi.elsapalvelu.elsa.service.dto.koulutus.*
-import fi.elsapalvelu.elsa.service.dto.seuranta.*
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
-import fi.elsapalvelu.elsa.service.dto.kayttaja.*
-import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.web.multipart.MultipartFile
@@ -92,23 +84,11 @@ interface ValmistumispyyntoService {
         userId: String
     ): ValmistumispyyntoArviointienTilaDTO?
 
-    fun getValmistumispyynnonAsiakirja(
-        userId: String,
-        valmistumispyyntoId: Long,
-        asiakirjaId: Long
-    ): AsiakirjaDTO?
-
-    fun getValmistumispyynnonAsiakirjaVirkailija(
-        valmistumispyyntoId: Long,
-        yliopistoId: Long?,
-        asiakirjaId: Long
-    ): AsiakirjaDTO?
-
-    fun getValmistumispyynnonTyoskentelyjaksoAsiakirja(
-        userId: String,
-        valmistumispyyntoId: Long,
-        asiakirjaId: Long
-    ): AsiakirjaDTO?
-
     fun onkoLahetetty(opintooikeusId: Long): Boolean
+
+    fun onkoAvoinOsaamisenTarkistaminen(userId: String, id: Long): Boolean
+
+    fun onkoAvoinVirkailija(userId: String, id: Long): Boolean
+
+    fun onkoAvoinHyvaksyja(userId: String, id: Long): Boolean
 }

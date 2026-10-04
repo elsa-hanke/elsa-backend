@@ -18,7 +18,8 @@ import fi.elsapalvelu.elsa.service.dto.seuranta.*
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
-import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonOsapuoliService
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonAsiakirjaService
+import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
@@ -37,7 +38,7 @@ import jakarta.validation.Valid
 class VastuuhenkiloValmistumispyyntoResource(
     private val userService: UserService,
     private val valmistumispyyntoService: ValmistumispyyntoService,
-    private val osapuoliService: ValmistumispyynnonOsapuoliService
+    private val asiakirjaService: ValmistumispyynnonAsiakirjaService
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     @GetMapping("/valmistumispyynnot")
@@ -97,7 +98,7 @@ class VastuuhenkiloValmistumispyyntoResource(
 
         val user = userService.getAuthenticatedUser(principal)
 
-        if (!osapuoliService.onkoOsaamisenArviointiAvoin(user.id.required(), id)) {
+        if (!valmistumispyyntoService.onkoAvoinOsaamisenTarkistaminen(user.id.required(), id)) {
             throw BadRequestAlertException(
                 "Valmistumispyyntö ei ole muokattavissa.",
                 VALMISTUMISPYYNTO_ENTITY_NAME,
@@ -124,7 +125,7 @@ class VastuuhenkiloValmistumispyyntoResource(
         val user = userService.getAuthenticatedUser(principal)
         AuditLoggingWrapper.info("PUT request for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id")
 
-        if (!osapuoliService.onkoLopullinenHyvaksyntaAvoin(user.id.required(), id)) {
+        if (!valmistumispyyntoService.onkoAvoinHyvaksyja(user.id.required(), id)) {
             throw BadRequestAlertException(
                 "Valmistumispyyntö ei ole muokattavissa.",
                 VALMISTUMISPYYNTO_ENTITY_NAME,
@@ -159,7 +160,7 @@ class VastuuhenkiloValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirja(user.id.required(), valmistumispyyntoId, asiakirjaId)
+        val asiakirja = asiakirjaService.haeValmistumispyynnonAsiakirja(user.id.required(), valmistumispyyntoId, asiakirjaId)
 
         return asiakirja?.asiakirjaData?.fileInputStream
             ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
@@ -173,7 +174,7 @@ class VastuuhenkiloValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirja = valmistumispyyntoService.getValmistumispyynnonTyoskentelyjaksoAsiakirja(user.id.required(), valmistumispyyntoId, asiakirjaId)
+        val asiakirja = asiakirjaService.haeTyoskentelyjaksonAsiakirja(user.id.required(), valmistumispyyntoId, asiakirjaId)
 
         return asiakirja?.asiakirjaData?.fileInputStream
             ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())

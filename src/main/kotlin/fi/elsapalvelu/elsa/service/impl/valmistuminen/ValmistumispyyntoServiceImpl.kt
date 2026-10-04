@@ -12,7 +12,6 @@ import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.constants.ERIKOISALA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
-import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.suoritteet.VanhentuneetSuorituksetDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.UusiValmistumispyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusDTO
@@ -534,38 +533,18 @@ class ValmistumispyyntoServiceImpl(
         return arviointienTilaService.haeArviointienTila(valmistumispyynto)
     }
 
-    override fun getValmistumispyynnonAsiakirja(
-        userId: String,
-        valmistumispyyntoId: Long,
-        asiakirjaId: Long
-    ): AsiakirjaDTO? = asiakirjaService.haeValmistumispyynnonAsiakirja(
-        userId,
-        valmistumispyyntoId,
-        asiakirjaId
-    )
-
-    override fun getValmistumispyynnonAsiakirjaVirkailija(
-        valmistumispyyntoId: Long,
-        yliopistoId: Long?,
-        asiakirjaId: Long
-    ): AsiakirjaDTO? = asiakirjaService.haeValmistumispyynnonAsiakirjaVirkailijalle(
-        valmistumispyyntoId,
-        yliopistoId,
-        asiakirjaId
-    )
-
-    override fun getValmistumispyynnonTyoskentelyjaksoAsiakirja(
-        userId: String,
-        valmistumispyyntoId: Long,
-        asiakirjaId: Long
-    ): AsiakirjaDTO? = asiakirjaService.haeTyoskentelyjaksonAsiakirja(
-        userId,
-        valmistumispyyntoId,
-        asiakirjaId
-    )
-
     override fun onkoLahetetty(opintooikeusId: Long): Boolean {
         val valmistumispyynto = valmistumispyyntoRepository.findByOpintooikeusId(opintooikeusId)
         return valmistumispyynto?.erikoistujanKuittausaika != null
     }
+
+    override fun onkoAvoinOsaamisenTarkistaminen(userId: String, id: Long): Boolean =
+        osapuoliService.onkoOsaamisenArviointiAvoin(userId, id)
+
+    override fun onkoAvoinVirkailija(userId: String, id: Long): Boolean =
+        osapuoliService.onkoVirkailijanTarkistusAvoin(userId, id)
+
+    override fun onkoAvoinHyvaksyja(userId: String, id: Long): Boolean =
+        osapuoliService.onkoLopullinenHyvaksyntaAvoin(userId, id)
+
 }
