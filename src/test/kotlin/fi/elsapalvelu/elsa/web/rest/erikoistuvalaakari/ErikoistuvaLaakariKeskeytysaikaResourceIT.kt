@@ -47,7 +47,6 @@ class ErikoistuvaLaakariKeskeytysaikaResourceIT: ResourceIntegrationTestBase() {
 
     private lateinit var tyoskentelyjakso: Tyoskentelyjakso
     private lateinit var keskeytysaika: Keskeytysaika
-    private lateinit var user: User
 
     @Test
     fun createKeskeytysaika() {

@@ -60,9 +60,6 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
     private lateinit var transactionTemplate: TransactionTemplate
 
     @Autowired
-    private lateinit var asiakirjaRepository: AsiakirjaRepository
-
-    @Autowired
     private lateinit var koulutussopimusRepository: KoejaksonKoulutussopimusRepository
 
     @Autowired

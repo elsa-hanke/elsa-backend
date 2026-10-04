@@ -49,8 +49,6 @@ private const val TEKNINEN_PAAKAYTTAJA_ROLE_PATH = "tekninen-paakayttaja"
 class PaakayttajaKayttajahallintaResourceIT: ResourceIntegrationTestBase() {
 
     @Autowired private lateinit var erikoisalaRepository: ErikoisalaRepository
-    @Autowired private lateinit var kayttajaRepository: KayttajaRepository
-    @Autowired private lateinit var erikoisalaMapper: ErikoisalaMapper
 
     private lateinit var yliopisto: Yliopisto
 

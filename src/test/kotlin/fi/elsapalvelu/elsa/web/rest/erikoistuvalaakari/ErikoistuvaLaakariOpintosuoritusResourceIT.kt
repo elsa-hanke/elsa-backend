@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional
 class ErikoistuvaLaakariOpintosuoritusResourceIT: ResourceIntegrationTestBase() {
 
     private lateinit var opintosuoritus: Opintosuoritus
-    private lateinit var user: User
 
     @Test
     @Transactional

@@ -33,8 +33,6 @@ private const val ENDPOINT =
 @Transactional
 class ErikoistuvaLaakariValmistumispyyntoExpirationIT : ResourceIntegrationTestBase() {
 
-    private lateinit var user: User
-
     @MockitoBean
     private lateinit var clock: Clock
 

@@ -111,15 +111,7 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
     private lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
 
     @Autowired
-    private lateinit var kayttajaRepository: KayttajaRepository
-
-    @Autowired
     private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
-
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
-
-    private lateinit var user: User
 
     @BeforeEach
     fun setup() {
