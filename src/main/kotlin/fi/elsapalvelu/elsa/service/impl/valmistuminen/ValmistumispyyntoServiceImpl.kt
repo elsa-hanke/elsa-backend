@@ -60,7 +60,6 @@ class ValmistumispyyntoServiceImpl(
     private val tilaService: ValmistumispyynnonTilaService,
     private val osapuoliService: ValmistumispyynnonOsapuoliService,
     private val arviointienTilaService: ValmistumispyynnonArviointienTilaService,
-    private val asiakirjaService: ValmistumispyynnonAsiakirjaService,
     private val viimeistelyService: ValmistumispyynnonViimeistelyService,
     private val ilmoitusService: ValmistumispyynnonIlmoitusService,
     private val tarkistusService: ValmistumispyynnonTarkistusService
