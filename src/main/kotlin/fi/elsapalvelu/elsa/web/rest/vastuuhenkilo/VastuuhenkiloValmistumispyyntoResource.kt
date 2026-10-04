@@ -18,6 +18,7 @@ import fi.elsapalvelu.elsa.service.dto.seuranta.*
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonOsapuoliService
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
@@ -35,7 +36,8 @@ import jakarta.validation.Valid
 @RequestMapping("/api/vastuuhenkilo")
 class VastuuhenkiloValmistumispyyntoResource(
     private val userService: UserService,
-    private val valmistumispyyntoService: ValmistumispyyntoService
+    private val valmistumispyyntoService: ValmistumispyyntoService,
+    private val osapuoliService: ValmistumispyynnonOsapuoliService
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     @GetMapping("/valmistumispyynnot")
@@ -95,7 +97,7 @@ class VastuuhenkiloValmistumispyyntoResource(
 
         val user = userService.getAuthenticatedUser(principal)
 
-        if (!valmistumispyyntoService.onkoAvoinOsaamisenTarkistaminen(user.id.required(), id)) {
+        if (!osapuoliService.onkoOsaamisenArviointiAvoin(user.id.required(), id)) {
             throw BadRequestAlertException(
                 "Valmistumispyyntö ei ole muokattavissa.",
                 VALMISTUMISPYYNTO_ENTITY_NAME,
@@ -122,7 +124,7 @@ class VastuuhenkiloValmistumispyyntoResource(
         val user = userService.getAuthenticatedUser(principal)
         AuditLoggingWrapper.info("PUT request for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id")
 
-        if (!valmistumispyyntoService.onkoAvoinHyvaksyja(user.id.required(), id)) {
+        if (!osapuoliService.onkoLopullinenHyvaksyntaAvoin(user.id.required(), id)) {
             throw BadRequestAlertException(
                 "Valmistumispyyntö ei ole muokattavissa.",
                 VALMISTUMISPYYNTO_ENTITY_NAME,

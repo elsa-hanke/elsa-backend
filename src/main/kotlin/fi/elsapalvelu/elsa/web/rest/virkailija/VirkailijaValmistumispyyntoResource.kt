@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoListItemDTO
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonOsapuoliService
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
@@ -30,7 +31,8 @@ class VirkailijaValmistumispyyntoResource(
     private val userService: UserService,
     private val kayttajaService: KayttajaService,
     private val valmistumispyyntoService: ValmistumispyyntoService,
-    private val asiakirjaService: AsiakirjaService
+    private val asiakirjaService: AsiakirjaService,
+    private val osapuoliService: ValmistumispyynnonOsapuoliService
 ) {
     @GetMapping("/valmistumispyynnot")
     fun getAllValmistumispyynnot(
@@ -70,7 +72,7 @@ class VirkailijaValmistumispyyntoResource(
     ): ResponseEntity<ValmistumispyynnonTarkistusDTO> {
         val user = userService.getAuthenticatedUser(principal)
 
-        if (!valmistumispyyntoService.onkoAvoinVirkailija(user.id.required(), id)) {
+        if (!osapuoliService.onkoVirkailijanTarkistusAvoin(user.id.required(), id)) {
             throw BadRequestAlertException(
                 "Valmistumispyyntö ei ole muokattavissa.",
                 VALMISTUMISPYYNTO_ENTITY_NAME,

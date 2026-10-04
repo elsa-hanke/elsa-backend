@@ -111,10 +111,4 @@ interface ValmistumispyyntoService {
     ): AsiakirjaDTO?
 
     fun onkoLahetetty(opintooikeusId: Long): Boolean
-
-    fun onkoAvoinOsaamisenTarkistaminen(userId: String, id: Long): Boolean
-
-    fun onkoAvoinVirkailija(userId: String, id: Long): Boolean
-
-    fun onkoAvoinHyvaksyja(userId: String, id: Long): Boolean
 }

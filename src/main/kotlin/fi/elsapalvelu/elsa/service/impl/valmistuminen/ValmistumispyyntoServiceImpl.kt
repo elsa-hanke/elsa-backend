@@ -45,7 +45,6 @@ import org.springframework.web.multipart.MultipartFile
 import java.time.Clock
 import java.time.LocalDate
 
-@Suppress("TooManyFunctions") // ValmistumispyyntoService declares 22 operations.
 @Service
 @Transactional
 class ValmistumispyyntoServiceImpl(
@@ -569,14 +568,4 @@ class ValmistumispyyntoServiceImpl(
         val valmistumispyynto = valmistumispyyntoRepository.findByOpintooikeusId(opintooikeusId)
         return valmistumispyynto?.erikoistujanKuittausaika != null
     }
-
-    override fun onkoAvoinOsaamisenTarkistaminen(userId: String, id: Long): Boolean =
-        osapuoliService.onkoOsaamisenArviointiAvoin(userId, id)
-
-    override fun onkoAvoinVirkailija(userId: String, id: Long): Boolean =
-        osapuoliService.onkoVirkailijanTarkistusAvoin(userId, id)
-
-    override fun onkoAvoinHyvaksyja(userId: String, id: Long): Boolean =
-        osapuoliService.onkoLopullinenHyvaksyntaAvoin(userId, id)
-
 }

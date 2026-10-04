@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
-import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
