@@ -52,13 +52,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
-        if (!fileValidationService.validate(files, opintooikeusId)) {
-            throw BadRequestAlertException(
-                "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
-                ENTITY_NAME,
-                "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
-            )
-        }
+        fileValidationService.validate(files, opintooikeusId)
 
         val asiakirjat = files.map { it.mapAsiakirja() }
         return asiakirjaService.create(asiakirjat, opintooikeusId)?.let {

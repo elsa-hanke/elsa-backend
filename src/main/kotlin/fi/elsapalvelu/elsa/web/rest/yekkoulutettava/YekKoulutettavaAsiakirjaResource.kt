@@ -55,13 +55,7 @@ class YekKoulutettavaAsiakirjaResource(
                 user.id.required(), YEK_ERIKOISALA_ID
             )
 
-        if (!fileValidationService.validate(files, opintooikeusId)) {
-            throw BadRequestAlertException(
-              "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
-              ASIAKIRJA_ENTITY_NAME,
-              "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
-            )
-        }
+        fileValidationService.validate(files, opintooikeusId)
 
         val asiakirjat = files.map { it.mapAsiakirja() }
         return asiakirjaService.create(asiakirjat, opintooikeusId)?.let {

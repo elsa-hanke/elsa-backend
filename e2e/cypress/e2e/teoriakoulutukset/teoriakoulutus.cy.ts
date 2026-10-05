@@ -1,41 +1,4 @@
-export {}
-
-const invalidAttachmentMessage =
-  'Uuden teoriakoulutuksen lisääminen epäonnistui: Liitetiedostoa ei voitu käsitellä tai samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos toinen samanniminen tiedosto on jo lisätty ELSA-palveluun, anna tiedostolle toinen nimi, ja lataa se sitten uudelleen. Tarkista, että saat tiedoston aukeamaan normaalisti ennen lataamista ELSA-palveluun. Jos PDF-tiedosto avautuu normaalisti, tallenna se uudelleen PDF-muodossa ja yritä uudelleen.'
-
-function fillRequiredFields(name: string, place: string) {
-  cy.contains('label', 'Koulutuksen nimi')
-    .parent()
-    .find('input[type="text"]')
-    .first()
-    .clear()
-    .type(name)
-
-  cy.contains('label', 'Paikka').parent().find('input[type="text"]').first().clear().type(place)
-
-  cy.contains('label', 'Alkamispäivä')
-    .parent()
-    .find('input.date-input, input[type="text"]')
-    .first()
-    .clear()
-    .type('01.03.2025')
-    .blur()
-
-  cy.contains('label', 'Päättymispäivä')
-    .parent()
-    .find('input.date-input, input[type="text"]')
-    .first()
-    .clear()
-    .type('02.03.2025')
-    .blur()
-
-  cy.contains('label', 'Erikoistumiseen hyväksyttävä tuntimäärä')
-    .parent()
-    .find('input')
-    .first()
-    .clear()
-    .type('8')
-}
+import { fillRequiredFields } from '../../support/teoriakoulutus'
 
 // Käyttötapaus: Teoriakoulutuksen lisääminen
 // Käyttäjä: Erikoistuja
@@ -153,7 +116,9 @@ describe('Teoriakoulutus', () => {
     })
     cy.location('pathname').should('not.eq', '/teoriakoulutukset/uusi')
 
-    cy.intercept('GET', '**/erikoistuva-laakari/teoriakoulutukset').as('teoriakoulutuksetAfterRetry')
+    cy.intercept('GET', '**/erikoistuva-laakari/teoriakoulutukset').as(
+      'teoriakoulutuksetAfterRetry'
+    )
     cy.visit('/teoriakoulutukset')
     cy.wait('@teoriakoulutuksetAfterRetry').then(({ response }) => {
       expect(response?.statusCode).to.eq(200)
@@ -164,28 +129,5 @@ describe('Teoriakoulutus', () => {
       expect(savedCourses[0]).to.include({ ...expectedCourse, id: savedId })
     })
     cy.contains(name).should('be.visible')
-  })
-
-  it('näyttää PDF-validoinnin virhesyyn käyttäjälle', () => {
-    cy.visit('/teoriakoulutukset/uusi')
-    cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
-    fillRequiredFields('E2E Virheellinen PDF', 'E2E Testipaikka')
-
-    // The component requires PDFs to be at least 10 KB. This payload passes
-    // client-side size/type checks but is deliberately not valid PDF data.
-    cy.get('input[type="file"]').selectFile(
-      {
-        contents: Cypress.Buffer.alloc(11 * 1024, 'x'),
-        fileName: 'virheellinen-teoriakoulutustodistus.pdf',
-        mimeType: 'application/pdf'
-      },
-      { force: true }
-    )
-
-    cy.contains('button', 'Tallenna teoriakoulutus').click()
-
-    cy.get('.toast-body', { timeout: 15000 }).should('contain.text', invalidAttachmentMessage)
-    cy.location('pathname').should('eq', '/teoriakoulutukset/uusi')
-    cy.contains('button', 'Tallenna teoriakoulutus').should('not.be.disabled')
   })
 })

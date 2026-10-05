@@ -151,11 +151,52 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         val certificate = PdfTestData.certificate(openingPassword = "required-password")
 
         uploadCertificate(certificate).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("error.dataillegal.pdf-tiedosto-vaatii-salasanan"))
 
         assertThat(teoriakoulutusRepository.count()).isEqualTo(sizeBeforeCreate)
     }
 
-    private fun uploadCertificate(certificate: ByteArray): ResultActions {
+    @Test
+    @Transactional
+    fun `rejects invalid PDF content with its own message`() {
+        assertRejectedUpload("not a PDF".toByteArray(), "application/pdf", "pdf-tiedostoa-ei-voitu-kasitella")
+    }
+
+    @Test
+    @Transactional
+    fun `rejects an empty file with its own message`() {
+        assertRejectedUpload(ByteArray(0), "application/pdf", "tiedosto-on-tyhja")
+    }
+
+    @Test
+    @Transactional
+    fun `rejects an unsupported type with its own message`() {
+        assertRejectedUpload("text".toByteArray(), "text/plain", "tiedostotyyppi-ei-ole-sallittu")
+    }
+
+    @Test
+    @Transactional
+    fun `rejects an existing attachment name with its own message`() {
+        initTest()
+        val certificate = PdfTestData.certificate()
+        uploadCertificate(certificate).andExpect(status().isCreated)
+        val sizeAfterFirstUpload = teoriakoulutusRepository.count()
+
+        uploadCertificate(certificate).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("error.dataillegal.samanniminen-tiedosto-on-jo-olemassa"))
+
+        assertThat(teoriakoulutusRepository.count()).isEqualTo(sizeAfterFirstUpload)
+    }
+
+    private fun assertRejectedUpload(data: ByteArray, contentType: String, key: String) {
+        initTest()
+        val sizeBeforeCreate = teoriakoulutusRepository.count()
+        uploadCertificate(data, contentType).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("error.dataillegal.$key"))
+        assertThat(teoriakoulutusRepository.count()).isEqualTo(sizeBeforeCreate)
+    }
+
+    private fun uploadCertificate(certificate: ByteArray, contentType: String = MediaType.APPLICATION_PDF_VALUE): ResultActions {
         val dto = teoriakoulutusMapper.toDto(teoriakoulutus)
         return restTeoriakoulutusMockMvc.perform(
             multipart(ENTITY_API_URL)
@@ -163,7 +204,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
                     MockMultipartFile(
                         "todistusFiles",
                         "restricted-certificate.pdf",
-                        MediaType.APPLICATION_PDF_VALUE,
+                        contentType,
                         certificate
                     )
                 )

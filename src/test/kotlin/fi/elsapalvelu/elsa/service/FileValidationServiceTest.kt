@@ -3,298 +3,123 @@ package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.impl.kayttaja.FileValidationServiceImpl
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
-import fi.elsapalvelu.elsa.service.kayttaja.FileValidationService
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.Mockito.*
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 
 class FileValidationServiceTest {
-
-    private lateinit var asiakirjaService: AsiakirjaService
-    private lateinit var pdfContentValidator: PdfContentValidator
-    private lateinit var fileValidationService: FileValidationService
+    private val asiakirjaService = mock(AsiakirjaService::class.java)
+    private val service = FileValidationServiceImpl(asiakirjaService, PdfContentValidator())
 
     @BeforeEach
     fun setup() {
-        asiakirjaService = mock(AsiakirjaService::class.java)
-        pdfContentValidator = mock(PdfContentValidator::class.java)
-        `when`(pdfContentValidator.isValid(any(ByteArray::class.java))).thenReturn(true)
-        fileValidationService = FileValidationServiceImpl(asiakirjaService, pdfContentValidator)
-    }
-
-    @Test
-    fun `validate should return true for valid PDF file`() {
-        val file = MockMultipartFile(
-            "file",
-            "test.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            "content".toByteArray()
-        )
-
         `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
+    }
 
-        val result = fileValidationService.validate(listOf(file), 1L)
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `accepts a valid PDF`(withOpintooikeus: Boolean) {
+        validate(pdf(PdfTestData.certificate()), withOpintooikeus)
+    }
 
-        assertThat(result).isTrue
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `accepts copying restrictions when no opening password is required`(withOpintooikeus: Boolean) {
+        validate(pdf(PdfTestData.certificate(openingPassword = "")), withOpintooikeus)
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `identifies an opening password separately from invalid PDF data`(withOpintooikeus: Boolean) {
+        assertError("pdf-tiedosto-vaatii-salasanan", withOpintooikeus) {
+            pdf(PdfTestData.certificate(openingPassword = "test-password"))
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `identifies non-PDF bytes labelled as PDF`(withOpintooikeus: Boolean) {
+        assertError("pdf-tiedostoa-ei-voitu-kasitella", withOpintooikeus) { pdf("not a PDF".toByteArray()) }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `identifies truncated PDF data`(withOpintooikeus: Boolean) {
+        assertError("pdf-tiedostoa-ei-voitu-kasitella", withOpintooikeus) {
+            pdf(PdfTestData.certificate().copyOf(20))
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `identifies empty files before PDF processing`(withOpintooikeus: Boolean) {
+        assertError("tiedosto-on-tyhja", withOpintooikeus) { pdf(ByteArray(0)) }
+        assertError("tiedosto-on-tyhja", withOpintooikeus) {
+            MockMultipartFile("file", "empty.png", MediaType.IMAGE_PNG_VALUE, ByteArray(0))
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `identifies an unsupported or missing content type`(withOpintooikeus: Boolean) {
+        listOf("text/plain", null).forEach { contentType ->
+            assertError("tiedostotyyppi-ei-ole-sallittu", withOpintooikeus) {
+                MockMultipartFile("file", "unsupported.txt", contentType, "content".toByteArray())
+            }
+        }
     }
 
     @Test
-    fun `validate should return true for valid PNG file`() {
-        val file = MockMultipartFile(
-            "file",
-            "image.png",
-            MediaType.IMAGE_PNG_VALUE,
-            "content".toByteArray()
-        )
-
-        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
-
-        val result = fileValidationService.validate(listOf(file), 1L)
-
-        assertThat(result).isTrue
+    fun `identifies a duplicate name within the study right`() {
+        `when`(asiakirjaService.findAllByOpintooikeusId(1L))
+            .thenReturn(listOf(AsiakirjaDTO(nimi = "certificate.pdf")))
+        assertError("samanniminen-tiedosto-on-jo-olemassa", true) { pdf(PdfTestData.certificate()) }
     }
 
     @Test
-    fun `validate should return true for valid JPEG file`() {
-        val file = MockMultipartFile(
-            "file",
-            "image.jpg",
-            MediaType.IMAGE_JPEG_VALUE,
-            "content".toByteArray()
-        )
-
-        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
-
-        val result = fileValidationService.validate(listOf(file), 1L)
-
-        assertThat(result).isTrue
+    fun `accepts several valid files and supported image types`() {
+        val images = listOf("image/png", "image/jpeg", "image/jpg").mapIndexed { index, type ->
+            MockMultipartFile("file", "image-$index", type, "content".toByteArray())
+        }
+        service.validate(images + pdf(PdfTestData.certificate()), 1L)
+        service.validate(images + pdf(PdfTestData.certificate()))
     }
 
     @Test
-    fun `validate should return false for invalid content type`() {
-        val file = MockMultipartFile(
-            "file",
-            "test.txt",
-            "text/plain",
-            "content".toByteArray()
-        )
-
-        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
-
-        val result = fileValidationService.validate(listOf(file), 1L)
-
-        assertThat(result).isFalse
+    fun `honours custom allowed types`() {
+        val xml = MockMultipartFile("file", "data.xml", "application/xml", "<data/>".toByteArray())
+        service.validate(listOf(xml), listOf("application/xml"))
+        service.validate(listOf(xml), 1L, listOf("application/xml"))
+        val exception = assertThrows<BadRequestAlertException> {
+            service.validate(listOf(xml), listOf(MediaType.APPLICATION_PDF_VALUE))
+        }
+        assertThat(exception.errorKey).isEqualTo("dataillegal.tiedostotyyppi-ei-ole-sallittu")
     }
 
     @Test
-    fun `validate should return false for duplicate filename`() {
-        val file = MockMultipartFile(
-            "file",
-            "existing.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            "content".toByteArray()
-        )
-
-        val existingFile = AsiakirjaDTO(nimi = "existing.pdf")
-        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(listOf(existingFile))
-
-        val result = fileValidationService.validate(listOf(file), 1L)
-
-        assertThat(result).isFalse
+    fun `retains the existing filename length check`() {
+        val name = "a".repeat(256) + ".pdf"
+        val file = MockMultipartFile(name, name, MediaType.APPLICATION_PDF_VALUE, PdfTestData.certificate())
+        assertError("tiedosto-ei-ole-kelvollinen", true) { file }
+        assertError("tiedosto-ei-ole-kelvollinen", false) { file }
     }
 
-    @Test
-    fun `validate should return false for filename exceeding maximum length`() {
-        val longName = "a".repeat(256) + ".pdf"
-        val file = MockMultipartFile(
-            longName,
-            longName,
-            MediaType.APPLICATION_PDF_VALUE,
-            "content".toByteArray()
-        )
+    private fun pdf(data: ByteArray) =
+        MockMultipartFile("file", "certificate.pdf", MediaType.APPLICATION_PDF_VALUE, data)
 
-        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
-
-        val result = fileValidationService.validate(listOf(file), 1L)
-
-        assertThat(result).isFalse
+    private fun validate(file: MockMultipartFile, withOpintooikeus: Boolean) {
+        if (withOpintooikeus) service.validate(listOf(file), 1L) else service.validate(listOf(file))
     }
 
-    @Test
-    fun `validate should return true for multiple valid files`() {
-        val file1 = MockMultipartFile(
-            "file1",
-            "test1.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            "content".toByteArray()
-        )
-        val file2 = MockMultipartFile(
-            "file2",
-            "test2.png",
-            MediaType.IMAGE_PNG_VALUE,
-            "content".toByteArray()
-        )
-
-        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
-
-        val result = fileValidationService.validate(listOf(file1, file2), 1L)
-
-        assertThat(result).isTrue
-    }
-
-    @Test
-    fun `validate without opintooikeusId should accept valid file types`() {
-        val file = MockMultipartFile(
-            "file",
-            "test.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            "content".toByteArray()
-        )
-
-        val result = fileValidationService.validate(listOf(file))
-
-        assertThat(result).isTrue
-    }
-
-    @Test
-    fun `validate without opintooikeusId should reject invalid file types`() {
-        val file = MockMultipartFile(
-            "file",
-            "test.exe",
-            "application/x-msdownload",
-            "content".toByteArray()
-        )
-
-        val result = fileValidationService.validate(listOf(file))
-
-        assertThat(result).isFalse
-    }
-
-    @Test
-    fun `validate should accept custom allowed content types`() {
-        val file = MockMultipartFile(
-            "file",
-            "data.xml",
-            "application/xml",
-            "content".toByteArray()
-        )
-
-        val result = fileValidationService.validate(
-            listOf(file),
-            allowedContentTypes = listOf("application/xml")
-        )
-
-        assertThat(result).isTrue
-    }
-
-    @Test
-    fun `validate should reject file not matching custom allowed content types`() {
-        val file = MockMultipartFile(
-            "file",
-            "test.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            "content".toByteArray()
-        )
-
-        val result = fileValidationService.validate(
-            listOf(file),
-            allowedContentTypes = listOf("application/xml")
-        )
-
-        assertThat(result).isFalse
-    }
-
-    @Test
-    fun `validate should return false for empty PDF file with opintooikeusId`() {
-        val file = MockMultipartFile(
-            "file",
-            "empty.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            ByteArray(0)
-        )
-
-        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
-
-        val result = fileValidationService.validate(listOf(file), 1L)
-
-        assertThat(result).isFalse
-    }
-
-    @Test
-    fun `validate should return true for non-empty PDF file with opintooikeusId`() {
-        val file = MockMultipartFile(
-            "file",
-            "real.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            "content".toByteArray()
-        )
-
-        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
-
-        val result = fileValidationService.validate(listOf(file), 1L)
-
-        assertThat(result).isTrue
-    }
-
-    @Test
-    fun `validate without opintooikeusId should return false for empty PDF file`() {
-        val file = MockMultipartFile(
-            "file",
-            "empty.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            ByteArray(0)
-        )
-
-        val result = fileValidationService.validate(listOf(file))
-
-        assertThat(result).isFalse
-    }
-
-    @Test
-    fun `validate without opintooikeusId should return false for empty image file`() {
-        val file = MockMultipartFile(
-            "file",
-            "empty.png",
-            MediaType.IMAGE_PNG_VALUE,
-            ByteArray(0)
-        )
-
-        val result = fileValidationService.validate(listOf(file))
-
-        assertThat(result).isFalse
-    }
-
-    @Test
-    fun `validate should reject PDF when its content is not valid`() {
-        val file = MockMultipartFile(
-            "file",
-            "document.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            "not a PDF".toByteArray()
-        )
-        `when`(asiakirjaService.findAllByOpintooikeusId(1L)).thenReturn(emptyList())
-        `when`(pdfContentValidator.isValid(file.bytes)).thenReturn(false)
-
-        val result = fileValidationService.validate(listOf(file), 1L)
-
-        assertThat(result).isFalse
-    }
-
-    @Test
-    fun `validate without opintooikeusId should reject PDF when its content is not valid`() {
-        val file = MockMultipartFile(
-            "file",
-            "document.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            "not a PDF".toByteArray()
-        )
-        `when`(pdfContentValidator.isValid(file.bytes)).thenReturn(false)
-
-        val result = fileValidationService.validate(listOf(file))
-
-        assertThat(result).isFalse
+    private fun assertError(key: String, withOpintooikeus: Boolean, file: () -> MockMultipartFile) {
+        val exception = assertThrows<BadRequestAlertException> { validate(file(), withOpintooikeus) }
+        assertThat(exception.errorKey).isEqualTo("dataillegal.$key")
     }
 }
