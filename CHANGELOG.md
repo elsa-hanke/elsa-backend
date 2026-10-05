@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...HEAD)
 
+- ELSAINSI-76 (Pessimistinen lukko hyväksyntätransaktion alussa) [`#760`](https://github.com/elsa-hanke/elsa-backend/pull/760)(4 October 2026)
 - ELSAINSI-76 PDF tiedostojen generointi optimoinnit (ItextPdfAssembler and ItextPdfAssemblerTest) [`#757`](https://github.com/elsa-hanke/elsa-backend/pull/757)(2 October 2026)
 - More pdf integration tests [`#758`](https://github.com/elsa-hanke/elsa-backend/pull/758)(2 October 2026)
 - Bump dompurify from 3.4.13 to 3.4.16 in /frontend [`#754`](https://github.com/elsa-hanke/elsa-backend/pull/754)(2 October 2026)
