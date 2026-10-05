@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.errors
 
+import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import jakarta.servlet.ServletException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -41,6 +42,17 @@ class BadRequestExceptionAdvice {
             e.sourceDate?.let { body.setProperty("sourceDate", it) }
         }
 
+        return body
+    }
+
+    @ExceptionHandler(ValmistumispyynnonHyvaksyntaKaynnissaException::class)
+    fun handleValmistumispyynnonHyvaksyntaKaynnissa(
+        e: ValmistumispyynnonHyvaksyntaKaynnissaException
+    ): ProblemDetail {
+        log.warn(e.message)
+        val body = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.message.orEmpty())
+        body.setProperty("message", "error.${ValmistumispyynnonHyvaksyntaKaynnissaException.ERROR_KEY}")
+        body.setProperty("params", VALMISTUMISPYYNTO_ENTITY_NAME)
         return body
     }
 

@@ -80,9 +80,7 @@ private const val VIRKAILIJA_ROLE_PATH = "virkailija"
 class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
 
     @Autowired private lateinit var erikoisalaRepository: ErikoisalaRepository
-    @Autowired private lateinit var kayttajaRepository: KayttajaRepository
     @Autowired private lateinit var yliopistoMapper: YliopistoMapper
-    @Autowired private lateinit var erikoisalaMapper: ErikoisalaMapper
     @Autowired private lateinit var vastuuhenkilonTehtavatyyppiMapper: VastuuhenkilonTehtavatyyppiMapper
     @Autowired private lateinit var kayttajaYliopistoErikoisalaMapper: KayttajaYliopistoErikoisalaMapper
 

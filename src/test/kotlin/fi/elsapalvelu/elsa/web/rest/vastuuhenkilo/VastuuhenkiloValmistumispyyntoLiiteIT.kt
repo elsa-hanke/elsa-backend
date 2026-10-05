@@ -44,9 +44,11 @@ import org.springframework.transaction.annotation.Transactional
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import jakarta.persistence.EntityManager
+import java.util.Locale
 
 /**
  * Integration tests for the valmistumispyynto approval flow focusing on
@@ -78,9 +80,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     private lateinit var anotherVastuuhenkilo: Kayttaja
     private lateinit var virkailija: Kayttaja
 
-    private val validPdf: ByteArray by lazy {
-        javaClass.getResourceAsStream("/fixtures/valid.pdf")!!.readBytes()
-    }
+    private val validPdf: ByteArray by lazy { javaClass.getResourceAsStream("/fixtures/valid.pdf")!!.readBytes() }
 
     private val emptyPdf: ByteArray = ByteArray(0)
 
@@ -99,11 +99,11 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     }
 
     /**
-     * A real JPEG (1×1 px) representing an attachment that must not be merged as PDF.
+     * A real JPEG (1×1 px). Suoritusarviointi attachments that are not PDFs are skipped when the
+     * trainee data PDF is assembled, whereas the work certificates (tyoskentelyjakso attachments)
+     * in the attachments PDF accept images and append them after the PDF pages.
      */
-    private val validJpeg: ByteArray by lazy {
-        javaClass.getResourceAsStream("/fixtures/valid.jpg")!!.readBytes()
-    }
+    private val validJpeg: ByteArray by lazy { javaClass.getResourceAsStream("/fixtures/valid.jpg")!!.readBytes() }
 
     @BeforeEach
     fun initTest() {
@@ -115,11 +115,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         em.persist(vastuuhenkiloUser)
 
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
-        val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(vastuuhenkiloUser.id, emptyMap()),
-            "test",
-            authorities
-        )
+        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(vastuuhenkiloUser.id, emptyMap()), "test", authorities)
         TestSecurityContextHolder.getContext().authentication = authentication
 
         erikoistuvaLaakari = initErikoistuvaLaakari()
@@ -134,35 +130,23 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         if (!vastuuhenkilonTehtavatyypit.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_OSAAMISEN_ARVIOINTI) ||
             !vastuuhenkilonTehtavatyypit.contains(VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA)
         ) {
-            val anotherUser = KayttajaResourceWithMockUserIT.createEntity(
-                authority = Authority(VASTUUHENKILO)
-            )
+            val anotherUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO))
             em.persist(anotherUser)
 
             anotherVastuuhenkilo = KayttajaHelper.createEntity(em, anotherUser)
             val anotherTehtavat = tehtavatyypit.filter { it.nimi !in vastuuhenkilonTehtavatyypit }.toMutableSet()
-            initVastuuhenkiloErikoisalat(
-                anotherVastuuhenkilo,
-                opintooikeus.yliopisto!!,
-                opintooikeus.erikoisala!!,
-                anotherTehtavat
-            )
+            initVastuuhenkiloErikoisalat(anotherVastuuhenkilo, opintooikeus.yliopisto!!, opintooikeus.erikoisala!!, anotherTehtavat)
             em.persist(anotherVastuuhenkilo)
         }
 
-        val virkailijaUser = KayttajaResourceWithMockUserIT.createEntity(
-            authority = Authority(OPINTOHALLINNON_VIRKAILIJA)
-        )
+        val virkailijaUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(OPINTOHALLINNON_VIRKAILIJA))
         em.persist(virkailijaUser)
         virkailija = KayttajaHelper.createEntity(em, virkailijaUser)
         em.persist(virkailija)
         virkailija.yliopistot.add(opintooikeus.yliopisto!!)
     }
 
-    private fun initVastuuhenkiloErikoisalat(
-        kayttaja: Kayttaja,
-        yliopisto: Yliopisto,
-        erikoisala: Erikoisala,
+    private fun initVastuuhenkiloErikoisalat(kayttaja: Kayttaja, yliopisto: Yliopisto, erikoisala: Erikoisala,
         tehtavat: MutableSet<VastuuhenkilonTehtavatyyppi>
     ) {
         val newErikoisala = ErikoisalaHelper.createEntity()
@@ -172,20 +156,12 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         listOf(newErikoisala, erikoisala, anotherNewErikoisala).forEach { e ->
             kayttaja.yliopistotAndErikoisalat.add(
-                KayttajaYliopistoErikoisala(
-                    kayttaja = kayttaja,
-                    yliopisto = yliopisto,
-                    erikoisala = e,
-                    vastuuhenkilonTehtavat = tehtavat
-                )
-            )
+                KayttajaYliopistoErikoisala(kayttaja = kayttaja, yliopisto = yliopisto, erikoisala = e, vastuuhenkilonTehtavat = tehtavat))
         }
     }
 
     private fun initErikoistuvaLaakari(): ErikoistuvaLaakari {
-        val user = KayttajaResourceWithMockUserIT.createEntity(
-            authority = Authority(ERIKOISTUVA_LAAKARI)
-        )
+        val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI))
         em.persist(user)
         val el = ErikoistuvaLaakariHelper.createEntity(em, user)
         em.persist(el)
@@ -193,11 +169,8 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     }
 
     private fun performApproval(valmistumispyyntoId: Long?) =
-        restMockMvc.perform(
-            put("/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/{id}", valmistumispyyntoId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null)))
-                .with(csrf())
+        restMockMvc.perform(put("/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/{id}", valmistumispyyntoId)
+                .contentType(MediaType.APPLICATION_JSON).content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null))).with(csrf())
         )
 
     /**
@@ -205,11 +178,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
      * When [itsearviointi] is true the file is stored as an *itsearviointiAsiakirja*,
      * otherwise as an *arviointiAsiakirja*.
      */
-    private fun persistSuoritusarviointiWithAsiakirja(
-        tyyppi: String,
-        data: ByteArray,
-        itsearviointi: Boolean = false
-    ) {
+    private fun persistSuoritusarviointiWithAsiakirja(tyyppi: String, data: ByteArray, itsearviointi: Boolean = false) {
         val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
         tyoskentelyjakso.opintooikeus = opintooikeus
         em.persist(tyoskentelyjakso)
@@ -219,15 +188,9 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         em.persist(suoritusarviointi)
         em.flush()
 
-        val asiakirja = Asiakirja(
-            opintooikeus = opintooikeus,
-            arviointi = if (!itsearviointi) suoritusarviointi else null,
-            itsearviointi = if (itsearviointi) suoritusarviointi else null,
-            nimi = "liite.${tyyppi.substringAfter("/")}",
-            tyyppi = tyyppi,
-            lisattypvm = LocalDateTime.now(),
-            asiakirjaData = AsiakirjaData(data = data)
-        )
+        val asiakirja = Asiakirja(opintooikeus = opintooikeus, arviointi = if (!itsearviointi) suoritusarviointi else null,
+            itsearviointi = if (itsearviointi) suoritusarviointi else null, nimi = "liite.${tyyppi.substringAfter("/")}", tyyppi = tyyppi,
+            lisattypvm = LocalDateTime.now(), asiakirjaData = AsiakirjaData(data = data))
         em.persist(asiakirja)
         em.flush()
     }
@@ -238,16 +201,8 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         em.persist(tyoskentelyjakso)
         em.flush()
 
-        em.persist(
-            Asiakirja(
-                opintooikeus = opintooikeus,
-                tyoskentelyjakso = tyoskentelyjakso,
-                nimi = "tyotodistus.pdf",
-                tyyppi = MediaType.APPLICATION_PDF_VALUE,
-                lisattypvm = LocalDateTime.now(),
-                asiakirjaData = AsiakirjaData(data = data)
-            )
-        )
+        em.persist(Asiakirja(opintooikeus = opintooikeus, tyoskentelyjakso = tyoskentelyjakso, nimi = "tyotodistus.pdf",
+                tyyppi = MediaType.APPLICATION_PDF_VALUE, lisattypvm = LocalDateTime.now(), asiakirjaData = AsiakirjaData(data = data)))
         em.flush()
     }
 
@@ -261,8 +216,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         )
         em.persist(valmistumispyynto)
 
-        val tarkistus = ValmistumispyynnonTarkistusHelper
-            .createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
+        val tarkistus = ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(valmistumispyynto)
         em.persist(tarkistus)
         valmistumispyynto.valmistumispyynnonTarkistus = tarkistus
         em.flush()
@@ -270,38 +224,21 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     }
 
     private fun persistKoulutussuunnitelma() {
-        val koulutussuunnitelma = Koulutussuunnitelma(
-            opintooikeus = opintooikeus,
-            motivaatiokirjeYksityinen = false,
-            opiskeluJaTyohistoriaYksityinen = false,
-            vahvuudetYksityinen = false,
-            tulevaisuudenVisiointiYksityinen = false,
-            osaamisenKartuttaminenYksityinen = false,
-            elamankenttaYksityinen = false
-        )
+        val koulutussuunnitelma = Koulutussuunnitelma(opintooikeus = opintooikeus, motivaatiokirjeYksityinen = false,
+            opiskeluJaTyohistoriaYksityinen = false, vahvuudetYksityinen = false, tulevaisuudenVisiointiYksityinen = false,
+            osaamisenKartuttaminenYksityinen = false, elamankenttaYksityinen = false)
         em.persist(koulutussuunnitelma)
         em.flush()
     }
 
     private fun persistKoulutussuunnitelmaWithMotivaatiokirje(data: ByteArray) {
-        val asiakirja = Asiakirja(
-            opintooikeus = opintooikeus,
-            nimi = "motivaatiokirje.pdf",
-            tyyppi = MediaType.APPLICATION_PDF_VALUE,
-            lisattypvm = LocalDateTime.now(),
-            asiakirjaData = AsiakirjaData(data = data)
-        )
+        val asiakirja = Asiakirja(opintooikeus = opintooikeus, nimi = "motivaatiokirje.pdf", tyyppi = MediaType.APPLICATION_PDF_VALUE,
+            lisattypvm = LocalDateTime.now(), asiakirjaData = AsiakirjaData(data = data))
         em.persist(asiakirja)
 
-        val koulutussuunnitelma = Koulutussuunnitelma(
-            opintooikeus = opintooikeus,
-            motivaatiokirjeYksityinen = false,
-            opiskeluJaTyohistoriaYksityinen = false,
-            vahvuudetYksityinen = false,
-            tulevaisuudenVisiointiYksityinen = false,
-            osaamisenKartuttaminenYksityinen = false,
-            elamankenttaYksityinen = false,
-            motivaatiokirjeAsiakirja = asiakirja
+        val koulutussuunnitelma = Koulutussuunnitelma(opintooikeus = opintooikeus, motivaatiokirjeYksityinen = false,
+            opiskeluJaTyohistoriaYksityinen = false, vahvuudetYksityinen = false, tulevaisuudenVisiointiYksityinen = false,
+            osaamisenKartuttaminenYksityinen = false, elamankenttaYksityinen = false, motivaatiokirjeAsiakirja = asiakirja
         )
         em.persist(koulutussuunnitelma)
         em.flush()
@@ -317,16 +254,13 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     @Test
     @Transactional
     fun approvalSucceedsBySkippingJpegArviointiAttachment() {
-
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.IMAGE_JPEG_VALUE, validJpeg)
 
         em.clear()
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
-
-        performApproval(valmistumispyynto.id)
-            .andExpect(status().isOk)
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
     }
 
     /**
@@ -335,16 +269,13 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     @Test
     @Transactional
     fun approvalSucceedsBySkippingJpegItsearviointiAttachment() {
-
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.IMAGE_JPEG_VALUE, validJpeg, itsearviointi = true)
 
         em.clear()
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
-
-        performApproval(valmistumispyynto.id)
-            .andExpect(status().isOk)
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
     }
 
     /**
@@ -353,7 +284,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     @Test
     @Transactional
     fun approvalIsBlockedWhenArviointiPdfIsEmpty() {
-
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.APPLICATION_PDF_VALUE, emptyPdf)
 
@@ -363,11 +293,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         performApproval(valmistumispyynto.id)
             .andExpect(status().isBadRequest)
-            .andExpect(
-                jsonPath("$.message").value(
-                    "error.${InvalidPdfAttachmentException.ERROR_KEY}"
-                )
-            )
+            .andExpect(jsonPath("$.message").value("error.${InvalidPdfAttachmentException.ERROR_KEY}"))
             .andExpect(jsonPath("$.attachmentName").value("liite.pdf"))
             .andExpect(jsonPath("$.attachmentSource").value("arviointi"))
             .andExpect(jsonPath("$.attachmentDate").value("1970-01-01"))
@@ -380,7 +306,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     @Test
     @Transactional
     fun approvalIsBlockedWhenDocxContentIsLabelledAsPdf() {
-
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.APPLICATION_PDF_VALUE, docxContent)
 
@@ -390,11 +315,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         performApproval(valmistumispyynto.id)
             .andExpect(status().isBadRequest)
-            .andExpect(
-                jsonPath("$.message").value(
-                    "error.${InvalidPdfAttachmentException.ERROR_KEY}"
-                )
-            )
+            .andExpect(jsonPath("$.message").value("error.${InvalidPdfAttachmentException.ERROR_KEY}"))
             .andExpect(jsonPath("$.attachmentName").value("liite.pdf"))
             .andExpect(jsonPath("$.attachmentSource").value("arviointi"))
             .andExpect(jsonPath("$.attachmentDate").value("1970-01-01"))
@@ -406,7 +327,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     @Test
     @Transactional
     fun approvalIsBlockedWhenTyoskentelyjaksoPdfIsInvalid() {
-
         persistKoulutussuunnitelma()
         persistTyoskentelyjaksoWithAsiakirja(docxContent)
 
@@ -427,7 +347,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     @Test
     @Transactional
     fun approvalIsBlockedWhenItsearviointiPdfIsEmpty() {
-
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.APPLICATION_PDF_VALUE, emptyPdf, itsearviointi = true)
 
@@ -450,7 +369,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     @Test
     @Transactional
     fun approvalSucceedsWhenArviointiAttachmentIsValidPdf() {
-
         persistKoulutussuunnitelma()
         persistSuoritusarviointiWithAsiakirja(MediaType.APPLICATION_PDF_VALUE, validPdf)
 
@@ -458,9 +376,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
-        performApproval(valmistumispyynto.id)
-            .andExpect(status().isOk)
-
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
         assertGeneratedTraineeDataDocumentIsValid(valmistumispyynto.id!!)
     }
 
@@ -470,16 +386,13 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     @Test
     @Transactional
     fun approvalSucceedsWithNoAttachments() {
-
         persistKoulutussuunnitelma()
 
         // No suoritusarviointi / asiakirja persisted on purpose.
         em.clear()
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
-
-        performApproval(valmistumispyynto.id)
-            .andExpect(status().isOk)
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
     }
 
     @Test
@@ -498,11 +411,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         performApproval(valmistumispyynto.id)
             .andExpect(status().isBadRequest)
-            .andExpect(
-                jsonPath("$.message").value(
-                    "error.${UnsupportedPdfCharactersException.ERROR_KEY}"
-                )
-            )
+            .andExpect(jsonPath("$.message").value("error.${UnsupportedPdfCharactersException.ERROR_KEY}"))
             .andExpect(jsonPath("$.field").value("oma-arviointi-seurantajaksolta"))
             .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
             .andExpect(jsonPath("$.seurantajaksoId").value(seurantajaksoId))
@@ -514,16 +423,8 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     fun approvalIsBlockedWhenLegacyDailyEntryContainsUnsupportedPdfCharacter() {
         persistKoulutussuunnitelma()
         val entryDate = LocalDate.of(2025, 5, 15)
-        em.persist(
-            Paivakirjamerkinta(
-                paivamaara = entryDate,
-                oppimistapahtumanNimi = "Ohjauskeskustelu",
-                muunAiheenNimi = "Muu aihe",
-                reflektio = "Pohdinta ✓",
-                yksityinen = false,
-                opintooikeus = opintooikeus
-            )
-        )
+        em.persist(Paivakirjamerkinta(paivamaara = entryDate, oppimistapahtumanNimi = "Ohjauskeskustelu", muunAiheenNimi = "Muu aihe",
+                reflektio = "Pohdinta ✓", yksityinen = false, opintooikeus = opintooikeus))
         em.flush()
 
         em.clear()
@@ -531,11 +432,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
 
         performApproval(valmistumispyynto.id)
             .andExpect(status().isBadRequest)
-            .andExpect(
-                jsonPath("$.message").value(
-                    "error.${UnsupportedPdfCharactersException.ERROR_KEY}"
-                )
-            )
+            .andExpect(jsonPath("$.message").value("error.${UnsupportedPdfCharactersException.ERROR_KEY}"))
             .andExpect(jsonPath("$.field").value("pdf-osio-paivittaiset-merkinnat"))
             .andExpect(jsonPath("$.unsupportedCharacters[0]").value("✓ (U+2713)"))
             .andExpect(jsonPath("$.pdfSource").value("valmistumispyynto"))
@@ -554,9 +451,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         em.clear()
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
-        performApproval(valmistumispyynto.id)
-            .andExpect(status().isOk)
-
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
         assertGeneratedTraineeDataDocumentIsValid(valmistumispyynto.id!!)
     }
 
@@ -573,9 +468,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         em.clear()
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
-        performApproval(valmistumispyynto.id)
-            .andExpect(status().isOk)
-
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
         assertGeneratedTraineeDataDocumentIsValid(valmistumispyynto.id!!)
     }
 
@@ -585,13 +478,11 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     @Test
     @Transactional
     fun approvalIsBlockedWhenMotivaatiokirjeAsiakirjaIsEmpty() {
-
         persistKoulutussuunnitelmaWithMotivaatiokirje(emptyPdf)
 
         em.clear()
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
-
         performApproval(valmistumispyynto.id)
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.attachmentName").value("motivaatiokirje.pdf"))
@@ -605,15 +496,12 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     @Test
     @Transactional
     fun approvalSucceedsWhenMotivaatiokirjeAsiakirjaIsValidPdf() {
-
         persistKoulutussuunnitelmaWithMotivaatiokirje(validPdf)
 
         em.clear()
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
-
-        performApproval(valmistumispyynto.id)
-            .andExpect(status().isOk)
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
     }
 
     /**
@@ -624,7 +512,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     @Test
     @Transactional
     fun approvalSucceedsWithMixedAttachmentsByMergingOnlyPdf() {
-
         persistKoulutussuunnitelma()
 
         val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
@@ -636,33 +523,327 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         em.persist(suoritusarviointi)
         em.flush()
 
-        em.persist(
-            Asiakirja(
-                opintooikeus = opintooikeus,
-                arviointi = suoritusarviointi,
-                nimi = "valid.pdf",
-                tyyppi = MediaType.APPLICATION_PDF_VALUE,
-                lisattypvm = LocalDateTime.now(),
-                asiakirjaData = AsiakirjaData(data = validPdf)
-            )
-        )
-        em.persist(
-            Asiakirja(
-                opintooikeus = opintooikeus,
-                arviointi = suoritusarviointi,
-                nimi = "photo.jpg",
-                tyyppi = MediaType.IMAGE_JPEG_VALUE,
-                lisattypvm = LocalDateTime.now(),
-                asiakirjaData = AsiakirjaData(data = validJpeg)
-            )
-        )
+        em.persist(Asiakirja(opintooikeus = opintooikeus, arviointi = suoritusarviointi, nimi = "valid.pdf", tyyppi = MediaType.APPLICATION_PDF_VALUE,
+                lisattypvm = LocalDateTime.now(), asiakirjaData = AsiakirjaData(data = validPdf)))
+        em.persist(Asiakirja(opintooikeus = opintooikeus, arviointi = suoritusarviointi, nimi = "photo.jpg", tyyppi = MediaType.IMAGE_JPEG_VALUE,
+                lisattypvm = LocalDateTime.now(), asiakirjaData = AsiakirjaData(data = validJpeg)))
         em.flush()
         em.clear()
 
         val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
 
-        performApproval(valmistumispyynto.id)
-            .andExpect(status().isOk)
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
+    }
+
+    // ── PDF content regression tests ─────────────────────────────────────────
+    //
+    // These pin down what the generated PDFs actually contain so that the PDF
+    // generation can be optimised without silently changing the output.
+
+    /**
+     * The (non-YEK) summary PDF keeps its sections, in order, and the data that is
+     * filled in from the request.
+     */
+    @Test
+    @Transactional
+    fun approvalGeneratesSummaryPdfWithExpectedSectionsAndData() {
+        renameUsers()
+        persistKoulutussuunnitelma()
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+        valmistumispyynto.valmistumispyynnonTarkistus!!.virkailijanYhteenveto = VIRKAILIJAN_YHTEENVETO
+        em.flush()
+
+        val before = LocalDate.now()
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
+        val after = LocalDate.now()
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+        val summary = requireNotNull(updated.yhteenvetoAsiakirja)
+        assertThat(summary.nimi).startsWith("valmistumisen_yhteenveto_").doesNotStartWith("valmistumisen_yhteenveto_yek")
+        assertThat(summary.tyyppi).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+
+        val text = PdfTestSupport.text(requireNotNull(summary.asiakirjaData?.data))
+        PdfTestSupport.assertContainsInOrder(text, "Erikoistumiskoulutuksen valmistumisen yhteenveto", "Erikoistuva lääkäri",
+            "Osaamisen arviointi", "Opintohallinnon virkailijan yhteenveto", VIRKAILIJAN_YHTEENVETO, "Työskentelyjaksot", "Koulutukset",
+            "Muut tarkistukset", "Tarkistanut")
+        // Full names (not job titles) so the check cannot pass by accident. The date is accepted
+        // from either side of a possible midnight rollover during the request.
+        assertThat(text).contains(TRAINEE_NAME, VIRKAILIJA_NAME, APPROVER_NAME)
+        assertThat(listOf(before, after).map(::formatDate).any { text.contains(it) })
+            .withFailMessage("Expected the approval date (%s or %s) in the summary", before, after).isTrue()
+        PdfTestSupport.assertPdfA(requireNotNull(summary.asiakirjaData?.data))
+    }
+
+    /**
+     * The trainee data PDF starts with the koulutussuunnitelma section and is generated
+     * together with the other approval documents.
+     */
+    @Test
+    @Transactional
+    fun approvalGeneratesTraineeDataPdfStartingWithKoulutussuunnitelma() {
+        persistKoulutussuunnitelma()
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+        val traineeData = requireNotNull(updated.erikoistujanTiedotAsiakirja)
+        assertThat(traineeData.nimi).startsWith("koulutussuunnitelma_ja_osaaminen_")
+
+        // Without any entries only the four fixed section pages are generated, once each and
+        // in this order. (An exact sequence rather than a page count: a duplicated, dropped or
+        // reordered section changes it, and so would pages merged twice.)
+        val pages = PdfTestSupport.pageTexts(requireNotNull(traineeData.asiakirjaData?.data))
+        assertThat(PdfTestSupport.headingSequence(pages, TRAINEE_DATA_HEADINGS)).containsExactly(
+            KOULUTUSSUUNNITELMA, ARVIOINNIT, SUORITEMERKINNAT, PAIVITTAISET_MERKINNAT)
+        assertThat(pages.first()).startsWith(KOULUTUSSUUNNITELMA)
+    }
+
+    /**
+     * The attachments PDF merges every PDF work certificate, keeps the page order inside
+     * each attachment and appends images after all PDF pages.
+     */
+    @Test
+    @Transactional
+    fun approvalMergesPdfAttachmentsIntoLiitteetPdfPreservingPageOrder() {
+        persistKoulutussuunnitelma()
+
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
+        tyoskentelyjakso.opintooikeus = opintooikeus
+        em.persist(tyoskentelyjakso)
+        em.flush()
+
+        persistTyoskentelyjaksoAsiakirja(tyoskentelyjakso, "alpha.pdf", MediaType.APPLICATION_PDF_VALUE,
+            PdfTestSupport.createPdf("AlphaSivuYksi", "AlphaSivuKaksi")
+        )
+        persistTyoskentelyjaksoAsiakirja(tyoskentelyjakso, "beta.pdf", MediaType.APPLICATION_PDF_VALUE, PdfTestSupport.createPdf("BetaSivuYksi"))
+        persistTyoskentelyjaksoAsiakirja(tyoskentelyjakso, "photo.jpg", MediaType.IMAGE_JPEG_VALUE, validJpeg)
+        em.flush()
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+        val liitteet = requireNotNull(updated.liitteetAsiakirja)
+        assertThat(liitteet.nimi).startsWith("valmistumisen_yhteenvedon_liitteet_")
+
+        val pages = PdfTestSupport.pageTexts(requireNotNull(liitteet.asiakirjaData?.data))
+        // 2 + 1 PDF pages followed by the JPEG page.
+        assertThat(pages).hasSize(4)
+        val pdfPages = pages.take(3)
+        assertThat(pdfPages).containsExactlyInAnyOrder("AlphaSivuYksi", "AlphaSivuKaksi", "BetaSivuYksi")
+        assertThat(pdfPages.indexOf("AlphaSivuYksi")).isLessThan(pdfPages.indexOf("AlphaSivuKaksi"))
+        assertThat(pages.last()).isEmpty()
+    }
+
+    /**
+     * Without any attachments the approval still produces a (valid) attachments PDF.
+     */
+    @Test
+    @Transactional
+    fun approvalWithoutAttachmentsStillStoresLiitteetPdf() {
+        persistKoulutussuunnitelma()
+        em.clear()
+
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+        val data = requireNotNull(updated.liitteetAsiakirja?.asiakirjaData?.data)
+        assertThat(data).isNotEmpty
+        assertThat(PdfTestSupport.pageTexts(data).joinToString("")).isEmpty()
+    }
+
+    // ── Trainee data PDF: the assembly contract ──────────────────────────────
+    //
+    // The trainee data PDF is built from many separately rendered PDFs (koulutussuunnitelma,
+    // arvioinnit, suoritemerkinnät, päivittäiset merkinnät, seurantajaksot) that are merged
+    // one after another. Optimising that merge must not change what ends up in the document.
+
+    /**
+     * One entry of every kind: all sections are present, once each, in assembly order, with
+     * their entry data, and the merged document is still PDF/A.
+     */
+    @Test
+    @Transactional
+    fun traineeDataPdfContainsEverySectionOnceInAssemblyOrder() {
+        persistKoulutussuunnitelma()
+        val tyoskentelyjakso = persistTyoskentelyjakso()
+        persistSuoritusarviointi()
+        persistSuoritemerkinta(tyoskentelyjakso, "Suoritemerkkiyksi", LocalDate.of(2020, 1, 1))
+        persistPaivakirjamerkinta("Paivakirjamerkkiyksi")
+        persistSeurantajakso("Seurantamerkkiyksi")
+        em.flush()
+        em.clear()
+
+        val data = approveAndLoadTraineeData()
+
+        val pages = PdfTestSupport.pageTexts(data)
+        assertThat(PdfTestSupport.headingSequence(pages, TRAINEE_DATA_HEADINGS)).containsExactly(KOULUTUSSUUNNITELMA, ARVIOINNIT, ARVIOINTI,
+            SUORITEMERKINNAT, SUORITEMERKINTA, PAIVITTAISET_MERKINNAT, SEURANTAJAKSON_YHTEENVETO)
+        listOf("Suoritemerkkiyksi", "Paivakirjamerkkiyksi", "Seurantamerkkiyksi").forEach { marker ->
+            assertThat(pages.count { it.contains(marker) }).withFailMessage("Expected \"%s\" on exactly one page", marker).isEqualTo(1)
+        }
+        PdfTestSupport.assertPdfA(data)
+    }
+
+    /**
+     * Many entries of the same kind (the production failure class is the merge at scale): every
+     * entry appears on exactly one page, in the order the service sorts them (newest first), no
+     * page is duplicated or dropped.
+     */
+    @Test
+    @Transactional
+    fun traineeDataPdfKeepsEveryEntryExactlyOnceInSortOrder() {
+        persistKoulutussuunnitelma()
+        val tyoskentelyjakso = persistTyoskentelyjakso()
+        val suorite = SuoriteHelper.createEntity(em, opintooikeus.erikoisala).also {
+            em.persist(it)
+            em.flush()
+        }
+        val markers = (1..ENTRY_COUNT).map { "Suoritemerkkijono%03d".format(Locale.ROOT, it) }
+        val firstDay = LocalDate.of(2020, 1, 1)
+        markers.forEachIndexed { index, marker -> persistSuoritemerkinta(tyoskentelyjakso, marker, firstDay.plusDays(index.toLong()), suorite) }
+        em.flush()
+        em.clear()
+
+        val data = approveAndLoadTraineeData()
+
+        val pages = PdfTestSupport.pageTexts(data)
+        assertThat(PdfTestSupport.headingSequence(pages, TRAINEE_DATA_HEADINGS)).containsExactlyElementsOf(
+            listOf(KOULUTUSSUUNNITELMA, ARVIOINNIT, SUORITEMERKINNAT) + List(ENTRY_COUNT) { SUORITEMERKINTA } + PAIVITTAISET_MERKINNAT)
+        markers.forEach { marker ->
+            assertThat(pages.count { it.contains(marker) }).withFailMessage("Expected \"%s\" on exactly one page", marker).isEqualTo(1)
+        }
+        // The service sorts the entries of a suorite newest first: the last marker comes first.
+        val entryPages = pages.filter { it.startsWith("$SUORITEMERKINTA ") }
+        assertThat(entryPages.map { page -> markers.single { page.contains(it) } }).containsExactlyElementsOf(markers.reversed())
+        // Every page is different (all of them have unique content) - catches merged-twice pages.
+        assertThat(pages.toSet()).hasSameSizeAs(pages)
+    }
+
+    /**
+     * The icons (check marks, koulutussuunnitelma section icons) are glyphs of the FontAwesome
+     * font, which PDF text extraction cannot see. If the stylesheet or font fails to load the
+     * icons silently render blank, so assert that the font is actually embedded.
+     *
+     * Note: until the stylesheet is vendored this fetches use.fontawesome.com, so it needs
+     * network access.
+     */
+    @Test
+    @Transactional
+    fun traineeDataPdfEmbedsTheFontAwesomeIconFont() {
+        persistKoulutussuunnitelma()
+        persistSeurantajakso("Seurantamerkkiyksi")
+        em.flush()
+        em.clear()
+
+        val data = approveAndLoadTraineeData()
+
+        val fonts = PdfTestSupport.fontNames(data).map { it.lowercase().replace(Regex("[^a-z]"), "") }
+        assertThat(fonts).withFailMessage("Expected an embedded FontAwesome font, found: %s", PdfTestSupport.fontNames(data))
+            .anyMatch { it.contains("fontawesome") }
+    }
+
+    private fun approveAndLoadTraineeData(): ByteArray {
+        val valmistumispyynto = persistValmistumispyyntoOdottaaHyvaksyntaa()
+
+        performApproval(valmistumispyynto.id).andExpect(status().isOk)
+
+        em.flush()
+        em.clear()
+        val updated = valmistumispyyntoRepository.findById(valmistumispyynto.id!!).orElseThrow()
+        return requireNotNull(updated.erikoistujanTiedotAsiakirja?.asiakirjaData?.data)
+    }
+
+    private fun persistTyoskentelyjakso(): Tyoskentelyjakso {
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
+        tyoskentelyjakso.opintooikeus = opintooikeus
+        em.persist(tyoskentelyjakso)
+        em.flush()
+        return tyoskentelyjakso
+    }
+
+    private fun persistSuoritusarviointi() {
+        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em)
+        em.persist(suoritusarviointi)
+        em.flush()
+    }
+
+    private fun persistSuoritemerkinta(tyoskentelyjakso: Tyoskentelyjakso, lisatiedot: String, suorituspaiva: LocalDate, existingSuorite: Suorite? = null) {
+        val suorite = existingSuorite ?: SuoriteHelper.createEntity(em, opintooikeus.erikoisala).also {
+            em.persist(it)
+            em.flush()
+        }
+        val suoritemerkinta = SuoritemerkintaHelper.createEntity(em, erikoisala = opintooikeus.erikoisala, suorituspaiva = suorituspaiva,
+            existingSuorite = suorite
+        )
+        suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
+        suoritemerkinta.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+        suoritemerkinta.lisatiedot = lisatiedot
+        em.persist(suoritemerkinta)
+    }
+
+    private fun persistPaivakirjamerkinta(reflektio: String) {
+        val merkinta = PaivakirjamerkintaHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
+        merkinta.opintooikeus = opintooikeus
+        merkinta.reflektio = reflektio
+        em.persist(merkinta)
+    }
+
+    private fun persistSeurantajakso(omaArviointi: String) {
+        val seurantajakso = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, vastuuhenkilo)
+        seurantajakso.omaArviointi = omaArviointi
+        seurantajakso.hyvaksytty = true
+        em.persist(seurantajakso)
+    }
+
+    /** Gives the people in the summary distinct, recognisable names. */
+    private fun renameUsers() {
+        erikoistuvaLaakari.kayttaja!!.user!!.apply { firstName = "Eeva"; lastName = "Erikoistuja" }
+        virkailija.user!!.apply { firstName = "Veera"; lastName = "Virkailija" }
+        vastuuhenkilo.user!!.apply { firstName = "Heikki"; lastName = "Hyvaksyja" }
+        em.flush()
+    }
+
+    private fun formatDate(date: LocalDate) = date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+
+    private fun persistTyoskentelyjaksoAsiakirja(tyoskentelyjakso: Tyoskentelyjakso, nimi: String, tyyppi: String, data: ByteArray) {
+        em.persist(Asiakirja(opintooikeus = opintooikeus, tyoskentelyjakso = tyoskentelyjakso, nimi = nimi, tyyppi = tyyppi,
+                lisattypvm = LocalDateTime.now(), asiakirjaData = AsiakirjaData(data = data)))
+    }
+
+    private companion object {
+        const val VIRKAILIJAN_YHTEENVETO = "Virkailijanyhteenvetomarkkeri42"
+        const val TRAINEE_NAME = "Eeva Erikoistuja"
+        const val VIRKAILIJA_NAME = "Veera Virkailija"
+        const val APPROVER_NAME = "Heikki Hyvaksyja"
+        const val ENTRY_COUNT = 30
+
+        const val KOULUTUSSUUNNITELMA = "Koulutussuunnitelma"
+        const val ARVIOINNIT = "Arvioinnit"
+        const val ARVIOINTI = "Arviointi"
+        const val SUORITEMERKINNAT = "Suoritemerkinnät"
+        const val SUORITEMERKINTA = "Suoritemerkintä"
+        const val PAIVITTAISET_MERKINNAT = "Päivittäiset merkinnät"
+        const val SEURANTAJAKSON_YHTEENVETO = "Seurantajakson yhteenveto"
+        val TRAINEE_DATA_HEADINGS = listOf(KOULUTUSSUUNNITELMA, ARVIOINNIT, ARVIOINTI, SUORITEMERKINNAT, SUORITEMERKINTA,
+            PAIVITTAISET_MERKINNAT, SEURANTAJAKSON_YHTEENVETO)
     }
 
     private fun assertGeneratedTraineeDataDocumentIsValid(valmistumispyyntoId: Long) {
@@ -671,8 +852,6 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
         val updated = valmistumispyyntoRepository.findById(valmistumispyyntoId).orElseThrow()
         val data = requireNotNull(updated.erikoistujanTiedotAsiakirja?.asiakirjaData?.data)
         assertThat(data).isNotEmpty
-        Loader.loadPDF(data).use { pdf ->
-            assertThat(pdf.numberOfPages).isGreaterThan(3)
-        }
+        Loader.loadPDF(data).use { pdf -> assertThat(pdf.numberOfPages).isGreaterThan(3) }
     }
 }

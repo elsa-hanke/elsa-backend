@@ -12,21 +12,14 @@ import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi.*
 import fi.elsapalvelu.elsa.repository.perustiedot.ErikoisalaRepository
 import fi.elsapalvelu.elsa.repository.perustiedot.KuntaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksoService
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksonPituusCounterService
-import fi.elsapalvelu.elsa.service.dto.*
-import fi.elsapalvelu.elsa.service.dto.koejakso.*
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
-import fi.elsapalvelu.elsa.service.dto.arviointi.*
-import fi.elsapalvelu.elsa.service.dto.suoritteet.*
-import fi.elsapalvelu.elsa.service.dto.koulutus.*
-import fi.elsapalvelu.elsa.service.dto.seuranta.*
-import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
-import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.service.mapper.kayttaja.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.tyoskentely.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.service.mapper.tyoskentely.TyoskentelyjaksoWithKeskeytysajatMapper
@@ -50,7 +43,8 @@ class TyoskentelyjaksoServiceImpl(
     private val asiakirjaMapper: AsiakirjaMapper,
     private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
     private val opintooikeusRepository: OpintooikeusRepository,
-    private val pdfTextFieldValidator: PdfTextFieldValidator
+    private val pdfTextFieldValidator: PdfTextFieldValidator,
+    private val asiakirjaRepository: AsiakirjaRepository
 
 ) : TyoskentelyjaksoService {
 
@@ -59,7 +53,7 @@ class TyoskentelyjaksoServiceImpl(
         opintooikeusId: Long,
         newAsiakirjat: MutableSet<AsiakirjaDTO>
     ): TyoskentelyjaksoDTO? {
-        validatePdfText(tyoskentelyjaksoDTO)
+        pdfTextFieldValidator.validateTyoskentelyjaksoPdfText(tyoskentelyjaksoDTO)
         opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let { opintooikeus ->
             tyoskentelyjaksoMapper.toEntity(tyoskentelyjaksoDTO).apply {
                 this.opintooikeus = opintooikeus
@@ -94,7 +88,7 @@ class TyoskentelyjaksoServiceImpl(
         newAsiakirjat: MutableSet<AsiakirjaDTO>,
         deletedAsiakirjaIds: MutableSet<Int>?
     ): TyoskentelyjaksoDTO? {
-        validatePdfText(tyoskentelyjaksoDTO)
+        pdfTextFieldValidator.validateTyoskentelyjaksoPdfText(tyoskentelyjaksoDTO)
         tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(
             tyoskentelyjaksoDTO.id.required(),
             opintooikeusId
@@ -142,17 +136,6 @@ class TyoskentelyjaksoServiceImpl(
         return null
     }
 
-    private fun validatePdfText(tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
-        pdfTextFieldValidator.validate(
-            fields = listOf(
-                "tyoskentelypaikka" to tyoskentelyjaksoDTO.tyoskentelypaikka?.nimi
-            ),
-            pdfSource = "tyoskentelyjakso",
-            sourceId = tyoskentelyjaksoDTO.id,
-            sourceDate = tyoskentelyjaksoDTO.alkamispaiva
-        )
-    }
-
     private fun mapAsiakirjat(
         tyoskentelyjakso: Tyoskentelyjakso,
         newAsiakirjat: Set<AsiakirjaDTO>,
@@ -173,9 +156,18 @@ class TyoskentelyjaksoServiceImpl(
             tyoskentelyjakso.asiakirjat.addAll(asiakirjaEntities)
         }
 
-        deletedAsiakirjaIds?.map { x -> x.toLong() }?.let {
-            tyoskentelyjakso.asiakirjat.removeIf { asiakirja ->
-                asiakirja.id in it
+        deletedAsiakirjaIds?.map { x -> x.toLong() }?.toSet()?.let { ids ->
+            // Tyoskentelyjakso-liitoksessa ei ole REMOVE-kaskadia eika orphanRemovalia, jotta
+            // tyoskentelyjakson poisto sailyttaa asiakirjat (ks. Tyoskentelyjakso.asiakirjat).
+            // Siksi kayttajan pyytama asiakirjan poisto tehdaan tassa eksplisiittisesti.
+            // Poistettavat haetaan tyoskentelyjakson omasta kokoelmasta, joten toisen
+            // tyoskentelyjakson asiakirjaa ei voi poistaa id:ta arvaamalla.
+            val poistettavat = tyoskentelyjakso.asiakirjat.filter { asiakirja ->
+                asiakirja.id != null && asiakirja.id in ids
+            }
+            if (poistettavat.isNotEmpty()) {
+                tyoskentelyjakso.asiakirjat.removeAll(poistettavat.toSet())
+                asiakirjaRepository.deleteAll(poistettavat)
             }
         }
 
@@ -384,14 +376,12 @@ class TyoskentelyjaksoServiceImpl(
                 when (tyoskentelyjakso.tyoskentelypaikka.required().tyyppi.required()) {
                     TERVEYSKESKUS -> {
                         // Yli maksimin menevät pituudet jätetään huomiotta
-                        if (terveyskeskusMaksimi != null && terveyskeskusMaksimi != 0.0) {
-                            if (tilastotCounter.terveyskeskusSuoritettu == terveyskeskusMaksimi) {
-                                tutkintoonHyvaksyttavaPituus = 0.0
-                            } else if (tilastotCounter.terveyskeskusSuoritettu + tyoskentelyjaksonPituus > terveyskeskusMaksimi) {
-                                tutkintoonHyvaksyttavaPituus = terveyskeskusMaksimi - tilastotCounter.terveyskeskusSuoritettu
-                            }
-                        }
-                        tilastotCounter.terveyskeskusSuoritettu += tutkintoonHyvaksyttavaPituus
+                        tutkintoonHyvaksyttavaPituus = handleTerveyskeskus(
+                            terveyskeskusMaksimi,
+                            tilastotCounter,
+                            tutkintoonHyvaksyttavaPituus,
+                            tyoskentelyjaksonPituus
+                        )
                     }
 
                     YLIOPISTOLLINEN_SAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
@@ -412,14 +402,12 @@ class TyoskentelyjaksoServiceImpl(
                 when (tyoskentelyjakso.tyoskentelypaikka.required().tyyppi.required()) {
                     TERVEYSKESKUS -> {
                         // Yli maksimin menevät pituudet jätetään huomiotta
-                        if (terveyskeskusMaksimi != null && terveyskeskusMaksimi != 0.0) {
-                            if (tilastotCounter.terveyskeskusSuoritettu == terveyskeskusMaksimi) {
-                                tutkintoonHyvaksyttavaPituus = 0.0
-                            } else if (tilastotCounter.terveyskeskusSuoritettu + tyoskentelyjaksonPituus > terveyskeskusMaksimi) {
-                                tutkintoonHyvaksyttavaPituus = terveyskeskusMaksimi - tilastotCounter.terveyskeskusSuoritettu
-                            }
-                        }
-                        tilastotCounter.terveyskeskusSuoritettu += tutkintoonHyvaksyttavaPituus
+                        tutkintoonHyvaksyttavaPituus = handleTerveyskeskus(
+                            terveyskeskusMaksimi,
+                            tilastotCounter,
+                            tutkintoonHyvaksyttavaPituus,
+                            tyoskentelyjaksonPituus
+                        )
                     }
 
                     YLIOPISTOLLINEN_SAIRAALA -> tilastotCounter.yliopistosairaalaSuoritettu += tyoskentelyjaksonPituus
@@ -459,6 +447,24 @@ class TyoskentelyjaksoServiceImpl(
             // Kootaan työskentelyjaksojen suoritetut työskentelyajat
             tyoskentelyjaksotSuoritettu.add(TyoskentelyjaksotTilastotTyoskentelyjaksotDTO(id = tyoskentelyjakso.id.required(), suoritettu = tyoskentelyjaksonPituus))
         }
+    }
+
+    private fun handleTerveyskeskus(
+        terveyskeskusMaksimi: Double?,
+        tilastotCounter: TilastotCounter,
+        tutkintoonHyvaksyttavaPituus: Double,
+        tyoskentelyjaksonPituus: Double
+    ): Double {
+        var tutkintoonHyvaksyttavaPituus1 = tutkintoonHyvaksyttavaPituus
+        if (terveyskeskusMaksimi != null && terveyskeskusMaksimi != 0.0) {
+            if (tilastotCounter.terveyskeskusSuoritettu == terveyskeskusMaksimi) {
+                tutkintoonHyvaksyttavaPituus1 = 0.0
+            } else if (tilastotCounter.terveyskeskusSuoritettu + tyoskentelyjaksonPituus > terveyskeskusMaksimi) {
+                tutkintoonHyvaksyttavaPituus1 = terveyskeskusMaksimi - tilastotCounter.terveyskeskusSuoritettu
+            }
+        }
+        tilastotCounter.terveyskeskusSuoritettu += tutkintoonHyvaksyttavaPituus1
+        return tutkintoonHyvaksyttavaPituus1
     }
 
     override fun getVahennettavatPaivat(tyoskentelyjaksot: List<Tyoskentelyjakso>): Map<Long, Double> {
@@ -532,10 +538,11 @@ class TyoskentelyjaksoServiceImpl(
 
     override fun updateAsiakirjat(
         id: Long,
+        opintooikeusId: Long,
         addedFiles: Set<AsiakirjaDTO>?,
         deletedFiles: Set<Int>?
     ): TyoskentelyjaksoDTO? {
-        tyoskentelyjaksoRepository.findById(id).orElse(null)?.let {
+        tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
             if (it.liitettyTerveyskeskuskoulutusjaksoon) {
                 throw ValidationException("Terveyskeskuskoulutusjaksoon liitetyn työskentelyjakson asiakirjoja ei voi päivittää")
             }

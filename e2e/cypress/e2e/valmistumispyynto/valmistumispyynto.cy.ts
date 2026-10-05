@@ -1,5 +1,12 @@
 import { E2E_ERIKOISTUVA_EMAIL, KOULUTTAJA_EMAIL, VASTUUHENKILO_EMAIL, VIRKAILIJA_EMAIL } from '../../support/commands/credentials'
 
+import {
+  APPROVAL_IN_PROGRESS_ALIAS,
+  APPROVAL_IN_PROGRESS_TOAST,
+  stubApprovalInProgress,
+} from '../../support/approval-in-progress'
+import { downloadPdfPages, expectTextInOrder } from '../../support/pdf'
+
 export {}
 
 // Käyttötapaus 13.
@@ -278,6 +285,26 @@ describe('Valmistumispyyntö', () => {
           'täyttäjää poistamaan tai korvaamaan merkit ja yritä hyväksyntää uudelleen.'
       ).should('be.visible')
 
+      // Another approval of the same valmistumispyyntö is already running: the server refuses
+      // with 409 and the approver sees the root cause ("approval already in progress"), not a
+      // generic failure. The page stays usable so the approval can be retried.
+      cy.contains('.toast-body', 'sisältää merkkejä')
+        .closest('.toast')
+        .find('button.close')
+        .click()
+      cy.get('.toast-body').should('not.exist')
+
+      stubApprovalInProgress(valmistumispyyntoId)
+
+      cy.contains('button', 'Hyväksy').click()
+      cy.get('#confirm-send').should('be.visible').contains('button', 'Hyväksy').click()
+      cy.wait(`@${APPROVAL_IN_PROGRESS_ALIAS}`).its('response.statusCode').should('eq', 409)
+      cy.contains('.toast-body', APPROVAL_IN_PROGRESS_TOAST).should('be.visible')
+      cy.location('pathname').should(
+        'eq',
+        `/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`
+      )
+
       cy.apiRequest({
         method: 'PUT',
         url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
@@ -286,6 +313,33 @@ describe('Valmistumispyyntö', () => {
       }).then(({ status, body }) => {
         expect(status).to.eq(200)
         expect(body.valmistumispyynto.tila).to.eq('HYVAKSYTTY')
+        expect(body.valmistumispyynto.yhteenvetoAsiakirjaId).to.be.a('number')
+        expect(body.valmistumispyynto.liitteetAsiakirjaId).to.be.a('number')
+
+        // Regression guard for PDF generation: the summary keeps its sections and data.
+        downloadPdfPages(
+          `/api/vastuuhenkilo/valmistumispyynto/${valmistumispyyntoId}/asiakirja/${body.valmistumispyynto.yhteenvetoAsiakirjaId}`
+        ).then((pages) => {
+          expect(pages.length).to.be.greaterThan(0)
+          const text = pages.join(' ')
+          expectTextInOrder(
+            text,
+            'Erikoistumiskoulutuksen valmistumisen yhteenveto',
+            'Erikoistuva lääkäri',
+            'Osaamisen arviointi',
+            'Opintohallinnon virkailijan yhteenveto',
+            'E2E virkailijan yhteenveto.',
+            'Työskentelyjaksot',
+            'Koulutukset',
+            'Muut tarkistukset',
+            'Tarkistanut'
+          )
+        })
+
+        // The attachments PDF is a valid, parseable PDF.
+        downloadPdfPages(
+          `/api/vastuuhenkilo/valmistumispyynto/${valmistumispyyntoId}/asiakirja/${body.valmistumispyynto.liitteetAsiakirjaId}`
+        ).its('length').should('be.greaterThan', 0)
       })
     })
   })

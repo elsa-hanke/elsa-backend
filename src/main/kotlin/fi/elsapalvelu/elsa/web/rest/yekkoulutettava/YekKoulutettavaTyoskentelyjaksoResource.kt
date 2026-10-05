@@ -224,11 +224,12 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         return try {
             tyoskentelyjaksoService.updateAsiakirjat(
                 id,
+                opintooikeusId,
                 tyoskentelyjaksoResourceSupport.getMappedFiles(addedFiles, opintooikeusId),
                 deletedFiles?.toSet()
             )?.let {
                 ResponseEntity.ok(it)
-            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+            } ?: throw ResponseStatusException(HttpStatus.FORBIDDEN)
         } catch (e: ValidationException) {
             throw tyoskentelyjaksoResourceSupport.liitettyTerveyskoulutusjaksoonException(e)
         }

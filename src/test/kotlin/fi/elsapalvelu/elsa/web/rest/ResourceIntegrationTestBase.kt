@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.*
@@ -12,8 +13,15 @@ import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
+import fi.elsapalvelu.elsa.repository.koulutus.OpintoopasRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.ErikoisalaMapper
+import fi.elsapalvelu.elsa.service.mapper.perustiedot.KuntaMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoisalaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
@@ -22,11 +30,13 @@ import fi.elsapalvelu.elsa.web.rest.helpers.KayttajahallintaResourceHelper
 import jakarta.persistence.EntityManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.test.web.servlet.MockMvc
+import java.io.File
 
 @AutoConfigureMockMvc
 open class ResourceIntegrationTestBase {
@@ -34,9 +44,32 @@ open class ResourceIntegrationTestBase {
     protected lateinit var em: EntityManager
     @Autowired
     protected lateinit var testMockMvc: MockMvc
+    @Autowired
+    protected lateinit var objectMapper: ObjectMapper
+    @Autowired
+    protected lateinit var userRepository: UserRepository
+    @Autowired
+    protected lateinit var kayttajaRepository: KayttajaRepository
+    @Autowired
+    protected lateinit var asiakirjaRepository: AsiakirjaRepository
+    @Autowired
+    protected lateinit var opintooikeusRepository: OpintooikeusRepository
+    @Autowired
+    protected lateinit var opintoopasRepository: OpintoopasRepository
+    @Autowired
+    protected lateinit var kuntaMapper: KuntaMapper
+    @Autowired
+    protected lateinit var erikoisalaMapper: ErikoisalaMapper
+
 
     protected lateinit var vastuuhenkilo: Kayttaja
     protected lateinit var virkailija: Kayttaja
+    protected lateinit var user: User
+
+    protected lateinit var tempFile1: File
+    protected lateinit var tempFile2: File
+    protected lateinit var mockMultipartFile1: MockMultipartFile
+    protected lateinit var mockMultipartFile2: MockMultipartFile
 
     protected fun initErikoistuvaLaakari(yliopisto: Yliopisto? = null, erikoisala: Erikoisala? = null): ErikoistuvaLaakari {
         val erikoistuvaLaakariUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI))
@@ -50,6 +83,11 @@ open class ResourceIntegrationTestBase {
     protected fun persistAndFlush(entity: Any) {
         em.persist(entity)
         em.flush()
+    }
+
+    protected fun flushClear() {
+        em.flush()
+        em.clear()
     }
 
     protected fun persistYliopisto(yliopistoNimi: YliopistoEnum): Yliopisto {
