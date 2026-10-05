@@ -53,22 +53,10 @@ import java.time.format.DateTimeFormatter
 class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
 
     @Autowired
-    private lateinit var kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository
-
-    @Autowired
     private lateinit var yliopistoRepository: YliopistoRepository
 
     @Autowired
     private lateinit var erikoisalaRepository: ErikoisalaRepository
-
-    @Autowired
-    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
-
-    @Autowired
-    private lateinit var tyoskentelyjaksoRepository: TyoskentelyjaksoRepository
-
-    @Autowired
-    private lateinit var suoritusarviointiRepository: SuoritusarviointiRepository
 
     @Autowired
     private lateinit var arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository
@@ -99,9 +87,6 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
 
     @Autowired
     private lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
-
-    @Autowired
-    private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
 
     @BeforeEach
     fun setup() {
