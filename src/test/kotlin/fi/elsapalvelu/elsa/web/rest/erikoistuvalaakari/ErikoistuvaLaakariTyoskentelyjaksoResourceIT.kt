@@ -1,47 +1,17 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.koejakso.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.*
-import fi.elsapalvelu.elsa.domain.arviointi.*
-import fi.elsapalvelu.elsa.domain.suoritteet.*
 import fi.elsapalvelu.elsa.domain.koulutus.*
-import fi.elsapalvelu.elsa.domain.seuranta.*
-import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
-import fi.elsapalvelu.elsa.domain.koejakso.*
-import fi.elsapalvelu.elsa.domain.tyoskentely.*
-import fi.elsapalvelu.elsa.domain.arviointi.*
-import fi.elsapalvelu.elsa.domain.suoritteet.*
-import fi.elsapalvelu.elsa.domain.koulutus.*
-import fi.elsapalvelu.elsa.domain.seuranta.*
-import fi.elsapalvelu.elsa.domain.valmistuminen.*
-import fi.elsapalvelu.elsa.domain.kayttaja.*
-import fi.elsapalvelu.elsa.domain.perustiedot.*
-import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.repository.koejakso.*
 import fi.elsapalvelu.elsa.repository.tyoskentely.*
 import fi.elsapalvelu.elsa.repository.arviointi.*
-import fi.elsapalvelu.elsa.repository.suoritteet.*
 import fi.elsapalvelu.elsa.repository.koulutus.*
-import fi.elsapalvelu.elsa.repository.seuranta.*
-import fi.elsapalvelu.elsa.repository.valmistuminen.*
 import fi.elsapalvelu.elsa.repository.kayttaja.*
-import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.security.*
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
-import fi.elsapalvelu.elsa.service.mapper.*
-import fi.elsapalvelu.elsa.service.mapper.koejakso.*
 import fi.elsapalvelu.elsa.service.mapper.tyoskentely.*
-import fi.elsapalvelu.elsa.service.mapper.arviointi.*
-import fi.elsapalvelu.elsa.service.mapper.suoritteet.*
-import fi.elsapalvelu.elsa.service.mapper.koulutus.*
-import fi.elsapalvelu.elsa.service.mapper.seuranta.*
-import fi.elsapalvelu.elsa.service.mapper.valmistuminen.*
-import fi.elsapalvelu.elsa.service.mapper.kayttaja.*
 import fi.elsapalvelu.elsa.service.mapper.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
@@ -72,42 +42,26 @@ private const val API_TYOSKENTELYJAKSOT = "/api/erikoistuva-laakari/tyoskentelyj
 
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
-@Suppress("LargeClass")
 class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase() {
 
     @Autowired private lateinit var tyoskentelyjaksoRepository: TyoskentelyjaksoRepository
     @Autowired private lateinit var suoritusarviointiRepository: SuoritusarviointiRepository
     @Autowired private lateinit var keskeytysaikaRepository: KeskeytysaikaRepository
     @Autowired private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
-    @Autowired private lateinit var userRepository: UserRepository
-    @Autowired private lateinit var kayttajaRepository: KayttajaRepository
     @Autowired private lateinit var kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository
-    @Autowired private lateinit var opintooikeusRepository: OpintooikeusRepository
-    @Autowired private lateinit var opintoopasRepository: OpintoopasRepository
-    @Autowired private lateinit var asiakirjaRepository: AsiakirjaRepository
     @Autowired private lateinit var koulutusjaksoRepository: KoulutusjaksoRepository
     @Autowired private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
-    @Autowired private lateinit var kuntaMapper: KuntaMapper
-    @Autowired private lateinit var erikoisalaMapper: ErikoisalaMapper
-    @Autowired private lateinit var objectMapper: ObjectMapper
 
     private lateinit var tyoskentelyjakso: Tyoskentelyjakso
     private lateinit var keskeytysaika: Keskeytysaika
-    private lateinit var tempFile1: File
-    private lateinit var tempFile2: File
-    private lateinit var mockMultipartFile1: MockMultipartFile
-    private lateinit var mockMultipartFile2: MockMultipartFile
-    private lateinit var user: User
 
     @BeforeEach
     fun setup() {
-        // Lisätään voimassaoleva poissaolon syy ja päättymistä ei määritetty
+        // Lisätään voimassaoleva poissaolon syy ja päättymistä ei määritetty, poissaolon syy ja päättyminen määritetty,
+        // poissaolon syy, jonka voimassaolo ei ole alkanut vielä, poissaolon syy, jonka voimassaolo on jo päättynyt
         em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), null))
-        // Lisätään voimassaoleva poissaolon syy ja päättyminen määritetty
         em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(20L)))
-        // Lisätään poissaolon syy, jonka voimassaolo ei ole alkanut vielä
         em.persist(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(15L), LocalDate.ofEpochDay(20L)))
-        // Lisätään poissaolon syy, jonka voimassaolo on jo päättynyt
         persistAndFlush(PoissaolonSyyHelper.createEntity(LocalDate.ofEpochDay(0L), LocalDate.ofEpochDay(5L)))
     }
 
@@ -119,7 +73,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
 
         testMockMvc.perform(multipart(API_TYOSKENTELYJAKSOT).file(mockMultipartFile1).file(mockMultipartFile2)
-                .param("tyoskentelyjaksoJson", objectMapper.writeValueAsString(tyoskentelyjaksoMapper.toDto(tyoskentelyjakso))).with(csrf())).andExpect(status().isCreated)
+            .param("tyoskentelyjaksoJson", objectMapper.writeValueAsString(tyoskentelyjaksoMapper.toDto(tyoskentelyjakso))).with(csrf())).andExpect(status().isCreated)
 
         val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
         requireNotNull(kirjautunutErikoistuvaLaakari)
@@ -158,50 +112,40 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun createTyoskentelyjaksoWithExistingId() {
         initTest()
-
         val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
-
         tyoskentelyjakso.id = 1L
         val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoMapper.toDto(tyoskentelyjakso))
 
         testMockMvc.perform(multipart(API_TYOSKENTELYJAKSOT).param("tyoskentelyjaksoJson", tyoskentelyjaksoJson).with(csrf())).andExpect(status().isBadRequest)
-
         assertThat(tyoskentelyjaksoRepository.findAll()).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
     fun createTyoskentelyjaksoWithExistingTyoskentelypaikkaId() {
         initTest()
-
         val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
-
         tyoskentelyjakso.tyoskentelypaikka!!.id = 1L
         val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoMapper.toDto(tyoskentelyjakso))
 
         testMockMvc.perform(multipart(API_TYOSKENTELYJAKSOT).param("tyoskentelyjaksoJson", tyoskentelyjaksoJson).with(csrf())).andExpect(status().isBadRequest)
-
         assertThat(tyoskentelyjaksoRepository.findAll()).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
     fun createTyoskentelyjaksoWithInvalidDates() {
         initTest()
-
         val tyoskentelyjaksoTableSizeBeforeCreate = tyoskentelyjaksoRepository.findAll().size
-
         tyoskentelyjakso.alkamispaiva = LocalDate.of(2020, 1, 25)
         tyoskentelyjakso.paattymispaiva = LocalDate.of(2020, 1, 5)
         val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoMapper.toDto(tyoskentelyjakso))
 
         testMockMvc.perform(multipart(API_TYOSKENTELYJAKSOT).param("tyoskentelyjaksoJson", tyoskentelyjaksoJson).with(csrf())).andExpect(status().isBadRequest)
-
         assertThat(tyoskentelyjaksoRepository.findAll()).hasSize(tyoskentelyjaksoTableSizeBeforeCreate)
     }
 
     @Test
     fun getTyoskentelyjakso() {
         initTest()
-
         tyoskentelyjakso.asiakirjat.add(AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso))
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
@@ -225,7 +169,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     fun getAnotherUserTyoskentelyjakso() {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
-
         initTest(erikoistuvaLaakari.kayttaja?.user?.id)
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
@@ -237,9 +180,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun updateTyoskentelyjaksoWithoutSuoritusarvioinnit() {
         initTest()
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
         val tyoskentelyjaksoTableSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
 
         assertNotNull(tyoskentelyjakso.id)
@@ -250,20 +191,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         val tyoskentelyjaksoDTO = populateTyoskentelyjaksoDto(existingTyoskentelyjakso, updatedTyoskentelypaikka, omaaErikoisalaaTukeva)
 
         testMockMvc.perform(put(API_TYOSKENTELYJAKSOT).param("tyoskentelyjaksoJson", objectMapper.writeValueAsString(tyoskentelyjaksoDTO))
-                .with(csrf())).andExpect(status().isOk)
+            .with(csrf())).andExpect(status().isOk)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeUpdate)
         val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
 
-        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.nimi).isEqualTo(updatedTyoskentelypaikka.nimi)
-        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.tyyppi).isEqualTo(updatedTyoskentelypaikka.tyyppi)
-        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.muuTyyppi).isEqualTo(updatedTyoskentelypaikka.muuTyyppi)
-        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.kunta).isEqualTo(updatedTyoskentelypaikka.kunta)
-        assertThat(testTyoskentelyjakso.alkamispaiva).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_ALKAMISPAIVA)
-        assertThat(testTyoskentelyjakso.paattymispaiva).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_PAATTYMISPAIVA)
-        assertThat(testTyoskentelyjakso.osaaikaprosentti).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_OSAAIKAPROSENTTI)
-        assertThat(testTyoskentelyjakso.kaytannonKoulutus).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_KAYTANNON_KOULUTUS)
+        assertUpdatedTyoskentelyjakso(testTyoskentelyjakso, updatedTyoskentelypaikka)
         assertThat(testTyoskentelyjakso.omaaErikoisalaaTukeva).isEqualTo(omaaErikoisalaaTukeva)
         assertThat(testTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN)
     }
@@ -271,9 +205,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun updateTyoskentelyjaksoWithSuoritusarvioinnitShouldUpdateOnlyPaattymispaiva() {
         initTest()
-
         assertThat(tyoskentelyjakso.suoritusarvioinnit).isEmpty()
-
         tyoskentelyjakso.suoritusarvioinnit.add(SuoritusarviointiHelper.createEntity(em, user, ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_ALKAMISPAIVA.plusDays(1)))
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
@@ -284,24 +216,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         val existingTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
         val updatedTyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em)
         val omaaErikoisalaaTukeva = em.findAll(Erikoisala::class).first()
-
-        val tyoskentelyjaksoDTO = populateTyoskentelyjaksoDto(existingTyoskentelyjakso, updatedTyoskentelypaikka, omaaErikoisalaaTukeva)
-
-        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
+        val tyoskentelyjaksoJson = objectMapper.writeValueAsString(populateTyoskentelyjaksoDto(existingTyoskentelyjakso, updatedTyoskentelypaikka, omaaErikoisalaaTukeva))
         testMockMvc.perform(put(API_TYOSKENTELYJAKSOT).param("tyoskentelyjaksoJson", tyoskentelyjaksoJson).with(csrf())).andExpect(status().isOk)
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeUpdate)
         val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
 
-        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.nimi).isEqualTo(updatedTyoskentelypaikka.nimi)
-        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.tyyppi).isEqualTo(updatedTyoskentelypaikka.tyyppi)
-        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.muuTyyppi).isEqualTo(updatedTyoskentelypaikka.muuTyyppi)
-        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.kunta).isEqualTo(updatedTyoskentelypaikka.kunta)
-        assertThat(testTyoskentelyjakso.alkamispaiva).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_ALKAMISPAIVA)
-        assertThat(testTyoskentelyjakso.paattymispaiva).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_PAATTYMISPAIVA)
-        assertThat(testTyoskentelyjakso.osaaikaprosentti).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_OSAAIKAPROSENTTI)
-        assertThat(testTyoskentelyjakso.kaytannonKoulutus).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_KAYTANNON_KOULUTUS)
+        assertUpdatedTyoskentelyjakso(testTyoskentelyjakso, updatedTyoskentelypaikka)
         assertThat(testTyoskentelyjakso.omaaErikoisalaaTukeva?.id).isEqualTo(omaaErikoisalaaTukeva.id)
         assertThat(testTyoskentelyjakso.hyvaksyttyAiempaanErikoisalaan).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN)
     }
@@ -339,7 +261,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         tyoskentelyjaksoDTO.paattymispaiva = LocalDate.of(2020, 1, 19)
 
         val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
-
         testMockMvc.perform(put(API_TYOSKENTELYJAKSOT).param("tyoskentelyjaksoJson", tyoskentelyjaksoJson).with(csrf())).andExpect(status().isBadRequest)
     }
 
@@ -350,7 +271,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         assertThat(tyoskentelyjakso.suoritusarvioinnit).isEmpty()
 
         val suoritusarviointiTapahtumanAjankohta = LocalDate.of(2020, 1, 20)
-
         tyoskentelyjakso.suoritusarvioinnit.add(SuoritusarviointiHelper.createEntity(em, user, suoritusarviointiTapahtumanAjankohta))
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
@@ -370,9 +290,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun updateTyoskentelyjaksoWithoutId() {
         initTest()
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
         val tyoskentelyjaksoTableSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
 
         assertNotNull(tyoskentelyjakso.id)
@@ -394,10 +312,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
     @Test
     fun updateAnotherUserTyoskentelyjakso() {
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
-        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
-
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initTestAsAnotherUser()
 
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         val tyoskentelyjaksoTableSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
@@ -411,7 +326,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun deleteTyoskentelyjakso() {
         initTest()
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
 
@@ -421,17 +335,11 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
     @Test
     fun deleteAnotherUserTyoskentelyjakso() {
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
-        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
-
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
-
+        initTestAsAnotherUser()
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
         val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
 
-        testMockMvc.perform(delete("$API_TYOSKENTELYJAKSOT/{id}", tyoskentelyjakso.id).accept(APPLICATION_JSON)
-                .with(csrf())).andExpect(status().isForbidden)
+        testMockMvc.perform(delete("$API_TYOSKENTELYJAKSOT/{id}", tyoskentelyjakso.id).accept(APPLICATION_JSON).with(csrf())).andExpect(status().isForbidden)
 
         assertThat(tyoskentelyjaksoRepository.findAll()).hasSize(tyoskentelyjaksoTableSizeBeforeDelete)
     }
@@ -483,9 +391,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun deleteTyoskentelyjaksoWithSuoritusarviointi() {
         initTest()
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
-
         val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
 
         em.detach(tyoskentelyjakso)
@@ -499,7 +405,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun deleteTyoskentelyjaksoShouldRemoveAsiakirjaReferenceAndKeepAsiakirja() {
         initTest()
-
         tyoskentelyjakso.asiakirjat.add(AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso))
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
@@ -511,8 +416,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
         testMockMvc.perform(delete("$API_TYOSKENTELYJAKSOT/{id}", tyoskentelyjaksoId).accept(APPLICATION_JSON).with(csrf())).andExpect(status().isNoContent)
 
-        em.flush()
-        em.clear()
+        flushClear()
 
         // Työskentelyjakso poistetaan, mutta asiakirja säilyy ilman viittausta työskentelyjaksoon
         assertThat(tyoskentelyjaksoRepository.findById(tyoskentelyjaksoId)).isEmpty
@@ -578,7 +482,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun deleteTyoskentelyjaksoShouldRemoveKoulutusjaksoReferenceAndKeepKoulutusjakso() {
         initTest()
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
         val tyoskentelyjaksoId = tyoskentelyjakso.id
@@ -594,8 +497,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
         testMockMvc.perform(delete("$API_TYOSKENTELYJAKSOT/{id}", tyoskentelyjaksoId).accept(APPLICATION_JSON).with(csrf())).andExpect(status().isNoContent)
 
-        em.flush()
-        em.clear()
+        flushClear()
 
         // Työskentelyjakso poistetaan, mutta koulutusjakso säilyy ilman viittausta työskentelyjaksoon
         assertThat(tyoskentelyjaksoRepository.findById(tyoskentelyjaksoId)).isEmpty
@@ -609,7 +511,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun getKeskeytysaika() {
         initTest()
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
@@ -626,11 +527,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
     @Test
     fun getAnotherUserKeskeytysaika() {
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
-        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
-
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
-
+        initTestAsAnotherUser()
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
         keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
@@ -644,31 +541,27 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun getKeskeytysaikaForm() {
         initTest()
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         assertNotNull(tyoskentelyjakso.id)
 
-        testMockMvc.perform(get("/api/erikoistuva-laakari/poissaolo-lomake")).andExpect(status().isOk)
-            .andExpect(content().contentType(APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(2)))
-            .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1))).andExpect(jsonPath("$.tyoskentelyjaksot[0].id").value(tyoskentelyjakso.id as Any))
+        testMockMvc.perform(get("/api/erikoistuva-laakari/poissaolo-lomake")).andExpect(status().isOk).andExpect(content().contentType(APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.poissaolonSyyt").value(Matchers.hasSize<Any>(2))).andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(1)))
+            .andExpect(jsonPath("$.tyoskentelyjaksot[0].id").value(tyoskentelyjakso.id as Any))
     }
 
     @Test
     fun getTyoskentelyjaksoForm() {
         initTest()
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         assertNotNull(tyoskentelyjakso.id)
 
-        testMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjakso-lomake")).andExpect(status().isOk)
-            .andExpect(content().contentType(APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478)))
-            .andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(61)))
+        testMockMvc.perform(get("/api/erikoistuva-laakari/tyoskentelyjakso-lomake")).andExpect(status().isOk).andExpect(content().contentType(APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478))).andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(61)))
     }
 
     @Test
     fun getTyoskentelyjaksoTable() {
         initTest()
-
         tyoskentelyjakso.kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
         tyoskentelyjakso.tyoskentelypaikka!!.tyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
@@ -704,7 +597,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun getTyoskentelyjaksoTableShouldReturnOnlyForOpintooikeusKaytossa() {
         initTest()
-
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         em.detach(tyoskentelyjakso)
 
@@ -728,9 +620,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun getTyoskentelyjaksoTableWithTerveyskeskusMax() {
         initTest()
-
-        val opintoopas = tyoskentelyjakso.opintooikeus?.opintoopas
-        opintoopas?.let {
+        tyoskentelyjakso.opintooikeus?.opintoopas?.let {
             it.terveyskeskuskoulutusjaksonVahimmaispituus = 273.75
             it.terveyskeskuskoulutusjaksonMaksimipituus = 273.75
             opintoopasRepository.saveAndFlush(it)
@@ -765,9 +655,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     @Test
     fun getTyoskentelyjaksoTableWithoutTerveyskeskusMax() {
         initTest()
-
-        val opintoopas = tyoskentelyjakso.opintooikeus?.opintoopas
-        opintoopas?.let {
+        tyoskentelyjakso.opintooikeus?.opintoopas?.let {
             it.terveyskeskuskoulutusjaksonMaksimipituus = null
             opintoopasRepository.saveAndFlush(it)
         }
@@ -829,17 +717,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         assertNotNull(poistettavaAsiakirjaId)
 
         testMockMvc.perform(multipart("$API_TYOSKENTELYJAKSOT/${tyoskentelyjakso.id}/asiakirjat")
-                .file(MockMultipartFile("addedFiles", AsiakirjaHelper.ASIAKIRJA_PNG_NIMI, AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI, tempFile2.readBytes()))
-                .param("deletedFiles", poistettavaAsiakirjaId.toString()).with { it.method = "PUT"; it }.with(csrf())).andExpect(status().isOk)
+            .file(MockMultipartFile("addedFiles", AsiakirjaHelper.ASIAKIRJA_PNG_NIMI, AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI, tempFile2.readBytes()))
+            .param("deletedFiles", poistettavaAsiakirjaId.toString()).with { it.method = "PUT"; it }.with(csrf())).andExpect(status().isOk)
             .andExpect(content().contentType(APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.asiakirjat").value(Matchers.hasSize<Any>(1)))
             .andExpect(jsonPath("$.asiakirjat[0].nimi").value(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI))
 
-        em.flush()
-        em.clear()
+        flushClear()
 
-        // Poistetun asiakirjan on hävittävä myös tietokannasta, ei vain vastauksen DTO:sta.
-        // Tyoskentelyjakso.asiakirjat-liitoksessa ei ole orphanRemoval-asetusta, joten
-        // poisto tehdään eksplisiittisesti TyoskentelyjaksoServiceImpl:ssä.
         assertThat(asiakirjaRepository.findById(poistettavaAsiakirjaId)).isEmpty
         val jaljellaOlevat = asiakirjaRepository.findAllByTyoskentelyjaksoId(tyoskentelyjaksoId)
         assertThat(jaljellaOlevat).hasSize(1)
@@ -848,10 +732,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
     @Test
     fun updateAnotherUserTyoskentelyjaksoAsiakirjatShouldReturnForbiddenAndNotAddFile() {
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
-        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
-
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initTestAsAnotherUser()
         initMockFiles()
 
         val asiakirja = AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso)
@@ -859,8 +740,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
         testMockMvc.perform(multipart("$API_TYOSKENTELYJAKSOT/${tyoskentelyjakso.id}/asiakirjat")
-                .file(MockMultipartFile("addedFiles", AsiakirjaHelper.ASIAKIRJA_PNG_NIMI, AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI, tempFile2.readBytes()))
-                .param("deletedFiles", asiakirja.id!!.toString()).with { it.method = "PUT"; it }.with(csrf())).andExpect(status().isForbidden)
+            .file(MockMultipartFile("addedFiles", AsiakirjaHelper.ASIAKIRJA_PNG_NIMI, AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI, tempFile2.readBytes()))
+            .param("deletedFiles", asiakirja.id!!.toString()).with { it.method = "PUT"; it }.with(csrf())).andExpect(status().isForbidden)
 
         val unchangedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
         assertThat(unchangedTyoskentelyjakso.asiakirjat).hasSize(1)
@@ -869,17 +750,14 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
     @Test
     fun updateAnotherUserTyoskentelyjaksoAsiakirjatShouldNotDeleteFile() {
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
-        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
-
-        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+        initTestAsAnotherUser()
 
         val asiakirja = AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso)
         tyoskentelyjakso.asiakirjat.add(asiakirja)
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
 
         testMockMvc.perform(multipart("$API_TYOSKENTELYJAKSOT/${tyoskentelyjakso.id}/asiakirjat")
-                .param("deletedFiles", asiakirja.id!!.toString()).with { it.method = "PUT"; it }.with(csrf())).andExpect(status().isForbidden)
+            .param("deletedFiles", asiakirja.id!!.toString()).with { it.method = "PUT"; it }.with(csrf())).andExpect(status().isForbidden)
 
         val unchangedTyoskentelyjakso = tyoskentelyjaksoRepository.findById(tyoskentelyjakso.id!!).get()
         assertThat(unchangedTyoskentelyjakso.asiakirjat).hasSize(1)
@@ -906,7 +784,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         tyoskentelyjaksoRepository.saveAndFlush(ErikoistuvaLaakariTyoskentelyjaksoHelper.createEntity(em, user = user,
             paattymispaiva = ErikoistuvaLaakariTyoskentelyjaksoHelper.DEFAULT_ALKAMISPAIVA.plusYears(1)))
-
         testMockMvc.perform(get("$API_TYOSKENTELYJAKSOT/terveyskeskuskoulutusjakso")).andExpect(status().isBadRequest)
     }
 
@@ -921,9 +798,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
 
         val vastuuhenkiloUser = userRepository.saveAndFlush(KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO)))
         val vastuuhenkiloKayttaja = kayttajaRepository.saveAndFlush(KayttajaHelper.createEntity(em, user = vastuuhenkiloUser))
-        kayttajaYliopistoErikoisalaRepository.saveAndFlush(
-            KayttajaYliopistoErikoisala(kayttaja = vastuuhenkiloKayttaja, yliopisto = opintooikeus.yliopisto, erikoisala = Erikoisala(50),
-                vastuuhenkilonTehtavat = mutableSetOf(VastuuhenkilonTehtavatyyppi(2))))
+        kayttajaYliopistoErikoisalaRepository.saveAndFlush(KayttajaYliopistoErikoisala(kayttaja = vastuuhenkiloKayttaja,
+            yliopisto = opintooikeus.yliopisto, erikoisala = Erikoisala(50), vastuuhenkilonTehtavat = mutableSetOf(VastuuhenkilonTehtavatyyppi(2))))
 
         testMockMvc.perform(get("$API_TYOSKENTELYJAKSOT/terveyskeskuskoulutusjakso"))
             .andExpect(status().isOk).andExpect(content().contentType(APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.id").doesNotExist())
@@ -954,13 +830,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         val vastuuhenkiloUser = userRepository.saveAndFlush(KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO)))
         val vastuuhenkiloKayttaja = kayttajaRepository.saveAndFlush(KayttajaHelper.createEntity(em, user = vastuuhenkiloUser))
         kayttajaYliopistoErikoisalaRepository.saveAndFlush(KayttajaYliopistoErikoisala(kayttaja = vastuuhenkiloKayttaja, yliopisto = opintooikeus.yliopisto,
-                erikoisala = Erikoisala(50), vastuuhenkilonTehtavat = mutableSetOf(VastuuhenkilonTehtavatyyppi(2))))
+            erikoisala = Erikoisala(50), vastuuhenkilonTehtavat = mutableSetOf(VastuuhenkilonTehtavatyyppi(2))))
 
         val laillistamispaiva = LocalDate.now()
 
         testMockMvc.perform(multipart("$API_TYOSKENTELYJAKSOT/terveyskeskuskoulutusjakson-hyvaksynta")
-                .file(MockMultipartFile("laillistamispaivanLiite", AsiakirjaHelper.ASIAKIRJA_PNG_NIMI, AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI, tempFile2.readBytes()))
-                .param("laillistamispaiva", laillistamispaiva.toString()).with { it.method = "POST"; it }.with(csrf())).andExpect(status().isOk)
+            .file(MockMultipartFile("laillistamispaivanLiite", AsiakirjaHelper.ASIAKIRJA_PNG_NIMI, AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI, tempFile2.readBytes()))
+            .param("laillistamispaiva", laillistamispaiva.toString()).with { it.method = "POST"; it }.with(csrf())).andExpect(status().isOk)
             .andExpect(content().contentType(APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.id").exists())
 
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
@@ -969,6 +845,23 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
         assertThat(erikoistuvaLaakari?.laillistamistodistus).isNotNull
         assertEquals(AsiakirjaHelper.ASIAKIRJA_PNG_NIMI, erikoistuvaLaakari?.laillistamispaivanLiitetiedostonNimi)
         assertEquals(AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI, erikoistuvaLaakari?.laillistamispaivanLiitetiedostonTyyppi)
+    }
+
+    private fun initTestAsAnotherUser() {
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
+        erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
+        initTest(erikoistuvaLaakari.kayttaja?.user?.id)
+    }
+
+    private fun assertUpdatedTyoskentelyjakso(testTyoskentelyjakso: Tyoskentelyjakso, updatedTyoskentelypaikka: Tyoskentelypaikka) {
+        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.nimi).isEqualTo(updatedTyoskentelypaikka.nimi)
+        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.tyyppi).isEqualTo(updatedTyoskentelypaikka.tyyppi)
+        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.muuTyyppi).isEqualTo(updatedTyoskentelypaikka.muuTyyppi)
+        assertThat(testTyoskentelyjakso.tyoskentelypaikka?.kunta).isEqualTo(updatedTyoskentelypaikka.kunta)
+        assertThat(testTyoskentelyjakso.alkamispaiva).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_ALKAMISPAIVA)
+        assertThat(testTyoskentelyjakso.paattymispaiva).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_PAATTYMISPAIVA)
+        assertThat(testTyoskentelyjakso.osaaikaprosentti).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_OSAAIKAPROSENTTI)
+        assertThat(testTyoskentelyjakso.kaytannonKoulutus).isEqualTo(ErikoistuvaLaakariTyoskentelyjaksoHelper.UPDATED_KAYTANNON_KOULUTUS)
     }
 
     fun initTest(userId: String? = null, kaytannonKoulutus: KaytannonKoulutusTyyppi? = ErikoistuvaLaakariTyoskentelyjaksoHelper.DEFAULT_KAYTANNON_KOULUTUS) {

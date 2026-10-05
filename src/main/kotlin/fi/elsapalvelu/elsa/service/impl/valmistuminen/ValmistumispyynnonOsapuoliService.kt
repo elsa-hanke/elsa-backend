@@ -146,9 +146,12 @@ class ValmistumispyynnonOsapuoliService(
             haeYliopisto(kayttaja).id.required(),
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         )
-        return valmistumispyynto.virkailijanKuittausaika != null &&
-            valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika == null
+        return onkoLopullinenHyvaksyntaAvoin(valmistumispyynto)
     }
+
+    fun onkoLopullinenHyvaksyntaAvoin(valmistumispyynto: Valmistumispyynto): Boolean =
+        valmistumispyynto.virkailijanKuittausaika != null &&
+            valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika == null
 
     fun valmistumispyyntoaEiLoydy() = EntityNotFoundException(
         "Valmistumispyyntöä ei löydy tai sinulla ei ole oikeuksia tarkastella " +
