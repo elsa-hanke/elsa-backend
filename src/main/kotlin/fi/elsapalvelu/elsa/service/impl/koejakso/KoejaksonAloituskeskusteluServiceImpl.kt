@@ -50,6 +50,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
     private val userRepository: UserRepository,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
     private val opintooikeusService: OpintooikeusService,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) : KoejaksonAloituskeskusteluService {
 
     override fun create(
@@ -59,6 +60,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
             var aloituskeskustelu =
                 koejaksonAloituskeskusteluMapper.toEntity(koejaksonAloituskeskusteluDTO)
+            validatePdfText(aloituskeskustelu)
             aloituskeskustelu.opintooikeus = it
             if (koejaksonAloituskeskusteluDTO.lahetetty == true) aloituskeskustelu.erikoistuvanKuittausaika =
                 LocalDate.now()
@@ -127,6 +129,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         aloituskeskustelu: KoejaksonAloituskeskustelu,
         updated: KoejaksonAloituskeskustelu
     ): KoejaksonAloituskeskustelu {
+        validatePdfText(updated)
         aloituskeskustelu.koejaksonSuorituspaikka = updated.koejaksonSuorituspaikka
         aloituskeskustelu.koejaksonToinenSuorituspaikka = updated.koejaksonToinenSuorituspaikka
         aloituskeskustelu.koejaksonAlkamispaiva = updated.koejaksonAlkamispaiva
@@ -276,6 +279,18 @@ class KoejaksonAloituskeskusteluServiceImpl(
         kouluttajavaltuutusService.lisaaValtuutus(
             aloituskeskustelu.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required(),
             aloituskeskustelu.lahiesimies?.id.required()
+        )
+    }
+
+    private fun validatePdfText(value: KoejaksonAloituskeskustelu) {
+        pdfTextFieldValidator.validate(
+            fields = listOf(
+                "koejakson-suorituspaikka" to value.koejaksonSuorituspaikka,
+                "koejakson-toinen-suorituspaikka" to value.koejaksonToinenSuorituspaikka,
+                "koejakso-osaamistavoitteet" to value.koejaksonOsaamistavoitteet
+            ),
+            pdfSource = "koejaksonaloituskeskustelu",
+            sourceId = value.id
         )
     }
 
