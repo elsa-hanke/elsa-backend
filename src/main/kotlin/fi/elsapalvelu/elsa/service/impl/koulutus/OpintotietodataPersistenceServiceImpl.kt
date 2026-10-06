@@ -415,13 +415,8 @@ class OpintotietodataPersistenceServiceImpl(
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
     }
 
-    private fun createOrUpdateOpintooikeus(
-        opintooikeusDTO: OpintotietoOpintooikeusDataDTO,
-        userId: String,
-        erikoistuvaLaakari: ErikoistuvaLaakari
-    ) {
-        val existingOpintooikeudet =
-            opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+    private fun createOrUpdateOpintooikeus(opintooikeusDTO: OpintotietoOpintooikeusDataDTO, userId: String, erikoistuvaLaakari: ErikoistuvaLaakari) {
+        val existingOpintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         val opintooikeusId =
             checkOpintooikeusIdValueExistsOrLogError(
                 opintooikeusDTO.id,
