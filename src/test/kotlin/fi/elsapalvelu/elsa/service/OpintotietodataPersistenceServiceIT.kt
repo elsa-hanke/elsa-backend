@@ -16,6 +16,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.perustiedot.YliopistoRepository
+import fi.elsapalvelu.elsa.config.PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietoOpintooikeusDataDTO
@@ -655,9 +656,11 @@ class OpintotietodataPersistenceServiceIT {
     @ParameterizedTest
     @EnumSource(YliopistoEnum::class)
     @Transactional
-    fun shouldNotUpdateExistingOpintooikeusIfTilaIsNull(yliopisto: YliopistoEnum) {
+    fun shouldNotCreateNewOpintooikeusIfTilaIsNull(yliopisto: YliopistoEnum) {
         val userId = initUserWithOpintooikeus(opintooikeusId = opintooikeusId, yliopistoEnum = yliopisto)
 
+        // Toinen opinto-oikeus ei vastaa olemassa olevaa, joten se luotaisiin uutena. Tilatonta uutta
+        // opinto-oikeutta ei luoda, koska ei voida tietää onko se aktiivinen.
         val opintotietodataDTO = OpintotietodataDTO(syntymaaika, opintooikeudet = listOf(createSecondOpintooikeusData(yliopisto).apply { tila = null }))
         opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, listOf(opintotietodataDTO))
 
@@ -666,6 +669,61 @@ class OpintotietodataPersistenceServiceIT {
 
         val opintooikeus = opintooikeudet[0]
         assertOpintooikeusDataNotUpdated(opintooikeus)
+    }
+
+    @ParameterizedTest
+    @EnumSource(YliopistoEnum::class)
+    @Transactional
+    fun shouldUpdateExistingOpintooikeusAndKeepTilaIfTilaIsNull(yliopisto: YliopistoEnum) {
+        val userId = initUserWithOpintooikeus(opintooikeusId = opintooikeusId, yliopistoEnum = yliopisto)
+        val newOpintooikeudenPaattymispaiva = defaultOpintooikeudenPaattymispaiva.plusYears(2)
+
+        val opintotietodataDTO = OpintotietodataDTO(
+            syntymaaika,
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply {
+                tila = null
+                opintooikeudenPaattymispaiva = newOpintooikeudenPaattymispaiva
+            })
+        )
+
+        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, listOf(opintotietodataDTO))
+
+        val opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
+        assertThat(opintooikeudet).size().isEqualTo(1)
+
+        val opintooikeus = opintooikeudet[0]
+        assertThat(opintooikeus.opintooikeudenPaattymispaiva).isEqualTo(newOpintooikeudenPaattymispaiva)
+        assertThat(opintooikeus.viimeinenKatselupaiva)
+            .isEqualTo(newOpintooikeudenPaattymispaiva.plusMonths(PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET))
+        // Tuntematon tila ei ylikirjoita tallennettua tilaa.
+        assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
+    }
+
+    @ParameterizedTest
+    @EnumSource(YliopistoEnum::class)
+    @Transactional
+    fun shouldShortenPaattymispaivaAndKatselupaivaWhenOpintooikeusIsResignedAndTilaIsNull(yliopisto: YliopistoEnum) {
+        // Vastaa tuotannon tapausta: opinto-oikeudesta luovuttu, Pepi palauttaa aiempaa aikaisemman
+        // päättymispäivän ja state = null. Päivämäärien on päivityttävä, jotta oikeus lakkaa näkymästä.
+        val userId = initUserWithOpintooikeus(opintooikeusId = opintooikeusId, yliopistoEnum = yliopisto)
+        val resignedPaattymispaiva = LocalDate.ofEpochDay(100L)
+
+        val opintotietodataDTO = OpintotietodataDTO(
+            syntymaaika,
+            opintooikeudet = listOf(createOpintooikeusData(yliopisto).apply {
+                tila = null
+                opintooikeudenPaattymispaiva = resignedPaattymispaiva
+            })
+        )
+
+        opintotietodataPersistenceService.createOrUpdateIfChanged(userId, etunimi, sukunimi, listOf(opintotietodataDTO))
+
+        val opintooikeus = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId).single()
+        assertThat(opintooikeus.opintooikeudenPaattymispaiva).isEqualTo(resignedPaattymispaiva)
+        assertThat(opintooikeus.opintooikeudenPaattymispaiva).isBefore(defaultOpintooikeudenPaattymispaiva)
+        assertThat(opintooikeus.viimeinenKatselupaiva)
+            .isEqualTo(resignedPaattymispaiva.plusMonths(PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET))
+        assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
     }
 
     @ParameterizedTest

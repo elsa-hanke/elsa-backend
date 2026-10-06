@@ -443,9 +443,15 @@ class OpintotietodataPersistenceServiceImpl(
             yliopisto.id.required(),
             erikoisala.id.required()
         )?.also { opintooikeus ->
-            val opintooikeudenTila = checkOpintooikeudenTilaValueExistsOrLogError(
-                opintooikeusDTO.tila, opintooikeusDTO.yliopisto, userId
-            ) ?: return
+            // Tila ei ohjaa käyttöoikeutta (ks. Opintooikeus.isValidForUse), joten tuntematon tila ei saa
+            // estää päättymispäivän, katseluajan ja asetuksen synkronointia. Tällöin vanha tila säilytetään.
+            val opintooikeudenTila = opintooikeusDTO.tila
+            if (opintooikeudenTila == null) {
+                log.warn(
+                    "${opintooikeusDTO.yliopisto}, user id: $userId. Opinto-oikeuden tilaa ei ole asetettu " +
+                        "tai sitä ei tunnistettu. Opinto-oikeuden muut tiedot päivitetään ja vanha tila säilytetään."
+                )
+            }
             val asetusStr =
                 checkAsetusValueExistsOrLogError(
                     opintooikeusDTO.asetus,
@@ -465,7 +471,7 @@ class OpintotietodataPersistenceServiceImpl(
                     )
                 }
 
-            opintooikeudenTila.takeIf { it != opintooikeus.tila }?.let {
+            opintooikeudenTila?.takeIf { it != opintooikeus.tila }?.let {
                 opintooikeus.tila = it
             }
 
