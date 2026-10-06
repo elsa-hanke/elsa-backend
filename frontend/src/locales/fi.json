@@ -1873,7 +1873,7 @@
   "tyokertyma-yhteensa": "Työkertymä yhteensä",
   "siirry-elsan-etusivulle": "Siirry Elsan etusivulle",
   "muu-erikoisala": "Muu erikoisala",
-  "kahden-vuoden-kliininen-tyokokemus":"2 vuoden kliininen työkokemus (ehl)",
+  "kahden-vuoden-kliininen-tyokokemus": "2 vuoden kliininen työkokemus (ehl)",
   "tallenna-jakso": "Tallenna jakso",
   "lisaa-jaksolle-poissaolo": "Lisää jaksolle poissaolo",
   "tallenna-pdf": "Tallenna pdf:nä",
@@ -1959,5 +1959,9 @@
   "arviointityokalu-palautus-epaonnistui": "Arviointityokalun palautus epäonnistui",
   "lisaa-muu-vaihtoehto": "Lisää \"Muu\"-vaihtoehto",
   "muu-mika": "Muu, mikä?",
-  "canmeds-ohjeteksti": "Kokonaisarvio CanMEDS-kompetensseista, vahvistava palaute, kehittämisehdotukset, huolenaiheet"
+  "canmeds-ohjeteksti": "Kokonaisarvio CanMEDS-kompetensseista, vahvistava palaute, kehittämisehdotukset, huolenaiheet",
+  "koulutuspaikan-nimi": "Koulutuspaikan nimi",
+  "korjausehdotus": "Korjausehdotus",
+  "pdf-osio-koejakson-koulutussopimus": "Koejakson koulutussopimus",
+  "pdf-osio-koejakson-vastuuhenkilon-arvio": "Koejakson vastuuhenkilön arvio"
 }

@@ -51,7 +51,11 @@ describe('formatSaveError PDF character details', () => {
     ['sanallinen-kokonaisarviointi', 'Sanallinen kokonaisarviointi'],
     ['koejakson-suorituspaikka', 'Koejakson suorituspaikka'],
     ['vahvuudet', 'Vahvuudet'],
-    ['selvitys-jatkotoimista', 'Selvitys jatkotoimista']
+    ['selvitys-jatkotoimista', 'Selvitys jatkotoimista'],
+    ['koulutuspaikan-nimi', 'Koulutuspaikan nimi'],
+    ['korjausehdotus', 'Korjausehdotus'],
+    ['pdf-osio-koejakson-koulutussopimus', 'Koejakson koulutussopimus'],
+    ['pdf-osio-koejakson-vastuuhenkilon-arvio', 'Koejakson vastuuhenkilön arvio']
   ])('interpolates field %s and the actual unsupported character', (field, label) => {
     const error = {
       response: {

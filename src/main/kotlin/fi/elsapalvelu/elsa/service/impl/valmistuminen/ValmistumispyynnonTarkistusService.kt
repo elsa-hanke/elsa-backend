@@ -66,9 +66,9 @@ class ValmistumispyynnonTarkistusService(
 
         pdfTextFieldValidator.validate(
             fields = listOf(
-                "virkailijan-valmistumisen-yhteenveto" to tarkistusDTO.virkailijanYhteenveto,
                 "lisatiedot-vastuuhenkilolle" to tarkistusDTO.lisatiedotVastuuhenkilolle
             ),
+            htmlFields = listOf("virkailijan-valmistumisen-yhteenveto" to tarkistusDTO.virkailijanYhteenveto),
             pdfSource = "valmistumispyynto",
             sourceId = id
         )

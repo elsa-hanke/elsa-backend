@@ -270,6 +270,7 @@
   } from '@/types'
   import { resolveRolePath } from '@/utils/apiRolePathResolver'
   import { defaultKoulutuspaikka, LomakeTilat, LomakeTyypit } from '@/utils/constants'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
@@ -438,8 +439,10 @@
         this.$emit('skipRouteExitConfirm', true)
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
         toastSuccess(this, this.$t('koulutussopimus-palautettu-onnistuneesti'))
-      } catch {
-        toastFail(this, this.$t('koulutussopimus-palautus-epaonnistui'))
+      } catch (err) {
+        toastFail(this, formatSaveError(this, err, this.$t('koulutussopimus-palautus-epaonnistui')))
+      } finally {
+        this.buttonStates.secondaryButtonLoading = false
       }
     }
 
@@ -451,8 +454,13 @@
         this.buttonStates.primaryButtonLoading = false
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
         toastSuccess(this, this.$t('koulutussopimus-lisatty-onnistuneesti'))
-      } catch {
-        toastFail(this, this.$t('koulutussopimuksen-lisaaminen-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('koulutussopimuksen-lisaaminen-epaonnistui'))
+        )
+      } finally {
+        this.buttonStates.primaryButtonLoading = false
       }
     }
 
