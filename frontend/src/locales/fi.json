@@ -139,8 +139,8 @@
   "arvo": "Arvo",
   "asetus": "Asetus",
   "asia": "Asia",
-  "asiakirja-samanniminen-tiedosto": "Samanniminen tiedosto löytyy jo. Nimeä tiedosto uudelleen.",
-  "asiakirja-samanniminen-tiedosto-toisessa-nakymassa": "Samanniminen tiedosto on jo lisätty toisaalle tai asiakirjat-osion kautta",
+  "asiakirja-samanniminen-tiedosto": "Samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos toinen samanniminen tiedosto on jo lisätty ELSA-palveluun, anna tiedostolle toinen nimi, ja lataa se sitten uudelleen.",
+  "asiakirja-samanniminen-tiedosto-toisessa-nakymassa": "Samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos toinen samanniminen tiedosto on jo lisätty ELSA-palveluun, anna tiedostolle toinen nimi, ja lataa se sitten uudelleen.",
   "asiakirjan": "asiakirjan",
   "asiakirjan-maksimi-tiedostokoko-ylitetty": "Maksimi tiedostokoko yksittäiselle asiakirjalle: 20 Mt",
   "asiakirjan-poistaminen-epaonnistui": "Asiakirjan poistaminen epäonnistui",
@@ -263,6 +263,11 @@
   "erittain-vaativa-kuvaus": "Erikoisalan tehtävänä erittäin vaativa, josta suoriutuminen on haastavaa myös valmiille erikoislääkärille. Vaatii erityistä ponnistelua ja tarvittaessa hankkimaan uusia tietoja ja taitoja.",
   "error": {
     "dataillegal": {
+      "samanniminen-tiedosto-on-jo-olemassa": "Samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos toinen samanniminen tiedosto on jo lisätty ELSA-palveluun, anna tiedostolle toinen nimi, ja lataa se sitten uudelleen.",
+      "pdf-tiedostoa-ei-voitu-kasitella": "Liitetiedostoa ei voitu käsitellä. Tarkista, että saat tiedoston aukeamaan normaalisti ennen lataamista ELSA-palveluun. Jos PDF-tiedosto avautuu normaalisti, tallenna se uudelleen PDF-muodossa ja yritä uudelleen.",
+      "pdf-tiedosto-vaatii-salasanan": "PDF-tiedosto vaatii salasanan avaamiseen. Tallenna tiedostosta kopio, joka avautuu ilman salasanaa, ja yritä uudelleen. Tarvittaessa pyydä tiedoston toimittajalta salasanasuojaamaton kopio.",
+      "tiedosto-on-tyhja": "Liitetiedosto on tyhjä. Tarkista, että saat tiedoston aukeamaan normaalisti ennen lataamista ELSA-palveluun. Valitse tiedosto, jossa on sisältöä, ja yritä uudelleen.",
+      "tiedostotyyppi-ei-ole-sallittu": "Tiedostomuoto ei ole sallittu. Tarkista lomakkeella sallitut tiedostomuodot. Tallenna tiedosto sallittuun muotoon ja yritä uudelleen.",
       "tiedosto-ei-ole-kelvollinen": "Liitetiedostoa ei voitu käsitellä. Tarkista tiedosto. Jos PDF-tiedosto avautuu normaalisti, tallenna se uudelleen PDF-muodossa ja yritä uudelleen.",
       "arvioitavan-kokonaisuuden-voimassaoloa-ei-saa-lyhentaa": "arvioitavan kokonaisuuden voimassaoloa ei saa lyhentää, jos siihen liittyy suoritusarviointeja",
       "arvioitavan-kokonaisuuden-voimassaolon-paattymispaiva-ei-saa-olla-ennen-alkamisaikaa": "arvioitavan kokonaisuuden voimassaolon päättymispäivä ei saa olla ennen alkamisaikaa",
