@@ -18,7 +18,6 @@ import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
-import fi.elsapalvelu.elsa.service.mapper.tyoskentely.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -53,22 +52,10 @@ import java.time.format.DateTimeFormatter
 class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
 
     @Autowired
-    private lateinit var kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository
-
-    @Autowired
     private lateinit var yliopistoRepository: YliopistoRepository
 
     @Autowired
     private lateinit var erikoisalaRepository: ErikoisalaRepository
-
-    @Autowired
-    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
-
-    @Autowired
-    private lateinit var tyoskentelyjaksoRepository: TyoskentelyjaksoRepository
-
-    @Autowired
-    private lateinit var suoritusarviointiRepository: SuoritusarviointiRepository
 
     @Autowired
     private lateinit var arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository
@@ -99,9 +86,6 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
 
     @Autowired
     private lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
-
-    @Autowired
-    private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
 
     @BeforeEach
     fun setup() {

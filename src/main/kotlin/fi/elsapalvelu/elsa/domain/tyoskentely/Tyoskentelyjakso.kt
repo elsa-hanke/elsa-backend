@@ -86,7 +86,7 @@ data class Tyoskentelyjakso(
     // optional ja asiakirja.tyoskentelyjakso_id on nullable). Työskentelyjakson poisto saa
     // poistaa vain viittauksen, ei itse asiakirjaa, joten tässä ei saa olla REMOVE-kaskadia
     // eikä orphanRemoval-asetusta. Viittauksen nollaus tehdään
-    // AsiakirjaService.removeTyoskentelyjaksoReference-metodissa ja käyttäjän pyytämä
+    // TyoskentelyjaksoService.delete-metodissa ja käyttäjän pyytämä
     // asiakirjan poisto TyoskentelyjaksoServiceImpl.mapAsiakirjat-metodissa.
     @OneToMany(
         mappedBy = "tyoskentelyjakso",
