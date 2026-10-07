@@ -2,8 +2,8 @@ import { createLocalVue, mount } from '@vue/test-utils'
 import { BootstrapVue } from 'bootstrap-vue'
 import VueI18n from 'vue-i18n'
 
-import OpintosuoritusTab from '@/views/opintosuoritukset/opintosuoritus-tab.vue'
 import { Opintosuoritus, OpintosuoritusOsakokonaisuus } from '@/types'
+import OpintosuoritusTab from '@/views/opintosuoritukset/opintosuoritus-tab.vue'
 
 const localVue = createLocalVue()
 localVue.use(BootstrapVue)
