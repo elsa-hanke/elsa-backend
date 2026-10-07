@@ -1,4 +1,8 @@
-import { E2E_ERIKOISTUVA_EMAIL, KOULUTTAJA_EMAIL } from '../../support/commands/credentials'
+import {
+  E2E_ERIKOISTUVA_EMAIL,
+  KOULUTTAJA_EMAIL,
+  VIRKAILIJA_EMAIL
+} from '../../support/commands/credentials'
 import {
   HEART,
   REVIEW_API,
@@ -57,6 +61,10 @@ function openResponsible(id: number) {
       })
       .then(({ status }) => expect(status).to.eq(200))
   })
+  return visitResponsible(id)
+}
+
+function visitResponsible(id: number) {
   cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
   cy.intercept('GET', `**${RESPONSIBLE_API}/${id}`).as('responsibleReview')
   cy.intercept('PUT', `**${RESPONSIBLE_API}`).as('saveResponsible')
@@ -455,16 +463,18 @@ describe('Koejakson loppuarvion PDF-erikoismerkit', () => {
   })
 
   it('estää vanhan HTML-entiteetin PDF-hyväksynnän ja sallii korjatun tekstin', () => {
-    createReview().then((id) => {
-      openResponsible(id)
-      cy.task('db:setLegacyPdfText', {
-        email: E2E_ERIKOISTUVA_EMAIL,
-        id,
-        target: 'review-summary',
-        text: '<p>Vanha &#x1F497;</p>'
+    const legacySummary = '<p>Vanha &#x1F497;</p>'
+    cy.task<number>('db:createLegacyPdfReview', {
+      email: E2E_ERIKOISTUVA_EMAIL,
+      virkailijaEmail: VIRKAILIJA_EMAIL,
+      text: legacySummary
+    }).then((id) => {
+      visitResponsible(id).then((body) => {
+        expect(body.virkailijanYhteenveto, 'backend must load the legacy entity').to.eq(
+          legacySummary
+        )
+        expect(body.virkailija.sopimusHyvaksytty).to.eq(true)
       })
-      cy.reload()
-      cy.wait('@responsibleReview').its('response.statusCode').should('eq', 200)
       fillResponsible()
       group('Koejakso on').find('input[type="radio"][value="true"]').check({ force: true })
       pdfTextState().as('beforePdfTextFailure', { type: 'static' })
@@ -483,15 +493,38 @@ describe('Koejakson loppuarvion PDF-erikoismerkit', () => {
         expect(body.vastuuhenkilo?.sopimusHyvaksytty ?? false).to.eq(false)
         expect(body.koejaksoHyvaksytty).to.be.null
       })
-      cy.task('db:setLegacyPdfText', {
-        email: E2E_ERIKOISTUVA_EMAIL,
-        id,
-        target: 'review-summary',
-        text: GOOD_SUMMARY
+      // Repair through the real return/resubmit workflow so Hibernate's cache
+      // stays consistent with the database throughout the retry.
+      cy.apiRequest({ method: 'GET', url: `${RESPONSIBLE_API}/${id}` }).then(({ body }) => {
+        cy.apiRequest({
+          method: 'PUT',
+          url: RESPONSIBLE_API,
+          body: {
+            ...body,
+            ...RESPONSIBLE_CONTACTS,
+            vastuuhenkilonKorjausehdotus: 'Korjaa yhteenvedon erikoismerkit'
+          }
+        }).then(({ status, body }) => {
+          expect(status).to.eq(200)
+          expect(body.virkailija.sopimusHyvaksytty).to.eq(false)
+          expect(body.erikoistuvanKuittausaika).to.be.null
+        })
       })
       dismissPdfTextToast()
-      cy.reload()
-      cy.wait('@responsibleReview').its('response.statusCode').should('eq', 200)
+      cy.loginAsErikoistuva()
+      cy.apiRequest({
+        method: 'PUT',
+        url: REVIEW_API,
+        form: true,
+        body: { vastuuhenkilonArvioJson: JSON.stringify({ id, ...REVIEW_CONTACTS }) }
+      }).then(({ status, body }) => {
+        expect(status).to.eq(200)
+        expect(body.erikoistuvanKuittausaika).not.to.be.null
+      })
+      openResponsible(id).then((body) => {
+        expect(body.virkailijanYhteenveto).to.eq(GOOD_SUMMARY)
+        expect(body.virkailija.sopimusHyvaksytty).to.eq(true)
+      })
       fillResponsible()
       group('Koejakso on').find('input[type="radio"][value="true"]').check({ force: true })
       confirmResponsible()

@@ -1,8 +1,36 @@
 import { dbClient, withDb } from './db-client'
-import { getOpintooikeusId } from './db-helpers'
+import { getKayttajaId, getOpintooikeusId } from './db-helpers'
 
 /** Test-only legacy values bypass save validation so PDF fallback validation is exercised. */
 export const pdfTextTasks = {
+  async 'db:createLegacyPdfReview'({
+    email,
+    virkailijaEmail,
+    text
+  }: {
+    email: string
+    virkailijaEmail: string
+    text: string
+  }): Promise<number> {
+    return withDb(dbClient, async (client) => {
+      const oid = await getOpintooikeusId(client, email)
+      const virkailijaId = await getKayttajaId(client, virkailijaEmail)
+      if (!oid || !virkailijaId) throw new Error('Legacy PDF review test users are missing')
+      // Insert before any API loads this review. SQL updates to an existing review
+      // do not invalidate Hibernate's READ_WRITE second-level entity cache.
+      const result = await client.query(
+        `INSERT INTO koejakson_vastuuhenkilon_arvio
+          (opintooikeus_id, muokkauspaiva, erikoistuvan_kuittausaika,
+           virkailija_id, virkailija_hyvaksynyt, virkailijan_kuittausaika,
+           virkailijan_yhteenveto, vastuuhenkilo_hyvaksynyt)
+         VALUES ($1, CURRENT_DATE, CURRENT_DATE, $2, true, CURRENT_DATE, $3, false)
+         RETURNING id`,
+        [oid, virkailijaId, text]
+      )
+      return Number(result.rows[0].id)
+    })
+  },
+
   async 'db:setLegacyPdfText'({
     email,
     id,
@@ -11,7 +39,7 @@ export const pdfTextTasks = {
   }: {
     email: string
     id: number
-    target: 'contract-place' | 'review-summary'
+    target: 'contract-place'
     text: string
   }): Promise<null> {
     return withDb(dbClient, async (client) => {
@@ -23,10 +51,6 @@ export const pdfTextTasks = {
           query = `UPDATE koulutussopimuksen_koulutuspaikka SET nimi = $1
             WHERE koulutussopimus_id = $2 AND koulutussopimus_id IN
               (SELECT id FROM koejakson_koulutussopimus WHERE opintooikeus_id = $3)`
-          break
-        case 'review-summary':
-          query = `UPDATE koejakson_vastuuhenkilon_arvio SET virkailijan_yhteenveto = $1
-            WHERE id = $2 AND opintooikeus_id = $3`
           break
         default:
           throw new Error('Unknown legacy PDF text target')

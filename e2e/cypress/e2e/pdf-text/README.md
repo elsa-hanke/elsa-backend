@@ -21,9 +21,14 @@ prevent TinyMCE from normalising away the exact regression input.
 
 `db:pdfTextState` captures form rows, trainer/place rows, user contacts and
 PDF/attachment records. Each rejected request must leave this snapshot unchanged.
-`db:setLegacyPdfText` changes only the selected test resident's training place or
-review summary, so unsupported existing content reaches the PDF fallback check.
-The legacy tests then correct that content and retry a real approval.
+`db:setLegacyPdfText` changes only the selected test resident's training place.
+`db:createLegacyPdfReview` inserts an officer-approved review with unsupported
+HTML before the backend first loads it. Updating an already loaded review with
+SQL would leave Hibernate's second-level cache stale; reloading the browser does
+not clear that cache. The test asserts that the API sees the exact legacy summary
+before approving. After the expected PDF rejection, it returns the review,
+resubmits as the trainee, and corrects the summary as the officer through the real
+API before retrying approval. No cached review is repaired with direct SQL.
 
 Setup and cleanup use the existing shared test users and koejakso DB tasks.
 The final-review PDF cases assert that external archiving is disabled, as in the
