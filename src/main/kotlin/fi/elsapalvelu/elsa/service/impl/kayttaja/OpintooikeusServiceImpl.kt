@@ -229,6 +229,15 @@ class OpintooikeusServiceImpl(
         val elOikeus = validOikeudet.any { it.erikoisala?.id != YEK_ERIKOISALA_ID }
         val authorities = user.authorities
 
+        // An existing study right can become valid again after an import extends it.
+        // Restore its role without changing the user's active role or selected study right.
+        if (elOikeus) {
+            authorities.add(Authority(name = ERIKOISTUVA_LAAKARI))
+        }
+        if (yekOikeus) {
+            authorities.add(Authority(name = YEK_KOULUTETTAVA))
+        }
+
         val elAuthority = authorities.find { it.name == ERIKOISTUVA_LAAKARI }
         if (!elOikeus && elAuthority != null) {
             authorities.remove(elAuthority)
