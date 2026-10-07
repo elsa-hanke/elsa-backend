@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.KayttajaYliopistoErikoisala
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
@@ -589,7 +590,11 @@ class OpintooikeusServiceIT {
             when (reason) {
                 "expired" -> expire(it)
                 "future" -> it.opintooikeudenMyontamispaiva = LocalDate.now(clock).plusDays(1)
-                "notJoined" -> it.erikoisala!!.liittynytElsaan = false
+                "notJoined" -> {
+                    // The YEK helper supplies an unmanaged instance with the existing ID 61.
+                    // Update the managed entity so the validity query sees the change after flush.
+                    em.find(Erikoisala::class.java, it.erikoisala!!.id!!).liittynytElsaan = false
+                }
             }
         }
         OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, selectedOikeus)
