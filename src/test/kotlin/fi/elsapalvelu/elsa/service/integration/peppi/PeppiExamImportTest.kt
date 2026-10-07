@@ -10,6 +10,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.text.Normalizer
 
 class PeppiExamImportTest {
     private val objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
@@ -17,9 +18,11 @@ class PeppiExamImportTest {
     @Test
     fun `incomplete passed subpart does not become an authoritative deletion snapshot`() {
         val result = fetch(listOf(accomplishment("main", MAIN), accomplishment("essay", ESSAY, date = null)))
-        assertThat(result.items).hasSize(1)
-        assertThat(result.items!!.single().suorituspaiva).isNull()
-        assertThat(result.items!!.single().osakokonaisuudet).isNull()
+        assertThat(result.items).hasSize(2)
+        val main = result.items!!.single { it.suorituspaiva != null }
+        assertThat(main.nimi_fi).isEqualTo(MAIN)
+        assertThat(main.hyvaksytty).isTrue
+        assertThat(main.osakokonaisuudet).isNull()
     }
 
     @Test
@@ -63,7 +66,7 @@ class PeppiExamImportTest {
             YliopistoEnum.ITA_SUOMEN_YLIOPISTO to "4415100"
         )
         codes.forEach { (university, code) ->
-            val title = if (code in setOf("EHLO0001", "4415100")) DENTAL_MAIN else MAIN
+            val title = if (code in setOf("EHLO0001", "4415200")) DENTAL_MAIN else MAIN
             val exam = fetch(
                 listOf(accomplishment("main", title, code = code), accomplishment("essay", ESSAY, code = code)),
                 university
@@ -121,6 +124,55 @@ class PeppiExamImportTest {
         val essay = accomplishment("essay", ESSAY)
         val exam = fetch(listOf(accomplishment("main", MAIN), essay, essay)).items!!.single()
         assertThat(exam.osakokonaisuudet).hasSize(1)
+    }
+
+    @Test
+    fun `observed UEF titles import a main-only exam for both UEF codes`() {
+        val titles = listOf(
+            "Valtakunnallinen kuulustelu",
+            "Valtakunnallinen kuulustelu (erikoislääkärikoulutus)",
+            "Valtakunnallinen kuulustelu (erikoistumiskoulutus)",
+            "Valtakunnallinen kuulustelu (erikoishammaslääkärikoulutus)"
+        )
+        for (code in listOf("4415100", "4415200")) {
+            for (title in titles) {
+                val main = fetch(
+                    listOf(accomplishment("main", title, code = code)), YliopistoEnum.ITA_SUOMEN_YLIOPISTO
+                ).items!!.single()
+                assertThat(main.nimi_fi).isEqualTo(title)
+                assertThat(main.osakokonaisuudet).isNotNull().isEmpty()
+            }
+        }
+    }
+
+    @Test
+    fun `main title recognition normalizes case Unicode and whitespace`() {
+        val titles = listOf(
+            "  valtakunnallinen   ERIKOISLÄÄKÄRIKUULUSTELU  ",
+            "VALTAKUNNALLINEN\u00a0ERIKOISLÄÄKÄRIKUULUSTELU",
+            "VALTAKUNNALLINEN\u202fERIKOISLÄÄKÄRIKUULUSTELU",
+            Normalizer.normalize(MAIN, Normalizer.Form.NFD)
+        )
+        titles.forEach { title ->
+            val main = fetch(listOf(accomplishment("main", title), accomplishment("essay", ESSAY))).items!!.single()
+            assertThat(main.nimi_fi).isEqualTo(title)
+            assertThat(main.osakokonaisuudet).hasSize(1)
+        }
+    }
+
+    @Test
+    fun `specialty subparts are grouped but multiple subparts alone never certify an exam`() {
+        val names = listOf("Radiologia, esseet", "Radiologia, kuvat", "Plastiikkakirurgia, esseet", "Lastenkirurgia, esseet")
+        val parts = names.mapIndexed { index, name -> accomplishment("part-$index", name) }
+        val main = fetch(listOf(accomplishment("main", MAIN)) + parts).items!!.single()
+        assertThat(main.osakokonaisuudet!!.map { it.nimi_fi }).containsExactlyInAnyOrderElementsOf(names)
+        assertThat(fetch(parts).items).isEmpty()
+    }
+
+    @Test
+    fun `exam component title containing kuulustelu is not a main exam`() {
+        val result = fetch(listOf(accomplishment("part", "Valtakunnallinen kuulustelu, kirjallinen osa")))
+        assertThat(result.items).isEmpty()
     }
 
     private fun fetch(

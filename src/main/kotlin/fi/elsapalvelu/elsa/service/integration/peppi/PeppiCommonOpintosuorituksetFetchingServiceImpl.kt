@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+import java.text.Normalizer
 import java.util.HexFormat
 import java.util.Locale
 
@@ -91,23 +92,34 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
                 val invalidDtos = invalid.map { it.toFlatOpintosuoritusDto() }
                 val primary = selectAccomplishment(valid.filter { it.isMainExam() })
                 val incompleteSubparts = invalid.any { !it.isMainExam() && it.hyvaksytty != false }
-                if (primary == null || incompleteSubparts) {
+                if (primary == null) {
                     // A subpart alone cannot certify the whole exam. Preserve legacy validation logging
                     // for invalid records, but never persist a valid subpart as the parent exam.
                     log.warn(
-                        "Peppi: valid main exam missing or incomplete subpart data for course {} " +
+                        "Peppi: valid main exam missing for course {} " +
                             "and study entitlement {}. Exam import skipped.",
                         group.first().kurssiKoodi, group.first().studyEntitlementKey
                     )
                     invalidDtos
                 } else {
+                    if (incompleteSubparts) {
+                        log.warn(
+                            "Peppi: incomplete subpart data for course {} and study entitlement {}. " +
+                                "Main exam updated; existing children preserved.",
+                            primary.kurssiKoodi, primary.studyEntitlementKey
+                        )
+                    }
                     invalidDtos + primary.toFlatOpintosuoritusDto().apply {
                         // Retakes of the main exam are not components of the main exam.
-                        osakokonaisuudet = valid.filterNot { it.isMainExam() }
-                            .groupBy { it.osakokonaisuusKurssikoodi() }
-                            .values.mapNotNull { selectAccomplishment(it) }
-                            .sortedBy { it.osakokonaisuusKurssikoodi() }
-                            .map { it.toOsakokonaisuusDto() }
+                        osakokonaisuudet = if (incompleteSubparts) {
+                            null
+                        } else {
+                            valid.filterNot { it.isMainExam() }
+                                .groupBy { it.osakokonaisuusKurssikoodi() }
+                                .values.mapNotNull { selectAccomplishment(it) }
+                                .sortedBy { it.osakokonaisuusKurssikoodi() }
+                                .map { it.toOsakokonaisuusDto() }
+                        }
                         // An empty list is an authoritative main-only result, unlike null.
                     }
                 }
@@ -125,15 +137,11 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
         )
 
     private fun StudyAccomplishment.isMainExam(): Boolean =
-        normalizedName() in setOf(
-            "valtakunnallinen erikoislääkärikuulustelu",
-            "valtakunnallinen erikoishammaslääkärikuulustelu",
-            "erikoislääkärikuulustelu",
-            "erikoishammaslääkärikuulustelu"
-        )
+        normalizedName() in MAIN_EXAM_NAMES
 
     private fun StudyAccomplishment.normalizedName(): String =
-        nimi?.fi.orEmpty().trim().lowercase(Locale.ROOT).replace(Regex("\\s+"), " ")
+        Normalizer.normalize(nimi?.fi.orEmpty(), Normalizer.Form.NFC)
+            .lowercase(Locale.ROOT).replace(NAME_WHITESPACE, " ").trim()
 
     private fun StudyAccomplishment.toFlatOpintosuoritusDto() = OpintosuoritusDTO(
         suorituspaiva = suoritusPvm?.tryParseToLocalDate(),
@@ -172,6 +180,22 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
     private fun StudyAccomplishment.isValid(): Boolean =
         kurssiKoodi != null && studyEntitlementKey != null && nimi?.fi != null && hyvaksytty != null &&
             suoritusPvm?.tryParseToLocalDate() != null
+
+    private companion object {
+        val NAME_WHITESPACE = Regex("(?U)[\\s\\u00A0]+")
+        // Observed main titles, scoped above to each university's exam codes. A title containing
+        // "kuulustelu" alone could also describe an individual component of an exam.
+        val MAIN_EXAM_NAMES = setOf(
+            "valtakunnallinen erikoislääkärikuulustelu",
+            "valtakunnallinen erikoishammaslääkärikuulustelu",
+            "erikoislääkärikuulustelu",
+            "erikoishammaslääkärikuulustelu",
+            "valtakunnallinen kuulustelu",
+            "valtakunnallinen kuulustelu (erikoislääkärikoulutus)",
+            "valtakunnallinen kuulustelu (erikoistumiskoulutus)",
+            "valtakunnallinen kuulustelu (erikoishammaslääkärikoulutus)"
+        )
+    }
 }
 
 
