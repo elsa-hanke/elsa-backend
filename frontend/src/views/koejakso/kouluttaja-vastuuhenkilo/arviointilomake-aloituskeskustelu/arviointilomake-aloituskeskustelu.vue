@@ -190,6 +190,7 @@
   } from '@/types'
   import { resolveRolePath } from '@/utils/apiRolePathResolver'
   import { LomakeTilat, LomakeTyypit } from '@/utils/constants'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
@@ -328,8 +329,13 @@
         this.$emit('skipRouteExitConfirm', true)
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
         toastSuccess(this, this.$t('aloituskeskustelu-palautettu-erikoistuvalle-muokattavaksi'))
-      } catch {
-        toastFail(this, this.$t('aloituskeskustelu-palautus-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('aloituskeskustelu-palautus-epaonnistui'))
+        )
+      } finally {
+        this.buttonStates.secondaryButtonLoading = false
       }
     }
 
@@ -356,8 +362,13 @@
         this.$emit('skipRouteExitConfirm', true)
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
         toastSuccess(this, this.$t('aloituskeskustelu-lisatty-onnistuneesti'))
-      } catch {
-        toastFail(this, this.$t('aloituskeskustelu-lisaaminen-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('aloituskeskustelu-lisaaminen-epaonnistui'))
+        )
+      } finally {
+        this.buttonStates.primaryButtonLoading = false
       }
     }
 

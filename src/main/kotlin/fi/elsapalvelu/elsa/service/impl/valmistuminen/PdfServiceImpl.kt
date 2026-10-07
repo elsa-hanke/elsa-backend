@@ -17,7 +17,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.PdfPreparation
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
-import fi.elsapalvelu.elsa.service.PdfTextSanitizer
+import fi.elsapalvelu.elsa.service.PdfHtmlText
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_LUO_PDF
@@ -60,9 +60,10 @@ class PdfServiceImpl(
     override fun luoPdf(template: String, context: Context, outputStream: OutputStream) {
         pdfMetrics.trackOperation(OP_LUO_PDF) {
             val content = sanitizeContent(templateEngine.process(template, context))
-            if (isValmistumispyyntoTemplate(template)) {
+            if (isValidatedPdfTemplate(template)) {
                 pdfTextFieldValidator.validate(
-                    fields = listOf(pdfSectionField(template) to content),
+                    fields = emptyList(),
+                    htmlFields = listOf(pdfSectionField(template) to content),
                     pdfSource = pdfSource(template)
                 )
             }
@@ -146,14 +147,18 @@ class PdfServiceImpl(
         }
     }
 
-    private fun sanitizeContent(input: String): String = PdfTextSanitizer.sanitize(input)
+    private fun sanitizeContent(input: String): String = PdfHtmlText.sanitize(input)
 
-    private fun isValmistumispyyntoTemplate(template: String): Boolean =
+    private fun isValidatedPdfTemplate(template: String): Boolean =
         template.startsWith("pdf/erikoistujantiedot/") ||
             template.endsWith("valmistumisenyhteenveto.html") ||
-            template.endsWith("valmistumisenyhteenveto_yek.html")
+            template.endsWith("valmistumisenyhteenveto_yek.html") ||
+            template == "pdf/koulutussopimus.html" ||
+            template == "pdf/vastuuhenkilonarvio.html"
 
     private fun pdfSectionField(template: String): String = when {
+        template == "pdf/koulutussopimus.html" -> "pdf-osio-koejakson-koulutussopimus"
+        template == "pdf/vastuuhenkilonarvio.html" -> "pdf-osio-koejakson-vastuuhenkilon-arvio"
         template.endsWith("koulutussuunnitelma.html") -> "pdf-osio-koulutussuunnitelma"
         template.endsWith("paivittaisetmerkinnat.html") -> "pdf-osio-paivittaiset-merkinnat"
         template.endsWith("seurantajakso.html") -> "pdf-osio-seurantajakso"
@@ -168,6 +173,8 @@ class PdfServiceImpl(
     }
 
     private fun pdfSource(template: String): String = when {
+        template == "pdf/koulutussopimus.html" -> "koejaksonkoulutussopimus"
+        template == "pdf/vastuuhenkilonarvio.html" -> "koejaksonvastuuhenkilonarvio"
         template.endsWith("seurantajakso.html") -> "seurantajakso"
         else -> "valmistumispyynto"
     }

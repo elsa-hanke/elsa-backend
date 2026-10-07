@@ -118,6 +118,7 @@
   import store from '@/store'
   import { AloituskeskusteluLomake, Koejakso, KoejaksonVaiheButtonStates } from '@/types'
   import { LomakeTilat } from '@/utils/constants'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import { toastFail, toastSuccess } from '@/utils/toast'
   import ArviointilomakeAloituskeskusteluForm from '@/views/koejakso/erikoistuva/arviointilomake-aloituskeskustelu/arviointilomake-aloituskeskustelu-form.vue'
@@ -223,8 +224,11 @@
         toastSuccess(this, this.$t('aloituskeskustelu-tallennettu-onnistuneesti'))
         this.$emit('skipRouteExitConfirm', true)
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
-      } catch {
-        toastFail(this, this.$t('aloituskeskustelu-tallennus-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('aloituskeskustelu-tallennus-epaonnistui'))
+        )
       }
       buttonStates.secondaryButtonLoading = false
     }
@@ -234,8 +238,11 @@
         await store.dispatch('erikoistuva/postAloituskeskustelu', this.aloituskeskusteluLomake)
         toastSuccess(this, this.$t('aloituskeskustelu-lisatty-onnistuneesti'))
         this.$emit('skipRouteExitConfirm', true)
-      } catch {
-        toastFail(this, this.$t('aloituskeskustelu-lisaaminen-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('aloituskeskustelu-lisaaminen-epaonnistui'))
+        )
       }
     }
 
@@ -244,8 +251,11 @@
         await store.dispatch('erikoistuva/putAloituskeskustelu', this.aloituskeskusteluLomake)
         toastSuccess(this, this.$t('aloituskeskustelu-lisatty-onnistuneesti'))
         this.$emit('skipRouteExitConfirm', true)
-      } catch {
-        toastFail(this, this.$t('aloituskeskustelu-lisaaminen-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('aloituskeskustelu-lisaaminen-epaonnistui'))
+        )
       }
     }
 

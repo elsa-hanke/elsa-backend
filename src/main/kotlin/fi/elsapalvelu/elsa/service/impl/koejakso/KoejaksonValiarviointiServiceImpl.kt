@@ -42,7 +42,8 @@ class KoejaksonValiarviointiServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
-    private val opintooikeusService: OpintooikeusService
+    private val opintooikeusService: OpintooikeusService,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) : KoejaksonValiarviointiService {
 
     override fun create(
@@ -52,6 +53,7 @@ class KoejaksonValiarviointiServiceImpl(
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
             var valiarviointi =
                 koejaksonValiarviointiMapper.toEntity(koejaksonValiarviointiDTO)
+            validatePdfText(valiarviointi)
             valiarviointi.opintooikeus = it
             valiarviointi = koejaksonValiarviointiRepository.save(valiarviointi)
 
@@ -101,6 +103,7 @@ class KoejaksonValiarviointiServiceImpl(
         valiarviointi: KoejaksonValiarviointi,
         updated: KoejaksonValiarviointi
     ): KoejaksonValiarviointi {
+        validatePdfText(updated)
         valiarviointi.edistyminenTavoitteidenMukaista = updated.edistyminenTavoitteidenMukaista
         valiarviointi.kehittamistoimenpideKategoriat = updated.kehittamistoimenpideKategoriat
         valiarviointi.muuKategoria = updated.muuKategoria
@@ -165,6 +168,18 @@ class KoejaksonValiarviointiServiceImpl(
         }
 
         return result
+    }
+
+    private fun validatePdfText(value: KoejaksonValiarviointi) {
+        pdfTextFieldValidator.validate(
+            fields = listOf(
+                "vahvuudet" to value.vahvuudet,
+                "selvitys-kehittamistoimenpiteista" to value.kehittamistoimenpiteet,
+                "muu" to value.muuKategoria
+            ),
+            pdfSource = "koejaksonvaliarviointi",
+            sourceId = value.id
+        )
     }
 
     @Transactional(readOnly = true)

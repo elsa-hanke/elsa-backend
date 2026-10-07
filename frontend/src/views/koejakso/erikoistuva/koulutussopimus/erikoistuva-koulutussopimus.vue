@@ -134,6 +134,7 @@
     Yliopisto
   } from '@/types'
   import { LomakeTilat } from '@/utils/constants'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import { toastFail, toastSuccess } from '@/utils/toast'
   import KoulutussopimusForm from '@/views/koejakso/erikoistuva/koulutussopimus/koulutussopimus-form.vue'
@@ -263,8 +264,11 @@
         toastSuccess(this, this.$t('koulutussopimus-tallennettu-onnistuneesti'))
         this.$emit('skipRouteExitConfirm', true)
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
-      } catch {
-        toastFail(this, this.$t('koulutussopimuksen-tallennus-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('koulutussopimuksen-tallennus-epaonnistui'))
+        )
       }
       buttonStates.secondaryButtonLoading = false
     }
@@ -274,8 +278,11 @@
         await store.dispatch('erikoistuva/postKoulutussopimus', this.koulutussopimusLomake)
         toastSuccess(this, this.$t('koulutussopimus-lisatty-onnistuneesti'))
         this.$emit('skipRouteExitConfirm', true)
-      } catch {
-        toastFail(this, this.$t('koulutussopimuksen-lisaaminen-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('koulutussopimuksen-lisaaminen-epaonnistui'))
+        )
       }
     }
 
@@ -285,8 +292,11 @@
         toastSuccess(this, this.$t('koulutussopimus-lisatty-onnistuneesti'))
         this.$emit('skipRouteExitConfirm', true)
         this.setKoejaksoData()
-      } catch {
-        toastFail(this, this.$t('koulutussopimuksen-lisaaminen-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('koulutussopimuksen-lisaaminen-epaonnistui'))
+        )
       }
     }
 
