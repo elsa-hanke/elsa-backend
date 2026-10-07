@@ -25,56 +25,63 @@ class FileValidationServiceImpl(
     override fun validate(files: List<MultipartFile>, opintooikeusId: Long, allowedContentTypes: List<String>?) {
         val existingFileNames = asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map { it.nimi }
         files.forEach { file ->
-            if (file.originalFilename.isNullOrBlank() || file.originalFilename!!.length > MAXIMUM_FILE_NAME_LENGTH) {
-                reject(file, "tiedosto-ei-ole-kelvollinen", "Tarkista tiedoston nimi.")
-            }
-            validateContentType(file, allowedContentTypes)
+            validateFilename(file.originalFilename)
+            validateContentType(file.originalFilename, file.contentType, allowedContentTypes)
             if (file.originalFilename in existingFileNames) {
-                reject(file, "samanniminen-tiedosto-on-jo-olemassa", "Samanniminen tiedosto on jo olemassa.")
+                reject(file.originalFilename, "samanniminen-tiedosto-on-jo-olemassa", "Samanniminen tiedosto on jo olemassa.")
             }
-            validateContent(file)
+            validateContent(file.originalFilename, file.contentType, file.isEmpty) { file.bytes }
         }
     }
 
     override fun validate(files: List<MultipartFile>, allowedContentTypes: List<String>?) {
         files.forEach { file ->
-            if (file.name.length > MAXIMUM_FILE_NAME_LENGTH) {
-                reject(file, "tiedosto-ei-ole-kelvollinen", "Tarkista tiedoston nimi.")
-            }
-            validateContentType(file, allowedContentTypes)
-            validateContent(file)
+            validateFilename(file.originalFilename)
+            validateContentType(file.originalFilename, file.contentType, allowedContentTypes)
+            validateContent(file.originalFilename, file.contentType, file.isEmpty) { file.bytes }
         }
     }
 
-    private fun validateContentType(file: MultipartFile, allowedContentTypes: List<String>?) {
-        val contentType = file.contentType
+    override fun validate(data: ByteArray, originalFilename: String?, contentType: String?) {
+        validateFilename(originalFilename)
+        validateContentType(originalFilename, contentType, null)
+        validateContent(originalFilename, contentType, data.isEmpty()) { data }
+    }
+
+    private fun validateFilename(originalFilename: String?) {
+        if (originalFilename.isNullOrBlank() || originalFilename.length > MAXIMUM_FILE_NAME_LENGTH) {
+            reject(originalFilename, "tiedosto-ei-ole-kelvollinen", "Tarkista tiedoston nimi.")
+        }
+    }
+
+    private fun validateContentType(originalFilename: String?, contentType: String?, allowedContentTypes: List<String>?) {
         if (contentType == null || contentType !in (allowedContentTypes ?: defaultAllowedContentTypes)) {
-            reject(file, "tiedostotyyppi-ei-ole-sallittu", "Tiedostomuoto ei ole sallittu.")
+            reject(originalFilename, "tiedostotyyppi-ei-ole-sallittu", "Tiedostomuoto ei ole sallittu.")
         }
     }
 
-    private fun validateContent(file: MultipartFile) {
-        if (file.isEmpty) {
-            reject(file, "tiedosto-on-tyhja", "Liitetiedosto on tyhjä.")
+    private fun validateContent(originalFilename: String?, contentType: String?, empty: Boolean, data: () -> ByteArray) {
+        if (empty) {
+            reject(originalFilename, "tiedosto-on-tyhja", "Liitetiedosto on tyhjä.")
         }
-        if (file.contentType != MediaType.APPLICATION_PDF_VALUE) return
+        if (contentType != MediaType.APPLICATION_PDF_VALUE) return
 
         val result = try {
-            pdfContentValidator.validate(file.bytes)
+            pdfContentValidator.validate(data())
         } catch (_: java.io.IOException) {
             PdfValidationResult.INVALID
         }
         when (result) {
             PdfValidationResult.VALID -> Unit
             PdfValidationResult.PASSWORD_REQUIRED ->
-                reject(file, "pdf-tiedosto-vaatii-salasanan", "PDF-tiedosto vaatii salasanan avaamiseen.")
+                reject(originalFilename, "pdf-tiedosto-vaatii-salasanan", "PDF-tiedosto vaatii salasanan avaamiseen.")
             PdfValidationResult.INVALID ->
-                reject(file, "pdf-tiedostoa-ei-voitu-kasitella", "Liitetiedostoa ei voitu käsitellä.")
+                reject(originalFilename, "pdf-tiedostoa-ei-voitu-kasitella", "Liitetiedostoa ei voitu käsitellä.")
         }
     }
 
-    private fun reject(file: MultipartFile, errorKey: String, message: String): Nothing {
-        log.warn("Tiedoston '{}' validointi epäonnistui: {}", file.originalFilename, errorKey)
+    private fun reject(originalFilename: String?, errorKey: String, message: String): Nothing {
+        log.warn("Tiedoston '{}' validointi epäonnistui: {}", originalFilename, errorKey)
         throw BadRequestAlertException(message, "asiakirja", "dataillegal.$errorKey")
     }
 }
