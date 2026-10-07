@@ -1,14 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
-import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
-import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.tyoskentely.KeskeytysaikaRepository
-import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.tyoskentely.KeskeytysaikaMapper
+import fi.elsapalvelu.elsa.web.rest.API_TYOSKENTELYJAKSOT
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -33,19 +29,11 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import kotlin.test.assertNotNull
 
-private const val API_TYOSKENTELYJAKSOT = "/api/erikoistuva-laakari/tyoskentelyjaksot"
-
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class ErikoistuvaLaakariKeskeytysaikaResourceIT: ResourceIntegrationTestBase() {
 
-    @Autowired private lateinit var tyoskentelyjaksoRepository: TyoskentelyjaksoRepository
-    @Autowired private lateinit var keskeytysaikaRepository: KeskeytysaikaRepository
     @Autowired private lateinit var keskeytysaikaMapper: KeskeytysaikaMapper
-    @Autowired private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
-
-    private lateinit var tyoskentelyjakso: Tyoskentelyjakso
-    private lateinit var keskeytysaika: Keskeytysaika
 
     @Test
     fun createKeskeytysaika() {

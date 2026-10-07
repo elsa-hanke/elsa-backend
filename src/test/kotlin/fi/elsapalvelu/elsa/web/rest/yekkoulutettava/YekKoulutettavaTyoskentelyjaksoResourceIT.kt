@@ -467,6 +467,50 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
         assertThat(asiakirja.nimi).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
     }
 
+    @Test
+    @Transactional
+    fun deleteAnotherUserTyoskentelyjaksoShouldReturnForbiddenAndKeepAsiakirjaReference() {
+        initTest()
+
+        tyoskentelyjakso.asiakirjat.add(AsiakirjaHelper.createEntity(em, user, tyoskentelyjakso))
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        val tyoskentelyjaksoId = tyoskentelyjakso.id
+        assertNotNull(tyoskentelyjaksoId)
+        val asiakirjaId = tyoskentelyjakso.asiakirjat.first().id
+        assertNotNull(asiakirjaId)
+        val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
+
+        // Kirjaudutaan toisena yek-koulutettavana, jolla on oma opintooikeus
+        val toinenUser = KayttajaResourceWithMockUserIT.createEntity()
+        em.persist(toinenUser)
+        em.flush()
+        YekKoulutettavaTyoskentelyjaksoHelper.createEntity(em, toinenUser)
+        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(
+            DefaultSaml2AuthenticatedPrincipal(toinenUser.id, mapOf<String, List<Any>>()),
+            "test",
+            listOf(SimpleGrantedAuthority(YEK_KOULUTETTAVA))
+        )
+
+        restTyoskentelyjaksoMockMvc.perform(delete("/api/yek-koulutettava/tyoskentelyjaksot/{id}", tyoskentelyjaksoId).accept(MediaType.APPLICATION_JSON)
+                .with(csrf())).andExpect(status().isForbidden)
+
+        em.flush()
+        em.clear()
+
+        assertThat(tyoskentelyjaksoRepository.findAll()).hasSize(tyoskentelyjaksoTableSizeBeforeDelete)
+        assertThat(asiakirjaRepository.findById(asiakirjaId).orElseThrow().tyoskentelyjakso?.id).isEqualTo(tyoskentelyjaksoId)
+        assertThat(asiakirjaRepository.findAllByTyoskentelyjaksoId(tyoskentelyjaksoId)).hasSize(1)
+    }
+
+    @Test
+    @Transactional
+    fun deleteNonExistentTyoskentelyjaksoShouldReturnForbidden() {
+        initTest()
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+
+        restTyoskentelyjaksoMockMvc.perform(delete("/api/yek-koulutettava/tyoskentelyjaksot/{id}", Long.MAX_VALUE).accept(MediaType.APPLICATION_JSON)
+                .with(csrf())).andExpect(status().isForbidden)
+    }
 
     @Test
     @Transactional

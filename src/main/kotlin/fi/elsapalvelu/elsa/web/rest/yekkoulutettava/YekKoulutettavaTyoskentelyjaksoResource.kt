@@ -61,7 +61,6 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     private val overlappingTyoskentelyjaksoValidationService: OverlappingTyoskentelyjaksoValidationService,
     private val overlappingKeskeytysaikaValidationService: OverlappingKeskeytysaikaValidationService,
     private val opintooikeusService: OpintooikeusService,
-    private val koulutusjaksoService: KoulutusjaksoService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
     private val opintosuoritusService: OpintosuoritusService,
@@ -247,8 +246,6 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
 
-        asiakirjaService.removeTyoskentelyjaksoReference(id)
-        koulutusjaksoService.removeTyoskentelyjaksoReference(id)
         if (tyoskentelyjaksoService.delete(id, opintooikeusId)) {
             return ResponseEntity
                 .noContent()
