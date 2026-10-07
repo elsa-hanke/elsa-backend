@@ -125,7 +125,7 @@ class PeppiCommonOpintosuorituksetGroupingTest {
     }
 
     @Test
-    fun `passed accomplishment is preferred as primary over later failed attempt`() {
+    fun `ordinary course repeat attempts retain the original flat mapping`() {
         val body = """
             [
               {
@@ -169,20 +169,16 @@ class PeppiCommonOpintosuorituksetGroupingTest {
             }
 
             val items = result!!.items!!
-            assertThat(items).hasSize(1)
-
-            val course = items.single()
-            assertThat(course.hyvaksytty).isTrue
-            assertThat(course.suorituspaiva).isEqualTo(LocalDate.of(2026, 5, 1))
-            assertThat(course.osakokonaisuudet).hasSize(1)
-            assertThat(course.osakokonaisuudet!!.single().hyvaksytty).isFalse
+            assertThat(items).hasSize(2)
+            assertThat(items.map { it.hyvaksytty }).containsExactly(true, false)
+            assertThat(items).allSatisfy { assertThat(it.osakokonaisuudet).isNull() }
         } finally {
             server.shutdown()
         }
     }
 
     @Test
-    fun `later completion date is selected as primary among passed attempts of same course`() {
+    fun `ordinary course completions preserve response order without creating subparts`() {
         val body = """
             [
               {
@@ -226,13 +222,9 @@ class PeppiCommonOpintosuorituksetGroupingTest {
             }
 
             val items = result!!.items!!
-            assertThat(items).hasSize(1)
-
-            val course = items.single()
-            assertThat(course.suorituspaiva).isEqualTo(LocalDate.of(2026, 6, 1))
-            assertThat(course.arvio_fi).isEqualTo("4")
-            assertThat(course.osakokonaisuudet).hasSize(1)
-            assertThat(course.osakokonaisuudet!!.single().suorituspaiva).isEqualTo(LocalDate.of(2025, 5, 1))
+            assertThat(items).hasSize(2)
+            assertThat(items.map { it.arvio_fi }).containsExactly("1", "4")
+            assertThat(items).allSatisfy { assertThat(it.osakokonaisuudet).isNull() }
         } finally {
             server.shutdown()
         }

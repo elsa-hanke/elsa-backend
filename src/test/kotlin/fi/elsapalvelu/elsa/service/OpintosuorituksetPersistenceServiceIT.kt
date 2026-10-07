@@ -3,6 +3,8 @@ package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusKurssikoodi
+import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
+import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusOsakokonaisuus
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppi
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
@@ -46,6 +48,8 @@ class OpintosuorituksetPersistenceServiceIT {
 
     private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
 
+    private lateinit var snapshotUserId: String
+
     private lateinit var opintosuoritusTyyppi1: OpintosuoritusTyyppi
 
     private lateinit var opintosuoritusTyyppi2: OpintosuoritusTyyppi
@@ -57,6 +61,7 @@ class OpintosuorituksetPersistenceServiceIT {
 
         erikoistuvaLaakari =
             ErikoistuvaLaakariHelper.createEntity(em, yliopistoOpintooikeusId = yliopistoOpintooikeusId)
+        snapshotUserId = erikoistuvaLaakari.kayttaja?.user?.id!!
 
         opintosuoritusTyyppi1 = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
         em.persist(opintosuoritusTyyppi1)
@@ -637,6 +642,95 @@ class OpintosuorituksetPersistenceServiceIT {
         em.persist(opintosuoritus)
         em.flush()
     }
+
+    @Test
+    fun shouldReconcileChildrenAndKeepIdsStableAcrossRepeatedSnapshots() {
+        persistExistingOpintosuoritusWithOsakokonaisuus()
+        em.flush()
+        em.clear()
+        val existing = findSnapshotOpintosuoritus()
+        val parentId = existing.id
+        val removedId = existing.osakokonaisuudet!!.single().id
+        val incoming = createUpdatedOpintosuoritus1DTO().apply {
+            osakokonaisuudet = listOf(createOpintosuoritusOsakokonaisuusDTO().apply { kurssikoodi = "new-child" })
+        }
+
+        persistSnapshot(incoming)
+        val first = findSnapshotOpintosuoritus()
+        val childId = first.osakokonaisuudet!!.single().id
+        assertThat(first.id).isEqualTo(parentId)
+        assertThat(first.osakokonaisuudet!!.single().kurssikoodi).isEqualTo("new-child")
+        assertThat(em.find(OpintosuoritusOsakokonaisuus::class.java, removedId)).isNull()
+
+        incoming.osakokonaisuudet = listOf(createUpdatedOpintosuoritusOsakokonaisuusDTO().apply {
+            kurssikoodi = "new-child"
+        })
+        persistSnapshot(incoming)
+        val updated = findSnapshotOpintosuoritus().osakokonaisuudet!!.single()
+        assertThat(updated.id).isEqualTo(childId)
+        assertThat(updated.nimi_fi).isEqualTo(opintosuoritusOsakokonaisuusUpdatedNimiFi)
+        persistSnapshot(incoming)
+        assertThat(findSnapshotOpintosuoritus().osakokonaisuudet!!.map { it.id }).containsExactly(childId)
+    }
+
+    @Test
+    fun shouldRemoveAllChildrenForAnAuthoritativeMainOnlySnapshot() {
+        persistExistingOpintosuoritusWithOsakokonaisuus()
+        em.flush()
+        val removedId = findSnapshotOpintosuoritus().osakokonaisuudet!!.single().id
+        val incoming = createUpdatedOpintosuoritus1DTO().apply { osakokonaisuudet = emptyList() }
+        persistSnapshot(incoming)
+        assertThat(findSnapshotOpintosuoritus().osakokonaisuudet).isEmpty()
+        assertThat(em.find(OpintosuoritusOsakokonaisuus::class.java, removedId)).isNull()
+    }
+
+    @Test
+    fun shouldKeepChildrenWhenNoChildSnapshotWasProvided() {
+        persistExistingOpintosuoritusWithOsakokonaisuus()
+        persistSnapshot(createUpdatedOpintosuoritus1DTO())
+        assertThat(findSnapshotOpintosuoritus().osakokonaisuudet).hasSize(1)
+    }
+
+    @Test
+    fun shouldPreserveOtherImportersDefaultAdditiveBehavior() {
+        persistExistingOpintosuoritusWithOsakokonaisuus()
+        val incoming = createUpdatedOpintosuoritus1DTO().apply { osakokonaisuudet = emptyList() }
+        persistSnapshot(incoming, replace = false)
+        assertThat(findSnapshotOpintosuoritus().osakokonaisuudet).hasSize(1)
+    }
+
+    @Test
+    fun shouldValidateTheEntireSnapshotBeforeUpdatingOrDeletingAnything() {
+        persistExistingOpintosuoritusWithOsakokonaisuus()
+        val invalidChild = createUpdatedOpintosuoritus1DTO().apply {
+            osakokonaisuudet = listOf(createOpintosuoritusOsakokonaisuusDTO().apply { nimi_fi = null })
+        }
+        persistSnapshot(invalidChild)
+        assertThat(findSnapshotOpintosuoritus().nimi_fi).isEqualTo(opintosuoritus1NimiFi)
+        assertThat(findSnapshotOpintosuoritus().osakokonaisuudet).hasSize(1)
+
+        val invalidParent = createUpdatedOpintosuoritus1DTO().apply {
+            suorituspaiva = null
+            osakokonaisuudet = emptyList()
+        }
+        persistSnapshot(invalidParent)
+        assertThat(findSnapshotOpintosuoritus().nimi_fi).isEqualTo(opintosuoritus1NimiFi)
+        assertThat(findSnapshotOpintosuoritus().osakokonaisuudet).hasSize(1)
+    }
+
+    private fun persistSnapshot(incoming: OpintosuoritusDTO, replace: Boolean = true) {
+        opintosuorituksetPersistenceService.createOrUpdateIfChanged(
+            snapshotUserId,
+            OpintosuorituksetPersistenceDTO(yliopistoEnum, listOf(incoming), replaceOsakokonaisuudet = replace)
+        )
+        em.flush()
+        em.clear()
+    }
+
+    private fun findSnapshotOpintosuoritus(): Opintosuoritus =
+        opintosuoritusRepository.findOneByOpintooikeusYliopistoOpintooikeusIdAndKurssikoodi(
+            yliopistoOpintooikeusId, opintosuoritus1Kurssikoodi
+        )!!
 
     private fun persistExistingOpintosuoritusWithOsakokonaisuus() {
         val opintosuoritusDTO = createOpintosuoritus1DTO()
