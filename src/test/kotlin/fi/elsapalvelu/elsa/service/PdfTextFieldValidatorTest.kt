@@ -3,6 +3,8 @@ package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.core.io.ClassPathResource
 import java.time.LocalDate
 import kotlin.test.assertFailsWith
@@ -56,17 +58,20 @@ class PdfTextFieldValidatorTest {
         )
     }
 
-    @Test
-    fun `reports an unsupported variation selector explicitly in plain text and HTML`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["\uFE0E", "\uFE0F"])
+    fun `reports an unsupported variation selector explicitly in plain text and HTML`(selector: String) {
+        val codePoint = "U+${selector[0].code.toString(16).uppercase()}"
+        val entity = "&#${selector[0].code};"
         listOf(false, true).forEach { html ->
             val exception = assertFailsWith<UnsupportedPdfCharactersException> {
                 validator.validate(
-                    fields = if (html) emptyList() else listOf("kentta" to "→\uFE0F"),
-                    htmlFields = if (html) listOf("kentta" to "<p>→&#xFE0F;</p>") else emptyList()
+                    fields = if (html) emptyList() else listOf("kentta" to "→$selector"),
+                    htmlFields = if (html) listOf("kentta" to "<p>→$entity</p>") else emptyList()
                 )
             }
             assertThat(exception.field).isEqualTo("kentta")
-            assertThat(exception.unsupportedCharacters).containsExactly("\uFE0F (U+FE0F)")
+            assertThat(exception.unsupportedCharacters).containsExactly("$selector ($codePoint)")
         }
     }
 }

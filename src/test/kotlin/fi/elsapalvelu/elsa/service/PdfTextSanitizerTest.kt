@@ -18,6 +18,12 @@ class PdfTextSanitizerTest {
     }
 
     @Test
+    fun `does not transform presentation selectors or their base symbols`() {
+        val input = "→\uFE0E →\uFE0F ✓\uFE0F 💗\uFE0F"
+        assertThat(PdfTextSanitizer.sanitize(input)).isEqualTo(input)
+    }
+
+    @Test
     fun `does not replace a check mark or emoji`() {
         assertThat(PdfTextSanitizer.sanitize("valmis ✓ 😀"))
             .isEqualTo("valmis ✓ 😀")
