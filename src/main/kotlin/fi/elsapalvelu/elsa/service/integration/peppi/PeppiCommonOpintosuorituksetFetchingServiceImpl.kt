@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.integration.peppi
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -11,12 +12,18 @@ import fi.elsapalvelu.elsa.service.constants.JSON_DATA_PROSESSING_ERROR
 import fi.elsapalvelu.elsa.service.constants.JSON_FETCHING_ERROR
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
+import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusOsakokonaisuusDTO
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.IOException
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.text.Normalizer
+import java.util.HexFormat
+import java.util.Locale
 
 @Service
 class PeppiCommonOpintosuorituksetFetchingServiceImpl(
@@ -48,19 +55,8 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
                         ?.let { accomplishments ->
                             OpintosuorituksetPersistenceDTO(
                                 yliopisto = yliopistoEnum,
-                                items = accomplishments.map {
-                                    OpintosuoritusDTO(
-                                        suorituspaiva = it.suoritusPvm?.tryParseToLocalDate(),
-                                        opintopisteet = it.opintopisteet,
-                                        nimi_fi = it.nimi?.fi,
-                                        nimi_sv = it.nimi?.sv,
-                                        kurssikoodi = it.kurssiKoodi,
-                                        hyvaksytty = it.hyvaksytty,
-                                        arvio_fi = it.arvio?.fi,
-                                        arvio_sv = it.arvio?.sv,
-                                        yliopistoOpintooikeusId = it.studyEntitlementKey
-                                    )
-                                }
+                                items = toOpintosuoritusDtos(accomplishments, yliopistoEnum),
+                                replaceOsakokonaisuudet = true
                             )
                         }
                 }
@@ -76,10 +72,136 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
             throw e
         }
     }
+
+    private fun toOpintosuoritusDtos(
+        accomplishments: List<StudyAccomplishment>,
+        yliopisto: YliopistoEnum
+    ): List<OpintosuoritusDTO> {
+        val examCodes = when (yliopisto) {
+            YliopistoEnum.TURUN_YLIOPISTO -> setOf("ELOP0001", "EHLO0001")
+            YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> setOf("4415200", "4415100")
+            else -> emptySet()
+        }
+        // Ordinary courses keep the original mapping and response order, including repeat attempts.
+        val ordinary = accomplishments.filter { it.kurssiKoodi !in examCodes }
+            .map { it.toFlatOpintosuoritusDto() }
+        val exams = accomplishments.filter { it.kurssiKoodi in examCodes }
+            .groupBy { it.studyEntitlementKey to it.kurssiKoodi }
+            .values.flatMap { group ->
+                val (valid, invalid) = group.partition { it.isValid() }
+                val invalidDtos = invalid.map { it.toFlatOpintosuoritusDto() }
+                val primary = selectAccomplishment(valid.filter { it.isMainExam() })
+                val incompleteSubparts = invalid.any { !it.isMainExam() && it.hyvaksytty != false }
+                if (primary == null) {
+                    // A subpart alone cannot certify the whole exam. Preserve legacy validation logging
+                    // for invalid records, but never persist a valid subpart as the parent exam.
+                    log.warn(
+                        "Peppi: valid main exam missing for course {} " +
+                            "and study entitlement {}. Exam import skipped.",
+                        group.first().kurssiKoodi, group.first().studyEntitlementKey
+                    )
+                    invalidDtos
+                } else {
+                    if (incompleteSubparts) {
+                        log.warn(
+                            "Peppi: incomplete subpart data for course {} and study entitlement {}. " +
+                                "Main exam updated; existing children preserved.",
+                            primary.kurssiKoodi, primary.studyEntitlementKey
+                        )
+                    }
+                    invalidDtos + primary.toFlatOpintosuoritusDto().apply {
+                        // Retakes of the main exam are not components of the main exam.
+                        osakokonaisuudet = if (incompleteSubparts) {
+                            null
+                        } else {
+                            valid.filterNot { it.isMainExam() }
+                                .groupBy { it.osakokonaisuusKurssikoodi() }
+                                .values.mapNotNull { selectAccomplishment(it) }
+                                .sortedBy { it.osakokonaisuusKurssikoodi() }
+                                .map { it.toOsakokonaisuusDto() }
+                        }
+                        // An empty list is an authoritative main-only result, unlike null.
+                    }
+                }
+            }
+        return ordinary + exams
+    }
+
+    private fun selectAccomplishment(group: List<StudyAccomplishment>): StudyAccomplishment? =
+        group.maxWithOrNull(
+            compareBy<StudyAccomplishment> { it.hyvaksytty == true }
+                .thenBy { it.suoritusPvm?.tryParseToLocalDate() }
+                .thenBy { it.id.orEmpty() }
+                // Missing or duplicate IDs must not restore dependence on response order.
+                .thenBy { objectMapper.writeValueAsString(it) }
+        )
+
+    private fun StudyAccomplishment.isMainExam(): Boolean =
+        normalizedName() in MAIN_EXAM_NAMES
+
+    private fun StudyAccomplishment.normalizedName(): String =
+        Normalizer.normalize(nimi?.fi.orEmpty(), Normalizer.Form.NFC)
+            .lowercase(Locale.ROOT).replace(NAME_WHITESPACE, " ").trim()
+
+    private fun StudyAccomplishment.toFlatOpintosuoritusDto() = OpintosuoritusDTO(
+        suorituspaiva = suoritusPvm?.tryParseToLocalDate(),
+        opintopisteet = opintopisteet,
+        nimi_fi = nimi?.fi,
+        nimi_sv = nimi?.sv,
+        kurssikoodi = kurssiKoodi,
+        hyvaksytty = hyvaksytty,
+        arvio_fi = arvio?.fi,
+        arvio_sv = arvio?.sv,
+        yliopistoOpintooikeusId = studyEntitlementKey
+    )
+
+    private fun StudyAccomplishment.osakokonaisuusKurssikoodi(): String {
+        val sourceId = id?.takeIf { it.isNotBlank() }
+        if (sourceId != null && sourceId.length <= 50) return sourceId
+        // Keep the key within varchar(50) without truncating names into identical keys.
+        val identity = sourceId?.let { "id:$it" } ?: "name:$kurssiKoodi:${normalizedName()}"
+        val hash = MessageDigest.getInstance("SHA-256").digest(identity.toByteArray(StandardCharsets.UTF_8))
+        return "hash:" + HexFormat.of().formatHex(hash).take(40)
+    }
+
+    private fun StudyAccomplishment.toOsakokonaisuusDto(): OpintosuoritusOsakokonaisuusDTO {
+        return OpintosuoritusOsakokonaisuusDTO(
+            suorituspaiva = suoritusPvm?.tryParseToLocalDate(),
+            opintopisteet = opintopisteet,
+            nimi_fi = nimi?.fi,
+            nimi_sv = nimi?.sv,
+            kurssikoodi = osakokonaisuusKurssikoodi(),
+            hyvaksytty = hyvaksytty,
+            arvio_fi = arvio?.fi,
+            arvio_sv = arvio?.sv
+        )
+    }
+
+    private fun StudyAccomplishment.isValid(): Boolean =
+        kurssiKoodi != null && studyEntitlementKey != null && nimi?.fi != null && hyvaksytty != null &&
+            suoritusPvm?.tryParseToLocalDate() != null
+
+    private companion object {
+        val NAME_WHITESPACE = Regex("(?U)[\\s\\u00A0]+")
+        // Observed main titles, scoped above to each university's exam codes. A title containing
+        // "kuulustelu" alone could also describe an individual component of an exam.
+        val MAIN_EXAM_NAMES = setOf(
+            "valtakunnallinen erikoislääkärikuulustelu",
+            "valtakunnallinen erikoishammaslääkärikuulustelu",
+            "erikoislääkärikuulustelu",
+            "erikoishammaslääkärikuulustelu",
+            "valtakunnallinen kuulustelu",
+            "valtakunnallinen kuulustelu (erikoislääkärikoulutus)",
+            "valtakunnallinen kuulustelu (erikoistumiskoulutus)",
+            "valtakunnallinen kuulustelu (erikoishammaslääkärikoulutus)"
+        )
+    }
 }
 
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class StudyAccomplishment(
+    val id: String? = null,
     val studyEntitlementId: String?,
     val studyEntitlementKey: String?,
     val kurssiKoodi: String?,

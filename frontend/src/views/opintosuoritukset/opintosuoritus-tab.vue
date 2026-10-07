@@ -46,23 +46,40 @@
             </b-th>
           </b-tr>
         </b-thead>
-        <b-tbody v-if="variant === 'kuulustelu' || variant === 'muu'">
-          <b-tr v-for="(o, index) in suoritukset" :key="index">
-            <b-td class="col1">
-              <span class="bold">{{ localizeName(o) }}</span>
-            </b-td>
-            <b-td class="col2">
-              {{ $date(o.suorituspaiva) }}
-            </b-td>
-            <b-td class="col3">
-              <span v-if="o.hyvaksytty">
-                <font-awesome-icon :icon="['fas', 'check-circle']" class="text-success" />
-                {{ $t('hyvaksytty') }}
-              </span>
-              <span v-if="!o.hyvaksytty" class="text-danger">{{ $t('hylatty') }}</span>
-            </b-td>
-          </b-tr>
-        </b-tbody>
+        <template v-if="variant === 'kuulustelu' || variant === 'muu'">
+          <b-tbody v-for="(o, index) in suoritukset" :key="o.id || index">
+            <b-tr>
+              <b-td class="col1">
+                <span class="bold">{{ localizeName(o) }}</span>
+              </b-td>
+              <b-td class="col2">
+                {{ $date(o.suorituspaiva) }}
+              </b-td>
+              <b-td class="col3">
+                <span v-if="o.hyvaksytty">
+                  <font-awesome-icon :icon="['fas', 'check-circle']" class="text-success" />
+                  {{ $t('hyvaksytty') }}
+                </span>
+                <span v-else class="text-danger">{{ $t('hylatty') }}</span>
+              </b-td>
+            </b-tr>
+            <b-tr
+              v-for="(ok, childIndex) in examSubparts(o)"
+              :key="`exam-part-${ok.id || childIndex}`"
+              class="ok-row exam-subpart-row py-2"
+            >
+              <b-td class="col1 pl-6 py-2">{{ localizeName(ok) }}</b-td>
+              <b-td class="col2 py-2">{{ $date(ok.suorituspaiva) }}</b-td>
+              <b-td class="col3 py-2">
+                <span v-if="ok.hyvaksytty">
+                  <font-awesome-icon :icon="['fas', 'check-circle']" class="text-success" />
+                  {{ $t('hyvaksytty') }}
+                </span>
+                <span v-else class="text-danger">{{ $t('hylatty') }}</span>
+              </b-td>
+            </b-tr>
+          </b-tbody>
+        </template>
         <b-tbody v-if="variant === 'sateily'">
           <b-tr v-for="(o, index) in suoritukset" :key="index">
             <b-td class="col1">
@@ -130,7 +147,7 @@
 
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import ElsaProgressBar from '@/components/progress-bar/progress-bar.vue'
-  import { Opintosuoritus } from '@/types'
+  import { Opintosuoritus, OpintosuoritusOsakokonaisuus } from '@/types'
 
   @Component({
     components: {
@@ -154,9 +171,21 @@
     @Prop({ required: false, type: Boolean, default: false })
     progress!: boolean
 
-    localizeName(o: any) {
-      const key = `nimi_${this.$i18n.locale}`
-      return o[key]
+    localizeName(o: Opintosuoritus | OpintosuoritusOsakokonaisuus): string {
+      const name = this.$i18n.locale === 'sv' ? o.nimi_sv : o.nimi_fi
+      return name?.trim() ? name : o.nimi_fi || ''
+    }
+
+    examSubparts(o: Opintosuoritus): OpintosuoritusOsakokonaisuus[] {
+      if (this.variant !== 'kuulustelu') return []
+      const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
+      return [...(o.osakokonaisuudet || [])].sort(
+        (a, b) =>
+          compare(a.suorituspaiva || '', b.suorituspaiva || '') ||
+          compare(this.localizeName(a), this.localizeName(b)) ||
+          compare(a.kurssikoodi || '', b.kurssikoodi || '') ||
+          (a.id || 0) - (b.id || 0)
+      )
     }
   }
 </script>
