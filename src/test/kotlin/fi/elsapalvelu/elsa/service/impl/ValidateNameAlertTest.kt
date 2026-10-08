@@ -39,6 +39,7 @@ class ValidateNameAlertTest {
     @Mock private lateinit var koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
     @Mock private lateinit var seurantajaksoRepository: SeurantajaksoRepository
     @Mock private lateinit var entityManager: EntityManager
+    @Mock private lateinit var avatarValidator: fi.elsapalvelu.elsa.service.AvatarValidator
 
     private lateinit var userService: UserServiceImpl
     private lateinit var cipher: Cipher
@@ -59,7 +60,8 @@ class ValidateNameAlertTest {
             koejaksonKehittamistoimenpiteetRepository = koejaksonKehittamistoimenpiteetRepository,
             koejaksonLoppukeskusteluRepository = koejaksonLoppukeskusteluRepository,
             seurantajaksoRepository = seurantajaksoRepository,
-            entityManager = entityManager
+            entityManager = entityManager,
+            avatarValidator = avatarValidator
         )
 
         cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
