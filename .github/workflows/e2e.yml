@@ -53,6 +53,7 @@ jobs:
         env:
           SHARD_INDEX: ${{ matrix.shard }}
           SHARD_TOTAL: ${{ strategy.job-total }}
+          E2E_RESULTS_DIR: e2e/results/shard-${{ matrix.shard }}
         run: |
           specs="$(node e2e/scripts/split-specs.mjs "$SHARD_INDEX" "$SHARD_TOTAL")"
           printf 'specs=%s\n' "$specs" >> "$GITHUB_OUTPUT"
@@ -89,17 +90,28 @@ jobs:
           docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
 
       - name: Run Cypress e2e tests
+        id: cypress
         env:
           CYPRESS_SPECS: ${{ steps.select-specs.outputs.specs }}
+          E2E_RESULTS_DIR: /e2e/results/shard-${{ matrix.shard }}
         run: |
           docker run --rm \
             --network=host \
             --entrypoint /bin/sh \
             -e CYPRESS_SPECS \
+            -e E2E_RESULTS_DIR \
             -v "${{ github.workspace }}/e2e:/e2e" \
             -w /e2e \
             cypress/included:15.21.0 \
             -c 'npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080 --spec "$CYPRESS_SPECS"'
+
+      - name: Upload Cypress results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results-${{ matrix.shard }}
+          path: e2e/results/shard-${{ matrix.shard }}
+          if-no-files-found: warn
 
       - name: Upload Cypress videos
         if: always()
@@ -134,3 +146,37 @@ jobs:
       - name: Stop services
         if: always()
         run: docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml down -v
+
+  summary:
+    name: E2E combined report
+    needs: e2e
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download shard results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: e2e-results-*
+          path: e2e/shard-results
+
+      - name: Generate combined report
+        if: always()
+        env:
+          E2E_JOB_RESULT: ${{ needs.e2e.result }}
+        run: node e2e/scripts/summarize-results.mjs e2e/shard-results e2e/combined-report
+
+      - name: Upload combined report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-combined-report
+          path: e2e/combined-report

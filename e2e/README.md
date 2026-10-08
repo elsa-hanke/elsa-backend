@@ -64,6 +64,16 @@ Actions summary. The selected list is passed to the Cypress container through a
 step output and environment variable; the summary file is not mounted into Docker.
 This list does not indicate test results.
 
+Each shard uploads an `e2e-results-N` artifact with its assignment manifest,
+per-spec Cypress counts, and a completion marker. Results are saved after each
+spec, retaining partial counts if a later spec or the runner fails. The
+`E2E combined report` job runs after all shards, including failed shards, and
+publishes a table of spec and test totals (passing, failing, pending, skipped)
+in the run summary. It also uploads `e2e-combined-report` containing Markdown
+and JSON reports. Missing shards or specs are explicitly marked incomplete;
+the report job fails on incomplete results, failing tests, or failed shard jobs.
+The test total is measured at runtime and is not fixed at the original 108.
+
 ## Structure
 
 ```

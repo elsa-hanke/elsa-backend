@@ -1,4 +1,4 @@
-import { appendFileSync, readdirSync, readFileSync } from 'node:fs'
+import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
@@ -55,6 +55,14 @@ for (const spec of specs) {
 
 const selected = shards[shardIndex - 1]
 selected.specs.sort(comparePaths)
+if (process.env.E2E_RESULTS_DIR) {
+  mkdirSync(process.env.E2E_RESULTS_DIR, { recursive: true })
+  writeFileSync(path.join(process.env.E2E_RESULTS_DIR, 'manifest.json'), JSON.stringify({
+    shard: shardIndex,
+    totalShards: shardTotal,
+    specs: selected.specs.map((spec) => `cypress/e2e/${spec}`),
+  }, null, 2))
+}
 console.error(`E2E shard ${shardIndex}/${shardTotal}: ${selected.specs.length} specs, estimated ${selected.seconds}s`)
 console.error(selected.specs.join('\n'))
 if (process.env.GITHUB_STEP_SUMMARY) {
