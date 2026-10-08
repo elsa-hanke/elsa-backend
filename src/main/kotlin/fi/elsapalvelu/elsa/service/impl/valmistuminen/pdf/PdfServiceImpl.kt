@@ -17,7 +17,6 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.PdfPreparation
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
-import fi.elsapalvelu.elsa.service.PdfTextSanitizer
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfAssembler
 import fi.elsapalvelu.elsa.service.PdfHtmlText
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
@@ -175,8 +174,6 @@ class PdfServiceImpl(
     private fun sanitizeContent(input: String): String = PdfHtmlText.sanitize(input)
     override fun openAssembler(firstDocument: ByteArray): PdfAssembler =
         ItextPdfAssembler(firstDocument, pdfMetrics, smartMode)
-
-    private fun sanitizeContent(input: String): String = PdfTextSanitizer.sanitize(input)
 
     private fun isValidatedPdfTemplate(template: String): Boolean =
         template.startsWith("pdf/erikoistujantiedot/") ||
