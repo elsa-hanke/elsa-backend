@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -8,15 +9,25 @@ import java.time.LocalDate
 class PdfTextFieldValidator(
     private val pdfTextValidator: PdfTextValidator
 ) {
+
+    fun validateTyoskentelyjaksoPdfText(tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) = validate(
+        fields = listOf("tyoskentelypaikka" to tyoskentelyjaksoDTO.tyoskentelypaikka?.nimi),
+        pdfSource = "tyoskentelyjakso",
+        sourceId = tyoskentelyjaksoDTO.id,
+        sourceDate = tyoskentelyjaksoDTO.alkamispaiva
+    )
+
     fun validate(
         fields: Iterable<Pair<String, String?>>,
         pdfSource: String? = null,
         sourceId: Long? = null,
         sourceDate: LocalDate? = null,
         seurantajaksoId: Long? = null,
-        seurantajaksoStartDate: LocalDate? = null
+        seurantajaksoStartDate: LocalDate? = null,
+        htmlFields: Iterable<Pair<String, String?>> = emptyList()
     ) {
-        fields.forEach { (field, text) ->
+        val textFields = fields + htmlFields.map { (field, html) -> field to PdfHtmlText.text(html) }
+        textFields.forEach { (field, text) ->
             val sanitizedText = text?.let(PdfTextSanitizer::sanitize)
             val unsupportedCharacters = pdfTextValidator.findUnsupportedCharacters(sanitizedText)
             if (unsupportedCharacters.isNotEmpty()) {

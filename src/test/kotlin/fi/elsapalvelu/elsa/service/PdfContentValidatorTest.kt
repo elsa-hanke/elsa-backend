@@ -6,6 +6,8 @@ import org.apache.pdfbox.pdmodel.encryption.AccessPermission
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.io.ByteArrayOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -17,6 +19,14 @@ class PdfContentValidatorTest {
     @Test
     fun `accepts a readable PDF whose pages can be copied`() {
         assertThat(validator.isValid(validPdf())).isTrue
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [40, 128, 256])
+    fun `accepts a certificate with copying restrictions but no opening password`(keyLength: Int) {
+        val certificate = PdfTestData.certificate(openingPassword = "", keyLength = keyLength)
+
+        assertThat(validator.isValid(certificate)).isTrue
     }
 
     @Test

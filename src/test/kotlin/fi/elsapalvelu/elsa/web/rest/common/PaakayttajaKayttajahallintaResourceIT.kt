@@ -8,13 +8,11 @@ import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.perustiedot.ErikoisalaRepository
-import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.perustiedot.YliopistoDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
-import fi.elsapalvelu.elsa.service.mapper.perustiedot.ErikoisalaMapper
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
@@ -49,8 +47,6 @@ private const val TEKNINEN_PAAKAYTTAJA_ROLE_PATH = "tekninen-paakayttaja"
 class PaakayttajaKayttajahallintaResourceIT: ResourceIntegrationTestBase() {
 
     @Autowired private lateinit var erikoisalaRepository: ErikoisalaRepository
-    @Autowired private lateinit var kayttajaRepository: KayttajaRepository
-    @Autowired private lateinit var erikoisalaMapper: ErikoisalaMapper
 
     private lateinit var yliopisto: Yliopisto
 

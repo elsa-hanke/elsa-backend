@@ -1,6 +1,30 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.1...HEAD)
+
+- ELSAINSI-61 Työskentelyjakson poisto mahdollistaa toisen käyttäjän liitteiden irrottamisen ennen käyttöoikeustarkistusta [`#759`](https://github.com/elsa-hanke/elsa-backend/pull/759)(6 October 2026)
+- ELSAINSI-76 (Pessimistinen lukko hyväksyntätransaktion alussa) [`#760`](https://github.com/elsa-hanke/elsa-backend/pull/760)(4 October 2026)
+- ELSAINSI-76 PDF tiedostojen generointi optimoinnit (ItextPdfAssembler and ItextPdfAssemblerTest) [`#757`](https://github.com/elsa-hanke/elsa-backend/pull/757)(2 October 2026)
+- More pdf integration tests [`#758`](https://github.com/elsa-hanke/elsa-backend/pull/758)(2 October 2026)
+- Bump dompurify from 3.4.13 to 3.4.16 in /frontend [`#754`](https://github.com/elsa-hanke/elsa-backend/pull/754)(2 October 2026)
+- Bump axios from 1.18.0 to 1.20.0 in /frontend [`#753`](https://github.com/elsa-hanke/elsa-backend/pull/753)(2 October 2026)
+- ELSAINSI-76 PDF tiedostojen generointi optimoinnit (PR1) [`#751`](https://github.com/elsa-hanke/elsa-backend/pull/751)(2 October 2026)
+- gradle 9.7.1 -&gt; 9.8.0 [`#755`](https://github.com/elsa-hanke/elsa-backend/pull/755)(2 October 2026)
+- Add PDF content assertions and regression tests [`#752`](https://github.com/elsa-hanke/elsa-backend/pull/752)(2 October 2026)
+- Enable HelsinkiArkistointiExternalIntegrationTests [`#711`](https://github.com/elsa-hanke/elsa-backend/pull/711)(1 October 2026)
+- ELSAINSI-59 Käyttäjä voi lisätä ja poistaa asiakirjoja muiden käyttäjien työskentelyjaksoista [`#710`](https://github.com/elsa-hanke/elsa-backend/pull/710)(1 October 2026)
+- e2e testi: osaamisen arviointi [`#749`](https://github.com/elsa-hanke/elsa-backend/pull/749)(29 September 2026)
+- e2e testi: seurantajakson kouluttajan arviointi [`#745`](https://github.com/elsa-hanke/elsa-backend/pull/745)(29 September 2026)
+- e2e testi: koejakson virkailijan tarkistus [`#743`](https://github.com/elsa-hanke/elsa-backend/pull/743)(28 September 2026)
+- e2e testi: kehittämistoimenpiteiden hyvaksyntä [`#740`](https://github.com/elsa-hanke/elsa-backend/pull/740)(28 September 2026)
+
+## [v2.4.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...v2.4.1) - 7 October 2026
+
+- ELSA-1251 Erikoistuvan tili ei avaudu [`#767`](https://github.com/elsa-hanke/elsa-backend/pull/767)(7 October 2026)
+- ELSA-1245 Osasuoritusten siirtyminen Pepistä ELSAan [`#764`](https://github.com/elsa-hanke/elsa-backend/pull/764)(7 October 2026)
+- cypress e2e testit erikoismerkit [`#763`](https://github.com/elsa-hanke/elsa-backend/pull/763)(7 October 2026)
+- fix: Tila ei ohjaa käyttöoikeutta, joten tuntematon tila ei saa estää päättymispäivän, katseluajan ja asetuksen synkronointia (#762) [`#762`](https://github.com/elsa-hanke/elsa-backend/pull/762)(6 October 2026)
+- Tiedoston lataamisen tarkistuksen parannukset  [`#761`](https://github.com/elsa-hanke/elsa-backend/pull/761)(6 October 2026)
 
 ## [v2.4.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.4...v2.4.0) - 22 September 2026
 

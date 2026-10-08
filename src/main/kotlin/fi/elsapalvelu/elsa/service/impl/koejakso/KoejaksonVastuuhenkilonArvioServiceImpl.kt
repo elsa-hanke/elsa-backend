@@ -88,7 +88,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val keskeytysaikaService: KeskeytysaikaService,
     private val pdfService: PdfService,
     private val asiakirjaMapper: AsiakirjaMapper,
-    private val applicationProperties: ApplicationProperties
+    private val applicationProperties: ApplicationProperties,
+    private val vastuuhenkilonArvioPdfTextValidator: VastuuhenkilonArvioPdfTextValidator
 ) : KoejaksonVastuuhenkilonArvioService {
 
     override fun create(
@@ -97,6 +98,9 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         asiakirjat: Set<AsiakirjaDTO>?
     ): KoejaksonVastuuhenkilonArvioDTO? {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
+            vastuuhenkilonArvioPdfTextValidator.validateLuonti(
+                koejaksonVastuuhenkilonArvioDTO, asiakirjat.orEmpty().map { asiakirja -> asiakirja.nimi }
+            )
             var vastuuhenkilonArvio =
                 koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
             vastuuhenkilonArvio.opintooikeus = it
@@ -164,6 +168,9 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         if (kirjautunutErikoistuvaLaakari != null
             && kirjautunutErikoistuvaLaakari == vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari
         ) {
+            vastuuhenkilonArvioPdfTextValidator.validateErikoistujanKentat(
+                koejaksonVastuuhenkilonArvioDTO, asiakirjat.orEmpty().map { it.nimi }
+            )
             handleErikoistuja(
                 vastuuhenkilonArvio,
                 koejaksonVastuuhenkilonArvioDTO.erikoistuvanSahkoposti,
@@ -172,6 +179,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 deletedAsiakirjaIds
             )
         } else if (vastuuhenkilo?.user?.id == userId) {
+            vastuuhenkilonArvioPdfTextValidator.validateVastuuhenkilonKentat(koejaksonVastuuhenkilonArvioDTO)
             handleVastuuhenkilo(
                 vastuuhenkilonArvio,
                 updatedVastuuhenkilonArvio,
@@ -183,6 +191,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
                 k.yliopistot.firstOrNull()?.let { yliopisto ->
                     if (yliopisto.id == vastuuhenkilonArvio.opintooikeus?.yliopisto?.id) {
+                        vastuuhenkilonArvioPdfTextValidator.validateVirkailijanKentat(koejaksonVastuuhenkilonArvioDTO)
                         handleVirkailija(vastuuhenkilonArvio, updatedVastuuhenkilonArvio, k)
                     }
                 }
