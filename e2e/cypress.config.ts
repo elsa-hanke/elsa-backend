@@ -2,6 +2,7 @@ import { defineConfig } from 'cypress'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { registerDbTasks } from './cypress/plugins/db-tasks'
+import { registerTokenTasks } from './cypress/plugins/token-tasks'
 
 export default defineConfig({
   e2e: {
@@ -10,6 +11,7 @@ export default defineConfig({
     supportFile: 'cypress/support/e2e.ts',
     setupNodeEvents(on) {
       registerDbTasks(on)
+      registerTokenTasks(on)
       // Persist each completed spec so interrupted shards retain partial results.
       const resultsDirectory = process.env.E2E_RESULTS_DIR
       if (resultsDirectory) {

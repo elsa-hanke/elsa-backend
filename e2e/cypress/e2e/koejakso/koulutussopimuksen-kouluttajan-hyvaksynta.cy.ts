@@ -40,7 +40,7 @@ describe('Koulutussopimuksen hyväksyminen kouluttajan käyttöliittymässä', (
     cy.task('db:cleanupKoejakso', { erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL })
     cy.submitKoulutussopimusViaUi(KOULUTTAJA_NIMI).then((id) => {
       sopimusId = id
-      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+      cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
 
       // Spy on real requests; approval responses are not stubbed.
       const hyvaksyntapyynto = cy.spy().as('hyvaksyntapyynto')
@@ -53,7 +53,7 @@ describe('Koulutussopimuksen hyväksyminen kouluttajan käyttöliittymässä', (
         expect(response?.statusCode).to.eq(200)
         expect(response?.body.id).to.eq(id)
         expect(response?.body.kouluttajat).to.have.length(1)
-        expect(response?.body.kouluttajat[0].kayttajaId).to.eq(Cypress.env('kouluttajaId'))
+        expect(response?.body.kouluttajat[0].kayttajaId).to.eq(Cypress.expose('kouluttajaId'))
         expect(response?.body.kouluttajat[0].sopimusHyvaksytty).to.eq(false)
       })
       cy.get(KOULUTTAJAN_OSIO).contains(KOULUTTAJA_NIMI).should('be.visible')
@@ -120,7 +120,7 @@ describe('Koulutussopimuksen hyväksyminen kouluttajan käyttöliittymässä', (
     cy.wait('@hyvaksyKoulutussopimus').then(({ request, response }) => {
       expect(request.body.id).to.eq(sopimusId)
       expect(request.body.kouluttajat).to.have.length(1)
-      expect(request.body.kouluttajat[0].kayttajaId).to.eq(Cypress.env('kouluttajaId'))
+      expect(request.body.kouluttajat[0].kayttajaId).to.eq(Cypress.expose('kouluttajaId'))
       KOULUTTAJAN_TIEDOT.forEach(({ property, value }) => {
         expect(request.body.kouluttajat[0][property], property).to.eq(value)
       })
@@ -154,7 +154,7 @@ describe('Koulutussopimuksen hyväksyminen kouluttajan käyttöliittymässä', (
     cy.get(LOMAKE).contains('button', 'Palauta muokattavaksi').should('not.exist')
 
     // The responsible person can now see and process the trainer's decision.
-    cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+    cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
     cy.intercept('GET', `**/vastuuhenkilo/koejakso/koulutussopimus/${sopimusId}`).as(
       'haeVastuuhenkilonKoulutussopimus'
     )

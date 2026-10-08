@@ -89,7 +89,7 @@ describe('Kehittämistoimenpiteiden arviointi kouluttajan ja lähiesihenkilön k
       korjausehdotus: null
     })
     expect(tallennettu.lahikouluttaja).to.include({
-      id: Cypress.env('kouluttajaId'),
+      id: Cypress.expose('kouluttajaId'),
       sopimusHyvaksytty: kouluttajanKuittausaika !== null,
       kuittausaika: kouluttajanKuittausaika
     })
@@ -124,7 +124,7 @@ describe('Kehittämistoimenpiteiden arviointi kouluttajan ja lähiesihenkilön k
     }).then((result) => {
       const kayttajaId = Number(result.kayttajaId)
       expect(Number.isSafeInteger(kayttajaId), 'supervisor database ID').to.eq(true)
-      expect(kayttajaId).to.be.greaterThan(0).and.not.eq(Cypress.env('kouluttajaId'))
+      expect(kayttajaId).to.be.greaterThan(0).and.not.eq(Cypress.expose('kouluttajaId'))
       expect(result.token).to.be.a('string').and.not.be.empty
       esihenkiloId = kayttajaId
       esihenkiloToken = result.token
@@ -152,14 +152,14 @@ describe('Kehittämistoimenpiteiden arviointi kouluttajan ja lähiesihenkilön k
             erikoistuvanErikoisala: sopimus.erikoistuvanErikoisala,
             erikoistuvanYliopisto: sopimus.erikoistuvanYliopisto,
             erikoistuvanOpiskelijatunnus: sopimus.erikoistuvanOpiskelijatunnus,
-            lahikouluttaja: { id: Cypress.env('kouluttajaId'), sopimusHyvaksytty: false },
+            lahikouluttaja: { id: Cypress.expose('kouluttajaId'), sopimusHyvaksytty: false },
             lahiesimies: { id: esihenkiloId, sopimusHyvaksytty: false }
           }
         })
       })
       .then(({ status, body }) => {
         expect(status).to.eq(201)
-        cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+        cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
         return cy.apiRequest({
           method: 'PUT',
           url: VALIARVIOINTI_API,
@@ -205,7 +205,7 @@ describe('Kehittämistoimenpiteiden arviointi kouluttajan ja lähiesihenkilön k
             erikoistuvanOpiskelijatunnus: arvio.erikoistuvanOpiskelijatunnus,
             kehittamistoimenpiteetRiittavat: null,
             korjausehdotus: null,
-            lahikouluttaja: { id: Cypress.env('kouluttajaId'), sopimusHyvaksytty: false },
+            lahikouluttaja: { id: Cypress.expose('kouluttajaId'), sopimusHyvaksytty: false },
             lahiesimies: { id: esihenkiloId, sopimusHyvaksytty: false }
           }
         })
@@ -240,7 +240,7 @@ describe('Kehittämistoimenpiteiden arviointi kouluttajan ja lähiesihenkilön k
       let esihenkilonKuittausaika: string
       const arvioTeksti = riittavat ? RIITTAVAT_TEKSTI : EI_RIITTAVAT_TEKSTI
 
-      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+      cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
       const hyvaksyntapyynto = cy.spy().as('hyvaksyntapyynto')
       // Both decisions below are real browser requests; neither approval response is stubbed.
       cy.intercept('PUT', `**${API}`, (request) => {

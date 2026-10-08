@@ -18,7 +18,7 @@ import {
 
 /** Virkailija has checked the request, so it is waiting for the vastuuhenkilö's approval. */
 function checkAsVirkailijaAndLoginAsVastuuhenkilo(valmistumispyyntoId: number) {
-  cy.loginAsVirkailija(Cypress.env('virkailijaToken'))
+  cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
   cy.apiRequest({
     method: 'GET',
     url: `/api/virkailija/valmistumispyynnon-tarkistus/${valmistumispyyntoId}`,
@@ -41,7 +41,7 @@ function checkAsVirkailijaAndLoginAsVastuuhenkilo(valmistumispyyntoId: number) {
     expect(body.valmistumispyynto.virkailijanKuittausaika).to.not.be.null
   })
 
-  cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+  cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
   cy.apiRequest({
     method: 'GET',
     url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
@@ -62,7 +62,7 @@ describe('YEK-valmistumispyynnön hyväksyntä', () => {
 
     submitGraduationRequest('POST', 'postYekValmistumispyynto').then(
       (valmistumispyyntoId) => {
-        cy.loginAsVirkailija(Cypress.env('virkailijaToken'))
+        cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
         cy.apiRequest({
           method: 'GET',
           url: `/api/virkailija/valmistumispyynnon-tarkistus/${valmistumispyyntoId}`,
@@ -85,7 +85,7 @@ describe('YEK-valmistumispyynnön hyväksyntä', () => {
           expect(body.valmistumispyynto.virkailijanKuittausaika).to.not.be.null
         })
 
-        cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+        cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
         cy.apiRequest({
           method: 'GET',
           url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
