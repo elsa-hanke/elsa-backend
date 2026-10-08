@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -137,9 +138,13 @@ class ValmistumispyyntoApplicationServiceTest {
             byteArrayOf(1)
         )
         val request = UusiValmistumispyyntoDTO(laillistamispaiva = LocalDate.of(2024, 1, 1))
-        whenever(fileValidationService.validate(listOf(certificate))).thenReturn(false)
+        doThrow(
+            BadRequestAlertException(
+                "Tiedostomuoto ei ole sallittu.", "asiakirja", "dataillegal.tiedostotyyppi-ei-ole-sallittu"
+            )
+        ).whenever(fileValidationService).validate(listOf(certificate))
 
-        assertErrorKey("dataillegal.tiedosto-ei-ole-kelvollinen") {
+        assertErrorKey("dataillegal.tiedostotyyppi-ei-ole-sallittu", "asiakirja") {
             applicationService.create(USER_ID, OPINTOOIKEUS_ID, request, certificate)
         }
 
@@ -189,7 +194,6 @@ class ValmistumispyyntoApplicationServiceTest {
         )
         val request = UusiValmistumispyyntoDTO(laillistamispaiva = LocalDate.of(2024, 1, 1))
         val expected = ValmistumispyyntoDTO(id = 1L)
-        whenever(fileValidationService.validate(listOf(certificate))).thenReturn(true)
         whenever(valmistumispyyntoService.update(OPINTOOIKEUS_ID, request)).thenReturn(expected)
 
         val result = applicationService.update(USER_ID, OPINTOOIKEUS_ID, request, certificate)
@@ -206,10 +210,14 @@ class ValmistumispyyntoApplicationServiceTest {
         verify(valmistumispyyntoService).update(OPINTOOIKEUS_ID, request)
     }
 
-    private fun assertErrorKey(expectedErrorKey: String, action: () -> Unit) {
+    private fun assertErrorKey(
+        expectedErrorKey: String,
+        expectedEntityName: String = VALMISTUMISPYYNTO_ENTITY_NAME,
+        action: () -> Unit
+    ) {
         val exception = assertThrows<BadRequestAlertException>(action)
 
-        assertThat(exception.entityName).isEqualTo(VALMISTUMISPYYNTO_ENTITY_NAME)
+        assertThat(exception.entityName).isEqualTo(expectedEntityName)
         assertThat(exception.errorKey).isEqualTo(expectedErrorKey)
     }
 

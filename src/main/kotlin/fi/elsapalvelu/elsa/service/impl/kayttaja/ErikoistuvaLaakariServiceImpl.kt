@@ -72,7 +72,8 @@ class ErikoistuvaLaakariServiceImpl(
     private val verificationTokenService: VerificationTokenService,
     private val mailService: MailService,
     private val asetusRepository: AsetusRepository,
-    private val opintoopasRepository: OpintoopasRepository
+    private val opintoopasRepository: OpintoopasRepository,
+    private val fileValidationService: FileValidationService
 ) : ErikoistuvaLaakariService {
 
     override fun save(
@@ -273,6 +274,11 @@ class ErikoistuvaLaakariServiceImpl(
         laillistamispaivanLiitetiedostonNimi: String?,
         laillistamispaivanLiitetiedostonTyyppi: String?
     ) {
+        // Every certificate upload route reaches this method. Reject a new upload
+        // before changing either the date or the existing certificate.
+        laillistamispaivanLiitetiedosto?.let {
+            fileValidationService.validate(it, laillistamispaivanLiitetiedostonNimi, laillistamispaivanLiitetiedostonTyyppi)
+        }
         erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)?.let {
             var updated = false
 

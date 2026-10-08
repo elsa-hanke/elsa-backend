@@ -23,9 +23,11 @@ class PdfTextFieldValidator(
         sourceId: Long? = null,
         sourceDate: LocalDate? = null,
         seurantajaksoId: Long? = null,
-        seurantajaksoStartDate: LocalDate? = null
+        seurantajaksoStartDate: LocalDate? = null,
+        htmlFields: Iterable<Pair<String, String?>> = emptyList()
     ) {
-        fields.forEach { (field, text) ->
+        val textFields = fields + htmlFields.map { (field, html) -> field to PdfHtmlText.text(html) }
+        textFields.forEach { (field, text) ->
             val sanitizedText = text?.let(PdfTextSanitizer::sanitize)
             val unsupportedCharacters = pdfTextValidator.findUnsupportedCharacters(sanitizedText)
             if (unsupportedCharacters.isNotEmpty()) {

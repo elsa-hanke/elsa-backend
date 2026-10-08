@@ -83,6 +83,17 @@ class OpintosuorituksetPersistenceServiceImpl(
             )
                 ?.let { opintosuoritus ->
                     updateOpintosuoritusDetailsIfChanged(opintosuoritus, opintosuoritusDTO)
+                    if (opintosuoritukset.replaceOsakokonaisuudet) {
+                        opintosuoritusDTO.osakokonaisuudet?.let { incoming ->
+                            val incomingCodes = incoming.map { it.kurssikoodi }.toSet()
+                            val removed = opintosuoritus.osakokonaisuudet?.removeAll {
+                                it.kurssikoodi !in incomingCodes
+                            } == true
+                            if (removed) {
+                                opintosuoritus.muokkausaika = Instant.now()
+                            }
+                        }
+                    }
                     opintosuoritusDTO.osakokonaisuudet?.forEach { osakokonaisuusDTO ->
                         opintosuoritus.osakokonaisuudet?.find { it.kurssikoodi == osakokonaisuusDTO.kurssikoodi }?.let {
                             updateOpintosuoritusOsakokonaisuusDetailsIfChanged(it, osakokonaisuusDTO)
