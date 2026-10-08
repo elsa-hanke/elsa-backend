@@ -1,34 +1,23 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
-import fi.elsapalvelu.elsa.domain.tyoskentely.*
-import fi.elsapalvelu.elsa.domain.arviointi.*
-import fi.elsapalvelu.elsa.domain.suoritteet.*
-import fi.elsapalvelu.elsa.domain.koulutus.*
-import fi.elsapalvelu.elsa.domain.seuranta.*
-import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.repository.koejakso.*
 import fi.elsapalvelu.elsa.repository.tyoskentely.*
 import fi.elsapalvelu.elsa.repository.arviointi.*
 import fi.elsapalvelu.elsa.repository.suoritteet.*
 import fi.elsapalvelu.elsa.repository.koulutus.*
 import fi.elsapalvelu.elsa.repository.seuranta.*
-import fi.elsapalvelu.elsa.repository.valmistuminen.*
 import fi.elsapalvelu.elsa.repository.kayttaja.*
 import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
-import fi.elsapalvelu.elsa.service.mapper.tyoskentely.TyoskentelyjaksoMapper
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -63,22 +52,10 @@ import java.time.format.DateTimeFormatter
 class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
 
     @Autowired
-    private lateinit var kayttajaYliopistoErikoisalaRepository: KayttajaYliopistoErikoisalaRepository
-
-    @Autowired
     private lateinit var yliopistoRepository: YliopistoRepository
 
     @Autowired
     private lateinit var erikoisalaRepository: ErikoisalaRepository
-
-    @Autowired
-    private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
-
-    @Autowired
-    private lateinit var tyoskentelyjaksoRepository: TyoskentelyjaksoRepository
-
-    @Autowired
-    private lateinit var suoritusarviointiRepository: SuoritusarviointiRepository
 
     @Autowired
     private lateinit var arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository
@@ -109,17 +86,6 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
 
     @Autowired
     private lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
-
-    @Autowired
-    private lateinit var kayttajaRepository: KayttajaRepository
-
-    @Autowired
-    private lateinit var tyoskentelyjaksoMapper: TyoskentelyjaksoMapper
-
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
-
-    private lateinit var user: User
 
     @BeforeEach
     fun setup() {

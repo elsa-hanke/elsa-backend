@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
 internal val VALMISTUMISPYYNNON_VAATIVUUSTASOT = mapOf(
     1 to "ERITTAIN_HELPPO",

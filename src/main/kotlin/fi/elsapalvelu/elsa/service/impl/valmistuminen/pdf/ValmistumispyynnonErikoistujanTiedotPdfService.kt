@@ -1,34 +1,28 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
-import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
-import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
-import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.koulutus.KoulutussuunnitelmaRepository
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
-import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.PdfContentValidator
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonAsiakirjanTallennusService
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoService
 import fi.elsapalvelu.elsa.service.seuranta.SeurantajaksoPdfTextValidator
+import fi.elsapalvelu.elsa.service.valmistuminen.PdfAssembler
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import org.slf4j.LoggerFactory
 import org.thymeleaf.context.Context
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Service
 class ValmistumispyynnonErikoistujanTiedotPdfService(
     private val pdfService: PdfService,
-    private val asiakirjaRepository: AsiakirjaRepository,
-    private val valmistumispyyntoRepository: ValmistumispyyntoRepository,
+    private val asiakirjanTallennusService: ValmistumispyynnonAsiakirjanTallennusService,
     private val koulutussuunnitelmaRepository: KoulutussuunnitelmaRepository,
     private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository,
     private val seurantajaksoService: SeurantajaksoService,
@@ -37,64 +31,78 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
     private val pdfContentValidator: PdfContentValidator,
     private val seurantajaksoPdfTextValidator: SeurantajaksoPdfTextValidator
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     fun luo(valmistumispyynto: Valmistumispyynto) {
         val opintooikeus = valmistumispyynto.opintooikeus ?: return
         val opintooikeusId = opintooikeus.id.required()
-        val outputStream = ByteArrayOutputStream()
+        val aloitettu = System.currentTimeMillis()
 
-        lisaaKoulutussuunnitelma(opintooikeusId, outputStream)
-        arviointiPdfService.lisaa(opintooikeusId, valmistumispyynto, outputStream)
-        suoritemerkintaPdfService.lisaa(opintooikeusId, valmistumispyynto, outputStream)
-        lisaaPaivakirjamerkinnat(opintooikeusId, outputStream)
-        lisaaSeurantajaksot(opintooikeusId, valmistumispyynto, outputStream)
-
-        val aikaleima =
-            LocalDate.now().format(DateTimeFormatter.ofPattern(PAIVAMAARAFORMAATTI))
-        val asiakirja = asiakirjaRepository.save(
-            Asiakirja(
-                opintooikeus = opintooikeus,
-                nimi = "koulutussuunnitelma_ja_osaaminen_${aikaleima}.pdf",
-                tyyppi = MediaType.APPLICATION_PDF_VALUE,
-                lisattypvm = LocalDateTime.now(),
-                asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
+        val data = luoKooste(opintooikeusId, valmistumispyynto).use { assembler ->
+            arviointiPdfService.lisaa(opintooikeusId, valmistumispyynto, assembler)
+            suoritemerkintaPdfService.lisaa(opintooikeusId, valmistumispyynto, assembler)
+            lisaaPaivakirjamerkinnat(opintooikeusId, assembler)
+            lisaaSeurantajaksot(opintooikeusId, valmistumispyynto, assembler)
+            log.info(
+                "Erikoistujan tiedot koottu [opintooikeusId=$opintooikeusId, " +
+                    "sivuja=${assembler.pages}, kesto=${System.currentTimeMillis() - aloitettu} ms]"
             )
+            val kirjoituksenAlku = System.currentTimeMillis()
+            val tavut = assembler.finish()
+            log.info(
+                "Erikoistujan tiedot kirjoitettu [opintooikeusId=$opintooikeusId, " +
+                    "koko=${tavut.size / MIB} MiB, " +
+                    "kesto=${System.currentTimeMillis() - kirjoituksenAlku} ms]"
+            )
+            tavut
+        }
+
+        val tallennuksenAlku = System.currentTimeMillis()
+        asiakirjanTallennusService.tallenna(
+            valmistumispyynto,
+            "koulutussuunnitelma_ja_osaaminen",
+            data
+        ) { pyynto, tallennettu -> pyynto.erikoistujanTiedotAsiakirja = tallennettu }
+        log.info(
+            "Erikoistujan tiedot tallennettu [opintooikeusId=$opintooikeusId, " +
+                "kesto=${System.currentTimeMillis() - tallennuksenAlku} ms]"
         )
-        valmistumispyynto.erikoistujanTiedotAsiakirja = asiakirja
-        valmistumispyyntoRepository.save(valmistumispyynto)
     }
 
-    private fun lisaaKoulutussuunnitelma(
+    private fun luoKooste(
         opintooikeusId: Long,
-        outputStream: ByteArrayOutputStream
-    ) {
+        @Suppress("UNUSED_PARAMETER") valmistumispyynto: Valmistumispyynto
+    ): PdfAssembler {
         val koulutussuunnitelma =
             koulutussuunnitelmaRepository.findOneByOpintooikeusId(opintooikeusId)
+        val koulutussuunnitelmaStream = ByteArrayOutputStream()
         pdfService.luoPdf(
             "pdf/erikoistujantiedot/koulutussuunnitelma.html",
             Context(SUOMEN_LOCALE).apply {
                 setVariable("koulutussuunnitelma", koulutussuunnitelma)
             },
-            outputStream
+            koulutussuunnitelmaStream
         )
+        val assembler = pdfService.openAssembler(koulutussuunnitelmaStream.toByteArray())
 
-        val motivaatiokirje = koulutussuunnitelma?.motivaatiokirjeAsiakirja ?: return
+        val motivaatiokirje = koulutussuunnitelma?.motivaatiokirjeAsiakirja ?: return assembler
         val data = motivaatiokirje.asiakirjaData?.data
         if (
             motivaatiokirje.tyyppi != MediaType.APPLICATION_PDF_VALUE ||
             data == null ||
             !pdfContentValidator.isValid(data)
         ) {
+            assembler.close()
             throw InvalidPdfAttachmentException(
                 attachmentId = motivaatiokirje.id,
                 attachmentName = motivaatiokirje.nimi,
                 source = InvalidPdfAttachmentSource.MOTIVAATIOKIRJE
             )
         }
-        val existingPdf = ByteArrayInputStream(outputStream.toByteArray())
-        outputStream.reset()
         try {
-            pdfService.yhdistaPdf(existingPdf, ByteArrayInputStream(data), outputStream)
+            assembler.add(data)
         } catch (e: Exception) {
+            assembler.close()
             throw InvalidPdfAttachmentException(
                 attachmentId = motivaatiokirje.id,
                 attachmentName = motivaatiokirje.nimi,
@@ -102,11 +110,12 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
                 cause = e
             )
         }
+        return assembler
     }
 
     private fun lisaaPaivakirjamerkinnat(
         opintooikeusId: Long,
-        outputStream: ByteArrayOutputStream
+        assembler: PdfAssembler
     ) {
         val paivakirjamerkinnat =
             paivakirjamerkintaRepository.findAllByOpintooikeusId(opintooikeusId)
@@ -118,13 +127,13 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
             },
             paivakirjamerkinnatStream
         )
-        lisaaPdf(paivakirjamerkinnatStream, outputStream)
+        assembler.add(paivakirjamerkinnatStream)
     }
 
     private fun lisaaSeurantajaksot(
         opintooikeusId: Long,
         valmistumispyynto: Valmistumispyynto,
-        outputStream: ByteArrayOutputStream
+        assembler: PdfAssembler
     ) {
         val arviointiasteikko = valmistumispyynto.opintooikeus?.opintoopas?.arviointiasteikko
         val arviointiasteikonTasot = arviointiasteikko?.tasot?.associateBy { it.taso }
@@ -147,22 +156,12 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
                 },
                 seurantajaksoStream
             )
-            lisaaPdf(seurantajaksoStream, outputStream)
+            assembler.add(seurantajaksoStream)
         }
     }
 
-    private fun lisaaPdf(
-        newDocument: ByteArrayOutputStream,
-        outputStream: ByteArrayOutputStream
-    ) {
-        val existingPdf = ByteArrayInputStream(outputStream.toByteArray())
-        val newPdf = ByteArrayInputStream(newDocument.toByteArray())
-        outputStream.reset()
-        pdfService.yhdistaPdf(existingPdf, newPdf, outputStream)
-    }
-
     private companion object {
-        const val PAIVAMAARAFORMAATTI = "yyyyMMdd"
+        const val MIB = 1024 * 1024
         val SUOMEN_LOCALE: Locale = Locale.forLanguageTag("fi")
     }
 }

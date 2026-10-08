@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
@@ -6,7 +6,9 @@ import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.PdfContentValidator
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonArviointitietoService
 import fi.elsapalvelu.elsa.service.mapper.arviointi.SuoritusarviointiMapper
+import fi.elsapalvelu.elsa.service.valmistuminen.PdfAssembler
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource
@@ -14,7 +16,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.util.Locale
@@ -32,7 +33,7 @@ class ValmistumispyynnonArviointiPdfService(
     fun lisaa(
         opintooikeusId: Long,
         valmistumispyynto: Valmistumispyynto,
-        outputStream: ByteArrayOutputStream
+        assembler: PdfAssembler
     ) {
         val arviointiasteikko = valmistumispyynto.opintooikeus?.opintoopas?.arviointiasteikko
         val arviointiasteikonTasot = arviointiasteikko?.tasot?.associateBy { it.taso }
@@ -50,11 +51,13 @@ class ValmistumispyynnonArviointiPdfService(
             },
             yhteenvetoStream
         )
-        lisaaPdf(yhteenvetoStream, outputStream)
+        assembler.add(yhteenvetoStream)
 
-        suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
+        val arvioinnit = suoritusarviointiRepository
+            .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId)
             .sortedWith(arviointiComparator())
-            .forEach { arviointi ->
+        val aloitettu = System.currentTimeMillis()
+        arvioinnit.forEach { arviointi ->
                 val arviointiStream = ByteArrayOutputStream()
                 pdfService.luoPdf(
                     "pdf/erikoistujantiedot/arviointi.html",
@@ -65,23 +68,29 @@ class ValmistumispyynnonArviointiPdfService(
                     },
                     arviointiStream
                 )
-                lisaaPdf(arviointiStream, outputStream)
+                assembler.add(arviointiStream)
 
                 yhdistaPdfAsiakirjat(
                     arviointi.arviointiAsiakirjat,
-                    outputStream,
+                    assembler,
                     "Arviointiasiakirja",
                     InvalidPdfAttachmentSource.ARVIOINTI,
                     arviointi.tapahtumanAjankohta
                 )
                 yhdistaPdfAsiakirjat(
                     arviointi.itsearviointiAsiakirjat,
-                    outputStream,
+                    assembler,
                     "Itsearviointiasiakirja",
                     InvalidPdfAttachmentSource.ITSEARVIOINTI,
                     arviointi.tapahtumanAjankohta
                 )
             }
+        if (arvioinnit.isNotEmpty()) {
+            log.info(
+                "Arvioinnit lisatty PDF-koosteeseen [maara=${arvioinnit.size}, " +
+                    "kesto=${System.currentTimeMillis() - aloitettu} ms]"
+            )
+        }
     }
 
     private fun arviointiComparator() = compareBy<Suoritusarviointi>(
@@ -97,19 +106,9 @@ class ValmistumispyynnonArviointiPdfService(
         }
     ).thenByDescending { it.tapahtumanAjankohta }
 
-    private fun lisaaPdf(
-        newDocument: ByteArrayOutputStream,
-        outputStream: ByteArrayOutputStream
-    ) {
-        val existingPdf = ByteArrayInputStream(outputStream.toByteArray())
-        val newPdf = ByteArrayInputStream(newDocument.toByteArray())
-        outputStream.reset()
-        pdfService.yhdistaPdf(existingPdf, newPdf, outputStream)
-    }
-
     private fun yhdistaPdfAsiakirjat(
         asiakirjat: Collection<Asiakirja>,
-        outputStream: ByteArrayOutputStream,
+        assembler: PdfAssembler,
         label: String,
         source: InvalidPdfAttachmentSource,
         attachmentDate: LocalDate?
@@ -123,7 +122,7 @@ class ValmistumispyynnonArviointiPdfService(
                 return@forEach
             }
             val data = asiakirja.asiakirjaData?.data
-            if (!pdfContentValidator.isValid(data)) {
+            if (data == null || !pdfContentValidator.isValid(data)) {
                 throw InvalidPdfAttachmentException(
                     attachmentId = asiakirja.id,
                     attachmentName = asiakirja.nimi,
@@ -131,10 +130,8 @@ class ValmistumispyynnonArviointiPdfService(
                     attachmentDate = attachmentDate
                 )
             }
-            val existingPdf = ByteArrayInputStream(outputStream.toByteArray())
-            outputStream.reset()
             try {
-                pdfService.yhdistaPdf(existingPdf, ByteArrayInputStream(data), outputStream)
+                assembler.add(data)
             } catch (e: Exception) {
                 throw InvalidPdfAttachmentException(
                     attachmentId = asiakirja.id,

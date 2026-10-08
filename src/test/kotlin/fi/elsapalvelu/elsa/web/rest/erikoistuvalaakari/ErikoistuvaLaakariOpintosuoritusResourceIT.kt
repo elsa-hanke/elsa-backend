@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
-import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
@@ -24,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional
 class ErikoistuvaLaakariOpintosuoritusResourceIT: ResourceIntegrationTestBase() {
 
     private lateinit var opintosuoritus: Opintosuoritus
-    private lateinit var user: User
 
     @Test
     @Transactional
