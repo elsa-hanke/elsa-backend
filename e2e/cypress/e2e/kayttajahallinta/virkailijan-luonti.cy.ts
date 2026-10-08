@@ -3,7 +3,7 @@ const UUSI_VIRKAILIJA_EMAIL = 'e2e-uusi-virkailija@test.elsa'
 describe('Virkailijan luonti', () => {
   before(() => {
     cy.prepareVirkailijaE2e({ cleanupEmails: [UUSI_VIRKAILIJA_EMAIL] })
-    cy.then(() => cy.loginAsVirkailija(Cypress.env('virkailijaToken')))
+    cy.then(() => cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined)))
   })
 
   after(() => {

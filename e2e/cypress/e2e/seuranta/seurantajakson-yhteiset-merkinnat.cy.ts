@@ -164,13 +164,13 @@ describe('Erikoistuvan seurantakeskustelun yhteiset merkinnät käyttöliittymä
 
   beforeEach(() => {
     cy.loginAsErikoistuva()
-    cy.createSeurantajaksoViaApi({ kouluttajaId: Cypress.env('kouluttajaId') }).then((body) => {
+    cy.createSeurantajaksoViaApi({ kouluttajaId: Cypress.expose('kouluttajaId') }).then((body) => {
       expect(body.id).to.be.a('number')
-      expect(body.kouluttaja.id).to.eq(Cypress.env('kouluttajaId'))
+      expect(body.kouluttaja.id).to.eq(Cypress.expose('kouluttajaId'))
       seurantajakso = body
     })
     // Initial assessment is setup; only the trainee's shared-note submission is under test.
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
     cy.then(() => cy.apiRequest({ method: 'GET', url: `${KOULUTTAJAN_API}/${seurantajakso.id}` }))
       .then(({ status, body }) => {
         expect(status).to.eq(200)
@@ -300,7 +300,7 @@ describe('Erikoistuvan seurantakeskustelun yhteiset merkinnät käyttöliittymä
         cy.get(SIVU).contains('a', 'Muokkaa tietoja').should('not.exist')
         cy.get(SIVU).contains('button', 'Tallenna ja lähetä').should('not.exist')
 
-        cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+        cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
         avaaJakso('kouluttaja', 'kouluttajanMerkinnat').then((tallennettu) => {
           tarkistaTallennetutMerkinnat(tallennettu, keskustelu?.api ?? null)
           expect(tallennettu.tila).to.eq('ODOTTAA_HYVAKSYNTAA')

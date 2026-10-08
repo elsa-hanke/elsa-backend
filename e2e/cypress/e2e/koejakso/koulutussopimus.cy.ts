@@ -121,7 +121,7 @@ describe('Koulutussopimus', () => {
     cy.wait('@koulutussopimusPost').then(({ response }) => {
       expect(response?.statusCode).to.eq(201)
       expect(response?.body?.id).to.be.a('number')
-      Cypress.env('koulutussopimusId', response?.body?.id)
+      Cypress.expose('koulutussopimusId', response?.body?.id)
     })
     cy.wait('@koejaksoAfterSubmit')
 
@@ -135,11 +135,11 @@ describe('Koulutussopimus', () => {
     cy.contains(`${KOULUTTAJA_ETUNIMI} ${KOULUTTAJA_SUKUNIMI}`).should('be.visible')
 
     cy.then(() => {
-      const sopimusId = Cypress.env('koulutussopimusId')
+      const sopimusId = Cypress.expose('koulutussopimusId')
 
       // -- Käyttötapaus 7: Kouluttaja hyväksyy koulutussopimuksen --
       // 1. Kouluttaja kirjautuu ELSA-palveluun verification-tokenin kautta
-      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+      cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
 
       // 2. Kouluttaja hakee koulutussopimuksen tiedot
       cy.apiRequest({
@@ -175,7 +175,7 @@ describe('Koulutussopimus', () => {
 
       // -- Käyttötapaus 8: Vastuuhenkilö hyväksyy koulutussopimuksen --
       // 1. Vastuuhenkilö kirjautuu ELSA-palveluun verification-tokenin kautta
-      cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+      cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
 
       // 2. Vastuuhenkilö hakee koulutussopimuksen tiedot
       cy.apiRequest({

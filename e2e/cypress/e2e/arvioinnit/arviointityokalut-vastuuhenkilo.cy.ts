@@ -27,7 +27,7 @@ describe('Arviointityökalut – vastuuhenkilö', () => {
   })
 
   it('Vastuuhenkilö avaa arviointityökalut-esittelysivun ja sivu lataa API-datat onnistuneesti', () => {
-    cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+    cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
 
     cy.intercept('GET', '**/vastuuhenkilo/arviointityokalut/kategoriat').as('getKategoriat')
     cy.intercept('GET', '**/vastuuhenkilo/arviointityokalut').as('getArviointityokalut')

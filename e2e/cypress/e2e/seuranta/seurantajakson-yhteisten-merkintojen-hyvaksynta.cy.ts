@@ -160,13 +160,13 @@ describe('Kouluttajan seurantajakson lopullinen hyväksyntä käyttöliittymäss
   beforeEach(() => {
     keskustelupaiva = seuraavaKeskustelupaiva()
     cy.loginAsErikoistuva()
-    cy.createSeurantajaksoViaApi({ kouluttajaId: Cypress.env('kouluttajaId') }).then((body) => {
+    cy.createSeurantajaksoViaApi({ kouluttajaId: Cypress.expose('kouluttajaId') }).then((body) => {
       expect(body.id).to.be.a('number')
-      expect(body.kouluttaja.id).to.eq(Cypress.env('kouluttajaId'))
+      expect(body.kouluttaja.id).to.eq(Cypress.expose('kouluttajaId'))
       seurantajakso = body
     })
     // Assess first, then add shared notes. Reversing this order would already approve the period.
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
     cy.then(() => cy.apiRequest({ method: 'GET', url: `${KOULUTTAJAN_API}/${seurantajakso.id}` }))
       .then(({ status, body }) => {
         expect(status).to.eq(200)
@@ -201,7 +201,7 @@ describe('Kouluttajan seurantajakson lopullinen hyväksyntä käyttöliittymäss
         tarkistaSailyvatTiedot(body)
         expect(body).to.include({ ...ALKUPERAINEN_ARVIO, hyvaksytty: false })
       })
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
     const hyvaksymispyynto = cy.spy().as('hyvaksymispyynto')
     cy.then(() => {
       // Observe only the final UI approval; setup requests above are not counted.
