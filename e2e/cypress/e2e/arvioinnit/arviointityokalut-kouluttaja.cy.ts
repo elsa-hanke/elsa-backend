@@ -27,7 +27,7 @@ describe('Arviointityökalut – kouluttaja', () => {
   })
 
   it('Kouluttaja avaa arviointityökalut-esittelysivun ja sivu lataa API-datat onnistuneesti', () => {
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
 
     cy.intercept('GET', '**/kouluttaja/arviointityokalut/kategoriat').as('getKategoriat')
     cy.intercept('GET', '**/kouluttaja/arviointityokalut').as('getArviointityokalut')

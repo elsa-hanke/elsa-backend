@@ -24,15 +24,15 @@ describe('Koulutussopimuksen palautus', () => {
       },
     })
     cy.submitKoulutussopimusViaUi(KOULUTTAJA_NIMI).then((id) => {
-      Cypress.env('koulutussopimusId', id)
+      Cypress.expose('koulutussopimusId', id)
     })
   })
 
   it('kouluttaja palauttaa koulutussopimuksen ja erikoistuja lähettää korjatut tiedot uudelleen', () => {
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
     cy.apiRequest({
       method: 'GET',
-      url: `/api/kouluttaja/koejakso/koulutussopimus/${Cypress.env('koulutussopimusId')}`,
+      url: `/api/kouluttaja/koejakso/koulutussopimus/${Cypress.expose('koulutussopimusId')}`,
     }).then(({ status, body }) => {
       expect(status).to.eq(200)
       cy.apiRequest({

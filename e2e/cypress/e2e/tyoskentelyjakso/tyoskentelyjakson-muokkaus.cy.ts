@@ -39,7 +39,7 @@ describe('Työskentelyjakson muokkaaminen', () => {
     // Tallennetaan ID myöhempää navigointia varten
     cy.url().then((url) => {
       const id = url.split('/').pop()
-      Cypress.env('tyoskentelyjaksoId', id)
+      Cypress.expose('tyoskentelyjaksoId', id)
     })
 
     // Tarkistetaan, että detail-sivu latautuu oikein
@@ -48,7 +48,7 @@ describe('Työskentelyjakson muokkaaminen', () => {
 
     // 3. Siirrytään muokkauslomakkeelle
     cy.then(() => {
-      cy.visit(`/tyoskentelyjaksot/${Cypress.env('tyoskentelyjaksoId')}/muokkaus`)
+      cy.visit(`/tyoskentelyjaksot/${Cypress.expose('tyoskentelyjaksoId')}/muokkaus`)
     })
     cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
 

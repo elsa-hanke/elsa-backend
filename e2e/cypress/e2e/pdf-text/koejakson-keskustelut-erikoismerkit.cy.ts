@@ -71,8 +71,8 @@ describe('Koejakson keskustelujen PDF-erikoismerkit', () => {
           erikoistuvanNimi: resident.erikoistuvanNimi,
           erikoistuvanErikoisala: resident.erikoistuvanErikoisala,
           erikoistuvanYliopisto: resident.erikoistuvanYliopisto,
-          lahikouluttaja: { id: Cypress.env('kouluttajaId') },
-          lahiesimies: { id: Cypress.env('kouluttajaId') },
+          lahikouluttaja: { id: Cypress.expose('kouluttajaId') },
+          lahiesimies: { id: Cypress.expose('kouluttajaId') },
           ...(form === 'aloituskeskustelu'
             ? {
                 erikoistuvanSahkoposti: E2E_ERIKOISTUVA_EMAIL,
