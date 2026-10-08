@@ -175,7 +175,7 @@ describe('Valmistumispyynnön osaamisen arviointi vastuuhenkilön käyttöliitty
     })
     cy.get(SIVU).contains('Valmistumispyyntö lähetetty').should('be.visible')
 
-    cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+    cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
     const arviointipyynto = cy.spy().as('arviointipyynto')
     cy.then(() => {
       // Observe the real UI request; no approval response is stubbed.

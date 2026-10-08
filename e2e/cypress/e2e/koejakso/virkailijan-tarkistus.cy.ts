@@ -94,7 +94,7 @@ describe('Koejakson tarkistus virkailijan käyttöliittymässä', () => {
     expect(tallennettu.virkailijanYhteenveto).to.eq(yhteenveto)
     expect(tallennettu.lisatiedotVirkailijalta).to.eq(lisatiedot)
     expect(tallennettu.virkailija).to.include({
-      id: Cypress.env('virkailijaId'),
+      id: Cypress.expose('virkailijaId'),
       sopimusHyvaksytty: true,
       kuittausaika
     })
@@ -143,7 +143,7 @@ describe('Koejakson tarkistus virkailijan käyttöliittymässä', () => {
           tyoskentelyjaksonPituusRiittava: true,
           tyotodistusLiitetty: true
         })
-        expect(body.vastuuhenkilo.id).to.eq(Cypress.env('vastuuhenkiloId'))
+        expect(body.vastuuhenkilo.id).to.eq(Cypress.expose('vastuuhenkiloId'))
         // This endpoint accepts the JSON as a form parameter, not a JSON request body.
         return cy.apiRequest({
           method: 'POST',
@@ -192,7 +192,7 @@ describe('Koejakson tarkistus virkailijan käyttöliittymässä', () => {
       let lahetetytLisatiedot: string | null
       let virkailijanKuittausaika: string
 
-      cy.loginAsVirkailija(Cypress.env('virkailijaToken'))
+      cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
       const tarkistuspyynto = cy.spy().as('tarkistuspyynto')
       cy.intercept('PUT', `**${API}`, (request) => {
         tarkistuspyynto(request.body)
@@ -294,7 +294,7 @@ describe('Koejakson tarkistus virkailijan käyttöliittymässä', () => {
         cy.get(SIVU).contains('strong', 'Lisätiedot virkailijalta').should('not.be.visible')
       }
 
-      cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+      cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
       cy.intercept({ method: 'GET', url: `**${VASTUUHENKILON_API}/${arvio.id}`, times: 1 }).as(
         'vastuuhenkilonSaamaArvio'
       )

@@ -133,7 +133,7 @@ describe('Valmistumispyyntö', () => {
     cy.wait('@postValmistumispyynto').then(({ response }) => {
       expect(response?.statusCode).to.eq(201)
       expect(response?.body?.id).to.be.a('number')
-      Cypress.env('valmistumispyyntoId', response?.body?.id)
+      Cypress.expose('valmistumispyyntoId', response?.body?.id)
     })
 
     cy.contains('Valmistumispyyntö lähetetty', { timeout: 15000 }).should('be.visible')
@@ -142,10 +142,10 @@ describe('Valmistumispyyntö', () => {
     }).should('be.visible')
 
     cy.then(() => {
-      const valmistumispyyntoId = Cypress.env('valmistumispyyntoId')
+      const valmistumispyyntoId = Cypress.expose('valmistumispyyntoId')
 
       // 3. Vastuuhenkilö arvioi erikoistujan osaamisen.
-      cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+      cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
       cy.apiRequest({
         method: 'GET',
         url: `/api/vastuuhenkilo/valmistumispyynnon-arviointi/${valmistumispyyntoId}`,
@@ -163,7 +163,7 @@ describe('Valmistumispyyntö', () => {
       })
 
       // 4. Virkailija tarkistaa valmistumispyynnön tiedot.
-      cy.loginAsVirkailija(Cypress.env('virkailijaToken'))
+      cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
       cy.apiRequest({
         method: 'GET',
         url: `/api/virkailija/valmistumispyynnon-tarkistus/${valmistumispyyntoId}`,
@@ -195,7 +195,7 @@ describe('Valmistumispyyntö', () => {
       })
 
       // 5. Vastuuhenkilö hyväksyy valmistumisen.
-      cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+      cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
       cy.apiRequest({
         method: 'GET',
         url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
