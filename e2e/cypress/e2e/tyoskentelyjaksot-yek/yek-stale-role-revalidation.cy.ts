@@ -13,7 +13,7 @@ export {}
 // still allowed on a YEK page and let the route render - only to have the
 // backend reject the actual data request against its now-current state.
 //
-// This test reproduces that precondition directly (flip the DB without ever
+// This test reproduces that precondition directly (switch the role server-side without ever
 // touching the open tab's client state - the "another tab did it" case) and
 // asserts the fix: the guard re-validates when the tab becomes visible again,
 // *before* the stale route gets a chance to fire a doomed request.
@@ -121,41 +121,49 @@ describe('YEK-roolin ja opinto-oikeuden synkronointi (ELSAINSI-73)', () => {
       cy.visit('/yektyoskentelyjaksot')
       cy.contains('h1', 'Työskentelyjaksot').should('be.visible')
 
-      // Simulate what happened in prod: the active opinto-oikeus flips on the
-      // server - via another tab, or the nightly import - entirely outside
-      // this tab. No frontend code runs here, so this tab's cached account
-      // state is untouched, exactly like the real incident.
-      cy.task('db:switchOpintooikeusKaytossa', {
-        email: E2E_ERIKOISTUVA_EMAIL,
-        fromId: yekOpintooikeusId,
-        toId: elOpintooikeusId,
-        activeAuthority: 'ROLE_ERIKOISTUVA_LAAKARI'
-      })
-
-      cy.intercept('GET', '**/api/kayttaja').as('accountRefresh')
+      // Register before the switch: the fix may react to Cypress focus events
+      // at any moment after the server-side switch, so later registration would race.
       // A request to the now-invalid YEK endpoint must never fire from this
       // point on - if the fix regresses, this is what would reveal it.
       cy.intercept('GET', '**/yek-koulutettava/tyoskentelyjaksot-taulukko').as(
         'staleYekTaulukkoRequest'
       )
+      cy.intercept('GET', '**/yek-koulutettava/etusivu/**').as('staleYekEtusivuRequest')
+
+      // Simulate what happened in prod: another tab switches the role to EL.
+      // Done with cy.request (same backend call the navbar makes) so that NO
+      // frontend code runs in this tab - its cached account state stays stale,
+      // exactly like the real incident. Note: do not fake this with raw SQL on
+      // jhi_user - User is in Hibernate's 2nd-level cache, so the backend would
+      // keep serving the old active role.
+      cy.getCookie('XSRF-TOKEN').then((cookie) => {
+        cy.request({
+          method: 'POST',
+          url: '/api/vaihda-rooli',
+          form: true,
+          body: { rooli: 'ROLE_ERIKOISTUVA_LAAKARI' },
+          headers: { 'X-XSRF-TOKEN': cookie?.value ?? '' }
+        })
+      })
 
       // Simulate the tab regaining visibility (e.g. laptop woken, or the user
-      // switching back to it) without a manual reload - this is the trigger
-      // the fix listens for.
+      // switching back to it) without a manual reload - one of the triggers
+      // the fix listens for (others: window focus, in-app navigation).
       cy.document().then((doc) => {
         Object.defineProperty(doc, 'hidden', { value: false, configurable: true })
         Object.defineProperty(doc, 'visibilityState', { value: 'visible', configurable: true })
         doc.dispatchEvent(new Event('visibilitychange'))
       })
 
-      cy.wait('@accountRefresh')
-        .its('response.body.activeAuthority')
+      // The tab re-syncs (full reload) with the server's current role. The YEK
+      // route is not available for the EL role, so the guard shows 404 instead
+      // of rendering the stale YEK view and firing doomed requests.
+      cy.contains('Sivua ei löytynyt', { timeout: 15000 }).should('be.visible')
+      cy.request('/api/kayttaja')
+        .its('body.activeAuthority')
         .should('eq', 'ROLE_ERIKOISTUVA_LAAKARI')
-
-      // The guard must now block the page instead of rendering the stale
-      // YEK view and letting it fire a doomed request.
-      cy.contains('Sivua ei löytynyt').should('be.visible')
       cy.get('@staleYekTaulukkoRequest.all').should('have.length', 0)
+      cy.get('@staleYekEtusivuRequest.all').should('have.length', 0)
     }
   )
 })
