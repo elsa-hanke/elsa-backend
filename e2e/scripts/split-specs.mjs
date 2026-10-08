@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { appendFileSync, readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
@@ -37,18 +37,16 @@ if (specs.length < shardTotal) {
   throw new Error(`Cannot split ${specs.length} specs into ${shardTotal} nonempty shards`)
 }
 
-// Assign the longest specs first to the least loaded shard. A file-count limit
-// keeps shard sizes within one file of each other as the suite grows.
+// Assign the longest specs first to the least loaded shard, balancing time
+// without restricting how many files each shard can receive.
 const comparePaths = (a, b) => a < b ? -1 : a > b ? 1 : 0
 specs.sort((a, b) => b.seconds - a.seconds || comparePaths(a.spec, b.spec))
-const shards = Array.from({ length: shardTotal }, (_, index) => ({
+const shards = Array.from({ length: shardTotal }, () => ({
   specs: [],
   seconds: 0,
-  capacity: Math.floor(specs.length / shardTotal) + (index < specs.length % shardTotal ? 1 : 0),
 }))
 for (const spec of specs) {
   const shard = shards.reduce((best, candidate) => {
-    if (candidate.specs.length >= candidate.capacity) return best
     return !best || candidate.seconds < best.seconds ? candidate : best
   }, null)
   shard.specs.push(spec.spec)
@@ -59,5 +57,20 @@ const selected = shards[shardIndex - 1]
 selected.specs.sort(comparePaths)
 console.error(`E2E shard ${shardIndex}/${shardTotal}: ${selected.specs.length} specs, estimated ${selected.seconds}s`)
 console.error(selected.specs.join('\n'))
+if (process.env.GITHUB_STEP_SUMMARY) {
+  appendFileSync(process.env.GITHUB_STEP_SUMMARY, [
+    `### E2E shard ${shardIndex}/${shardTotal}`,
+    '',
+    `Assigned specs: **${selected.specs.length}**. Estimated Cypress execution time: **${selected.seconds}s**.`,
+    '',
+    'This is the assigned spec list, not a report of completed tests.',
+    '',
+    '```text',
+    ...selected.specs.map((spec) => `cypress/e2e/${spec}`),
+    '```',
+    '',
+    '',
+  ].join('\n'))
+}
 // Keep stdout machine-readable for the Cypress --spec argument.
 console.log(selected.specs.map((spec) => `cypress/e2e/${spec}`).join(','))

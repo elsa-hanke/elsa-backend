@@ -37,8 +37,8 @@ cannot interfere with the other shards. All three shards finish even if one fail
 the reusable workflow must succeed before dependent deployment jobs proceed.
 
 `scripts/split-specs.mjs` discovers all `cypress/e2e/**/*.cy.ts` files and assigns
-each file to exactly one shard. It balances estimated execution time while keeping
-the number of files per shard within one. `scripts/spec-durations.json` contains
+each file to exactly one shard. It balances estimated execution time; the number
+of files per shard may differ. `scripts/spec-durations.json` contains
 per-spec durations in seconds from the supplied GHA execution log (55 specs,
 108 tests). Update those estimates when execution times change substantially.
 New specs automatically receive the mean recorded duration until measured.
@@ -54,6 +54,13 @@ The script prints the comma-separated Cypress `--spec` argument to stdout and
 the selected files and estimated duration to stderr. CI passes that list to
 Cypress; local commands above still run the full suite. Artifact names include
 the shard number so logs and screenshots remain separate.
+
+To change the shard count, edit only `strategy.matrix.shard` in the workflow
+(for example, `[1, 2, 3, 4]`). The shard total and job names use
+`strategy.job-total`, and there is no fixed parallelism limit. Each job has a
+30-minute timeout. Before Cypress starts, the script writes its assigned specs
+and estimated execution time to the GitHub Actions summary through the summary
+file mounted into the Docker container. This list does not indicate test results.
 
 ## Structure
 

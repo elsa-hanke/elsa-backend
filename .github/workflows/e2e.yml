@@ -30,12 +30,12 @@ permissions:
 
 jobs:
   e2e:
-    name: E2E shard ${{ matrix.shard }}/3
+    name: E2E shard ${{ matrix.shard }}/${{ strategy.job-total }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: shared
     strategy:
       fail-fast: false
-      max-parallel: 3
       matrix:
         shard: [1, 2, 3]
 
@@ -77,13 +77,15 @@ jobs:
       - name: Run Cypress e2e tests
         env:
           SHARD_INDEX: ${{ matrix.shard }}
-          SHARD_TOTAL: 3
+          SHARD_TOTAL: ${{ strategy.job-total }}
         run: |
           docker run --rm \
             --network=host \
             --entrypoint /bin/sh \
             -e SHARD_INDEX \
             -e SHARD_TOTAL \
+            -e GITHUB_STEP_SUMMARY=/tmp/e2e-summary.md \
+            -v "$GITHUB_STEP_SUMMARY:/tmp/e2e-summary.md" \
             -v "${{ github.workspace }}/e2e:/e2e" \
             -w /e2e \
             cypress/included:15.21.0 \
