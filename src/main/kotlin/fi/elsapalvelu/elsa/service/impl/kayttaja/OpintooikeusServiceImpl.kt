@@ -162,7 +162,31 @@ class OpintooikeusServiceImpl(
                 if (preferredOpintooikeus.erikoisala?.id != YEK_ERIKOISALA_ID) {
                     erikoistuva.aktiivinenOpintooikeus = preferredOpintooikeus.id
                 }
+
+                // ELSAINSI-73: opinto-oikeuden vaihto (navigaatiopalkin pudotusvalikko) ei saa jättää
+                // aktiivista roolia ristiriitaan käytössä olevan opinto-oikeuden kanssa
+                // (esim. YEK-rooli + EL-opinto-oikeus käytössä -> YEK-rajapinnat: "Opinto-oikeutta ei löydy").
+                userRepository.findByIdWithAuthorities(userId).ifPresent { user ->
+                    alignActiveAuthorityWithOpintooikeus(user, preferredOpintooikeus)
+                }
             }
+        }
+    }
+
+    private fun alignActiveAuthorityWithOpintooikeus(user: User, opintooikeus: Opintooikeus) {
+        val current = user.activeAuthority?.name
+        // Muihin rooleihin (kouluttaja, vastuuhenkilö jne.) ei kosketa.
+        if (current != ERIKOISTUVA_LAAKARI && current != YEK_KOULUTETTAVA) {
+            return
+        }
+        val target =
+            if (opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID) YEK_KOULUTETTAVA else ERIKOISTUVA_LAAKARI
+        if (current == target) {
+            return
+        }
+        user.authorities.firstOrNull { it.name == target }?.let {
+            user.activeAuthority = it
+            userRepository.save(user)
         }
     }
 
@@ -274,12 +298,13 @@ class OpintooikeusServiceImpl(
         validOikeudet: List<Opintooikeus>,
         user: User
     ) {
-        val oikeudetKaytossa = opintooikeudet.filter { it.kaytossa }
-        val validOikeusKaytossa = oikeudetKaytossa.singleOrNull()?.let { opintooikeus ->
+        val oikeudetKaytossa = opintooikeudet.singleOrNull { it.kaytossa }
+        val validOikeusKaytossa = oikeudetKaytossa?.let { opintooikeus ->
             validOikeudet.any { it.id == opintooikeus.id }
         } == true
 
-        if (validOikeusKaytossa) {
+        if (oikeudetKaytossa != null && validOikeusKaytossa) {
+            alignKaytossaWithActiveAuthority(opintooikeudet, validOikeudet, oikeudetKaytossa, user)
             return
         }
 
@@ -297,6 +322,43 @@ class OpintooikeusServiceImpl(
                 erikoistuvaLaakariRepository.save(it)
             }
         }
+    }
+
+    /**
+     * ELSAINSI-73: käytössä oleva opinto-oikeus voi olla voimassa, mutta ristiriidassa aktiivisen roolin kanssa
+     * (YEK-rooli + EL-opinto-oikeus tai päinvastoin). Tällöin YEK-rajapinnat heittävät "Opinto-oikeutta ei löydy"
+     * ja EL-rajapinnat käyttävät väärää opinto-oikeutta. Korjataan käytössä oleva opinto-oikeus vastaamaan roolia,
+     * tai jos sopivaa opinto-oikeutta ei ole, rooli vastaamaan opinto-oikeutta.
+     */
+    private fun alignKaytossaWithActiveAuthority(
+        opintooikeudet: List<Opintooikeus>,
+        validOikeudet: List<Opintooikeus>,
+        kaytossa: Opintooikeus,
+        user: User
+    ) {
+        val activeAuthority = user.activeAuthority?.name
+        val kaytossaYek = kaytossa.erikoisala?.id == YEK_ERIKOISALA_ID
+
+        val replacement = when {
+            activeAuthority == YEK_KOULUTETTAVA && !kaytossaYek ->
+                validOikeudet.firstOrNull { it.erikoisala?.id == YEK_ERIKOISALA_ID }
+            activeAuthority == ERIKOISTUVA_LAAKARI && kaytossaYek ->
+                getPreferredOpintooikeus(validOikeudet.filter { it.erikoisala?.id != YEK_ERIKOISALA_ID })
+            else -> return
+        }
+
+        if (replacement != null) {
+            opintooikeudet.forEach { it.kaytossa = it.id == replacement.id }
+            if (replacement.erikoisala?.id != YEK_ERIKOISALA_ID) {
+                replacement.erikoistuvaLaakari?.let {
+                    it.aktiivinenOpintooikeus = replacement.id
+                    erikoistuvaLaakariRepository.save(it)
+                }
+            }
+            return
+        }
+
+        alignActiveAuthorityWithOpintooikeus(user, kaytossa)
     }
 }
 
