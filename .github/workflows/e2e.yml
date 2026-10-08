@@ -102,7 +102,7 @@ jobs:
             -e E2E_RESULTS_DIR \
             -v "${{ github.workspace }}/e2e:/e2e" \
             -w /e2e \
-            cypress/included:15.21.0 \
+            cypress/included:16.1.1 \
             -c 'npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080 --spec "$CYPRESS_SPECS"'
 
       - name: Upload Cypress results
