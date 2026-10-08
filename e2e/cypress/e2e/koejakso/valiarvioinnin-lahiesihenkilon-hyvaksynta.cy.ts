@@ -111,7 +111,7 @@ describe('Väliarvioinnin hyväksyminen lähiesihenkilön käyttöliittymässä'
     expect(lomake.erikoistuvanKuittausaika).to.eq(valiarviointi.erikoistuvanKuittausaika)
     expect(lomake.korjausehdotus).to.be.null
     expect(lomake.lahikouluttaja).to.include({
-      id: Cypress.env('kouluttajaId'),
+      id: Cypress.expose('kouluttajaId'),
       sopimusHyvaksytty: true,
       kuittausaika: kouluttajanKuittausaika
     })
@@ -141,7 +141,7 @@ describe('Väliarvioinnin hyväksyminen lähiesihenkilön käyttöliittymässä'
     }).then((result) => {
       const kayttajaId = Number(result.kayttajaId)
       expect(Number.isSafeInteger(kayttajaId), 'supervisor database ID').to.eq(true)
-      expect(kayttajaId).to.be.greaterThan(0).and.not.eq(Cypress.env('kouluttajaId'))
+      expect(kayttajaId).to.be.greaterThan(0).and.not.eq(Cypress.expose('kouluttajaId'))
       expect(result.token).to.be.a('string').and.not.be.empty
       esihenkiloId = kayttajaId
       esihenkiloToken = result.token
@@ -176,14 +176,14 @@ describe('Väliarvioinnin hyväksyminen lähiesihenkilön käyttöliittymässä'
             vahvuudet: null,
             kehittamistoimenpiteet: null,
             korjausehdotus: null,
-            lahikouluttaja: { id: Cypress.env('kouluttajaId'), sopimusHyvaksytty: false },
+            lahikouluttaja: { id: Cypress.expose('kouluttajaId'), sopimusHyvaksytty: false },
             lahiesimies: { id: esihenkiloId, sopimusHyvaksytty: false }
           }
         }).then(({ status: createdStatus, body: createdBody }) => {
           expect(createdStatus).to.eq(201)
           expect(createdBody.id).to.be.a('number')
           expect(createdBody.lahikouluttaja).to.include({
-            id: Cypress.env('kouluttajaId'),
+            id: Cypress.expose('kouluttajaId'),
             sopimusHyvaksytty: false,
             kuittausaika: null
           })
@@ -209,7 +209,7 @@ describe('Väliarvioinnin hyväksyminen lähiesihenkilön käyttöliittymässä'
       let esihenkilonKuittausaika: string
 
       // Trainer approval has its own UI spec; prepare this supervisor case through the API.
-      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+      cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
       cy.apiRequest({ method: 'PUT', url: API, body: { ...valiarviointi, ...arvio } }).then(
         ({ status, body }) => {
           expect(status).to.eq(200)
