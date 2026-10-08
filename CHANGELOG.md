@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.1...HEAD)
 
 - ELSAINSI-61 Työskentelyjakson poisto mahdollistaa toisen käyttäjän liitteiden irrottamisen ennen käyttöoikeustarkistusta [`#759`](https://github.com/elsa-hanke/elsa-backend/pull/759)(6 October 2026)
 - ELSAINSI-76 (Pessimistinen lukko hyväksyntätransaktion alussa) [`#760`](https://github.com/elsa-hanke/elsa-backend/pull/760)(4 October 2026)
@@ -17,6 +17,14 @@
 - e2e testi: seurantajakson kouluttajan arviointi [`#745`](https://github.com/elsa-hanke/elsa-backend/pull/745)(29 September 2026)
 - e2e testi: koejakson virkailijan tarkistus [`#743`](https://github.com/elsa-hanke/elsa-backend/pull/743)(28 September 2026)
 - e2e testi: kehittämistoimenpiteiden hyvaksyntä [`#740`](https://github.com/elsa-hanke/elsa-backend/pull/740)(28 September 2026)
+
+## [v2.4.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...v2.4.1) - 7 October 2026
+
+- ELSA-1251 Erikoistuvan tili ei avaudu [`#767`](https://github.com/elsa-hanke/elsa-backend/pull/767)(7 October 2026)
+- ELSA-1245 Osasuoritusten siirtyminen Pepistä ELSAan [`#764`](https://github.com/elsa-hanke/elsa-backend/pull/764)(7 October 2026)
+- cypress e2e testit erikoismerkit [`#763`](https://github.com/elsa-hanke/elsa-backend/pull/763)(7 October 2026)
+- fix: Tila ei ohjaa käyttöoikeutta, joten tuntematon tila ei saa estää päättymispäivän, katseluajan ja asetuksen synkronointia (#762) [`#762`](https://github.com/elsa-hanke/elsa-backend/pull/762)(6 October 2026)
+- Tiedoston lataamisen tarkistuksen parannukset  [`#761`](https://github.com/elsa-hanke/elsa-backend/pull/761)(6 October 2026)
 
 ## [v2.4.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.4...v2.4.0) - 22 September 2026
 
