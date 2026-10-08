@@ -154,6 +154,112 @@ class PeppiOuluClientAndFailureTest {
         }
     }
 
+    @Test
+    fun `No value present GraphQL error never publishes an alert regardless of count`() {
+        val server = MockWebServer()
+        server.start()
+        try {
+            repeat(IntegrationAlertService.CONNECTIVITY_FAILURE_ALERT_THRESHOLD + 5) {
+                server.enqueue(noValuePresentErrorResponse())
+            }
+            val alertPublisherService = Mockito.mock(AlertPublisherService::class.java)
+            val service = opintotietodataService(server, alertPublisherService)
+
+            repeat(IntegrationAlertService.CONNECTIVITY_FAILURE_ALERT_THRESHOLD + 5) {
+                assertThat(runBlocking { service.fetchOpintotietodata("test-identity") }).isNull()
+            }
+
+            verify(alertPublisherService, never()).publishAlert(any(), any())
+        } finally {
+            server.shutdown()
+        }
+    }
+
+    @Test
+    fun `InvocationTargetException GraphQL error does not throw and is suppressed below the threshold`() {
+        val server = MockWebServer()
+        server.start()
+        try {
+            repeat(IntegrationAlertService.CONNECTIVITY_FAILURE_ALERT_THRESHOLD - 1) {
+                server.enqueue(invocationTargetExceptionErrorResponse())
+            }
+            val alertPublisherService = Mockito.mock(AlertPublisherService::class.java)
+            val service = opintotietodataService(server, alertPublisherService)
+
+            repeat(IntegrationAlertService.CONNECTIVITY_FAILURE_ALERT_THRESHOLD - 1) {
+                assertThat(runBlocking { service.fetchOpintotietodata("test-identity") }).isNull()
+            }
+
+            verify(alertPublisherService, never()).publishAlert(any(), any())
+        } finally {
+            server.shutdown()
+        }
+    }
+
+    @Test
+    fun `InvocationTargetException GraphQL error publishes an alert after the failure threshold and recovers`() {
+        val server = MockWebServer()
+        server.start()
+        try {
+            repeat(IntegrationAlertService.CONNECTIVITY_FAILURE_ALERT_THRESHOLD) {
+                server.enqueue(invocationTargetExceptionErrorResponse())
+            }
+            repeat(IntegrationAlertService.CONNECTIVITY_RECOVERY_SUCCESS_THRESHOLD) {
+                server.enqueue(successResponse())
+            }
+            val alertPublisherService = Mockito.mock(AlertPublisherService::class.java)
+            val service = opintotietodataService(server, alertPublisherService)
+
+            repeat(IntegrationAlertService.CONNECTIVITY_FAILURE_ALERT_THRESHOLD) {
+                assertThat(runBlocking { service.fetchOpintotietodata("test-identity") }).isNull()
+            }
+            // Failure alert published exactly once after reaching the threshold.
+            verify(alertPublisherService, times(1)).publishAlert(any(), any())
+
+            repeat(IntegrationAlertService.CONNECTIVITY_RECOVERY_SUCCESS_THRESHOLD) {
+                assertThat(runBlocking { service.fetchOpintotietodata("test-identity") }).isNull()
+            }
+            // Recovery alert published once consecutive successes reach the recovery threshold.
+            verify(alertPublisherService, times(2)).publishAlert(any(), any())
+        } finally {
+            server.shutdown()
+        }
+    }
+
+    private fun noValuePresentErrorResponse(): MockResponse =
+        MockResponse()
+            .setHeader("Content-Type", "application/json")
+            .setBody(
+                """
+                {
+                  "errors": [{
+                    "message": "Unexpected Internal Error: No value present",
+                    "path": ["private_person_by_personal_identity_code", "dateOfBirth"]
+                  }]
+                }
+                """.trimIndent()
+            )
+
+    private fun invocationTargetExceptionErrorResponse(): MockResponse =
+        MockResponse()
+            .setHeader("Content-Type", "application/json")
+            .setBody(
+                """
+                {
+                  "errors": [{
+                    "message": "Unexpected Internal Error: java.lang.reflect.InvocationTargetException",
+                    "path": ["private_person_by_personal_identity_code", "dateOfBirth"],
+                    "extensions": {"errorType": "GraphQLException", "errorCode": "Unexpected Internal Error"}
+                  }]
+                }
+                """.trimIndent()
+            )
+
+    private fun successResponse(): MockResponse =
+        MockResponse()
+            .setHeader("Content-Type", "application/json")
+            .setBody("""{"data":{"private_person_by_personal_identity_code":null}}""")
+
     private fun opintotietodataService(
         server: MockWebServer,
         alertPublisherService: AlertPublisherService

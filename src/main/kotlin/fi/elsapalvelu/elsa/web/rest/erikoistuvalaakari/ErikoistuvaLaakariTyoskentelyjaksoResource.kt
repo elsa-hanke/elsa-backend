@@ -62,7 +62,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val overlappingTyoskentelyjaksoValidationService: OverlappingTyoskentelyjaksoValidationService,
     private val overlappingKeskeytysaikaValidationService: OverlappingKeskeytysaikaValidationService,
     private val opintooikeusService: OpintooikeusService,
-    private val koulutusjaksoService: KoulutusjaksoService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
     private val opintosuoritusService: OpintosuoritusService,
@@ -242,11 +241,12 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         return try {
             tyoskentelyjaksoService.updateAsiakirjat(
                 id,
+                opintooikeusId,
                 tyoskentelyjaksoResourceSupport.getMappedFiles(addedFiles, opintooikeusId),
                 deletedFiles?.toSet()
             )?.let {
                 ResponseEntity.ok(it)
-            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+            } ?: throw ResponseStatusException(HttpStatus.FORBIDDEN)
         } catch (e: ValidationException) {
             throw tyoskentelyjaksoResourceSupport.liitettyTerveyskoulutusjaksoonException(e)
         }
@@ -264,8 +264,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
-        asiakirjaService.removeTyoskentelyjaksoReference(id)
-        koulutusjaksoService.removeTyoskentelyjaksoReference(id)
         if (tyoskentelyjaksoService.delete(id, opintooikeusId)) {
             return ResponseEntity
                 .noContent()

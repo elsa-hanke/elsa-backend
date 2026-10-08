@@ -465,6 +465,118 @@ class OpintooikeusServiceIT {
         assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa == true })
     }
 
+    // --- ELSAINSI-73: aktiivinen rooli ja käytössä oleva opinto-oikeus pysyvät yhdenmukaisina ---
+
+    @Test
+    fun `ELSAINSI-73 changing opintooikeus to YEK in EL role switches active role to YEK`() {
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        user.activeAuthority = Authority(ERIKOISTUVA_LAAKARI)
+        em.flush()
+
+        opintooikeusService.setOpintooikeusKaytossa(user.id!!, yekOikeus.id!!)
+
+        assertTrue(yekOikeus.kaytossa)
+        assertEquals(YEK_KOULUTETTAVA, user.activeAuthority?.name)
+    }
+
+    @Test
+    fun `ELSAINSI-73 changing opintooikeus to EL in YEK role switches active role to EL`() {
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        opintooikeusService.setOpintooikeusKaytossa(user.id!!, yekOikeus.id!!)
+        assertEquals(YEK_KOULUTETTAVA, user.activeAuthority?.name)
+
+        opintooikeusService.setOpintooikeusKaytossa(user.id!!, elOikeus.id!!)
+
+        assertTrue(elOikeus.kaytossa)
+        assertFalse(yekOikeus.kaytossa)
+        assertEquals(ERIKOISTUVA_LAAKARI, user.activeAuthority?.name)
+        assertEquals(elOikeus.id, erikoistuvaLaakari.aktiivinenOpintooikeus)
+    }
+
+    @Test
+    fun `ELSAINSI-73 changing between EL opintooikeudet keeps EL role`() {
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        user.activeAuthority = Authority(ERIKOISTUVA_LAAKARI)
+        em.flush()
+
+        opintooikeusService.setOpintooikeusKaytossa(user.id!!, elOikeus.id!!)
+
+        assertTrue(elOikeus.kaytossa)
+        assertEquals(ERIKOISTUVA_LAAKARI, user.activeAuthority?.name)
+    }
+
+    @Test
+    fun `ELSAINSI-73 changing opintooikeus does not touch non-koulutettava active role`() {
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        user.authorities.add(Authority(KOULUTTAJA))
+        user.activeAuthority = Authority(KOULUTTAJA)
+        em.flush()
+
+        opintooikeusService.setOpintooikeusKaytossa(user.id!!, yekOikeus.id!!)
+
+        assertTrue(yekOikeus.kaytossa)
+        assertEquals(KOULUTTAJA, user.activeAuthority?.name)
+    }
+
+    @Test
+    fun `ELSAINSI-73 reconcile fixes valid EL oikeus kaytossa while YEK role is active`() {
+        val oikeusKaytossa = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        user.activeAuthority = Authority(YEK_KOULUTETTAVA)
+        em.flush()
+
+        opintooikeusService.reconcileOpintooikeusKaytossaAfterImport(user.id!!)
+
+        assertFalse(oikeusKaytossa.kaytossa)
+        assertTrue(yekOikeus.kaytossa)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa })
+        assertEquals(YEK_KOULUTETTAVA, user.activeAuthority?.name)
+    }
+
+    @Test
+    fun `ELSAINSI-73 reconcile fixes valid YEK oikeus kaytossa while EL role is active`() {
+        val aktiivinenOpintooikeus = erikoistuvaLaakari.aktiivinenOpintooikeus
+        erikoistuvaLaakari.opintooikeudet.forEach { it.kaytossa = it.id == yekOikeus.id }
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        user.activeAuthority = Authority(ERIKOISTUVA_LAAKARI)
+        em.flush()
+
+        opintooikeusService.reconcileOpintooikeusKaytossaAfterImport(user.id!!)
+
+        assertFalse(yekOikeus.kaytossa)
+        assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa })
+        // Aiemmin valittu EL-opinto-oikeus säilyy
+        assertEquals(aktiivinenOpintooikeus, erikoistuvaLaakari.getOpintooikeusKaytossa()?.id)
+        assertEquals(ERIKOISTUVA_LAAKARI, user.activeAuthority?.name)
+    }
+
+    @Test
+    fun `ELSAINSI-73 reconcile switches role to EL when YEK role is active but no valid YEK oikeus exists`() {
+        val oikeusKaytossa = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
+        expire(yekOikeus)
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        user.activeAuthority = Authority(YEK_KOULUTETTAVA)
+        em.flush()
+
+        opintooikeusService.reconcileOpintooikeusKaytossaAfterImport(user.id!!)
+
+        assertTrue(oikeusKaytossa.kaytossa)
+        assertFalse(yekOikeus.kaytossa)
+        assertEquals(ERIKOISTUVA_LAAKARI, user.activeAuthority?.name)
+    }
+
+    @Test
+    fun `ELSAINSI-73 reconcile does not change consistent YEK selection`() {
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        opintooikeusService.setOpintooikeusKaytossa(user.id!!, yekOikeus.id!!)
+        em.flush()
+
+        opintooikeusService.reconcileOpintooikeusKaytossaAfterImport(user.id!!)
+
+        assertTrue(yekOikeus.kaytossa)
+        assertEquals(YEK_KOULUTETTAVA, user.activeAuthority?.name)
+    }
+
     @ParameterizedTest
     @EnumSource(YliopistoEnum::class)
     fun `restore missing EL role for each university without switching away from YEK`(yliopisto: YliopistoEnum) {

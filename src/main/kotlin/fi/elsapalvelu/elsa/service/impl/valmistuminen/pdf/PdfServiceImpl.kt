@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
 import org.springframework.beans.factory.annotation.Value
 import com.itextpdf.html2pdf.ConverterProperties
@@ -17,6 +17,8 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.PdfPreparation
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
+import fi.elsapalvelu.elsa.service.PdfTextSanitizer
+import fi.elsapalvelu.elsa.service.valmistuminen.PdfAssembler
 import fi.elsapalvelu.elsa.service.PdfHtmlText
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
@@ -38,10 +40,30 @@ class PdfServiceImpl(
     private val templateEngine: SpringTemplateEngine,
     private val pdfMetrics: PdfGenerationMetricsService,
     private val pdfContentValidator: PdfContentValidator,
-    private val pdfTextFieldValidator: PdfTextFieldValidator
+    private val pdfTextFieldValidator: PdfTextFieldValidator,
+    private val resourceRetriever: PdfCachingResourceRetriever
 ) : PdfService {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+
+    /**
+     * iTextin "smart mode": yhdistelyssa samanlaiset objektit (fonttien osajoukot,
+     * varioprofiili, metatiedot) jaetaan sen sijaan etta ne kopioitaisiin jokaisesta
+     * lahdedokumentista erikseen. Pienentaa erikoistujan tiedot -koosteen noin kolmasosaan.
+     *
+     * Kaytossa vain [ItextPdfAssembler]issa, jossa lahdedokumentit ovat sovelluksen itsensa
+     * tuottamia ja rakenteeltaan yhdenmukaisia PDF/A-dokumentteja. Kayttajien lataamien
+     * liitteiden yhdistelyssa tilaa ei kayteta: mitattu hyoty oli vain 1 MiB (3 -> 2 MiB),
+     * ja liitteet ovat mielivaltaisia ulkopuolisia PDF-tiedostoja, joiden rakennetta ei
+     * hallita.
+     *
+     * Katkaisin on olemassa siksi, etta tilan voi tarvittaessa kytkea pois ilman uutta
+     * julkaisua.
+     */
+    @Value("\${elsa.pdf.smart-mode:true}")
+    var smartMode: Boolean = true
+
     @Value("classpath:sRGB_CS_profile.icm")
     var colorProfile: Resource? = null
 
@@ -83,6 +105,7 @@ class PdfServiceImpl(
 
             val properties = ConverterProperties()
             properties.fontProvider = provider
+            properties.resourceRetriever = resourceRetriever
 
             HtmlConverter.convertToPdf(content, pdf, properties)
         }
@@ -93,6 +116,8 @@ class PdfServiceImpl(
         outputStream: OutputStream
     ) {
         pdfMetrics.trackOperation(OP_YHDISTA_ASIAKIRJAT) {
+            // Tahan ei kayteta smart modea: lahteet ovat kayttajien lataamia, mielivaltaisia
+            // PDF-tiedostoja, joissa on vain vahan jaettavaa (mitattu hyoty 1 MiB).
             val result = PdfDocument(PdfWriter(outputStream))
             val resultDocument = Document(result)
             asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
@@ -148,6 +173,10 @@ class PdfServiceImpl(
     }
 
     private fun sanitizeContent(input: String): String = PdfHtmlText.sanitize(input)
+    override fun openAssembler(firstDocument: ByteArray): PdfAssembler =
+        ItextPdfAssembler(firstDocument, pdfMetrics, smartMode)
+
+    private fun sanitizeContent(input: String): String = PdfTextSanitizer.sanitize(input)
 
     private fun isValidatedPdfTemplate(template: String): Boolean =
         template.startsWith("pdf/erikoistujantiedot/") ||
@@ -178,6 +207,7 @@ class PdfServiceImpl(
         template.endsWith("seurantajakso.html") -> "seurantajakso"
         else -> "valmistumispyynto"
     }
+
 
     private fun invalidPdfAttachmentException(
         asiakirja: Asiakirja,
