@@ -43,6 +43,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Node.js for spec selection
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Select Cypress specs and write summary
+        id: select-specs
+        env:
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_TOTAL: ${{ strategy.job-total }}
+        run: |
+          specs="$(node e2e/scripts/split-specs.mjs "$SHARD_INDEX" "$SHARD_TOTAL")"
+          printf 'specs=%s\n' "$specs" >> "$GITHUB_OUTPUT"
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -76,20 +90,16 @@ jobs:
 
       - name: Run Cypress e2e tests
         env:
-          SHARD_INDEX: ${{ matrix.shard }}
-          SHARD_TOTAL: ${{ strategy.job-total }}
+          CYPRESS_SPECS: ${{ steps.select-specs.outputs.specs }}
         run: |
           docker run --rm \
             --network=host \
             --entrypoint /bin/sh \
-            -e SHARD_INDEX \
-            -e SHARD_TOTAL \
-            -e GITHUB_STEP_SUMMARY=/tmp/e2e-summary.md \
-            -v "$GITHUB_STEP_SUMMARY:/tmp/e2e-summary.md" \
+            -e CYPRESS_SPECS \
             -v "${{ github.workspace }}/e2e:/e2e" \
             -w /e2e \
             cypress/included:15.21.0 \
-            -c 'specs="$(node scripts/split-specs.mjs "$SHARD_INDEX" "$SHARD_TOTAL")" && npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080 --spec "$specs"'
+            -c 'npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080 --spec "$CYPRESS_SPECS"'
 
       - name: Upload Cypress videos
         if: always()

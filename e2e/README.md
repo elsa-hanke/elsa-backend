@@ -58,9 +58,11 @@ the shard number so logs and screenshots remain separate.
 To change the shard count, edit only `strategy.matrix.shard` in the workflow
 (for example, `[1, 2, 3, 4]`). The shard total and job names use
 `strategy.job-total`, and there is no fixed parallelism limit. Each job has a
-30-minute timeout. Before Cypress starts, the script writes its assigned specs
-and estimated execution time to the GitHub Actions summary through the summary
-file mounted into the Docker container. This list does not indicate test results.
+30-minute timeout. Before services start, the script runs directly on the GitHub
+runner and writes its assigned specs and estimated execution time to the GitHub
+Actions summary. The selected list is passed to the Cypress container through a
+step output and environment variable; the summary file is not mounted into Docker.
+This list does not indicate test results.
 
 ## Structure
 
