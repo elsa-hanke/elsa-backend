@@ -20,6 +20,7 @@ export {}
 describe('YEK-roolin ja opinto-oikeuden synkronointi (ELSAINSI-73)', () => {
   const yekOpintooikeusId = 610520
   const elOpintooikeusId = 610521
+  let seededYekOpintooikeusId: number
 
   const yekOpintooikeus: OpintoOikeus = {
     asetus_id: 5,
@@ -63,6 +64,9 @@ describe('YEK-roolin ja opinto-oikeuden synkronointi (ELSAINSI-73)', () => {
       email: E2E_ERIKOISTUVA_EMAIL,
       opintoOikeus: yekOpintooikeus,
       updateCurrent: true
+    }).then((id) => {
+      // updateCurrent keeps the existing row's ID rather than the fixture ID.
+      seededYekOpintooikeusId = Number(id)
     })
     cy.task('db:seedOpintooikeus', {
       email: E2E_ERIKOISTUVA_EMAIL,
@@ -95,26 +99,30 @@ describe('YEK-roolin ja opinto-oikeuden synkronointi (ELSAINSI-73)', () => {
         'eq',
         new URL(Cypress.config('baseUrl') as string).origin
       )
+      // Returning to the application origin does not mean the SAML landing
+      // page has finished authorizing and restoring the post-login route.
+      cy.location('pathname', { timeout: 60000 }).should('eq', '/etusivu')
+      cy.get('main[role="main"]').should('be.visible')
+      cy.contains('a', 'Työskentelyjaksot').should('be.visible')
 
-      cy.request('/api/kayttaja').then(({ body }) => {
-        if (body.activeAuthority === 'ROLE_YEK_KOULUTETTAVA') {
-          return
-        }
-
-        cy.getCookie('XSRF-TOKEN').then((cookie) => {
-          cy.request({
-            method: 'POST',
-            url: '/api/vaihda-rooli',
-            form: true,
-            body: { rooli: 'ROLE_YEK_KOULUTETTAVA' },
-            headers: { 'X-XSRF-TOKEN': cookie?.value ?? '' }
-          })
+      // Always select YEK through the API: an already active YEK authority
+      // alone does not prove that its study right is also selected.
+      cy.getCookie('XSRF-TOKEN').then((cookie) => {
+        cy.request({
+          method: 'POST',
+          url: '/api/vaihda-rooli',
+          form: true,
+          body: { rooli: 'ROLE_YEK_KOULUTETTAVA' },
+          headers: { 'X-XSRF-TOKEN': cookie?.value ?? '' }
         })
       })
 
       cy.request('/api/kayttaja')
         .its('body.activeAuthority')
         .should('eq', 'ROLE_YEK_KOULUTETTAVA')
+      cy.request('/api/erikoistuva-laakari')
+        .its('body.opintooikeusKaytossaId')
+        .should('eq', seededYekOpintooikeusId)
 
       // Tab opens on the YEK page while YEK is genuinely the active context -
       // this must succeed, same as the existing happy-path test.
