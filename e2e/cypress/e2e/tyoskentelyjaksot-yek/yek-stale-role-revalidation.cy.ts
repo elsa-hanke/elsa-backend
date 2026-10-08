@@ -128,7 +128,8 @@ describe('YEK-roolin ja opinto-oikeuden synkronointi (ELSAINSI-73)', () => {
       cy.task('db:switchOpintooikeusKaytossa', {
         email: E2E_ERIKOISTUVA_EMAIL,
         fromId: yekOpintooikeusId,
-        toId: elOpintooikeusId
+        toId: elOpintooikeusId,
+        activeAuthority: 'ROLE_ERIKOISTUVA_LAAKARI'
       })
 
       cy.intercept('GET', '**/api/kayttaja').as('accountRefresh')

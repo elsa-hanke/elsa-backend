@@ -200,6 +200,12 @@ export const opintoOikeusTasks = {
         `UPDATE public.erikoistuva_laakari SET aktiivinen_opintooikeus = $1 WHERE id = $2`,
         [toId, erikoistuva]
       )
+      if (activeAuthority) {
+        await client.query(`UPDATE jhi_user SET active_authority = $1 WHERE lower(email) = lower($2)`, [
+          activeAuthority,
+          email
+        ])
+      }
 
       return null
     })
