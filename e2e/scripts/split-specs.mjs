@@ -1,0 +1,63 @@
+import { readdirSync, readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
+
+// Resolve from the script so local and Docker invocations select the same specs.
+const e2eRoot = fileURLToPath(new URL('../', import.meta.url))
+const specsRoot = path.join(e2eRoot, 'cypress/e2e')
+const durations = JSON.parse(readFileSync(new URL('./spec-durations.json', import.meta.url), 'utf8'))
+const shardIndex = Number(process.argv[2])
+const shardTotal = Number(process.argv[3])
+
+if (!Number.isInteger(shardTotal) || shardTotal < 1 ||
+    !Number.isInteger(shardIndex) || shardIndex < 1 || shardIndex > shardTotal) {
+  throw new Error('Usage: node scripts/split-specs.mjs <shard index (1-based)> <shard total>')
+}
+
+function discoverSpecs(directory, prefix = '') {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const relativePath = `${prefix}${entry.name}`
+    if (entry.isDirectory()) {
+      return discoverSpecs(path.join(directory, entry.name), `${relativePath}/`)
+    }
+    return entry.isFile() && entry.name.endsWith('.cy.ts') ? [relativePath] : []
+  })
+}
+
+const knownDurations = Object.values(durations)
+if (!knownDurations.length || knownDurations.some((value) => !Number.isFinite(value) || value <= 0)) {
+  throw new Error('Spec durations must contain positive numbers of seconds')
+}
+const fallbackDuration = Math.round(knownDurations.reduce((sum, value) => sum + value, 0) / knownDurations.length)
+const specs = discoverSpecs(specsRoot).map((spec) => ({
+  spec,
+  seconds: durations[spec] ?? fallbackDuration,
+}))
+if (specs.length < shardTotal) {
+  throw new Error(`Cannot split ${specs.length} specs into ${shardTotal} nonempty shards`)
+}
+
+// Assign the longest specs first to the least loaded shard. A file-count limit
+// keeps shard sizes within one file of each other as the suite grows.
+const comparePaths = (a, b) => a < b ? -1 : a > b ? 1 : 0
+specs.sort((a, b) => b.seconds - a.seconds || comparePaths(a.spec, b.spec))
+const shards = Array.from({ length: shardTotal }, (_, index) => ({
+  specs: [],
+  seconds: 0,
+  capacity: Math.floor(specs.length / shardTotal) + (index < specs.length % shardTotal ? 1 : 0),
+}))
+for (const spec of specs) {
+  const shard = shards.reduce((best, candidate) => {
+    if (candidate.specs.length >= candidate.capacity) return best
+    return !best || candidate.seconds < best.seconds ? candidate : best
+  }, null)
+  shard.specs.push(spec.spec)
+  shard.seconds += spec.seconds
+}
+
+const selected = shards[shardIndex - 1]
+selected.specs.sort(comparePaths)
+console.error(`E2E shard ${shardIndex}/${shardTotal}: ${selected.specs.length} specs, estimated ${selected.seconds}s`)
+console.error(selected.specs.join('\n'))
+// Keep stdout machine-readable for the Cypress --spec argument.
+console.log(selected.specs.map((spec) => `cypress/e2e/${spec}`).join(','))

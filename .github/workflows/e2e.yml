@@ -30,8 +30,14 @@ permissions:
 
 jobs:
   e2e:
+    name: E2E shard ${{ matrix.shard }}/3
     runs-on: ubuntu-latest
     environment: shared
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        shard: [1, 2, 3]
 
     steps:
       - name: Checkout code
@@ -69,20 +75,25 @@ jobs:
           docker compose -p elsa-e2e -f infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
 
       - name: Run Cypress e2e tests
+        env:
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_TOTAL: 3
         run: |
           docker run --rm \
             --network=host \
             --entrypoint /bin/sh \
-            -v ${{ github.workspace }}/e2e:/e2e \
+            -e SHARD_INDEX \
+            -e SHARD_TOTAL \
+            -v "${{ github.workspace }}/e2e:/e2e" \
             -w /e2e \
             cypress/included:15.21.0 \
-            -c "npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080"
+            -c 'specs="$(node scripts/split-specs.mjs "$SHARD_INDEX" "$SHARD_TOTAL")" && npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080 --spec "$specs"'
 
       - name: Upload Cypress videos
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-videos
+          name: cypress-videos-${{ matrix.shard }}
           path: e2e/cypress/videos
 
       - name: Dump container logs to files
@@ -97,7 +108,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-container-logs
+          name: e2e-container-logs-${{ matrix.shard }}
           path: e2e/container-logs
 
 
@@ -105,7 +116,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-screenshots
+          name: cypress-screenshots-${{ matrix.shard }}
           path: e2e/cypress/screenshots
 
       - name: Stop services
