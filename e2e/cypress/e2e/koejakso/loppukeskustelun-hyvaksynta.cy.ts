@@ -109,7 +109,7 @@ describe('Loppukeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käytt
       korjausehdotus: null
     })
     expect(tallennettu.lahikouluttaja, 'kouluttajan hyväksyntä').to.include({
-      id: Cypress.env('kouluttajaId'),
+      id: Cypress.expose('kouluttajaId'),
       sopimusHyvaksytty: kouluttajanKuittausaika !== null,
       kuittausaika: kouluttajanKuittausaika
     })
@@ -142,7 +142,7 @@ describe('Loppukeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käytt
     }).then((result) => {
       const kayttajaId = Number(result.kayttajaId)
       expect(Number.isSafeInteger(kayttajaId), 'supervisor database ID').to.eq(true)
-      expect(kayttajaId).to.be.greaterThan(0).and.not.eq(Cypress.env('kouluttajaId'))
+      expect(kayttajaId).to.be.greaterThan(0).and.not.eq(Cypress.expose('kouluttajaId'))
       expect(result.token).to.be.a('string').and.not.be.empty
       esihenkiloId = kayttajaId
       esihenkiloToken = result.token
@@ -179,7 +179,7 @@ describe('Loppukeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käytt
             esitetaanKoejaksonHyvaksymista: null,
             jatkotoimenpiteet: null,
             korjausehdotus: null,
-            lahikouluttaja: { id: Cypress.env('kouluttajaId'), sopimusHyvaksytty: false },
+            lahikouluttaja: { id: Cypress.expose('kouluttajaId'), sopimusHyvaksytty: false },
             lahiesimies: { id: esihenkiloId, sopimusHyvaksytty: false }
           }
         })
@@ -216,7 +216,7 @@ describe('Loppukeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käytt
       const arvioTeksti = esitetaanHyvaksymista ? ESITETAAN_HYVAKSYNTAA : OHJATAAN_JATKOTOIMIIN
       const jatkotoimenpiteet = esitetaanHyvaksymista ? null : JATKOTOIMET
 
-      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+      cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
       const hyvaksyntapyynto = cy.spy().as('hyvaksyntapyynto')
       // Observe both real approval requests without replacing their responses.
       cy.intercept('PUT', `**${API}`, (request) => {

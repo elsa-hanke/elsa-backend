@@ -151,12 +151,12 @@ describe('Seurantajakson kouluttajan arviointi käyttöliittymässä', () => {
   beforeEach(() => {
     cy.loginAsErikoistuva()
     // Only the trainee's initial submission is setup. Leave the shared notes empty.
-    cy.createSeurantajaksoViaApi({ kouluttajaId: Cypress.env('kouluttajaId') }).then((body) => {
+    cy.createSeurantajaksoViaApi({ kouluttajaId: Cypress.expose('kouluttajaId') }).then((body) => {
       expect(body.id).to.be.a('number')
-      expect(body.kouluttaja.id).to.eq(Cypress.env('kouluttajaId'))
+      expect(body.kouluttaja.id).to.eq(Cypress.expose('kouluttajaId'))
       seurantajakso = body
     })
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
     const arviointipyynto = cy.spy().as('arviointipyynto')
     cy.then(() => {
       // Observe the real request without replacing the response.

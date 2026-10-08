@@ -1,7 +1,7 @@
 describe('Käyttäjähallinnan yliopistorajaus', () => {
   before(() => {
     cy.prepareVirkailijaE2e()
-    cy.then(() => cy.loginAsVirkailija(Cypress.env('virkailijaToken')))
+    cy.then(() => cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined)))
   })
 
   it('virkailija ei voi luoda virkailijaa oman yliopistonsa ulkopuolelle', () => {

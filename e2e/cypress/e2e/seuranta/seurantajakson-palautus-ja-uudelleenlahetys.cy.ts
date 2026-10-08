@@ -24,18 +24,18 @@ describe('Seurantajakson palautus', () => {
     })
     cy.then(() => {
       cy.createSeurantajaksoViaApi({
-        kouluttajaId: Cypress.env('kouluttajaId'),
+        kouluttajaId: Cypress.expose('kouluttajaId'),
         yhteisetMerkinnat: 'E2E alkuperäiset yhteiset merkinnät.',
       }).then((seurantajakso) => {
-        Cypress.env('seurantajaksoId', seurantajakso.id)
+        Cypress.expose('seurantajaksoId', seurantajakso.id)
       })
     })
   })
 
   it('kouluttaja palauttaa seurantajakson ja erikoistuja lähettää korjatut tiedot uudelleen', () => {
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
     cy.visit(
-      `/seurantakeskustelut/seurantajakso/${Cypress.env('seurantajaksoId')}/muokkaa`
+      `/seurantakeskustelut/seurantajakso/${Cypress.expose('seurantajaksoId')}/muokkaa`
     )
     cy.contains('h1', 'Seurantajakson yhteenveto').should('be.visible')
 
@@ -58,7 +58,7 @@ describe('Seurantajakson palautus', () => {
     cy.contains('Seurantajakso palautettu muokattavaksi').should('be.visible')
 
     cy.loginAsErikoistuva()
-    cy.visit(`/seurantakeskustelut/seurantajakso/${Cypress.env('seurantajaksoId')}`)
+    cy.visit(`/seurantakeskustelut/seurantajakso/${Cypress.expose('seurantajaksoId')}`)
     cy.contains(KORJAUSEHDOTUS).should('be.visible')
     cy.contains('a', 'Muokkaa tietoja').click()
 
@@ -84,7 +84,7 @@ describe('Seurantajakson palautus', () => {
 
     cy.apiRequest({
       method: 'GET',
-      url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${Cypress.env('seurantajaksoId')}`,
+      url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${Cypress.expose('seurantajaksoId')}`,
     }).then(({ status, body }) => {
       expect(status).to.eq(200)
       expect(body.tila).to.eq('ODOTTAA_ARVIOINTIA')

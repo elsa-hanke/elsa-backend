@@ -97,7 +97,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
       vastuuhenkilonKorjausehdotus: null
     })
     expect(tallennettu.virkailija).to.include({
-      id: Cypress.env('virkailijaId'),
+      id: Cypress.expose('virkailijaId'),
       sopimusHyvaksytty: true,
       kuittausaika: arvio.virkailija.kuittausaika
     })
@@ -128,7 +128,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
       vastuuhenkilonPuhelinnumero: VASTUUHENKILON_PUHELIN
     })
     expect(tallennettu.vastuuhenkilo).to.include({
-      id: Cypress.env('vastuuhenkiloId'),
+      id: Cypress.expose('vastuuhenkiloId'),
       sopimusHyvaksytty: true,
       kuittausaika
     })
@@ -180,7 +180,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
       expect(body.erikoistuvanKuittausaika).to.match(/^\d{4}-\d{2}-\d{2}$/)
       arvio = body
     })
-    cy.loginAsVirkailija(Cypress.env('virkailijaToken'))
+    cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
     cy.then(() => cy.apiRequest({ method: 'GET', url: `${VIRKAILIJAN_API}/${arvio.id}` }))
       .then(({ status, body }) => {
         expect(status).to.eq(200)
@@ -203,7 +203,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
         arvio = body
         tarkistaOdottaaPaatosta(arvio)
       })
-    cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+    cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
     const arviointipyynto = cy.spy().as('arviointipyynto')
     cy.intercept('PUT', `**${API}`, (request) => {
       arviointipyynto(request.body)
