@@ -129,7 +129,6 @@ spring:
     properties:
       hibernate.jdbc.time_zone: UTC
       hibernate.timezone.default_storage: NORMALIZE
-      hibernate.id.new_generator_mappings: true
       hibernate.id.db_structure_naming_strategy: legacy
       hibernate.connection.provider_disables_autocommit: true
       hibernate.cache.use_second_level_cache: true

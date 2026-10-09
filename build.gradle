@@ -193,6 +193,8 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-starter-data-jpa-test"
     testImplementation "com.squareup.okhttp3:mockwebserver:${okhttpVersion}"
     testImplementation "com.h2database:h2"
+    testImplementation "org.testcontainers:testcontainers-jdbc"
+    testImplementation "org.testcontainers:testcontainers-postgresql"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j"
     implementation 'io.awspring.cloud:spring-cloud-aws-starter'

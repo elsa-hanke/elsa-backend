@@ -58,7 +58,6 @@ import org.springframework.security.saml2.provider.service.authentication.Defaul
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver
 import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver
@@ -603,24 +602,19 @@ class SecurityConfiguration(
             }
     }
 
-    private fun createAssertionValidator(): Converter<OpenSaml5AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> {
+    internal fun createAssertionValidator(): Converter<OpenSaml5AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> {
+        // Registration audiences are configured values; reuse a validator per audience.
+        val validators = java.util.concurrent.ConcurrentHashMap<String, OpenSaml5AuthenticationProvider.AssertionValidator>()
         return Converter { assertionToken ->
-            val relyingPartyRegistration: RelyingPartyRegistration = assertionToken.token.relyingPartyRegistration
-            val audience = relyingPartyRegistration.entityId
-            val validAudiences = setOf(
-                if (audience.contains("haka")) audience.substring(
-                    0,
-                    audience.indexOf("haka")
-                ) + "haka"; else audience
-            )
-
-            val validator = OpenSaml5AuthenticationProvider.AssertionValidator.builder()
-                .build()
-                .apply {
-                    setValidationContextParameters {
-                        it[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] = validAudiences
+            val audience = assertionToken.token.relyingPartyRegistration.entityId
+            val validator = validators.computeIfAbsent(audience) {
+                val normalizedAudience = if (audience.contains("haka")) audience.substringBefore("haka") + "haka" else audience
+                OpenSaml5AuthenticationProvider.AssertionValidator.builder()
+                    .validationContextParameters { parameters ->
+                        parameters[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] = setOf(normalizedAudience)
                     }
-                }
+                    .build()
+            }
             validator.convert(assertionToken)
         }
     }
