@@ -105,14 +105,6 @@ jobs:
             cypress/included:16.1.1 \
             -c 'npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080 --spec "$CYPRESS_SPECS"'
 
-      - name: Upload Cypress results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-results-${{ matrix.shard }}
-          path: e2e/results/shard-${{ matrix.shard }}
-          if-no-files-found: warn
-
       - name: Upload Cypress videos
         if: always()
         uses: actions/upload-artifact@v4
@@ -129,6 +121,7 @@ jobs:
           done
 
       - name: Upload container logs
+        id: container-logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -137,11 +130,29 @@ jobs:
 
 
       - name: Upload screenshots on failure
+        id: screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: cypress-screenshots-${{ matrix.shard }}
           path: e2e/cypress/screenshots
+
+      - name: Record shard artifact links
+        if: always()
+        env:
+          RESULTS_DIRECTORY: e2e/results/shard-${{ matrix.shard }}
+          LOGS_URL: ${{ steps.container-logs.outputs.artifact-url }}
+          SCREENSHOTS_URL: ${{ steps.screenshots.outputs.artifact-url }}
+        run: |
+          node -e 'const fs = require("node:fs"); const directory = process.env.RESULTS_DIRECTORY; fs.mkdirSync(directory, { recursive: true }); fs.writeFileSync(directory + "/artifacts.json", JSON.stringify({ logs: process.env.LOGS_URL, screenshots: process.env.SCREENSHOTS_URL }));'
+
+      - name: Upload Cypress results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results-${{ matrix.shard }}
+          path: e2e/results/shard-${{ matrix.shard }}
+          if-no-files-found: warn
 
       - name: Stop services
         if: always()
@@ -172,6 +183,7 @@ jobs:
         if: always()
         env:
           E2E_JOB_RESULT: ${{ needs.e2e.result }}
+          E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node e2e/scripts/summarize-results.mjs e2e/shard-results e2e/combined-report
 
       - name: Upload combined report
