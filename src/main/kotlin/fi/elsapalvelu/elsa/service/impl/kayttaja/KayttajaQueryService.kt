@@ -76,7 +76,7 @@ class KayttajaQueryService(
         nullAuthority: Boolean?
     ): Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO> {
 
-        val specification = if (nullAuthority == true) {
+        var specification = if (nullAuthority == true) {
             hasCertainOrNoAuthorities(authorities)
                 .and(hasName(criteria?.nimi, langkey))
                 .and(hasErikoisala(criteria?.erikoisalaId))
@@ -87,7 +87,7 @@ class KayttajaQueryService(
             }
 
         if (activeAuthority != null && activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name && yliopistot.isNotEmpty()) {
-            specification.and(hasOpintooikeusYliopisto(yliopistot[0]))
+            specification = specification.and(hasOpintooikeusYliopisto(yliopistot[0]))
         }
 
         return kayttajaRepository.findAll(specification, pageable).map { mapKayttajaErikoistujaKouluttaja(it) }
@@ -122,7 +122,7 @@ class KayttajaQueryService(
             subquery.select(subRoot.get(Opintooikeus_.id))
             subquery.where(
                 cb.equal(yliopistoJoin.get(Yliopisto_.id), yliopistoId),
-                cb.equal(root.get(Kayttaja_.id), rootJoin.get(ErikoistuvaLaakari_.kayttaja))
+                cb.equal(root.get(Kayttaja_.id), rootJoin.get(ErikoistuvaLaakari_.kayttaja).get(Kayttaja_.id))
             )
             cb.exists(subquery)
         })

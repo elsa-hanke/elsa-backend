@@ -43,7 +43,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
@@ -403,8 +403,10 @@ class VirkailijaEtusivuResourceIT {
         // Päivitetään Security contextiin impersonoitu käyttäjä
         val currentAuthentication: Authentication = requireNotNull(TestSecurityContextHolder.getContext().authentication)
         val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA, currentAuthentication)
+        // Fixture mirrors the legacy SAML principal used by impersonation.
+        @Suppress("DEPRECATION", "Deprecation")
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
-        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
+        val newPrincipal = testSamlPrincipal(
             erikoistuvaLaakari1.kayttaja?.user?.id,
             mapOf(
                 "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari1.kayttaja?.user?.firstName),
@@ -504,8 +506,10 @@ class VirkailijaEtusivuResourceIT {
             ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA,
             currentAuthentication
         )
+        // Fixture mirrors the legacy SAML principal used by impersonation.
+        @Suppress("DEPRECATION", "Deprecation")
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
-        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
+        val newPrincipal = testSamlPrincipal(
             erikoistuvaLaakari1.kayttaja?.user?.id,
             mapOf(
                 "nameID" to currentPrincipal.attributes["nameID"],
@@ -569,8 +573,10 @@ class VirkailijaEtusivuResourceIT {
         val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(
             ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA, currentAuthentication
         )
+        // Fixture mirrors the legacy SAML principal used by impersonation.
+        @Suppress("DEPRECATION", "Deprecation")
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
-        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
+        val newPrincipal = testSamlPrincipal(
             erikoistuvaLaakari1.kayttaja?.user?.id,
             mapOf(
                 "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari1.kayttaja?.user?.firstName),
@@ -689,7 +695,7 @@ class VirkailijaEtusivuResourceIT {
         val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(OPINTOHALLINNON_VIRKAILIJA))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            testSamlPrincipal(user.id, userDetails),
             "test",
             authorities
         )

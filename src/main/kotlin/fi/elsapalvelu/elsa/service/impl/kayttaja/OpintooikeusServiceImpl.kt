@@ -234,6 +234,8 @@ class OpintooikeusServiceImpl(
         opintooikeusRepository.saveAll(oikeudet)
     }
 
+    // Legacy SAML principal compatibility; migrate with login, logout and impersonation.
+    @Suppress("DEPRECATION", "Deprecation")
     private fun getImpersonatedOpintooikeusId(): Long? {
         val authentication = SecurityContextHolder.getContext().authentication ?: return null
         val principal: Saml2AuthenticatedPrincipal =

@@ -49,7 +49,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.http.MediaType
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication as withAuthentication
@@ -674,7 +674,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     fun updateValmistumispyyntoByHyvaksyjaUserId_whenUnauthorizedPersonTriesDuringApproval_isRefusedAndDoesNotDisturbRunningApproval() {
         val valmistumispyyntoId = initTestInTransaction()
         val gate = gateFirstArchivingCall()
-        val unauthorizedAuthentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(anotherVastuuhenkilo.user!!.id, mapOf()), "test",
+        val unauthorizedAuthentication = Saml2Authentication(testSamlPrincipal(anotherVastuuhenkilo.user!!.id, mapOf()), "test",
             listOf(SimpleGrantedAuthority(VASTUUHENKILO))
         )
 
@@ -777,7 +777,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         committedSecondOpintooikeusId = secondOpintooikeus.id
         committedSecondErikoistuvaLaakariId = erikoistuvaLaakari.id
         valmistumispyynto.id!!
-    }!!
+    }
 
     private fun initTestInTransaction(): Long = transactionTemplate.execute {
         // --- Setup: run inside a dedicated transaction that is committed before the service call ---
@@ -798,7 +798,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         committedErikoistuvaLaakariId = opintooikeus.erikoistuvaLaakari?.id
         committedYliopistoId = opintooikeus.yliopisto?.id
         valmistumispyynto.id!!
-    }!!
+    }
 
     // -------------------------------------------------------------------------
     // Setup helpers (mirrors VastuuhenkiloValmistumispyyntoResourceIT.initTest)
@@ -810,7 +810,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(vastuuhenkiloUser.id, mapOf()),
+            testSamlPrincipal(vastuuhenkiloUser.id, mapOf()),
             "test",
             authorities
         )

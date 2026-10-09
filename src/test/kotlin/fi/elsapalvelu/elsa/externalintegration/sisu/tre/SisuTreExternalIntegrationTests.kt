@@ -76,6 +76,8 @@ class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase()
     }
 }
 
+// Match the application Jackson 2 mapper until its Jackson 3 migration.
+@Suppress("DEPRECATION", "Deprecation")
 @SpringBootConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
 @ImportAutoConfiguration(Jackson2AutoConfiguration::class)

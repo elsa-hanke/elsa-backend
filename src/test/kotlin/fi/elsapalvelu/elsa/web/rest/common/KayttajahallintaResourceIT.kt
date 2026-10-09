@@ -811,7 +811,7 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         yliopisto = persistYliopisto(DEFAULT_YLIOPISTO)
         val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(role))
         persistAndFlush(user)
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(user.id, mapOf<String, List<Any>>()), "test", listOf(SimpleGrantedAuthority(role)))
+        val authentication = Saml2Authentication(testSamlPrincipal(user.id, mapOf<String, List<Any>>()), "test", listOf(SimpleGrantedAuthority(role)))
 
         val kayttaja = KayttajaHelper.createEntity(em, user)
         if (role == OPINTOHALLINNON_VIRKAILIJA) {

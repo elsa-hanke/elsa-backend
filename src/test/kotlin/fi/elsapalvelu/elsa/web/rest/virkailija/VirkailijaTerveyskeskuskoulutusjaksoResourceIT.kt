@@ -36,7 +36,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -322,7 +322,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         em.flush()
         val authorities = listOf(SimpleGrantedAuthority(OPINTOHALLINNON_VIRKAILIJA))
         TestSecurityContextHolder.getContext().authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, emptyMap()),
+            testSamlPrincipal(user.id, emptyMap()),
             "test",
             authorities
         )
@@ -364,7 +364,7 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
         )
         val authorities = listOf(SimpleGrantedAuthority(OPINTOHALLINNON_VIRKAILIJA))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            testSamlPrincipal(user.id, userDetails),
             "test",
             authorities
         )

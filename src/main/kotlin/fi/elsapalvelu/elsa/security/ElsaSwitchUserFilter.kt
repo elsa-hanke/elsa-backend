@@ -39,6 +39,8 @@ import jakarta.servlet.http.HttpServletResponse
  * Kouluttaja/vastuuhenkilö/opintohallinnon virkailija voi haluta katsoa erikoistujan tietoja, jolloin autentikaatiota
  * täytyy impersonoida. Toteutettu SwitchUserFilter pohjalta ja mukautettu toimimaan SAML kanssa.
  */
+// Legacy SAML principal compatibility; migrate with login, logout and impersonation.
+@Suppress("DEPRECATION", "Deprecation")
 class ElsaSwitchUserFilter(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val kayttajaRepository: KayttajaRepository,

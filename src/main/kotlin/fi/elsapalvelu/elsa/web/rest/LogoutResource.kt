@@ -23,6 +23,8 @@ class LogoutResource(
     }
 
     @GetMapping("/api/slo-kaytossa")
+    // Legacy SAML principal compatibility; migrate with login, logout and impersonation.
+    @Suppress("DEPRECATION", "Deprecation")
     fun sloKaytossa(principal: Principal?): ResponseEntity<Boolean> {
         val saml2Authentication = principal as Saml2Authentication
         val saml2AuthenticatedPrincipal =

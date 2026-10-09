@@ -76,6 +76,8 @@ class UserServiceImpl(
         userRepository.findAllByLoginNot(pageable, ANONYMOUS_USER).map { UserDTO(it) }
 
     @Transactional(readOnly = true)
+    // Legacy SAML principal compatibility; migrate with login, logout and impersonation.
+    @Suppress("DEPRECATION", "Deprecation")
     override fun getUserFromAuthentication(authToken: Saml2Authentication): UserDTO {
         val principal = authToken.principal as Saml2AuthenticatedPrincipal
 

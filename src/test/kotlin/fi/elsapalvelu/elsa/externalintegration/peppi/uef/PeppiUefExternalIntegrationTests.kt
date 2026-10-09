@@ -58,6 +58,8 @@ class PeppiUefExternalIntegrationTests : FetchingServiceExternalIntegrationBase(
     PeppiUefOpintosuorituksetFetchingServiceImpl::class
 )
 class PeppiUefExternalIntegrationTestApplication {
+    // Application integrations still use Jackson 2 through Boot 4 compatibility support.
+    @Suppress("DEPRECATION", "Deprecation")
     @Bean
     fun jacksonCustomizer(): Jackson2ObjectMapperBuilderCustomizer =
         Jackson2ObjectMapperBuilderCustomizer {

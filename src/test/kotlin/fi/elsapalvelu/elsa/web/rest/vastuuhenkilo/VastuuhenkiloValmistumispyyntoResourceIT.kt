@@ -665,7 +665,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(vastuuhenkiloUser)
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(vastuuhenkiloUser.id, mapOf<String, List<Any>>()), "test", authorities)
+        val authentication = Saml2Authentication(testSamlPrincipal(vastuuhenkiloUser.id, mapOf<String, List<Any>>()), "test", authorities)
         TestSecurityContextHolder.getContext().authentication = authentication
         erikoistuvaLaakari = initErikoistuvaLaakari()
         opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()!!

@@ -174,7 +174,7 @@ class SecurityConfiguration(
             ex.accessDeniedHandler { request, response, _ ->
                 AuditLoggingWrapper.warn(
                     "Access denied for " +
-                        "user: ${request.let { it?.userPrincipal?.name }}, " +
+                        "user: ${request.userPrincipal?.name}, " +
                         "method: ${request.method}, " +
                         "path: ${request.requestURI}}, " +
                         "ip: ${request.getHeader("X-Forwarded-For")}"
@@ -315,6 +315,8 @@ class SecurityConfiguration(
         return authenticationRequestResolver
     }
 
+    // Retain the legacy SAML principal until login, logout and impersonation migrate together.
+    @Suppress("DEPRECATION", "Deprecation")
     fun logoutRequestResolver(relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver): Saml2LogoutRequestResolver {
         val logoutRequestResolver = OpenSaml5LogoutRequestResolver(relyingPartyRegistrationResolver)
         logoutRequestResolver.setParametersConsumer { parameters ->
@@ -339,11 +341,12 @@ class SecurityConfiguration(
         }
     }
 
-    @Suppress("CyclomaticComplexMethod", "LongMethod")
+    // Legacy SAML principal compatibility; migrate with login, logout and impersonation.
+    @Suppress("CyclomaticComplexMethod", "LongMethod", "DEPRECATION", "Deprecation")
     fun convertAuthentication(responseToken: OpenSaml5AuthenticationProvider.ResponseToken): Saml2Authentication {
         val token: Saml2Authentication =
             OpenSaml5AuthenticationProvider.ResponseAuthenticationConverter()
-                .convert(responseToken) as Saml2Authentication
+                .convert(responseToken)
         val registrationId = responseToken.token.relyingPartyRegistration.registrationId
         val principal = createPrincipal(token.name, token.principal as Saml2AuthenticatedPrincipal, registrationId)
         val firstName = principal.attributes["urn:oid:2.5.4.42"]?.get(0) as String
@@ -485,6 +488,8 @@ class SecurityConfiguration(
     private fun hasAnyRole(user: User): Boolean =
         user.authorities.isNotEmpty()
 
+    // Retain the legacy SAML principal until login, logout and impersonation migrate together.
+    @Suppress("DEPRECATION", "Deprecation")
     internal fun createPrincipal(
         name: String?, principal: Saml2AuthenticatedPrincipal, registrationId: String
     ): DefaultSaml2AuthenticatedPrincipal {
@@ -609,9 +614,13 @@ class SecurityConfiguration(
                 ) + "haka"; else audience
             )
 
-            val validator = OpenSaml5AuthenticationProvider.createDefaultAssertionValidatorWithParameters {
-                it.put(SAML2AssertionValidationParameters.COND_VALID_AUDIENCES, validAudiences)
-            }
+            val validator = OpenSaml5AuthenticationProvider.AssertionValidator.builder()
+                .build()
+                .apply {
+                    setValidationContextParameters {
+                        it[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] = validAudiences
+                    }
+                }
             validator.convert(assertionToken)
         }
     }

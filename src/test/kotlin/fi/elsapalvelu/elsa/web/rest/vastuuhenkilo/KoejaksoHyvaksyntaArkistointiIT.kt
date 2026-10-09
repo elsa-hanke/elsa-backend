@@ -340,7 +340,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             koulutussopimusId = requireNotNull(vaiheet.koulutussopimus.id),
             vastuuhenkilonArvioId = requireNotNull(vastuuhenkilonArvio.id)
         )
-    }!!.also { fixture = it }
+    }.also { fixture = it }
 
     private fun approveVastuuhenkilonArvio(current: KoejaksoFixture) = testMockMvc.perform(
         put(ARVIO_ENDPOINT)
@@ -363,7 +363,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
                     koejaksoHyvaksytty = true
                     vastuuhenkilonKorjausehdotus = null
                 }
-        }!!
+        }
 
     private fun koulutussopimusDto(id: Long): KoejaksonKoulutussopimusDTO =
         transactionTemplate.execute { _ ->
@@ -373,7 +373,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
                     vastuuhenkilo?.kuittausaika = LocalDate.now()
                     korjausehdotus = null
                 }
-        }!!
+        }
 
     private fun stubSuccessfulArchiving() {
         stubSuccessfulPackageBuilding()
@@ -430,7 +430,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             asiakirjaRepository.findAllByOpintooikeusId(opintooikeusId).map { document ->
                 document.toPersistedDocument()
             }
-        }!!
+        }
         assertThat(documents).hasSize(1)
         return documents.single().also { document ->
             assertThat(document.id).isNotNull()
@@ -444,7 +444,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             vastuuhenkilonArvioRepository.findById(id).orElseThrow().let { arvio ->
                 ApprovalState(arvio.vastuuhenkiloHyvaksynyt, arvio.vastuuhenkilonKuittausaika, arvio.koejaksoHyvaksytty)
             }
-        }!!
+        }
         assertThat(state.hyvaksytty).isTrue()
         assertThat(state.kuittausaika).isNotNull()
         assertThat(state.koejaksoHyvaksytty).isTrue()
@@ -455,7 +455,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             koulutussopimusRepository.findById(id).orElseThrow().let { sopimus ->
                 ApprovalState(sopimus.vastuuhenkiloHyvaksynyt, sopimus.vastuuhenkilonKuittausaika)
             }
-        }!!
+        }
         assertThat(state.hyvaksytty).isTrue()
         assertThat(state.kuittausaika).isNotNull()
     }
@@ -465,7 +465,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             vastuuhenkilonArvioRepository.findById(current.vastuuhenkilonArvioId).orElseThrow().let { arvio ->
                 ApprovalState(arvio.vastuuhenkiloHyvaksynyt, arvio.vastuuhenkilonKuittausaika, arvio.koejaksoHyvaksytty)
             }
-        }!!
+        }
         assertThat(state.hyvaksytty).isFalse()
         assertThat(state.kuittausaika).isNull()
         assertThat(state.koejaksoHyvaksytty).isNull()
@@ -477,7 +477,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             koulutussopimusRepository.findById(current.koulutussopimusId).orElseThrow().let { sopimus ->
                 ApprovalState(sopimus.vastuuhenkiloHyvaksynyt, sopimus.vastuuhenkilonKuittausaika)
             }
-        }!!
+        }
         assertThat(state.hyvaksytty).isFalse()
         assertThat(state.kuittausaika).isNull()
         assertNoPersistedDocuments(current.opintooikeusId)
@@ -486,7 +486,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
     private fun assertNoPersistedDocuments(opintooikeusId: Long) {
         val documents = transactionTemplate.execute { _ ->
             asiakirjaRepository.findAllByOpintooikeusId(opintooikeusId)
-        }!!
+        }
         assertThat(documents).isEmpty()
     }
 

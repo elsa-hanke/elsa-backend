@@ -27,7 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -200,7 +200,7 @@ class PaakayttajaKayttajahallintaResourceIT: ResourceIntegrationTestBase() {
         yliopisto = persistYliopisto(DEFAULT_YLIOPISTO)
         val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(role))
         persistAndFlush(user)
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(user.id, mapOf<String, List<Any>>()), "test", listOf(SimpleGrantedAuthority(role)))
+        val authentication = Saml2Authentication(testSamlPrincipal(user.id, mapOf<String, List<Any>>()), "test", listOf(SimpleGrantedAuthority(role)))
 
         val kayttaja = KayttajaHelper.createEntity(em, user)
         if (role == OPINTOHALLINNON_VIRKAILIJA) {

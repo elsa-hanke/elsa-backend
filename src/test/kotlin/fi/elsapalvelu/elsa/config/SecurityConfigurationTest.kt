@@ -26,7 +26,7 @@ import org.mockito.Mockito.mock
 import org.slf4j.MDC
 import org.springframework.context.ApplicationContext
 import org.springframework.core.env.Environment
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.web.filter.CorsFilter
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -39,7 +39,7 @@ class SecurityConfigurationTest {
 
     @Test
     fun `SAML principal retains token registration and session indexes without mutating source attributes`() {
-        val source = DefaultSaml2AuthenticatedPrincipal(
+        val source = testSamlPrincipal(
             "external-name",
             mapOf("givenName" to listOf<Any>("Test")),
             listOf("session-123")
