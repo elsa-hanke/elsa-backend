@@ -126,8 +126,19 @@ describe('YEK-roolin ja opinto-oikeuden synkronointi (ELSAINSI-73)', () => {
 
       // Tab opens on the YEK page while YEK is genuinely the active context -
       // this must succeed, same as the existing happy-path test.
+      cy.intercept('GET', '**/yek-koulutettava/tyoskentelyjaksot-taulukko').as(
+        'initialYekTaulukkoRequest'
+      )
+      cy.intercept('GET', '**/yek-koulutettava/etusivu/erikoistumisen-edistyminen').as(
+        'initialYekEdistyminenRequest'
+      )
       cy.visit('/yektyoskentelyjaksot')
       cy.contains('h1', 'Työskentelyjaksot').should('be.visible')
+      // The heading renders before mounted() finishes its two sequential requests.
+      // Drain the initial load before tracking requests made with a stale role.
+      cy.wait('@initialYekTaulukkoRequest').its('response.statusCode').should('eq', 200)
+      cy.wait('@initialYekEdistyminenRequest').its('response.statusCode').should('eq', 200)
+      cy.get('main[role="main"] .spinner-border').should('not.exist')
 
       // Register before the switch: the fix may react to Cypress focus events
       // at any moment after the server-side switch, so later registration would race.
