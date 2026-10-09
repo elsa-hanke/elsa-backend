@@ -452,7 +452,8 @@ class SecurityConfiguration(
             userRepository.save(existingUser)
         }
 
-        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal, registrationId), token.saml2Response, kayttaja.user.required().authorities.map { SimpleGrantedAuthority(it.name.required()) })
+        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal, registrationId), token.saml2Response,
+            kayttaja.user.required().authorities.map { SimpleGrantedAuthority(it.name.required()) })
     }
 
     private fun shouldFetchOpintotietodata(
