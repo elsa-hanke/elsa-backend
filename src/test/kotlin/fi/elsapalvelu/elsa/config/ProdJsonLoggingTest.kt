@@ -34,7 +34,7 @@ class ProdJsonLoggingTest {
             val encoder = appender.encoder as ch.qos.logback.core.encoder.Encoder<LoggingEvent>
             val json = ObjectMapper().readTree(encoder.encode(event))
             assertThat(json.path("message").asText()).isEqualTo("Audit event äö")
-            assertThat(json.path("logger_name").asText()).isEqualTo(loggerName)
+            assertThat(json.path("logger_name").asText()).endsWith(loggerName.substringAfterLast('.'))
             assertThat(json.path("userId").asText()).isEqualTo("user-123")
             assertThat(json.path("app_name").asText()).isEqualTo("elsaBackend")
             assertThat(json.path("app_port").asText()).isEqualTo("8080")

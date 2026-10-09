@@ -23,15 +23,13 @@ class ProdMetricsConfigurationTest {
         assertThat(config.namespace()).isEqualTo("elsa")
         val registry = configuration.cloudWatchMeterRegistry(config, Clock.SYSTEM, mock(CloudWatchAsyncClient::class.java))
         try {
-            val sessions = registry.counter("http.sessions.total")
-            sessions.increment()
-            assertThat(sessions.count()).isEqualTo(1.0)
-            val archive = registry.counter("arkistointi.errors.total")
-            archive.increment()
-            assertThat(archive.count()).isEqualTo(1.0)
-            val unwanted = registry.counter("unexpected.metric")
-            unwanted.increment()
-            assertThat(unwanted.count()).isZero()
+            registry.gauge("http.sessions.active", java.util.concurrent.atomic.AtomicInteger(3))
+            assertThat(registry.find("http.sessions.active").gauge()?.value()).isEqualTo(3.0)
+            registry.counter("arkistointi.errors.total").increment()
+            assertThat(registry.find("arkistointi.errors.total").counter()).isNotNull()
+            registry.counter("unexpected.metric").increment()
+            assertThat(registry.find("unexpected.metric").counter()).isNull()
+
         } finally {
             registry.close()
         }

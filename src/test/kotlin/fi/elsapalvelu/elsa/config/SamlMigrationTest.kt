@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.opensaml.core.xml.XMLObject
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport
 import org.opensaml.saml.saml2.core.*
@@ -81,6 +82,30 @@ class SamlMigrationTest {
         val validator = testSecurityConfiguration().createAssertionValidator()
         assertThat(requireNotNull(validator.convert(assertionToken("haka-tampere", "haka", 120))).hasErrors()).isFalse()
         assertThat(requireNotNull(validator.convert(assertionToken("haka-tampere", "haka", 600))).hasErrors()).isTrue()
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["issuer", "recipient"])
+    fun customAudienceValidationStillRejectsWrongIssuerOrRecipient(field: String) {
+        val validator = testSecurityConfiguration().createAssertionValidator()
+        val token = assertionToken("haka-tampere", "haka")
+        if (field == "issuer") {
+            requireNotNull(token.assertion.issuer).value = "https://other-idp.example"
+        } else {
+            val subject = requireNotNull(token.assertion.subject)
+            requireNotNull(subject.subjectConfirmations.single().subjectConfirmationData).recipient = "https://other-sp.example/acs"
+        }
+        assertThat(requireNotNull(validator.convert(token)).hasErrors()).isTrue()
+        assertThat(requireNotNull(validator.convert(assertionToken("haka-tampere", "haka"))).hasErrors()).isFalse()
+    }
+
+    @Test
+    fun oneValidatorHandlesMultipleRegistrationAudiencesWithoutLeakingConfiguration() {
+        val validator = testSecurityConfiguration().createAssertionValidator()
+        assertThat(requireNotNull(validator.convert(assertionToken("haka-tampere", "haka"))).hasErrors()).isFalse()
+        assertThat(requireNotNull(validator.convert(assertionToken("suomifi", "suomifi"))).hasErrors()).isFalse()
+        assertThat(requireNotNull(validator.convert(assertionToken("haka-tampere", "suomifi"))).hasErrors()).isTrue()
+        assertThat(requireNotNull(validator.convert(assertionToken("haka-helsinki", "haka"))).hasErrors()).isFalse()
     }
 
     @ParameterizedTest
