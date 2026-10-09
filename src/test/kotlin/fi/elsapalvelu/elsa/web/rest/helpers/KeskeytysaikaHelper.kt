@@ -70,7 +70,9 @@ object KeskeytysaikaHelper {
                 em.flush()
             }
         } else {
-            existing.first()
+            // Unordered queries return different rows across databases. Keep the
+            // fixture's baseline absence reason stable regardless of row order.
+            existing.minBy { requireNotNull(it.id) }
         }
     }
 }

@@ -53,6 +53,19 @@ Suorita applikaation testit komennolla:
 ./gradlew test integrationTest jacocoTestReport
 ```
 
+Tietokantaa käyttävät testit käynnistävät automaattisesti PostgreSQL 16.9 -kontin
+Testcontainersilla. Dockerin on oltava käynnissä myös paikallisessa ajossa.
+Erillistä profiilia tai `-Ptestcontainers`-valitsinta ei tarvita. Testit käyttävät
+väliaikaista tietokantaa, joka poistetaan testiprosessin päättyessä. Kontti jaetaan
+saman testiprosessin Spring-kontekstien kesken; ShedLock-testit käyttävät omaa
+väliaikaista tietokantaansa. Tietokantaa tarvitsemattomat testit eivät käynnistä
+PostgreSQL-konttia.
+
+Testiskeema luodaan tuotannon Liquibase-muutoksista ilman Hibernaten automaattisia
+skeemamuutoksia. Testien `test-master.xml` suorittaa lisäksi kahden
+sarakekohtaisen sekvenssin kohdistuksen ladatun viitedatan suurimpaan ID-arvoon.
+Envers käyttää samoja audit-taulujen ja revision-sarakkeiden nimiä kuin tuotannossa.
+
 ### Ulkoiset integraatiotestit
 
 Ulkoiset integraatiotestit suoritetaan CodeBuildissa komennolla:

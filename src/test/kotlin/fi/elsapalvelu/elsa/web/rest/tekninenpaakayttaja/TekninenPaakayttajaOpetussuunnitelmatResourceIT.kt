@@ -281,12 +281,12 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
                 .content(convertObjectToJsonBytes(opintoopasDTO)).with(csrf())).andExpect(status().isCreated)
 
         val opintoopasList = opintoopasRepository.findAll()
-        val opas = opintoopasList[opintoopasList.size - 1]
+        val opas = opintoopasList.single { it.erikoisala?.id == erikoisala.id && it.id != opintoopas.id }
         assertThat(opas.nimi).isEqualTo(opintoopasDTO.nimi)
         assertThat(opas.voimassaoloAlkaa).isEqualTo(opintoopasDTO.voimassaoloAlkaa)
         assertThat(opas.voimassaoloPaattyy).isEqualTo(opintoopasDTO.voimassaoloPaattyy)
 
-        val oldOpas = opintoopasList[opintoopasList.size - 2]
+        val oldOpas = opintoopasList.single { it.id == opintoopas.id }
         assertThat(oldOpas.nimi).isEqualTo(opintoopas.nimi)
         assertThat(oldOpas.voimassaoloAlkaa).isEqualTo(opintoopas.voimassaoloAlkaa)
         assertThat(oldOpas.voimassaoloPaattyy).isEqualTo(opintoopasDTO.voimassaoloAlkaa?.minusDays(1))

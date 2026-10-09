@@ -3,8 +3,8 @@ package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
-import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
@@ -290,8 +290,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
         em.flush()
         setSecurityContext(vastuuhenkiloUser.id!!, VASTUUHENKILO)
 
-        val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
-        em.persist(yliopisto)
+        val yliopisto = YliopistoHelper.createReferenceData(em, YliopistoEnum.TAMPEREEN_YLIOPISTO)
 
         val erikoistuvaUser = KayttajaResourceWithMockUserIT.createEntity(
             authority = Authority(ERIKOISTUVA_LAAKARI)

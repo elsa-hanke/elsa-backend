@@ -23,17 +23,22 @@ spring:
     name: elsaBackend
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:h2:mem:elsaBackend;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    name:
-    username:
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    # Share a temporary PostgreSQL database across Spring contexts in this test JVM.
+    # Testcontainers removes it when the process exits; it is never an external DB.
+    url: jdbc:tc:postgresql:16.9:///elsaBackend?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true
+    username: elsaBackend
     password:
     hikari:
+      # Cached Spring contexts each own a pool; keep their idle connections small.
+      minimum-idle: 1
+      maximum-pool-size: 5
       auto-commit: false
   jackson2:
     serialization:
       write-durations-as-timestamps: false
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
     show-sql: false
     hibernate:
@@ -46,13 +51,17 @@ spring:
       hibernate.cache.use_second_level_cache: false
       hibernate.cache.use_query_cache: false
       hibernate.generate_statistics: false
-      hibernate.hbm2ddl.auto: update
+      hibernate.id.db_structure_naming_strategy: legacy
+      org.hibernate.envers.audit_table_suffix: _audit
+      org.hibernate.envers.revision_field_name: revision_id
+      org.hibernate.envers.revision_type_field_name: revision_type
+      org.hibernate.envers.revision_on_collection_change: false
       hibernate.jdbc.time_zone: UTC
       hibernate.timezone.default_storage: NORMALIZE
       hibernate.query.fail_on_pagination_over_collection_fetch: true
   liquibase:
     contexts: test
-    change-log: classpath:/config/liquibase/master.xml
+    change-log: classpath:/config/liquibase/test-master.xml
   mail:
     host: localhost
   main:

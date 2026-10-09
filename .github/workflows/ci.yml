@@ -42,12 +42,6 @@ jobs:
         run: ./gradlew test
       - name: Integration test
         run: ./gradlew integrationTest
-      - name: PostgreSQL migration regression tests
-        run: >-
-          ./gradlew integrationTest -Ptestcontainers
-          --tests '*KayttajaQueryServiceIT'
-          --tests '*HibernateTimeZoneIT'
-          --tests '*BadRequestExceptionAdviceIT'
       - name: Detekt (test sources with type resolution)
         run: ./gradlew detektTest
       - name: Generate SBOM

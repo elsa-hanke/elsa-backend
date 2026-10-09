@@ -11,25 +11,44 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import javax.sql.DataSource
 import org.assertj.core.api.Assertions.assertThat
-import org.h2.jdbcx.JdbcDataSource
+import com.zaxxer.hikari.HikariDataSource
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.jdbc.core.JdbcTemplate
 import java.time.Duration
 import java.time.Instant
-import java.util.UUID
 
 class ShedLockMigrationIT {
+    private lateinit var dataSource: HikariDataSource
+
+    @BeforeEach
+    fun createDatabase() {
+        // A separate database keeps these standalone lock tests independent of
+        // the application schema and its Liquibase-managed ShedLock table.
+        dataSource = HikariDataSource().apply {
+            driverClassName = "org.testcontainers.jdbc.ContainerDatabaseDriver"
+            jdbcUrl = "jdbc:tc:postgresql:16.9:///shedlock?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true"
+            username = "test"
+            password = "test"
+            maximumPoolSize = 2
+        }
+        JdbcTemplate(dataSource).execute(
+            "create table shedlock (name varchar(64) primary key, lock_until timestamp not null, locked_at timestamp not null, locked_by varchar(255) not null)"
+        )
+    }
+
+    @AfterEach
+    fun closeDatabase() {
+        try {
+            JdbcTemplate(dataSource).execute("drop table if exists shedlock")
+        } finally {
+            dataSource.close()
+        }
+    }
+
     @Test
     fun independentInstancesCannotHoldTheSameJobLockAtTheSameTime() {
-        val dataSource = JdbcDataSource().apply { setURL("jdbc:h2:mem:shedlock-${UUID.randomUUID()};DB_CLOSE_DELAY=-1") }
-        JdbcTemplate(dataSource).execute("""
-            create table shedlock (
-                name varchar(64) primary key,
-                lock_until timestamp not null,
-                locked_at timestamp not null,
-                locked_by varchar(255) not null
-            )
-        """.trimIndent())
         val firstInstance = ShedLockConfig().lockProvider(dataSource)
         val secondInstance = ShedLockConfig().lockProvider(dataSource)
         val lock = LockConfiguration(Instant.now(), "paattyvaOpintooikeusHerate", Duration.ofMinutes(1), Duration.ZERO)
@@ -46,10 +65,6 @@ class ShedLockMigrationIT {
     }
     @Test
     fun springSevenProxySkipsJobWhileAnotherApplicationInstanceHoldsLock() {
-        val dataSource = JdbcDataSource().apply { setURL("jdbc:h2:mem:shedlock-proxy-${UUID.randomUUID()};DB_CLOSE_DELAY=-1") }
-        JdbcTemplate(dataSource).execute(
-            "create table shedlock (name varchar(64) primary key, lock_until timestamp not null, locked_at timestamp not null, locked_by varchar(255) not null)"
-        )
         val first = jobContext(dataSource)
         val second = jobContext(dataSource)
         val executor = Executors.newSingleThreadExecutor()

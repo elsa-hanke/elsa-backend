@@ -139,12 +139,15 @@ class VirkailijaEtusivuResourceIT {
                 erikoisala1
             )
         em.persist(opintoopas)
+        val secondOpintoopas = OpintoopasHelper.createEntity(em, erikoisala = erikoisala2)
+        em.persist(secondOpintoopas)
 
         erikoistuvaLaakari1 =
             ErikoistuvaLaakariHelper.createEntity(
                 em,
                 yliopisto = defaultYliopisto,
                 erikoisala = erikoisala1,
+                opintoopas = opintoopas,
                 asetus = asetus1,
                 opintooikeudenPaattymispaiva = LocalDate.now().plusYears(2)
             ).apply {
@@ -157,6 +160,7 @@ class VirkailijaEtusivuResourceIT {
             em,
             yliopisto = defaultYliopisto,
             erikoisala = erikoisala2,
+            opintoopas = secondOpintoopas,
             asetus = asetus2,
             opintooikeudenPaattymispaiva = LocalDate.now().plusYears(1)
         ).apply {
