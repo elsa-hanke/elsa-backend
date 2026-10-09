@@ -68,6 +68,10 @@ Envers käyttää samoja audit-taulujen ja revision-sarakkeiden nimiä kuin tuot
 
 ### Ulkoiset integraatiotestit
 
+Ulkoiset integraatiotestit testaavat etäpalveluita eivätkä käytä paikallista
+tietokantaa. `external-integration`-profiili poistaa JDBC-, JPA- ja Liquibase-
+autokonfiguraation käytöstä, joten CodeBuildissa ei tarvita Dockeria.
+
 Ulkoiset integraatiotestit suoritetaan CodeBuildissa komennolla:
 
 ```
