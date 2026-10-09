@@ -54,10 +54,16 @@ class TomcatMigrationIT {
     }
 
     @Test
-    fun tomcatAcceptsFiftyPartsAndRejectsFiftyOne() {
-        assertThat(upload((1..50).map { "file-$it.pdf" to byteArrayOf(1) }).statusCode()).isEqualTo(200)
-        // Characterize the current limit; increasing it requires a separate upload policy decision.
-        assertThat(upload((1..51).map { "file-$it.pdf" to byteArrayOf(1) }).statusCode()).isNotEqualTo(200)
+    fun tomcatAcceptsOneHundredPartsAndRejectsOneHundredOne() {
+        assertThat(upload((1..100).map { "file-$it.pdf" to byteArrayOf(1) }).statusCode()).isEqualTo(200)
+        assertThat(upload((1..101).map { "file-$it.pdf" to byteArrayOf(1) }).statusCode()).isNotEqualTo(200)
+    }
+
+    @Test
+    fun multipartLimitCountsFormFieldsAsWellAsFiles() {
+        val files = (1..90).map { "file-$it.pdf" to byteArrayOf(1) }
+        assertThat(upload(files, fieldsCount = 10).statusCode()).isEqualTo(200)
+        assertThat(upload(files, fieldsCount = 11).statusCode()).isNotEqualTo(200)
     }
 
     @Test
@@ -90,9 +96,12 @@ class TomcatMigrationIT {
         assertThat(cookie).contains("Secure", "HttpOnly", "SameSite=None")
     }
 
-    private fun upload(files: List<Pair<String, ByteArray>>): HttpResponse<String> {
+    private fun upload(files: List<Pair<String, ByteArray>>, fieldsCount: Int = 0): HttpResponse<String> {
         val boundary = "elsa-test-boundary"
         val body = ByteArrayOutputStream()
+        repeat(fieldsCount) { index ->
+            body.write("--$boundary\r\nContent-Disposition: form-data; name=\"field-$index\"\r\n\r\n{}\r\n".toByteArray())
+        }
         files.forEach { (name, content) ->
             body.write("--$boundary\r\nContent-Disposition: form-data; name=\"files\"; filename=\"$name\"\r\nContent-Type: application/pdf\r\n\r\n".toByteArray())
             body.write(content)

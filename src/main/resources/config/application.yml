@@ -190,6 +190,8 @@ spring:
 
 server:
   tomcat:
+    # Reserve room for form fields beyond the frontend limit of 90 new files.
+    max-part-count: 100
     # Allow the application limit of 255 UTF-16 filename units, including Unicode
     # and encoded filename headers, while retaining a bounded multipart header size.
     max-part-header-size: 4KB

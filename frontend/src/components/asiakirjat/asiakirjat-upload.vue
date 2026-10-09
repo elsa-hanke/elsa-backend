@@ -70,6 +70,9 @@
             {{ $t('asiakirjan-tallentaminen-epaonnistui') }}
           </h4>
           <ul>
+            <li v-if="maxFilesCountExceeded">
+              {{ $t('asiakirjojen-enimmaismaara-ylitetty') }}
+            </li>
             <li v-if="duplicateFilesInCurrentView.length > 0">
               {{ $t('asiakirja-samanniminen-tiedosto') }}
             </li>
@@ -102,6 +105,9 @@
             {{ $t('asiakirjojen-tallentaminen-epaonnistui') }}
           </h4>
           <div class="mb-3">{{ $t('yhtakaan-tiedostoa-ei-tallennettu') }}</div>
+          <div v-if="maxFilesCountExceeded" class="mb-2">
+            {{ $t('asiakirjojen-enimmaismaara-ylitetty') }}
+          </div>
           <div v-if="maxFilesTotalSizeExceeded" class="mb-2">
             {{ $t('asiakirjojen-yhteenlaskettu-koko-ylitetty') }}
           </div>
@@ -178,6 +184,7 @@
 
   // Match FileValidationServiceImpl: JS and Kotlin String.length count UTF-16 units.
   const maxFileNameLength = 255
+  const maxFilesPerRequest = 90
   // Maksimi tiedostokoko 20 Mt
   const maxFileSize = 20 * 1024 * 1024
   const maxFilesTotalSize = 100 * 1024 * 1024
@@ -187,6 +194,7 @@
   @Component
   export default class AsiakirjatUpload extends Vue {
     maxFilesTotalSizeExceeded = false
+    maxFilesCountExceeded = false
     filesExceedingMaxSize: File[] = []
     filesWithInvalidNames: File[] = []
     filesOfWrongType: File[] = []
@@ -214,6 +222,10 @@
     @Prop({ required: false, type: String })
     wrongFileTypeErrorMessage?: string
 
+    // Only files waiting to be uploaded count; already saved documents do not.
+    @Prop({ required: false, type: Number, default: 0 })
+    pendingFilesCount!: number
+
     @Prop({ required: false, type: Boolean, default: true })
     allowMultiplesFiles!: boolean
 
@@ -236,6 +248,7 @@
       const inputElement = e.target as HTMLInputElement
       const fileArray = [...(inputElement?.files ?? [])]
       this.selectedFilesCount = fileArray.length
+      this.maxFilesCountExceeded = this.pendingFilesCount + fileArray.length > maxFilesPerRequest
       // Chromea varten. Muutoin heti perään valittu sama tiedosto ei laukaise koko eventtiä.
       inputElement.value = ''
       this.maxFilesTotalSizeExceeded = this.getIsTotalFileSizeExceeded(fileArray)
@@ -288,6 +301,7 @@
 
     onDismissAlert() {
       this.maxFilesTotalSizeExceeded = false
+      this.maxFilesCountExceeded = false
       this.filesExceedingMaxSize = []
       this.filesWithInvalidNames = []
       this.filesOfWrongType = []
@@ -303,6 +317,7 @@
 
     get hasErrors() {
       return (
+        this.maxFilesCountExceeded ||
         this.maxFilesTotalSizeExceeded ||
         this.filesExceedingMaxSize.length > 0 ||
         this.filesWithInvalidNames.length > 0 ||
