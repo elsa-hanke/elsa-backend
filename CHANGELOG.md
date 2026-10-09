@@ -2,6 +2,16 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.1...HEAD)
 
+- Bump proxy-addr from 2.0.7 to 2.0.8 in /frontend [`#775`](https://github.com/elsa-hanke/elsa-backend/pull/775)(9 October 2026)
+- Bump shell-quote from 1.10.0 to 1.12.0 in /frontend [`#773`](https://github.com/elsa-hanke/elsa-backend/pull/773)(9 October 2026)
+- Bump compression from 1.7.4 to 1.8.2 in /frontend [`#772`](https://github.com/elsa-hanke/elsa-backend/pull/772)(9 October 2026)
+- bump libs 102026 [`#777`](https://github.com/elsa-hanke/elsa-backend/pull/777)(9 October 2026)
+- Bump source-map-js from 1.0.2 to 1.2.2 in /frontend [`#771`](https://github.com/elsa-hanke/elsa-backend/pull/771)(9 October 2026)
+- Bump joi from 17.13.7 to 17.13.8 in /frontend [`#774`](https://github.com/elsa-hanke/elsa-backend/pull/774)(9 October 2026)
+- cypress bump 15.21.0 -&gt; 16.1.1 [`#776`](https://github.com/elsa-hanke/elsa-backend/pull/776)(8 October 2026)
+- e2e testien rinnakkainen suorittaminen CI/CD:llä [`#770`](https://github.com/elsa-hanke/elsa-backend/pull/770)(8 October 2026)
+- Release v2.4.X merge [`#769`](https://github.com/elsa-hanke/elsa-backend/pull/769)(8 October 2026)
+- ELSAINSI-73 Rooli ja käytössä oleva opinto-oikeus voivat mennä epäsynkkaan usean välilehden välillä - YEK-sivut virheellisesti tavoitettavissa/estettyinä [`#768`](https://github.com/elsa-hanke/elsa-backend/pull/768)(8 October 2026)
 - ELSAINSI-61 Työskentelyjakson poisto mahdollistaa toisen käyttäjän liitteiden irrottamisen ennen käyttöoikeustarkistusta [`#759`](https://github.com/elsa-hanke/elsa-backend/pull/759)(6 October 2026)
 - ELSAINSI-76 (Pessimistinen lukko hyväksyntätransaktion alussa) [`#760`](https://github.com/elsa-hanke/elsa-backend/pull/760)(4 October 2026)
 - ELSAINSI-76 PDF tiedostojen generointi optimoinnit (ItextPdfAssembler and ItextPdfAssemblerTest) [`#757`](https://github.com/elsa-hanke/elsa-backend/pull/757)(2 October 2026)
