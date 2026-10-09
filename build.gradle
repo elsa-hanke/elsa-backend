@@ -62,10 +62,11 @@ springBoot {
     mainClass.set("fi.elsapalvelu.elsa.ElsaBackendApp")
 }
 
-dependencyManagement {
-    dependencies {
-        dependency "io.netty:netty-handler:4.1.137.Final"
-    }
+ext {
+    // Override Spring Boot's managed versions for security fixes, keeping each family aligned.
+    set('netty.version', '4.1.137.Final')
+    set('jackson-bom.version', '2.21.7')
+    set('postgresql.version', '42.7.12')
 }
 
 test {
@@ -217,7 +218,7 @@ dependencies {
 
 
 wrapper {
-    gradleVersion = "9.8.0"
+    gradleVersion = "9.8.1"
 }
 
 detekt {

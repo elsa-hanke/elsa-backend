@@ -74,6 +74,14 @@ and JSON reports. Missing shards or specs are explicitly marked incomplete;
 the report job fails on incomplete results, failing tests, or failed shard jobs.
 The test total is measured at runtime and is not fixed at the original 108.
 
+The formatted report is displayed on the workflow run's **Summary** page;
+step logs use plain text because GitHub does not render Markdown there.
+The report separates PASSED/FAILED from spec coverage and includes failing
+test names, expandable error details, Cypress execution time per shard, and
+links to available screenshot and container-log artifacts. Test retries count
+as one test; the number of attempts is shown with failure details. Older
+count-only artifacts remain supported but cannot show individual test errors.
+
 ## Structure
 
 ```
