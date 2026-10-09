@@ -21,11 +21,20 @@ export default defineConfig({
           writeFileSync(path.join(resultsDirectory, `${encodeURIComponent(spec.relative)}.json`), JSON.stringify({
             spec: spec.relative.replace(/\\/g, '/'),
             stats: results.stats,
+            failures: results.tests.filter((test) => test.state === 'failed').map((test) => ({
+              title: test.title.join(' > '),
+              error: test.displayError ?? 'No error details provided by Cypress',
+              attempts: test.attempts.length,
+            })),
+            error: results.error,
           }, null, 2))
         })
         on('after:run', (results) => {
           if ('runs' in results) {
-            writeFileSync(path.join(resultsDirectory, 'completed.json'), JSON.stringify({ completed: true }))
+            writeFileSync(path.join(resultsDirectory, 'completed.json'), JSON.stringify({
+              completed: true,
+              durationMs: results.totalDuration,
+            }))
           }
         })
       }

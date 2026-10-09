@@ -26,6 +26,7 @@ const issues = []
 const shards = []
 const assigned = new Set()
 const reported = new Set()
+const failures = []
 let totalShards = null
 
 for (const filename of filesIn(inputDirectory).filter((name) => path.basename(name) === 'manifest.json').sort()) {
@@ -48,18 +49,27 @@ for (const filename of filesIn(inputDirectory).filter((name) => path.basename(na
       assignedSpecs: manifest.specs.length,
       reportedSpecs: 0,
       completed: false,
+      durationMs: null,
+      specDurationMs: 0,
+      artifacts: {},
       ...Object.fromEntries(fields.map((field) => [field, 0])),
     }
     shards.push(shard)
     const directory = path.dirname(filename)
     const completedFile = path.join(directory, 'completed.json')
-    shard.completed = existsSync(completedFile) && JSON.parse(readFileSync(completedFile, 'utf8')).completed === true
+    if (existsSync(completedFile)) {
+      const completion = JSON.parse(readFileSync(completedFile, 'utf8'))
+      shard.completed = completion.completed === true
+      if (Number.isFinite(completion.durationMs)) shard.durationMs = completion.durationMs
+    }
+    const artifactsFile = path.join(directory, 'artifacts.json')
+    if (existsSync(artifactsFile)) shard.artifacts = JSON.parse(readFileSync(artifactsFile, 'utf8'))
     for (const spec of manifest.specs) {
       if (!expectedSpecs.has(spec)) issues.push(`Unexpected assigned spec: ${spec}`)
       if (assigned.has(spec)) issues.push(`Spec assigned more than once: ${spec}`)
       assigned.add(spec)
     }
-    for (const resultFile of filesIn(directory).filter((name) => name.endsWith('.json') && !['manifest.json', 'completed.json'].includes(path.basename(name)))) {
+    for (const resultFile of filesIn(directory).filter((name) => name.endsWith('.json') && !['manifest.json', 'completed.json', 'artifacts.json'].includes(path.basename(name)))) {
       const result = JSON.parse(readFileSync(resultFile, 'utf8'))
       if (!manifest.specs.includes(result.spec) || reported.has(result.spec)) {
         throw new Error(`Unexpected or duplicate spec result: ${result.spec}`)
@@ -74,6 +84,18 @@ for (const filename of filesIn(inputDirectory).filter((name) => path.basename(na
       }
       reported.add(result.spec)
       shard.reportedSpecs++
+      if (Number.isFinite(result.stats.duration)) shard.specDurationMs += result.stats.duration
+      for (const failure of result.failures ?? []) {
+        failures.push({ shard: shard.shard, spec: result.spec, ...failure })
+      }
+      if (result.stats.failures > (result.failures?.length ?? 0) || result.error) {
+        failures.push({
+          shard: shard.shard,
+          spec: result.spec,
+          title: 'Spec failure (individual test details unavailable)',
+          error: result.error || 'This artifact contains counts only. Run again to collect failing test names and errors.',
+        })
+      }
       for (const field of fields) {
         shard[field] += result.stats[field]
         totals[field] += result.stats[field]
@@ -100,28 +122,71 @@ for (const spec of expectedSpecs) {
 }
 const complete = issues.length === 0 && missingSpecs.length === 0
 const jobResult = process.env.E2E_JOB_RESULT ?? 'unknown'
-const report = { complete, jobResult, expectedSpecs: expectedSpecs.size, reportedSpecs: reported.size, totals, shards, issues, missingSpecs }
+const failed = !complete || totals.failures > 0 || (jobResult !== 'success' && jobResult !== 'unknown')
+const status = failed ? 'FAILED' : 'PASSED'
+const report = { status, complete, jobResult, expectedSpecs: expectedSpecs.size, reportedSpecs: reported.size, totals, shards, failures, issues, missingSpecs }
+const clean = (value) => String(value ?? '').replace(/\u001b\[[0-9;]*m/g, '')
+const html = (value) => clean(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+const cell = (value) => html(value).replace(/\|/g, '&#124;').replace(/`/g, '&#96;').replace(/[\r\n]+/g, ' ')
+const duration = (milliseconds) => {
+  if (milliseconds === null) return 'Unavailable'
+  const seconds = Math.round(milliseconds / 1000)
+  return `${Math.floor(seconds / 60)}m ${String(seconds % 60).padStart(2, '0')}s`
+}
+const artifactLinks = (shard) => ['screenshots', 'logs']
+  .filter((name) => /^https?:\/\//.test(shard.artifacts[name] ?? ''))
+  .map((name) => `[${name}](<${shard.artifacts[name].replace(/[<>\r\n]/g, '')}>)`).join(' · ') || '—'
+shards.sort((a, b) => a.shard - b.shard)
 const markdown = [
-  '## E2E combined report',
+  `## ${failed ? '❌' : '✅'} E2E: ${status}`,
   '',
-  `Shard jobs: **${jobResult}**. Report: **${complete ? 'Complete' : 'INCOMPLETE — totals are partial'}**.`,
+  `**${totals.passes} passed · ${totals.failures} failed · ${totals.pending} pending · ${totals.skipped} skipped**`,
   '',
-  `Spec results: **${reported.size}/${expectedSpecs.size}**. Tests reported: **${totals.tests}**.`,
+  `Coverage: **${reported.size}/${expectedSpecs.size} specs**. Tests reported: **${totals.tests}**. ${complete ? 'All spec results received.' : '**INCOMPLETE: totals are partial.**'}`,
   '',
-  '| Shard | Specs reported / assigned | Tests | Passing | Failing | Pending | Skipped | Run finished |',
-  '| --- | --- | --- | --- | --- | --- | --- | --- |',
-  ...shards.sort((a, b) => a.shard - b.shard).map((shard) =>
-    `| ${shard.shard} | ${shard.reportedSpecs}/${shard.assignedSpecs} | ${fields.map((field) => shard[field]).join(' | ')} | ${shard.completed ? 'Yes' : 'No'} |`),
-  `| **Total** | **${reported.size}/${expectedSpecs.size}** | ${fields.map((field) => `**${totals[field]}**`).join(' | ')} | |`,
+  ...(process.env.E2E_RUN_URL ? [`[Open workflow run and artifacts](${process.env.E2E_RUN_URL})`, ''] : []),
+  '### Shards',
   '',
-  'Counts come from Cypress results for completed specs. Retries are not counted as additional tests.',
+  '| Shard | Specs | Tests | Passed | Failed | Pending | Skipped | Cypress time | Artifacts |',
+  '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+  ...shards.map((shard) =>
+    `| ${shard.shard}${shard.completed ? '' : ' ⚠️'} | ${shard.reportedSpecs}/${shard.assignedSpecs} | ${fields.map((field) => shard[field]).join(' | ')} | ${duration(shard.durationMs ?? (shard.specDurationMs || null))}${shard.durationMs === null && shard.specDurationMs ? ' (partial)' : ''} | ${artifactLinks(shard)} |`),
+  `| **Total** | **${reported.size}/${expectedSpecs.size}** | ${fields.map((field) => `**${totals[field]}**`).join(' | ')} | | |`,
   '',
-  ...(issues.length ? ['### Report issues', '', ...issues.map((issue) => `- ${issue}`), ''] : []),
-  ...(missingSpecs.length ? ['### Specs without results', '', '```text', ...missingSpecs, '```', ''] : []),
+  'Cypress time excludes service setup and dependency installation. Retries are not counted as additional tests. ⚠️ indicates an unfinished shard.',
+  '',
+  ...(failures.length ? [
+    '### Failures', '',
+    '| Shard | Spec | Test | Error |',
+    '| --- | --- | --- | --- |',
+    ...failures.map((failure) => `| ${failure.shard} | ${cell(failure.spec)} | ${cell(failure.title)} | ${cell(clean(failure.error).slice(0, 200))} |`),
+    '',
+    ...failures.flatMap((failure) => [
+      '<details>',
+      `<summary>Shard ${failure.shard}: ${html(failure.title)}</summary>`,
+      '',
+      `<p>${html(failure.spec)}${failure.attempts ? ` · Attempts: ${failure.attempts}` : ''}</p>`,
+      `<pre>${html(failure.error)}</pre>`,
+      '</details>', '',
+    ]),
+  ] : []),
+  ...(issues.length ? ['### Report issues', '', ...issues.map((issue) => `- ${cell(issue)}`), ''] : []),
+  ...(missingSpecs.length ? ['<details>', '<summary>Specs without results</summary>', '', '<pre>', ...missingSpecs.map(html), '</pre>', '</details>', ''] : []),
 ].join('\n')
 mkdirSync(outputDirectory, { recursive: true })
 writeFileSync(path.join(outputDirectory, 'report.json'), JSON.stringify(report, null, 2) + '\n')
 writeFileSync(path.join(outputDirectory, 'report.md'), markdown)
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, markdown)
-console.log(markdown)
-if (!complete || totals.failures > 0 || (jobResult !== 'success' && jobResult !== 'unknown')) process.exitCode = 1
+// Logs do not render Markdown. Keep them readable and reserve tables for Summary.
+console.log(`E2E ${status}: ${totals.tests} tests — ${totals.passes} passed, ${totals.failures} failed, ${totals.pending} pending, ${totals.skipped} skipped.`)
+console.log(`Coverage: ${reported.size}/${expectedSpecs.size} specs (${complete ? 'complete' : 'INCOMPLETE; totals are partial'}). Shard jobs: ${jobResult}.`)
+for (const shard of shards) {
+  console.log(`  Shard ${shard.shard}: ${shard.reportedSpecs}/${shard.assignedSpecs} specs, ${shard.tests} tests, ${shard.failures} failed, Cypress time ${duration(shard.durationMs ?? (shard.specDurationMs || null))}.`)
+}
+for (const failure of failures) {
+  console.log(`  FAILED [shard ${failure.shard}] ${failure.spec}: ${clean(failure.title)}`)
+  console.log(clean(failure.error).split('\n').map((line) => `    ${line}`).join('\n'))
+}
+for (const issue of issues) console.log(`  Report issue: ${clean(issue)}`)
+console.log('Open this workflow run’s Summary tab for the formatted report and artifact links.')
+if (failed) process.exitCode = 1

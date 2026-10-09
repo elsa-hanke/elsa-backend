@@ -19,14 +19,14 @@ export {}
 // *before* the stale route gets a chance to fire a doomed request.
 describe('YEK-roolin ja opinto-oikeuden synkronointi (ELSAINSI-73)', () => {
   const yekOpintooikeusId = 610520
-  const elOpintooikeusId = 610521
   let seededYekOpintooikeusId: number
+  let elOpintooikeusId: number
 
   const yekOpintooikeus: OpintoOikeus = {
     asetus_id: 5,
     erikoisala_id: 61,
     erikoistuva_laakari_id: 0,
-    kaytossa: true,
+    kaytossa: false,
     muokkausaika: '2021-01-04',
     muokkausoikeudet_virkailijoilla: true,
     myontamispaiva: '2021-01-04',
@@ -42,36 +42,22 @@ describe('YEK-roolin ja opinto-oikeuden synkronointi (ELSAINSI-73)', () => {
     id: yekOpintooikeusId
   }
 
-  // A second, independently valid opinto-oikeus for a regular erikoisala
-  // (not YEK) - this is what a nightly import or a profile switch in another
-  // tab would make "kaytossa" instead of the YEK one.
-  const elOpintooikeus: OpintoOikeus = {
-    ...yekOpintooikeus,
-    erikoisala_id: 50,
-    kaytossa: false,
-    yliopisto_opintooikeus_id: 'e2e-el-stale-role',
-    id: elOpintooikeusId
-  }
-
   before(() => {
     cy.resetErikoistuvaE2eState()
     cy.loginAsErikoistuva()
-    // First row becomes kaytossa=true (also grants ROLE_YEK_KOULUTETTAVA, see
-    // db:seedOpintooikeus), second row is inserted alongside it as a valid
-    // but currently inactive alternative - mirrors the real support case,
-    // where the affected user had both an EL and a YEK opinto-oikeus.
+    cy.task('db:getActiveOpintooikeusId', { email: E2E_ERIKOISTUVA_EMAIL }).then((id) => {
+      expect(Number(id)).to.be.greaterThan(0)
+      elOpintooikeusId = Number(id)
+    })
+    // Keep the EL right created by login unchanged: SQL updates to that row
+    // would bypass Hibernate's cached entity and collection state. Add an
+    // inactive YEK right, then select it through the role-switch API below.
     cy.task('db:seedOpintooikeus', {
       email: E2E_ERIKOISTUVA_EMAIL,
       opintoOikeus: yekOpintooikeus,
-      updateCurrent: true
+      generateId: true
     }).then((id) => {
-      // updateCurrent keeps the existing row's ID rather than the fixture ID.
       seededYekOpintooikeusId = Number(id)
-    })
-    cy.task('db:seedOpintooikeus', {
-      email: E2E_ERIKOISTUVA_EMAIL,
-      opintoOikeus: elOpintooikeus,
-      updateCurrent: false
     })
     cy.logout()
   })
@@ -181,6 +167,9 @@ describe('YEK-roolin ja opinto-oikeuden synkronointi (ELSAINSI-73)', () => {
       cy.request('/api/kayttaja')
         .its('body.activeAuthority')
         .should('eq', 'ROLE_ERIKOISTUVA_LAAKARI')
+      cy.request('/api/erikoistuva-laakari')
+        .its('body.opintooikeusKaytossaId')
+        .should('eq', elOpintooikeusId)
       cy.get('@staleYekTaulukkoRequest.all').should('have.length', 0)
       cy.get('@staleYekEtusivuRequest.all').should('have.length', 0)
     }
