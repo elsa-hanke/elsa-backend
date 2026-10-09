@@ -59,7 +59,7 @@ class VastuuhenkiloEtusivuResource(
         criteria: ErikoistujanEteneminenCriteria,
         pageable: Pageable,
         principal: Principal?
-    ): ResponseEntity<Page<ErikoistujanEteneminenDTO>?> {
+    ): ResponseEntity<Page<ErikoistujanEteneminenDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaForVastuuhenkilo(user.id.required(), criteria, pageable))
     }

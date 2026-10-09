@@ -75,8 +75,6 @@ logging:
     _org.springframework.web.servlet.HandlerMapping.Mappings": INFO
     angus.activation: WARN
     com.zaxxer: WARN
-    io.undertow: WARN
-    io.undertow.websockets.jsr: ERROR
     jakarta.activation: WARN
     jakarta.mail: WARN
     jakarta.xml.bind: WARN
@@ -101,6 +99,9 @@ logging:
     com.itextpdf.kernel.pdf.PdfReader: OFF
 
 spring:
+  http:
+    converters:
+      preferred-json-mapper: jackson2
   application:
     name: elsaBackend
   profiles:
@@ -152,7 +153,7 @@ spring:
       ddl-auto: none
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+        implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
   messages:
     basename: i18n/messages
   web:

@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.*
@@ -400,7 +400,7 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
         testMockMvc.perform(get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari.getOpintooikeusKaytossa()?.id}").accept(APPLICATION_JSON)).andExpect(status().isFound)
 
         // Päivitetään Security contextiin impersonoitu käyttäjä
-        val currentAuthentication: Authentication = TestSecurityContextHolder.getContext().authentication
+        val currentAuthentication: Authentication = requireNotNull(TestSecurityContextHolder.getContext().authentication)
         val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(ERIKOISTUVA_LAAKARI_IMPERSONATED, currentAuthentication)
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
         val newPrincipal = DefaultSaml2AuthenticatedPrincipal(erikoistuvaLaakari.kayttaja?.user?.id, mapOf(

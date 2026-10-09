@@ -28,7 +28,7 @@ spring:
       additional-exclude: static/**
     livereload:
       enabled: false
-  jackson:
+  jackson2:
     serialization:
       indent-output: true
   datasource:

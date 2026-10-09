@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
@@ -401,7 +401,7 @@ class VirkailijaEtusivuResourceIT {
             .andExpect(status().isFound)
 
         // Päivitetään Security contextiin impersonoitu käyttäjä
-        val currentAuthentication: Authentication = TestSecurityContextHolder.getContext().authentication
+        val currentAuthentication: Authentication = requireNotNull(TestSecurityContextHolder.getContext().authentication)
         val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA, currentAuthentication)
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
         val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
@@ -499,7 +499,7 @@ class VirkailijaEtusivuResourceIT {
                 .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isFound)
 
-        val currentAuthentication = TestSecurityContextHolder.getContext().authentication
+        val currentAuthentication = requireNotNull(TestSecurityContextHolder.getContext().authentication)
         val switchAuthority = SwitchUserGrantedAuthority(
             ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA,
             currentAuthentication
@@ -565,7 +565,7 @@ class VirkailijaEtusivuResourceIT {
 
         // Päivitetään Security contextiin impersonoitu käyttäjä
         val currentAuthentication: Authentication =
-            TestSecurityContextHolder.getContext().authentication
+            requireNotNull(TestSecurityContextHolder.getContext().authentication)
         val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(
             ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA, currentAuthentication
         )

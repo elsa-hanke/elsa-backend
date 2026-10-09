@@ -36,7 +36,7 @@ import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.LocalDate
-import javax.xml.bind.ValidationException
+import jakarta.validation.ValidationException
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull

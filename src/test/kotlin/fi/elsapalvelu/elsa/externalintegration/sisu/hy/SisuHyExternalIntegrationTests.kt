@@ -21,8 +21,8 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
+import org.springframework.boot.jackson2.autoconfigure.Jackson2ObjectMapperBuilderCustomizer
+import org.springframework.boot.jackson2.autoconfigure.Jackson2AutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
@@ -77,7 +77,7 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
 
 @SpringBootConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
-@ImportAutoConfiguration(JacksonAutoConfiguration::class)
+@ImportAutoConfiguration(Jackson2AutoConfiguration::class)
 @Import(
     SisuHyClientBuilderImpl::class,
     IntegrationAlertService::class,

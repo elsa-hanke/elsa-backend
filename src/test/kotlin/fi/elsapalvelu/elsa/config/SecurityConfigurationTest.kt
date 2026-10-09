@@ -26,6 +26,7 @@ import org.mockito.Mockito.mock
 import org.slf4j.MDC
 import org.springframework.context.ApplicationContext
 import org.springframework.core.env.Environment
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
 import org.springframework.web.filter.CorsFilter
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -35,6 +36,22 @@ import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.jvm.isAccessible
 
 class SecurityConfigurationTest {
+
+    @Test
+    fun `SAML principal retains token registration and session indexes without mutating source attributes`() {
+        val source = DefaultSaml2AuthenticatedPrincipal(
+            "external-name",
+            mapOf("givenName" to listOf<Any>("Test")),
+            listOf("session-123")
+        )
+        val principal = securityConfiguration().createPrincipal("user-123", source, "haka")
+
+        assertThat(principal.name).isEqualTo("user-123")
+        assertThat(principal.relyingPartyRegistrationId).isEqualTo("haka")
+        assertThat(principal.sessionIndexes).containsExactly("session-123")
+        principal.attributes["nameID"] = listOf("external-name")
+        assertThat(source.attributes).doesNotContainKey("nameID")
+    }
 
     @Test
     fun `opintotietodata fetch keeps successful integration result when another integration throws`() {

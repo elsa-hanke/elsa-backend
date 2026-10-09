@@ -29,6 +29,6 @@ class LogoutResource(
             saml2Authentication.principal as Saml2AuthenticatedPrincipal
         val relyingPartyRegistration =
             relyingPartyRegistrationRepository.findByRegistrationId(saml2AuthenticatedPrincipal.relyingPartyRegistrationId)
-        return ResponseEntity.ok(!relyingPartyRegistration.assertingPartyMetadata.singleLogoutServiceLocation.isNullOrBlank())
+        return ResponseEntity.ok(!relyingPartyRegistration?.assertingPartyMetadata?.singleLogoutServiceLocation.isNullOrBlank())
     }
 }
