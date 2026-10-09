@@ -189,6 +189,10 @@ spring:
         auto: false
 
 server:
+  tomcat:
+    # Allow the application limit of 255 UTF-16 filename units, including Unicode
+    # and encoded filename headers, while retaining a bounded multipart header size.
+    max-part-header-size: 4KB
   servlet:
     session:
       cookie:

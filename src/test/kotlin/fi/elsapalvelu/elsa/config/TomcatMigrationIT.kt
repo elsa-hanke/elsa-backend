@@ -4,6 +4,8 @@ import fi.elsapalvelu.elsa.web.rest.errors.FileSizeExceptionAdvice
 import jakarta.servlet.http.HttpServletRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -18,6 +20,7 @@ import org.springframework.boot.webmvc.autoconfigure.WebMvcAutoConfiguration
 import org.springframework.boot.webmvc.autoconfigure.error.ErrorMvcAutoConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.boot.test.context.TestComponent
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.web.bind.annotation.GetMapping
@@ -63,10 +66,19 @@ class TomcatMigrationIT {
         assertThat(response.statusCode()).isEqualTo(413)
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["a", "ä", "漢"])
+    fun maximumApplicationFilenameLengthIsAcceptedThroughTomcat(character: String) {
+        val filename = character.repeat(251) + ".pdf"
+        assertThat(filename.length).isEqualTo(255)
+        val response = upload(listOf(filename to byteArrayOf(1)))
+        assertThat(response.statusCode()).isEqualTo(200)
+        assertThat(response.body()).contains(filename)
+    }
+
     @Test
-    fun longFinnishFilenameExceedingPartHeaderLimitIsRejected() {
-        val filename = "äö".repeat(120) + ".pdf"
-        assertThat(filename.length).isLessThanOrEqualTo(250)
+    fun multipartHeadersExceedingConfiguredLimitAreStillRejected() {
+        val filename = "a".repeat(4096) + ".pdf"
         assertThat(upload(listOf(filename to byteArrayOf(1))).statusCode()).isNotEqualTo(200)
     }
 
@@ -97,6 +109,7 @@ class TomcatMigrationIT {
 
     // Load real production web settings, but only web components: no DB, mail or AWS clients.
     @Suppress("DEPRECATION", "Deprecation")
+    @TestComponent
     @Configuration(proxyBeanMethods = false)
     @ImportAutoConfiguration(
         TomcatServletWebServerAutoConfiguration::class,
@@ -113,6 +126,7 @@ class TomcatMigrationIT {
         @Bean fun uploadController() = UploadController()
     }
 
+    @TestComponent
     @RestController
     class UploadController {
         @PostMapping("/upload")

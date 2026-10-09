@@ -4,7 +4,7 @@ import net.javacrumbs.shedlock.core.LockConfiguration
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import org.springframework.boot.test.context.TestConfiguration
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -80,7 +80,7 @@ class ShedLockMigrationIT {
         refresh()
     }
 
-    @Configuration(proxyBeanMethods = false)
+    @TestConfiguration(proxyBeanMethods = false)
     class JobConfiguration {
         @Bean fun jobState() = JobState()
         @Bean fun lockedJob(state: JobState) = LockedJob(state)

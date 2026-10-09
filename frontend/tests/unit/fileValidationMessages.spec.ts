@@ -83,4 +83,58 @@ describe('Liitetiedoston virheen syy', () => {
     expect(wrapper.emitted('selectedFiles')).toHaveLength(1)
     wrapper.destroy()
   })
+
+  it.each(['a', 'ä', '漢', '😀'])(
+    'accepts a 255-unit filename containing %s',
+    async (character) => {
+      const filename =
+        character.repeat(Math.floor(251 / character.length)) +
+        'a'.repeat(251 % character.length) +
+        '.pdf'
+      expect(filename.length).toBe(255)
+      const wrapper = mount(AsiakirjatUpload, {
+        localVue,
+        i18n,
+        propsData: { buttonText: 'Lisää liitetiedosto' },
+        stubs: { 'font-awesome-icon': true }
+      })
+      const input = wrapper.find('input[type="file"]')
+      const file = new File([new Uint8Array(11 * 1024)], filename, { type: 'application/pdf' })
+      Object.defineProperty(input.element, 'files', { configurable: true, value: [file] })
+      await input.trigger('change')
+      expect(wrapper.emitted('selectedFiles')?.[0]).toEqual([[file]])
+      expect(wrapper.find('.alert-danger').exists()).toBe(false)
+      wrapper.destroy()
+    }
+  )
+
+  it.each(['ä'.repeat(252) + '.pdf', '   '])(
+    'rejects an invalid filename before uploading: %s',
+    async (filename) => {
+      const wrapper = mount(AsiakirjatUpload, {
+        localVue,
+        i18n,
+        propsData: { buttonText: 'Lisää liitetiedosto' },
+        stubs: { 'font-awesome-icon': true }
+      })
+      const input = wrapper.find('input[type="file"]')
+      Object.defineProperty(input.element, 'files', {
+        configurable: true,
+        value: [new File([new Uint8Array(11 * 1024)], filename, { type: 'application/pdf' })]
+      })
+      await input.trigger('change')
+      expect(wrapper.emitted('selectedFiles')).toBeUndefined()
+      expect(wrapper.find('.alert-danger').text()).toContain('255 merkkiä')
+
+      // A corrected selection must clear the filename error.
+      Object.defineProperty(input.element, 'files', {
+        configurable: true,
+        value: [new File([new Uint8Array(11 * 1024)], 'corrected.pdf', { type: 'application/pdf' })]
+      })
+      await input.trigger('change')
+      expect(wrapper.emitted('selectedFiles')).toHaveLength(1)
+      expect(wrapper.find('.alert-danger').exists()).toBe(false)
+      wrapper.destroy()
+    }
+  )
 })
