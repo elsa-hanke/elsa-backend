@@ -91,6 +91,12 @@ spring:
       sns:
         enabled: false
 
+application:
+  arkistointi:
+    tre:
+      host: localhost
+      user: test
+
 server:
   port: 10344
   address: localhost

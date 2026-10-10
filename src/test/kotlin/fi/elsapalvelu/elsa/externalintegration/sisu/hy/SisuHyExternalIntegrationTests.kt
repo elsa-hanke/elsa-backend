@@ -27,6 +27,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Profile
 import org.springframework.test.context.ActiveProfiles
 
 /**
@@ -78,6 +79,7 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
 // Match the application Jackson 2 mapper until its Jackson 3 migration.
 @Suppress("DEPRECATION", "Deprecation")
 @SpringBootConfiguration
+@Profile("external-integration")
 @EnableConfigurationProperties(ApplicationProperties::class)
 @ImportAutoConfiguration(Jackson2AutoConfiguration::class)
 @Import(

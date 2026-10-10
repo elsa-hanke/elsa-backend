@@ -23,6 +23,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Profile
 import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(classes = [PeppiTurkuExternalIntegrationTestApplication::class])
@@ -47,6 +48,7 @@ class PeppiTurkuExternalIntegrationTests : FetchingServiceExternalIntegrationBas
 }
 
 @SpringBootConfiguration
+@Profile("external-integration")
 @EnableAutoConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
