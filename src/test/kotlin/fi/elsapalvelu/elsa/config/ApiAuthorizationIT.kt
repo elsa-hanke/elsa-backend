@@ -2,6 +2,11 @@ package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
+import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -66,15 +71,38 @@ class ApiAuthorizationIT {
     }
 
     @Test
-    fun publicRoutesStayPublicAndAnotherRoleCannotReadVirkailijaApi() {
+    fun publicRoutesStayPublic() {
         TestSecurityContextHolder.clearContext()
         mockMvc.perform(get("/api/ping").with(anonymous())).andExpect(status().isOk)
         mockMvc.perform(get("/api/julkinen/seuraava-paivitys").with(anonymous()))
             .andExpect(status().isOk)
-        mockMvc.perform(
-            get("/api/virkailija/etusivu/erikoistujien-seuranta-rajaimet")
-                .with(user("test-user").authorities(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI)))
-        ).andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun oneRoleCannotReadAnotherRolesApi() {
+        TestSecurityContextHolder.clearContext()
+        val roleEndpoints = mapOf(
+            ERIKOISTUVA_LAAKARI to "/api/erikoistuva-laakari/suoritusarvioinnit-rajaimet",
+            YEK_KOULUTETTAVA to "/api/yek-koulutettava/valmistumispyynto",
+            KOULUTTAJA to "/api/kouluttaja/etusivu/erikoistujien-seuranta-rajaimet",
+            VASTUUHENKILO to "/api/vastuuhenkilo/terveyskeskuskoulutusjaksot",
+            TEKNINEN_PAAKAYTTAJA to "/api/tekninen-paakayttaja/erikoisalat",
+            OPINTOHALLINNON_VIRKAILIJA to
+                "/api/virkailija/etusivu/erikoistujien-seuranta-rajaimet"
+        )
+        val registeredPaths = requestMappings.handlerMethods.keys.flatMap { it.patternValues }
+        assertThat(registeredPaths).containsAll(roleEndpoints.values)
+
+        roleEndpoints.forEach { (allowedRole, path) ->
+            roleEndpoints.keys.filter { it != allowedRole }.forEach { otherRole ->
+                val response = mockMvc.perform(
+                    get(path).with(user("test-user").authorities(SimpleGrantedAuthority(otherRole)))
+                ).andReturn().response
+                System.out.println("$otherRole GET $path -> ${response.status}")
+                assertThat(response.status).describedAs("$otherRole must not access $path")
+                    .isEqualTo(403)
+            }
+        }
     }
 
     private fun isPublic(path: String): Boolean =
