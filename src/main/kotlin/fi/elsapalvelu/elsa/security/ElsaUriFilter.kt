@@ -23,12 +23,20 @@ class ElsaUriFilter(private val applicationProperties: ApplicationProperties) :
     ) {
         filterChain.doFilter(object : HttpServletRequestWrapper(request) {
             override fun getScheme(): String {
-                return super.getScheme()
-                    .replace("http", applicationProperties.getSecurity().samlScheme.required())
+                val originalScheme = super.getScheme()
+                return if (originalScheme == "http") {
+                    applicationProperties.getSecurity().samlScheme.required()
+                } else {
+                    originalScheme
+                }
             }
 
             override fun getServerPort(): Int {
-                return if (applicationProperties.getSecurity().samlScheme == "http") super.getServerPort() else 443
+                return if (super.getScheme() == "http" && applicationProperties.getSecurity().samlScheme == "https") {
+                    443
+                } else {
+                    super.getServerPort()
+                }
             }
         }, response)
     }
