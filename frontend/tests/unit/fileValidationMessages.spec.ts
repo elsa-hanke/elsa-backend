@@ -176,4 +176,38 @@ describe('Liitetiedoston virheen syy', () => {
       wrapper.destroy()
     }
   )
+
+  it('counts previously selected files and deletions when one file is selected at a time', async () => {
+    const message = i18n.t('tyoskentelyjakson-liitteiden-osien-enimmaismaara-ylitetty') as string
+    const wrapper = mount(AsiakirjatUpload, {
+      localVue,
+      i18n,
+      propsData: {
+        buttonText: 'Lisää liitetiedosto',
+        allowMultiplesFiles: false,
+        maxPartsPerRequest: 100,
+        maxPartsExceededMessage: message,
+        pendingFilesCount: 98
+      },
+      stubs: { 'font-awesome-icon': true }
+    })
+    const input = wrapper.find('input[type="file"]')
+    const choose = async (name: string) => {
+      Object.defineProperty(input.element, 'files', {
+        configurable: true,
+        value: [new File([new Uint8Array(100)], name, { type: 'image/png' })]
+      })
+      await input.trigger('change')
+    }
+    await choose('first.png')
+    expect(wrapper.emitted('selectedFiles')).toHaveLength(1)
+    await wrapper.setProps({ pendingFilesCount: 99 })
+    await choose('second.png')
+    expect(wrapper.emitted('selectedFiles')).toHaveLength(2)
+    await wrapper.setProps({ pendingFilesCount: 100 })
+    await choose('third.png')
+    expect(wrapper.emitted('selectedFiles')).toHaveLength(2)
+    expect(wrapper.find('.alert-danger').text()).toContain(message)
+    wrapper.destroy()
+  })
 })

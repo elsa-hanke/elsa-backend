@@ -71,7 +71,7 @@
           </h4>
           <ul>
             <li v-if="maxFilesCountExceeded">
-              {{ $t('asiakirjojen-enimmaismaara-ylitetty') }}
+              {{ maxPartsExceededMessage || $t('asiakirjojen-enimmaismaara-ylitetty') }}
             </li>
             <li v-if="duplicateFilesInCurrentView.length > 0">
               {{ $t('asiakirja-samanniminen-tiedosto') }}
@@ -106,7 +106,7 @@
           </h4>
           <div class="mb-3">{{ $t('yhtakaan-tiedostoa-ei-tallennettu') }}</div>
           <div v-if="maxFilesCountExceeded" class="mb-2">
-            {{ $t('asiakirjojen-enimmaismaara-ylitetty') }}
+            {{ maxPartsExceededMessage || $t('asiakirjojen-enimmaismaara-ylitetty') }}
           </div>
           <div v-if="maxFilesTotalSizeExceeded" class="mb-2">
             {{ $t('asiakirjojen-yhteenlaskettu-koko-ylitetty') }}
@@ -226,6 +226,12 @@
     @Prop({ required: false, type: Number, default: 0 })
     pendingFilesCount!: number
 
+    @Prop({ required: false, type: Number, default: maxFilesPerRequest })
+    maxPartsPerRequest!: number
+
+    @Prop({ required: false, type: String })
+    maxPartsExceededMessage?: string
+
     @Prop({ required: false, type: Boolean, default: true })
     allowMultiplesFiles!: boolean
 
@@ -248,7 +254,8 @@
       const inputElement = e.target as HTMLInputElement
       const fileArray = [...(inputElement?.files ?? [])]
       this.selectedFilesCount = fileArray.length
-      this.maxFilesCountExceeded = this.pendingFilesCount + fileArray.length > maxFilesPerRequest
+      this.maxFilesCountExceeded =
+        this.pendingFilesCount + fileArray.length > this.maxPartsPerRequest
       // Chromea varten. Muutoin heti perään valittu sama tiedosto ei laukaise koko eventtiä.
       inputElement.value = ''
       this.maxFilesTotalSizeExceeded = this.getIsTotalFileSizeExceeded(fileArray)
