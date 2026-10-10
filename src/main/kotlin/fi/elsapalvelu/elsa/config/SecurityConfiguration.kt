@@ -55,19 +55,18 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.saml2.core.Saml2ResponseValidatorResult
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
-import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver
 import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver
 import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter
-import org.springframework.security.saml2.provider.service.web.authentication.OpenSaml4AuthenticationRequestResolver
-import org.springframework.security.saml2.provider.service.web.authentication.OpenSaml4AuthenticationRequestResolver.AuthnRequestContext
+import org.springframework.security.saml2.provider.service.web.authentication.OpenSaml5AuthenticationRequestResolver
+import org.springframework.security.saml2.provider.service.web.authentication.OpenSaml5AuthenticationRequestResolver.AuthnRequestContext
 import org.springframework.security.saml2.provider.service.web.authentication.Saml2AuthenticationRequestResolver
-import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutRequestResolver
-import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutResponseResolver
+import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml5LogoutRequestResolver
+import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml5LogoutResponseResolver
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutResponseResolver
 import org.springframework.security.web.SecurityFilterChain
@@ -92,7 +91,7 @@ import javax.crypto.spec.SecretKeySpec
  * Jos relay state jää tyhjäksi, redirect strategialla allekirjoitettuihin SAML pyyntöihin
  * tulee ylimääräinen query parametri, joka sekoittaa allekirjoituksen tarkistuksen.
  * Kierretään lisäämällä oma vakio parametri jos pyynnössä ei ole mukana relay statea.
- * @see OpenSaml4AuthenticationRequestResolver
+ * @see OpenSaml5AuthenticationRequestResolver
  */
 private const val DEFAULT_RELAY_STATE = "elsa"
 
@@ -174,7 +173,7 @@ class SecurityConfiguration(
             ex.accessDeniedHandler { request, response, _ ->
                 AuditLoggingWrapper.warn(
                     "Access denied for " +
-                        "user: ${request.let { it?.userPrincipal?.name }}, " +
+                        "user: ${request.userPrincipal?.name}, " +
                         "method: ${request.method}, " +
                         "path: ${request.requestURI}}, " +
                         "ip: ${request.getHeader("X-Forwarded-For")}"
@@ -264,7 +263,7 @@ class SecurityConfiguration(
     }
 
     private fun configureSaml(http: HttpSecurity) {
-        val authenticationProvider = OpenSaml4AuthenticationProvider()
+        val authenticationProvider = OpenSaml5AuthenticationProvider()
         authenticationProvider.setAssertionValidator(createAssertionValidator())
         authenticationProvider.setResponseAuthenticationConverter(authenticationConverter())
         val relyingPartyRegistrationRepository =
@@ -300,30 +299,28 @@ class SecurityConfiguration(
         val registrationResolver: RelyingPartyRegistrationResolver =
             DefaultRelyingPartyRegistrationResolver(registrations)
         val authenticationRequestResolver =
-            OpenSaml4AuthenticationRequestResolver(registrationResolver)
+            OpenSaml5AuthenticationRequestResolver(registrationResolver)
         authenticationRequestResolver.setRelayStateResolver {
             val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
             attr.request.getParameter("RelayState") ?: DEFAULT_RELAY_STATE
         }
         authenticationRequestResolver.setAuthnRequestCustomizer { context: AuthnRequestContext ->
-            if (context.authnRequest.issuer.value != null && context.authnRequest.issuer.value.required().contains(
-                    "haka"
-                )
-            ) {
-                context.authnRequest.issuer.value = context.authnRequest.issuer.value.required().substring(
-                    0,
-                    context.authnRequest.issuer.value.required().indexOf("haka")
-                ) + "haka"
+            val issuer = context.authnRequest.issuer.required()
+            val value = issuer.value
+            if (value != null && value.contains("haka")) {
+                issuer.value = value.substring(0, value.indexOf("haka")) + "haka"
             }
         }
         return authenticationRequestResolver
     }
 
+    // Retain the legacy SAML principal until login, logout and impersonation migrate together.
+    @Suppress("DEPRECATION", "Deprecation")
     fun logoutRequestResolver(relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver): Saml2LogoutRequestResolver {
-        val logoutRequestResolver = OpenSaml4LogoutRequestResolver(relyingPartyRegistrationResolver)
+        val logoutRequestResolver = OpenSaml5LogoutRequestResolver(relyingPartyRegistrationResolver)
         logoutRequestResolver.setParametersConsumer { parameters ->
             val logoutRequest = parameters.logoutRequest
-            val nameId = logoutRequest.nameID
+            val nameId = logoutRequest.nameID.required()
             val principal = parameters.authentication.principal as Saml2AuthenticatedPrincipal
             nameId.value = principal.getFirstAttribute("nameID")
             nameId.format = principal.getFirstAttribute("nameIDFormat")
@@ -334,21 +331,23 @@ class SecurityConfiguration(
     }
 
     fun logoutResponseResolver(relyingPartyRegistrationResolver: RelyingPartyRegistrationResolver): Saml2LogoutResponseResolver {
-        return OpenSaml4LogoutResponseResolver(relyingPartyRegistrationResolver)
+        return OpenSaml5LogoutResponseResolver(relyingPartyRegistrationResolver)
     }
 
-    fun authenticationConverter(): Converter<OpenSaml4AuthenticationProvider.ResponseToken, AbstractAuthenticationToken> {
+    fun authenticationConverter(): Converter<OpenSaml5AuthenticationProvider.ResponseToken, AbstractAuthenticationToken> {
         return Converter { responseToken ->
             convertAuthentication(responseToken)
         }
     }
 
-    @Suppress("CyclomaticComplexMethod", "LongMethod")
-    fun convertAuthentication(responseToken: OpenSaml4AuthenticationProvider.ResponseToken): Saml2Authentication? {
+    // Legacy SAML principal compatibility; migrate with login, logout and impersonation.
+    @Suppress("CyclomaticComplexMethod", "LongMethod", "DEPRECATION", "Deprecation")
+    fun convertAuthentication(responseToken: OpenSaml5AuthenticationProvider.ResponseToken): Saml2Authentication {
         val token: Saml2Authentication =
-            OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter()
-                .convert(responseToken) as Saml2Authentication
-        val principal = token.principal as Saml2AuthenticatedPrincipal
+            OpenSaml5AuthenticationProvider.ResponseAuthenticationConverter()
+                .convert(responseToken)
+        val registrationId = responseToken.token.relyingPartyRegistration.registrationId
+        val principal = createPrincipal(token.name, token.principal as Saml2AuthenticatedPrincipal, registrationId)
         val firstName = principal.attributes["urn:oid:2.5.4.42"]?.get(0) as String
         val lastName = principal.attributes["urn:oid:2.5.4.4"]?.get(0) as String
 
@@ -455,7 +454,8 @@ class SecurityConfiguration(
             userRepository.save(existingUser)
         }
 
-        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal), token.saml2Response, kayttaja.user?.authorities?.map { SimpleGrantedAuthority(it.name) })
+        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal, registrationId), token.saml2Response,
+            kayttaja.user.required().authorities.map { SimpleGrantedAuthority(it.name.required()) })
     }
 
     private fun shouldFetchOpintotietodata(
@@ -487,11 +487,14 @@ class SecurityConfiguration(
     private fun hasAnyRole(user: User): Boolean =
         user.authorities.isNotEmpty()
 
-    private fun createPrincipal(
-        name: String?, principal: Saml2AuthenticatedPrincipal
+    // Retain the legacy SAML principal until login, logout and impersonation migrate together.
+    @Suppress("DEPRECATION", "Deprecation")
+    internal fun createPrincipal(
+        name: String?, principal: Saml2AuthenticatedPrincipal, registrationId: String
     ): DefaultSaml2AuthenticatedPrincipal {
-        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(name, principal.attributes)
-        newPrincipal.relyingPartyRegistrationId = principal.relyingPartyRegistrationId
+        // Security 7 stores the registration on the authentication token, not its principal.
+        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(name, principal.attributes.toMutableMap(), principal.sessionIndexes)
+        newPrincipal.relyingPartyRegistrationId = registrationId
         return newPrincipal
     }
 
@@ -599,19 +602,18 @@ class SecurityConfiguration(
             }
     }
 
-    private fun createAssertionValidator(): Converter<OpenSaml4AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> {
+    internal fun createAssertionValidator(): Converter<OpenSaml5AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> {
+        // Registration audiences are configured values; reuse a validator per audience.
+        val validators = java.util.concurrent.ConcurrentHashMap<String, OpenSaml5AuthenticationProvider.AssertionValidator>()
         return Converter { assertionToken ->
-            val relyingPartyRegistration: RelyingPartyRegistration = assertionToken.token.relyingPartyRegistration
-            val audience = relyingPartyRegistration.entityId
-            val validAudiences = setOf(
-                if (audience.contains("haka")) audience.substring(
-                    0,
-                    audience.indexOf("haka")
-                ) + "haka"; else audience
-            )
-
-            val validator = OpenSaml4AuthenticationProvider.createDefaultAssertionValidatorWithParameters {
-                it.put(SAML2AssertionValidationParameters.COND_VALID_AUDIENCES, validAudiences)
+            val audience = assertionToken.token.relyingPartyRegistration.entityId
+            val validator = validators.computeIfAbsent(audience) {
+                val normalizedAudience = if (audience.contains("haka")) audience.substringBefore("haka") + "haka" else audience
+                OpenSaml5AuthenticationProvider.AssertionValidator.builder()
+                    .validationContextParameters { parameters ->
+                        parameters[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] = setOf(normalizedAudience)
+                    }
+                    .build()
             }
             validator.convert(assertionToken)
         }

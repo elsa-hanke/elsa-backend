@@ -40,6 +40,7 @@ import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
@@ -353,7 +354,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         em.persist(valmistumispyynto)
         val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus.erikoistuvaLaakari?.kayttaja?.user)
         em.persist(tyoskentelyjakso)
-        val arvKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
+        val arvKokonaisuus = createArvioitavaKokonaisuusForErikoisala(em, opintooikeus.erikoisala)
         em.persist(arvKokonaisuus)
         val arv = SuoritusarviointiHelper.createEntity(em, opintooikeus.erikoistuvaLaakari?.kayttaja?.user, arviointiasteikonTaso = 4, arvioitavaKokonaisuus = arvKokonaisuus)
         em.persist(arv)
@@ -369,9 +370,9 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         em.persist(valmistumispyynto)
         val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus.erikoistuvaLaakari?.kayttaja?.user)
         em.persist(tyoskentelyjakso)
-        val arvKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
+        val arvKokonaisuus = createArvioitavaKokonaisuusForErikoisala(em, opintooikeus.erikoisala)
         em.persist(arvKokonaisuus)
-        val arvKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em)
+        val arvKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvKokonaisuus.kategoria)
         em.persist(arvKokonaisuus2)
         val arv = SuoritusarviointiHelper.createEntity(em, opintooikeus.erikoistuvaLaakari?.kayttaja?.user, arviointiasteikonTaso = 4, arvioitavaKokonaisuus = arvKokonaisuus)
         em.persist(arv)
@@ -387,7 +388,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         em.persist(valmistumispyynto)
         val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus.erikoistuvaLaakari?.kayttaja?.user)
         em.persist(tyoskentelyjakso)
-        val arvKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
+        val arvKokonaisuus = createArvioitavaKokonaisuusForErikoisala(em, opintooikeus.erikoisala)
         em.persist(arvKokonaisuus)
         val arv = SuoritusarviointiHelper.createEntity(em, opintooikeus.erikoistuvaLaakari?.kayttaja?.user, arviointiasteikonTaso = 3, arvioitavaKokonaisuus = arvKokonaisuus)
         em.persist(arv)
@@ -403,9 +404,9 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         em.persist(valmistumispyynto)
         val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus.erikoistuvaLaakari?.kayttaja?.user)
         em.persist(tyoskentelyjakso)
-        val arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
+        val arvioitavaKokonaisuus = createArvioitavaKokonaisuusForErikoisala(em, opintooikeus.erikoisala)
         em.persist(arvioitavaKokonaisuus)
-        val arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em)
+        val arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvioitavaKokonaisuus.kategoria)
         em.persist(arvioitavaKokonaisuus2)
         val arviointi = SuoritusarviointiHelper.createEntity(em, opintooikeus.erikoistuvaLaakari?.kayttaja?.user, arviointiasteikonTaso = 3,
             arvioitavaKokonaisuus = arvioitavaKokonaisuus)
@@ -665,7 +666,7 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         val vastuuhenkiloUser = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(vastuuhenkiloUser)
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(vastuuhenkiloUser.id, mapOf<String, List<Any>>()), "test", authorities)
+        val authentication = Saml2Authentication(testSamlPrincipal(vastuuhenkiloUser.id, mapOf<String, List<Any>>()), "test", authorities)
         TestSecurityContextHolder.getContext().authentication = authentication
         erikoistuvaLaakari = initErikoistuvaLaakari()
         opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
@@ -699,4 +700,10 @@ class VastuuhenkiloValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         user.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(kayttaja = user, yliopisto = yliopisto, erikoisala = otherNewErikoisala, vastuuhenkilonTehtavat = tehtavat))
     }
 
+}
+
+private fun createArvioitavaKokonaisuusForErikoisala(em: EntityManager, erikoisala: Erikoisala?): ArvioitavaKokonaisuus {
+    val kategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala)
+    em.persist(kategoria)
+    return ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = kategoria)
 }

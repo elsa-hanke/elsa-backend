@@ -371,6 +371,7 @@
                 :allowed-file-types="['application/pdf']"
                 :is-text-button="true"
                 :file-upload-texts="fileUploadTexts"
+                :pending-files-count="addedFiles.length"
                 @selectedFiles="onArviointiFileAdded"
               />
               <asiakirjat-content
@@ -506,6 +507,7 @@
             :button-text="$t('lisaa-liitetiedosto')"
             :wrong-file-type-error-message="$t('sallitut-tiedostoformaatit-pdf')"
             :allowed-file-types="['application/pdf']"
+            :pending-files-count="addedFiles.length"
             @selectedFiles="onArviointiFileAdded"
           />
           <asiakirjat-content

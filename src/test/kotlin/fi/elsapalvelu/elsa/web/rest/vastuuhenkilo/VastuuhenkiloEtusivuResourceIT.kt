@@ -27,14 +27,14 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.*
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
@@ -400,10 +400,12 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
         testMockMvc.perform(get("/api/login/impersonate?opintooikeusId=${erikoistuvaLaakari.getOpintooikeusKaytossa()?.id}").accept(APPLICATION_JSON)).andExpect(status().isFound)
 
         // Päivitetään Security contextiin impersonoitu käyttäjä
-        val currentAuthentication: Authentication = TestSecurityContextHolder.getContext().authentication
+        val currentAuthentication: Authentication = requireNotNull(TestSecurityContextHolder.getContext().authentication)
         val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(ERIKOISTUVA_LAAKARI_IMPERSONATED, currentAuthentication)
+        // Fixture mirrors the legacy SAML principal used by impersonation.
+        @Suppress("DEPRECATION", "Deprecation")
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
-        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(erikoistuvaLaakari.kayttaja?.user?.id, mapOf(
+        val newPrincipal = testSamlPrincipal(erikoistuvaLaakari.kayttaja?.user?.id, mapOf(
                 "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari.kayttaja?.user?.firstName), "urn:oid:2.5.4.4" to listOf(erikoistuvaLaakari.kayttaja?.user?.lastName),
                 "nameID" to currentPrincipal.attributes["nameID"], "nameIDFormat" to currentPrincipal.attributes["nameIDFormat"],
                 "nameIDQualifier" to currentPrincipal.attributes["nameIDQualifier"], "nameIDSPQualifier" to currentPrincipal.attributes["nameIDSPQualifier"],
@@ -613,7 +615,7 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
         )
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            testSamlPrincipal(user.id, userDetails),
             "test",
             authorities
         )

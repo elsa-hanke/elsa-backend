@@ -594,7 +594,7 @@ class OpintotietodataPersistenceServiceIT {
         opintooikeudet = opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(userId)
         assertThat(opintooikeudet).size().isEqualTo(2)
 
-        val opintooikeus = opintooikeudet[1]
+        val opintooikeus = opintooikeudet.single { it.yliopistoOpintooikeusId == secondOpintooikeusId }
         assertThat(opintooikeus.opintooikeudenMyontamispaiva).isEqualTo(defaultSecondOpintooikeudenMyontamispaiva)
         assertThat(opintooikeus.opintooikeudenPaattymispaiva).isEqualTo(defaultSecondOpintooikeudenPaattymispaiva)
         assertThat(opintooikeus.asetus).isEqualTo(secondAsetus)

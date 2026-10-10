@@ -28,6 +28,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Profile
 import org.springframework.test.context.ActiveProfiles
 import java.nio.file.Paths
 import java.util.stream.Stream
@@ -82,6 +83,7 @@ class TampereArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppor
 }
 
 @SpringBootConfiguration
+@Profile("external-integration")
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     TampereLouhiService::class,

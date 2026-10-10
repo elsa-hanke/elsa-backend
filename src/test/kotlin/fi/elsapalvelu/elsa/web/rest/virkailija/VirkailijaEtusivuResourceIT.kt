@@ -37,13 +37,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
@@ -139,12 +139,15 @@ class VirkailijaEtusivuResourceIT {
                 erikoisala1
             )
         em.persist(opintoopas)
+        val secondOpintoopas = OpintoopasHelper.createEntity(em, erikoisala = erikoisala2)
+        em.persist(secondOpintoopas)
 
         erikoistuvaLaakari1 =
             ErikoistuvaLaakariHelper.createEntity(
                 em,
                 yliopisto = defaultYliopisto,
                 erikoisala = erikoisala1,
+                opintoopas = opintoopas,
                 asetus = asetus1,
                 opintooikeudenPaattymispaiva = LocalDate.now().plusYears(2)
             ).apply {
@@ -157,6 +160,7 @@ class VirkailijaEtusivuResourceIT {
             em,
             yliopisto = defaultYliopisto,
             erikoisala = erikoisala2,
+            opintoopas = secondOpintoopas,
             asetus = asetus2,
             opintooikeudenPaattymispaiva = LocalDate.now().plusYears(1)
         ).apply {
@@ -401,10 +405,12 @@ class VirkailijaEtusivuResourceIT {
             .andExpect(status().isFound)
 
         // Päivitetään Security contextiin impersonoitu käyttäjä
-        val currentAuthentication: Authentication = TestSecurityContextHolder.getContext().authentication
+        val currentAuthentication: Authentication = requireNotNull(TestSecurityContextHolder.getContext().authentication)
         val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA, currentAuthentication)
+        // Fixture mirrors the legacy SAML principal used by impersonation.
+        @Suppress("DEPRECATION", "Deprecation")
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
-        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
+        val newPrincipal = testSamlPrincipal(
             erikoistuvaLaakari1.kayttaja?.user?.id,
             mapOf(
                 "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari1.kayttaja?.user?.firstName),
@@ -499,13 +505,15 @@ class VirkailijaEtusivuResourceIT {
                 .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isFound)
 
-        val currentAuthentication = TestSecurityContextHolder.getContext().authentication
+        val currentAuthentication = requireNotNull(TestSecurityContextHolder.getContext().authentication)
         val switchAuthority = SwitchUserGrantedAuthority(
             ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA,
             currentAuthentication
         )
+        // Fixture mirrors the legacy SAML principal used by impersonation.
+        @Suppress("DEPRECATION", "Deprecation")
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
-        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
+        val newPrincipal = testSamlPrincipal(
             erikoistuvaLaakari1.kayttaja?.user?.id,
             mapOf(
                 "nameID" to currentPrincipal.attributes["nameID"],
@@ -565,12 +573,14 @@ class VirkailijaEtusivuResourceIT {
 
         // Päivitetään Security contextiin impersonoitu käyttäjä
         val currentAuthentication: Authentication =
-            TestSecurityContextHolder.getContext().authentication
+            requireNotNull(TestSecurityContextHolder.getContext().authentication)
         val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(
             ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA, currentAuthentication
         )
+        // Fixture mirrors the legacy SAML principal used by impersonation.
+        @Suppress("DEPRECATION", "Deprecation")
         val currentPrincipal = currentAuthentication.principal as Saml2AuthenticatedPrincipal
-        val newPrincipal = DefaultSaml2AuthenticatedPrincipal(
+        val newPrincipal = testSamlPrincipal(
             erikoistuvaLaakari1.kayttaja?.user?.id,
             mapOf(
                 "urn:oid:2.5.4.42" to listOf(erikoistuvaLaakari1.kayttaja?.user?.firstName),
@@ -689,7 +699,7 @@ class VirkailijaEtusivuResourceIT {
         val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(OPINTOHALLINNON_VIRKAILIJA))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            testSamlPrincipal(user.id, userDetails),
             "test",
             authorities
         )

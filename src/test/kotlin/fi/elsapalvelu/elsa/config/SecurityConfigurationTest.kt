@@ -4,37 +4,41 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
-import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository
-import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
-import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
-import fi.elsapalvelu.elsa.repository.kayttaja.VerificationTokenRepository
 import fi.elsapalvelu.elsa.security.MDC_USER_ID_KEY
-import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.koulutus.OpintosuorituksetPersistenceService
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
-import fi.elsapalvelu.elsa.service.koulutus.OpintotietodataPersistenceService
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.junit.jupiter.api.Test
 import org.slf4j.MDC
-import org.springframework.context.ApplicationContext
-import org.springframework.core.env.Environment
-import org.springframework.web.filter.CorsFilter
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.jvm.isAccessible
 
 class SecurityConfigurationTest {
+
+    @Test
+    fun `SAML principal retains token registration and session indexes without mutating source attributes`() {
+        val source = testSamlPrincipal(
+            "external-name",
+            mapOf("givenName" to listOf<Any>("Test")),
+            listOf("session-123")
+        )
+        val principal = testSecurityConfiguration().createPrincipal("user-123", source, "haka")
+
+        assertThat(principal.name).isEqualTo("user-123")
+        assertThat(principal.relyingPartyRegistrationId).isEqualTo("haka")
+        assertThat(principal.sessionIndexes).containsExactly("session-123")
+        principal.attributes["nameID"] = listOf("external-name")
+        assertThat(source.attributes).doesNotContainKey("nameID")
+    }
 
     @Test
     fun `opintotietodata fetch keeps successful integration result when another integration throws`() {
@@ -51,7 +55,7 @@ class SecurityConfigurationTest {
         val result = MDC.putCloseable(MDC_USER_ID_KEY, "user-123").use {
             runBlocking {
                 callFetchOpintotietodata(
-                    securityConfiguration(opintotietodataServices = listOf(failingService, successfulService))
+                    testSecurityConfiguration(opintotietodataServices = listOf(failingService, successfulService))
                 )
             }
         }
@@ -83,7 +87,7 @@ class SecurityConfigurationTest {
         )
 
         val persistenceService = mock(OpintosuorituksetPersistenceService::class.java)
-        val config = securityConfiguration(
+        val config = testSecurityConfiguration(
             opintosuorituksetServices = listOf(failingService, successfulService),
             opintosuorituksetPersistenceService = persistenceService
         )
@@ -127,34 +131,6 @@ class SecurityConfigurationTest {
             .single { it.name == "fetchAndHandleOpintosuorituksetNonBlocking" }
         fn.isAccessible = true
         fn.call(config, userId, hetu)
-    }
-
-    private fun securityConfiguration(
-        opintotietodataServices: List<OpintotietodataFetchingService> = emptyList(),
-        opintosuorituksetServices: List<OpintosuorituksetFetchingService> = emptyList(),
-        opintosuorituksetPersistenceService: OpintosuorituksetPersistenceService =
-            mock(OpintosuorituksetPersistenceService::class.java)
-    ) = SecurityConfiguration(
-        mock(CorsFilter::class.java),
-        ApplicationProperties(),
-        mock(UserService::class.java),
-        mock(OpintooikeusService::class.java),
-        opintotietodataServices,
-        mock(OpintotietodataPersistenceService::class.java),
-        opintosuorituksetServices,
-        opintosuorituksetPersistenceService,
-        mock(VerificationTokenRepository::class.java),
-        mock(OpintooikeusRepository::class.java),
-        mock(KayttajaRepository::class.java),
-        mock(UserRepository::class.java),
-        mock(KouluttajavaltuutusRepository::class.java),
-        mock(Environment::class.java),
-        mock(ApplicationContext::class.java),
-        DirectTestDispatcher
-    )
-
-    private object DirectTestDispatcher : CoroutineDispatcher() {
-        override fun dispatch(context: CoroutineContext, block: Runnable) = block.run()
     }
 
     private class TestOpintotietodataFetchingService(

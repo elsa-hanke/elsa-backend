@@ -65,13 +65,13 @@ class BadRequestExceptionAdvice {
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleMethodArgumentNotValidException(e: MethodArgumentNotValidException): ProblemDetail {
         log.warn(e.message, e)
-        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.message.orEmpty())
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.message)
     }
 
     @ExceptionHandler(BindException::class)
     fun handleBindException(e: BindException): ProblemDetail {
         log.warn(e.message, e)
-        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.message.orEmpty())
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.message)
     }
 
     @ExceptionHandler(NoSuchMethodError::class)
@@ -99,7 +99,7 @@ class BadRequestExceptionAdvice {
         } else {
             log.error(e.message, e)
         }
-        return ProblemDetail.forStatusAndDetail(e.statusCode, e.message.orEmpty())
+        return ProblemDetail.forStatusAndDetail(e.statusCode, e.message)
     }
 
     @ExceptionHandler(Exception::class)

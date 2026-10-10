@@ -30,7 +30,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
-import javax.xml.bind.ValidationException
+import jakarta.validation.ValidationException
 
 @Service
 @Transactional
@@ -234,8 +234,10 @@ class OpintooikeusServiceImpl(
         opintooikeusRepository.saveAll(oikeudet)
     }
 
+    // Legacy SAML principal compatibility; migrate with login, logout and impersonation.
+    @Suppress("DEPRECATION", "Deprecation")
     private fun getImpersonatedOpintooikeusId(): Long? {
-        val authentication = SecurityContextHolder.getContext().authentication
+        val authentication = SecurityContextHolder.getContext().authentication ?: return null
         val principal: Saml2AuthenticatedPrincipal =
             authentication.principal as Saml2AuthenticatedPrincipal
         val authorities = authentication.authorities.map { it.authority }

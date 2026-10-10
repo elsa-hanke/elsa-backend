@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <include file="config/liquibase/master.xml" relativeToChangelogFile="false"/>
+
+    <!-- Historical reference-data changes insert explicit IDs. PostgreSQL does
+         not advance existing identity sequences when those rows are loaded.
+         Align the two affected sequences once after seeding the temporary DB. -->
+    <changeSet id="test-reference-data-sequences" author="elsa-test" dbms="postgresql" context="test">
+        <sql>
+            SELECT setval(pg_get_serial_sequence('erikoisala', 'id'), MAX(id), true) FROM erikoisala;
+            SELECT setval(pg_get_serial_sequence('poissaolon_syy', 'id'), MAX(id), true) FROM poissaolon_syy;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

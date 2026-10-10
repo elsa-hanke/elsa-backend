@@ -29,11 +29,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -70,7 +70,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(erikoistuvaUser.id, userDetails),
+            testSamlPrincipal(erikoistuvaUser.id, userDetails),
             "test",
             authorities
         )
@@ -118,19 +118,19 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         assertThat(kayttajatList).hasSize(databaseSizeBeforeCreate + 1)
         val testLahikouluttaja = kayttajatList[kayttajatList.size - 1]
 
-        assertThat(testLahikouluttaja?.getNimi()).isEqualTo("$DEFAULT_ETUNIMI $DEFAULT_SUKUNIMI")
-        assertThat(testLahikouluttaja?.user?.email).isEqualTo(DEFAULT_EMAIL)
-        assertThat(testLahikouluttaja?.user?.login).isEqualTo(DEFAULT_EMAIL)
-        assertThat(testLahikouluttaja?.user?.activated).isEqualTo(true)
+        assertThat(testLahikouluttaja.getNimi()).isEqualTo("$DEFAULT_ETUNIMI $DEFAULT_SUKUNIMI")
+        assertThat(testLahikouluttaja.user?.email).isEqualTo(DEFAULT_EMAIL)
+        assertThat(testLahikouluttaja.user?.login).isEqualTo(DEFAULT_EMAIL)
+        assertThat(testLahikouluttaja.user?.activated).isEqualTo(true)
         assertThat(
-            testLahikouluttaja?.user?.authorities?.contains(
+            testLahikouluttaja.user?.authorities?.contains(
                 Authority(name = KOULUTTAJA)
             )
         ).isTrue()
 
-        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat).hasSize(1)
-        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto).isEqualTo(opintooikeus.yliopisto)
-        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.erikoisala).isEqualTo(opintooikeus.erikoisala)
+        assertThat(testLahikouluttaja.yliopistotAndErikoisalat).hasSize(1)
+        assertThat(testLahikouluttaja.yliopistotAndErikoisalat.firstOrNull()?.yliopisto).isEqualTo(opintooikeus.yliopisto)
+        assertThat(testLahikouluttaja.yliopistotAndErikoisalat.firstOrNull()?.erikoisala).isEqualTo(opintooikeus.erikoisala)
     }
 
     @Test
@@ -153,19 +153,19 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         assertThat(kayttajatList).hasSize(databaseSizeBeforeCreate + 1)
         val testLahikouluttaja = kayttajatList[kayttajatList.size - 1]
 
-        assertThat(testLahikouluttaja?.getNimi()).isEqualTo("$DEFAULT_ETUNIMI $DEFAULT_SUKUNIMI")
-        assertThat(testLahikouluttaja?.user?.email).isEqualTo(DEFAULT_EMAIL)
-        assertThat(testLahikouluttaja?.user?.login).isEqualTo(DEFAULT_EMAIL)
-        assertThat(testLahikouluttaja?.user?.activated).isEqualTo(true)
+        assertThat(testLahikouluttaja.getNimi()).isEqualTo("$DEFAULT_ETUNIMI $DEFAULT_SUKUNIMI")
+        assertThat(testLahikouluttaja.user?.email).isEqualTo(DEFAULT_EMAIL)
+        assertThat(testLahikouluttaja.user?.login).isEqualTo(DEFAULT_EMAIL)
+        assertThat(testLahikouluttaja.user?.activated).isEqualTo(true)
         assertThat(
-            testLahikouluttaja?.user?.authorities?.contains(
+            testLahikouluttaja.user?.authorities?.contains(
                 Authority(name = KOULUTTAJA)
             )
         ).isTrue()
 
-        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat).hasSize(1)
-        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.yliopisto).isEqualTo(newOpintooikeus.yliopisto)
-        assertThat(testLahikouluttaja?.yliopistotAndErikoisalat?.firstOrNull()?.erikoisala).isEqualTo(newOpintooikeus.erikoisala)
+        assertThat(testLahikouluttaja.yliopistotAndErikoisalat).hasSize(1)
+        assertThat(testLahikouluttaja.yliopistotAndErikoisalat.firstOrNull()?.yliopisto).isEqualTo(newOpintooikeus.yliopisto)
+        assertThat(testLahikouluttaja.yliopistotAndErikoisalat.firstOrNull()?.erikoisala).isEqualTo(newOpintooikeus.erikoisala)
     }
 
     @Test
@@ -207,8 +207,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
         val kayttajatList = kayttajaRepository.findAll()
         assertThat(kayttajatList).hasSize(databaseSizeBeforeCreate)
         val testLahikouluttaja = kayttajatList[kayttajatList.size - 1]
-        val yliopistotAndErikoisalatList = testLahikouluttaja?.yliopistotAndErikoisalat?.toList()
-        requireNotNull(yliopistotAndErikoisalatList)
+        val yliopistotAndErikoisalatList = testLahikouluttaja.yliopistotAndErikoisalat.toList()
 
         assertThat(yliopistotAndErikoisalatList).hasSize(2)
         assertThat(yliopistotAndErikoisalatList[1].yliopisto).isEqualTo(opintooikeus.yliopisto)

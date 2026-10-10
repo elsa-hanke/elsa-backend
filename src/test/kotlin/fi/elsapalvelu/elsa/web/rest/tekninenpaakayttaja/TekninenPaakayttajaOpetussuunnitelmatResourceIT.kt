@@ -30,11 +30,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -281,12 +281,12 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
                 .content(convertObjectToJsonBytes(opintoopasDTO)).with(csrf())).andExpect(status().isCreated)
 
         val opintoopasList = opintoopasRepository.findAll()
-        val opas = opintoopasList[opintoopasList.size - 1]
+        val opas = opintoopasList.single { it.erikoisala?.id == erikoisala.id && it.id != opintoopas.id }
         assertThat(opas.nimi).isEqualTo(opintoopasDTO.nimi)
         assertThat(opas.voimassaoloAlkaa).isEqualTo(opintoopasDTO.voimassaoloAlkaa)
         assertThat(opas.voimassaoloPaattyy).isEqualTo(opintoopasDTO.voimassaoloPaattyy)
 
-        val oldOpas = opintoopasList[opintoopasList.size - 2]
+        val oldOpas = opintoopasList.single { it.id == opintoopas.id }
         assertThat(oldOpas.nimi).isEqualTo(opintoopas.nimi)
         assertThat(oldOpas.voimassaoloAlkaa).isEqualTo(opintoopas.voimassaoloAlkaa)
         assertThat(oldOpas.voimassaoloPaattyy).isEqualTo(opintoopasDTO.voimassaoloAlkaa?.minusDays(1))
@@ -772,7 +772,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         em.flush()
         val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(TEKNINEN_PAAKAYTTAJA))
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(userId ?: user.id, userDetails), "test", authorities)
+        val authentication = Saml2Authentication(testSamlPrincipal(userId ?: user.id, userDetails), "test", authorities)
         TestSecurityContextHolder.getContext().authentication = authentication
     }
 

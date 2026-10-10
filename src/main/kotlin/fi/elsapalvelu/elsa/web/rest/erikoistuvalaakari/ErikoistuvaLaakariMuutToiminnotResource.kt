@@ -57,6 +57,8 @@ class ErikoistuvaLaakariMuutToiminnotResource(
     private val mailService: MailService
 ) {
     @GetMapping("")
+    // Legacy SAML principal compatibility; migrate with login, logout and impersonation.
+    @Suppress("DEPRECATION", "Deprecation")
     fun getErikoistuvaLaakari(
         principal: Principal?
     ): ResponseEntity<ErikoistuvaLaakariDTO> {

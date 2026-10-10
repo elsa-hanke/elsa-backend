@@ -14,10 +14,10 @@ import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -126,7 +126,7 @@ class YekKoulutettavaValmistumispyyntoResourceIT {
 
     private fun authenticate(user: User) {
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, emptyMap<String, List<Any>>()),
+            testSamlPrincipal(user.id, emptyMap<String, List<Any>>()),
             "test",
             listOf(SimpleGrantedAuthority(YEK_KOULUTETTAVA))
         )

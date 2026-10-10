@@ -17,6 +17,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
@@ -43,13 +44,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.http.MediaType
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication as withAuthentication
@@ -169,8 +170,8 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      * IDs of entities committed by non-@Transactional tests 2 and 3.
      * null for @Transactional test 1 (data is rolled back automatically).
      * Used by @AfterEach to clean up committed rows so they don't leak into
-     * subsequent test classes that share the same H2 in-memory database
-     * (jdbc:h2:mem:elsaBackend — named, shared across all Spring contexts).
+     * subsequent test classes that share the same temporary PostgreSQL database
+     * across Spring contexts in the test JVM.
      */
     private var committedValmistumispyyntoId: Long? = null
     private var committedOpintooikeusId: Long? = null
@@ -179,11 +180,10 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private var committedSecondValmistumispyyntoId: Long? = null
     private var committedSecondOpintooikeusId: Long? = null
     private var committedSecondErikoistuvaLaakariId: Long? = null
-    private val committedExtraErikoisalaIds: MutableList<Long> = mutableListOf()
 
     /**
      * Deletes rows committed by the non-@Transactional tests in FK-safe order
-     * so that subsequent test classes that share the same H2 DB see a clean slate.
+     * so that subsequent test classes that share the same PostgreSQL DB see a clean slate.
      *
      * Deletion order (child → parent, respecting FK constraints):
      *  1. valmistumispyynnon_tarkistus                      (FK → valmistumispyynto)
@@ -243,9 +243,6 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                     "(SELECT id FROM kayttaja_yliopisto_erikoisala WHERE yliopisto_id = $yId)"
             ).executeUpdate()
             em.createNativeQuery("DELETE FROM kayttaja_yliopisto_erikoisala WHERE yliopisto_id = $yId").executeUpdate()
-            if (committedExtraErikoisalaIds.isNotEmpty()) {
-                em.createNativeQuery("DELETE FROM erikoisala WHERE id IN (${committedExtraErikoisalaIds.joinToString()})").executeUpdate()
-            }
             em.createNativeQuery("DELETE FROM opintooikeus WHERE id = $ooId").executeUpdate()
             if (elId != null) {
                 em.createNativeQuery("DELETE FROM erikoistuva_laakari WHERE id = $elId").executeUpdate()
@@ -261,7 +258,6 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         committedSecondValmistumispyyntoId = null
         committedSecondOpintooikeusId = null
         committedSecondErikoistuvaLaakariId = null
-        committedExtraErikoisalaIds.clear()
     }
 
     // -------------------------------------------------------------------------
@@ -674,7 +670,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     fun updateValmistumispyyntoByHyvaksyjaUserId_whenUnauthorizedPersonTriesDuringApproval_isRefusedAndDoesNotDisturbRunningApproval() {
         val valmistumispyyntoId = initTestInTransaction()
         val gate = gateFirstArchivingCall()
-        val unauthorizedAuthentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(anotherVastuuhenkilo.user!!.id, mapOf()), "test",
+        val unauthorizedAuthentication = Saml2Authentication(testSamlPrincipal(anotherVastuuhenkilo.user!!.id, mapOf()), "test",
             listOf(SimpleGrantedAuthority(VASTUUHENKILO))
         )
 
@@ -777,7 +773,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         committedSecondOpintooikeusId = secondOpintooikeus.id
         committedSecondErikoistuvaLaakariId = erikoistuvaLaakari.id
         valmistumispyynto.id!!
-    }!!
+    }
 
     private fun initTestInTransaction(): Long = transactionTemplate.execute {
         // --- Setup: run inside a dedicated transaction that is committed before the service call ---
@@ -798,7 +794,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         committedErikoistuvaLaakariId = opintooikeus.erikoistuvaLaakari?.id
         committedYliopistoId = opintooikeus.yliopisto?.id
         valmistumispyynto.id!!
-    }!!
+    }
 
     // -------------------------------------------------------------------------
     // Setup helpers (mirrors VastuuhenkiloValmistumispyyntoResourceIT.initTest)
@@ -810,7 +806,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
         val authorities = listOf(SimpleGrantedAuthority(VASTUUHENKILO))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(vastuuhenkiloUser.id, mapOf()),
+            testSamlPrincipal(vastuuhenkiloUser.id, mapOf()),
             "test",
             authorities
         )
@@ -824,8 +820,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
         // Always create a fresh, dedicated Yliopisto so that @AfterEach can safely delete it
         // without touching any Yliopisto row that belongs to another test class's committed data.
-        val freshYliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
-        em.persist(freshYliopisto)
+        val freshYliopisto = YliopistoHelper.createReferenceData(em, YliopistoEnum.TAMPEREEN_YLIOPISTO)
 
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, erikoistuvaLaakariUser, yliopisto = freshYliopisto)
         em.persist(erikoistuvaLaakari)
@@ -875,9 +870,12 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         erikoisala: Erikoisala,
         tehtavat: MutableSet<VastuuhenkilonTehtavatyyppi>
     ) {
-        val extra1 = ErikoisalaHelper.createEntity().also { em.persist(it) }
-        val extra2 = ErikoisalaHelper.createEntity().also { em.persist(it) }
-        committedExtraErikoisalaIds.addAll(listOf(extra1.id!!, extra2.id!!))
+        // The fixture needs distinct assignments, not new reference specialties.
+        // Reuse Liquibase seeds rather than introducing audited reference writes.
+        val (extra1, extra2) = em.findAll(Erikoisala::class)
+            .filter { it.id != erikoisala.id }
+            .sortedBy { it.id }
+            .take(2)
 
         listOf(extra1, erikoisala, extra2).forEach { ala ->
             kayttaja.yliopistotAndErikoisalat.add(
