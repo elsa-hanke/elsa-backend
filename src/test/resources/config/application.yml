@@ -38,7 +38,6 @@ spring:
     serialization:
       write-durations-as-timestamps: false
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
     show-sql: false
     hibernate:
