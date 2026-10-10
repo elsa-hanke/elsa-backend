@@ -491,21 +491,17 @@ class KayttajaServiceImpl(
         val activeAuthority = kayttaja.user.required().activeAuthority.required().name.toString()
         if ((activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name)) {
             val erikoistuvat = kayttajaQueryService.findByCriteriaAndAuthorities(
-                activeAuthority,
                 criteria,
                 pageable,
                 kayttaja.user?.langKey,
                 listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA),
-                kayttaja.yliopistot.map { it.id }.toList(),
                 true
             )
             val kouluttajat = kayttajaQueryService.findByCriteriaAndAuthorities(
-                null,
                 criteria,
                 pageable,
                 kayttaja.user?.langKey,
                 listOf(KOULUTTAJA),
-                kayttaja.yliopistot.map { it.id }.toList(),
                 false
             )
             val combinedContent = (erikoistuvat.content + kouluttajat.content).distinctBy { it.kayttajaId }
@@ -513,12 +509,10 @@ class KayttajaServiceImpl(
         } else {
             // tekninen pääkäyttäjä
             return kayttajaQueryService.findByCriteriaAndAuthorities(
-                activeAuthority,
                 criteria,
                 pageable,
                 kayttaja.user?.langKey,
                 listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA, KOULUTTAJA),
-                kayttaja.yliopistot.map { it.id }.toList(),
                 true
             )
         }
