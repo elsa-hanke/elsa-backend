@@ -341,7 +341,7 @@ class SecurityConfiguration(
     }
 
     // Legacy SAML principal compatibility; migrate with login, logout and impersonation.
-    @Suppress("CyclomaticComplexMethod", "LongMethod", "DEPRECATION", "Deprecation")
+    @Suppress("CyclomaticComplexMethod", "DEPRECATION", "Deprecation")
     fun convertAuthentication(responseToken: OpenSaml5AuthenticationProvider.ResponseToken): Saml2Authentication {
         val token: Saml2Authentication =
             OpenSaml5AuthenticationProvider.ResponseAuthenticationConverter()
@@ -356,18 +356,69 @@ class SecurityConfiguration(
         // Haka
         val eppn = principal.attributes["urn:oid:1.3.6.1.4.1.5923.1.1.1.6"]?.get(0) as String?
 
-        val response = responseToken.response
-        val assertion = CollectionUtils.firstElement(response.assertions)
-        val nameID = assertion?.subject?.nameID
-        principal.attributes["nameID"] = mutableListOf(nameID?.value) as List<*>?
-        principal.attributes["nameIDFormat"] = mutableListOf(nameID?.format) as List<*>?
-        principal.attributes["nameIDQualifier"] = mutableListOf(nameID?.nameQualifier) as List<*>?
-        principal.attributes["nameIDSPQualifier"] = mutableListOf(nameID?.spNameQualifier) as List<*>?
+        addLogoutNameIdAttributes(principal, responseToken)
 
         val decodedKey = Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
         val originalKey: SecretKey = SecretKeySpec(decodedKey, 0, decodedKey.size, applicationProperties.getSecurity().secretKeyAlgorithm)
 
         val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
+        val existingUser = findLoginUser(cipher, originalKey, hetu, eppn, firstName, lastName)
+
+        val kayttaja = kayttajaRepository.findOneByUserIdWithAuthorities(existingUser.id.required()).orElseThrow {
+            Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
+        }
+
+        if (kayttaja.tila == KayttajatilinTila.PASSIIVINEN) {
+            log.error("Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. Käyttäjän tili on passivoitu")
+            throw Exception(LoginException.TILI_PASSIVOITU.name)
+        }
+
+        val accountUser = kayttaja.user.required()
+
+        // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus
+        if (hasErikoistuvaLaakariRole(accountUser) && !opintooikeusService.onOikeus(accountUser)) {
+            if (hasKouluttajaRole(accountUser)) {
+                accountUser.authorities = accountUser.authorities.filter { it.name != ERIKOISTUVA_LAAKARI }.toMutableSet()
+                accountUser.activeAuthority = Authority(name = KOULUTTAJA)
+                userRepository.save(accountUser)
+            } else {
+                log.error("Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole voimassaolevaa " +
+                        "opinto-oikeutta, opinto-oikeuden tila ei salli kirjautumista tai opinto-oikeuden erikoisala ei ole liittynyt Elsaan."
+                )
+                throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
+            }
+        }
+
+        if (hasVastuuhenkiloRole(accountUser) && kayttaja.tila == KayttajatilinTila.KUTSUTTU) {
+            kayttaja.tila = KayttajatilinTila.AKTIIVINEN
+            kayttajaRepository.save(kayttaja)
+        }
+
+        if (accountUser.activeAuthority == null) {
+            accountUser.activeAuthority = accountUser.authorities.first()
+            userRepository.save(accountUser)
+        }
+
+        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal, registrationId), token.saml2Response,
+            kayttaja.user.required().authorities.map { SimpleGrantedAuthority(it.name.required()) })
+    }
+
+    @Suppress("DEPRECATION", "Deprecation")
+    private fun addLogoutNameIdAttributes(
+        principal: DefaultSaml2AuthenticatedPrincipal,
+        responseToken: OpenSaml5AuthenticationProvider.ResponseToken
+    ) {
+        val assertion = CollectionUtils.firstElement(responseToken.response.assertions)
+        val nameID = assertion?.subject?.nameID
+        principal.attributes["nameID"] = mutableListOf(nameID?.value) as List<*>?
+        principal.attributes["nameIDFormat"] = mutableListOf(nameID?.format) as List<*>?
+        principal.attributes["nameIDQualifier"] = mutableListOf(nameID?.nameQualifier) as List<*>?
+        principal.attributes["nameIDSPQualifier"] = mutableListOf(nameID?.spNameQualifier) as List<*>?
+    }
+
+    private fun findLoginUser(
+        cipher: Cipher, originalKey: SecretKey, hetu: String?, eppn: String?, firstName: String, lastName: String
+    ): User {
         val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
         val verificationToken = attr.request.getParameter("RelayState")
         var tokenUser: User? = null
@@ -418,44 +469,7 @@ class SecurityConfiguration(
                 userRepository.save(existingUser)
             }
         }
-
-        val kayttaja = kayttajaRepository.findOneByUserIdWithAuthorities(existingUser.id.required()).orElseThrow {
-            Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
-        }
-
-        if (kayttaja.tila == KayttajatilinTila.PASSIIVINEN) {
-            log.error("Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. Käyttäjän tili on passivoitu")
-            throw Exception(LoginException.TILI_PASSIVOITU.name)
-        }
-
-        existingUser = kayttaja.user.required()
-
-        // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus
-        if (hasErikoistuvaLaakariRole(existingUser) && !opintooikeusService.onOikeus(existingUser)) {
-            if (hasKouluttajaRole(existingUser)) {
-                existingUser.authorities = existingUser.authorities.filter { it.name != ERIKOISTUVA_LAAKARI }.toMutableSet()
-                existingUser.activeAuthority = Authority(name = KOULUTTAJA)
-                userRepository.save(existingUser)
-            } else {
-                log.error("Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole voimassaolevaa " +
-                        "opinto-oikeutta, opinto-oikeuden tila ei salli kirjautumista tai opinto-oikeuden erikoisala ei ole liittynyt Elsaan."
-                )
-                throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
-            }
-        }
-
-        if (hasVastuuhenkiloRole(existingUser) && kayttaja.tila == KayttajatilinTila.KUTSUTTU) {
-            kayttaja.tila = KayttajatilinTila.AKTIIVINEN
-            kayttajaRepository.save(kayttaja)
-        }
-
-        if (existingUser.activeAuthority == null) {
-            existingUser.activeAuthority = existingUser.authorities.first()
-            userRepository.save(existingUser)
-        }
-
-        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal, registrationId), token.saml2Response,
-            kayttaja.user.required().authorities.map { SimpleGrantedAuthority(it.name.required()) })
+        return existingUser
     }
 
     private fun shouldFetchOpintotietodata(
@@ -603,18 +617,14 @@ class SecurityConfiguration(
     }
 
     internal fun createAssertionValidator(): Converter<OpenSaml5AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> {
-        // Registration audiences are configured values; reuse a validator per audience.
-        val validators = java.util.concurrent.ConcurrentHashMap<String, OpenSaml5AuthenticationProvider.AssertionValidator>()
         return Converter { assertionToken ->
             val audience = assertionToken.token.relyingPartyRegistration.entityId
-            val validator = validators.computeIfAbsent(audience) {
-                val normalizedAudience = if (audience.contains("haka")) audience.substringBefore("haka") + "haka" else audience
-                OpenSaml5AuthenticationProvider.AssertionValidator.builder()
-                    .validationContextParameters { parameters ->
-                        parameters[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] = setOf(normalizedAudience)
-                    }
-                    .build()
-            }
+            val normalizedAudience = if (audience.contains("haka")) audience.substringBefore("haka") + "haka" else audience
+            val validator = OpenSaml5AuthenticationProvider.AssertionValidator.builder()
+                .validationContextParameters { parameters ->
+                    parameters[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] = setOf(normalizedAudience)
+                }
+                .build()
             validator.convert(assertionToken)
         }
     }

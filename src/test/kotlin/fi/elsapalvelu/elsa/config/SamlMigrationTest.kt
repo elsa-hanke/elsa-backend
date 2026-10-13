@@ -140,6 +140,22 @@ class SamlMigrationTest {
         ))).hasErrors()).isTrue()
     }
 
+    @Test
+    fun assertionValidatorDoesNotRetainValidatorsForRequestHosts() {
+        val validator = testSecurityConfiguration().createAssertionValidator()
+        (1..8).forEach { host ->
+            val baseUrl = "https://host-$host.example"
+            assertThat(requireNotNull(validator.convert(assertionToken(
+                "suomifi", "suomifi", spBaseUrl = baseUrl
+            ))).hasErrors()).isFalse()
+        }
+
+        // The converter lives for the lifetime of the security filter chain.
+        // Capturing a map here would retain an entry for every distinct request Host.
+        assertThat(validator.javaClass.declaredFields)
+            .noneMatch { Map::class.java.isAssignableFrom(it.type) }
+    }
+
     @ParameterizedTest
     @CsvSource("haka-tampere", "suomifi")
     fun logoutPreservesExternalNameIdQualifiersAndSessionIndexes(registrationId: String) {

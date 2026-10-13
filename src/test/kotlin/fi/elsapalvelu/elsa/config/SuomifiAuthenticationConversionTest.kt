@@ -36,12 +36,14 @@ import org.opensaml.saml.saml2.core.Attribute
 import org.opensaml.saml.saml2.core.AttributeStatement
 import org.opensaml.saml.saml2.core.AttributeValue
 import org.opensaml.saml.saml2.core.NameID
+import org.opensaml.saml.saml2.core.NameIDType
 import org.opensaml.saml.saml2.core.Response
 import org.opensaml.saml.saml2.core.Subject
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.security.saml2.core.OpenSamlInitializationService
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
@@ -91,6 +93,19 @@ class SuomifiAuthenticationConversionTest {
         assertThat(authentication.name).isEqualTo("user-123")
         assertThat(authentication.authorities.map { it.authority }).containsExactly(VASTUUHENKILO)
         assertThat(authentication.principal).extracting("relyingPartyRegistrationId").isEqualTo("suomifi")
+    }
+
+    @Suppress("DEPRECATION", "Deprecation")
+    @Test
+    fun suomifiLoginPreservesExternalNameIdForLogout() {
+        existingUser(userWithRole(VASTUUHENKILO), KayttajatilinTila.AKTIIVINEN)
+
+        val principal = configuration.convertAuthentication(responseToken()).principal as Saml2AuthenticatedPrincipal
+
+        assertThat(principal.attributes["nameID"]).containsExactly("external-subject")
+        assertThat(principal.attributes["nameIDFormat"]).containsExactly(NameIDType.PERSISTENT)
+        assertThat(principal.attributes["nameIDQualifier"]).containsExactly("https://idp.example")
+        assertThat(principal.attributes["nameIDSPQualifier"]).containsExactly("https://elsapalvelu.fi")
     }
 
     @Test
@@ -237,7 +252,12 @@ class SuomifiAuthenticationConversionTest {
             }.build()
         val assertion = saml<Assertion>(Assertion.DEFAULT_ELEMENT_NAME).apply {
             subject = saml<Subject>(Subject.DEFAULT_ELEMENT_NAME).apply {
-                nameID = saml<NameID>(NameID.DEFAULT_ELEMENT_NAME).apply { value = "external-subject" }
+                nameID = saml<NameID>(NameID.DEFAULT_ELEMENT_NAME).apply {
+                    value = "external-subject"
+                    format = NameIDType.PERSISTENT
+                    nameQualifier = "https://idp.example"
+                    spNameQualifier = "https://elsapalvelu.fi"
+                }
             }
             attributeStatements.add(saml<AttributeStatement>(AttributeStatement.DEFAULT_ELEMENT_NAME).apply {
                 attributes.add(attribute("urn:oid:2.5.4.42", "Test"))
