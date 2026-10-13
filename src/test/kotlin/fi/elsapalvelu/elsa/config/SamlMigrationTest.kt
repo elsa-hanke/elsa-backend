@@ -70,6 +70,25 @@ class SamlMigrationTest {
         }
     }
 
+    @Test
+    fun suomifiAuthenticationRequestPreservesExplicitRelayState() {
+        val registration = registration("suomifi")
+        val resolver = requireNotNull(testSecurityConfiguration().authenticationRequestResolver(
+            InMemoryRelyingPartyRegistrationRepository(registration)
+        ))
+        val request = MockHttpServletRequest("GET", "/saml2/authenticate/suomifi").apply {
+            scheme = "https"
+            serverName = "elsapalvelu.fi"
+            serverPort = 443
+            addParameter("RelayState", "invitation-token")
+        }
+        RequestContextHolder.setRequestAttributes(ServletRequestAttributes(request))
+
+        val authnRequest = requireNotNull(resolver.resolve<AbstractSaml2AuthenticationRequest>(request))
+
+        assertThat(authnRequest.relayState).isEqualTo("invitation-token")
+    }
+
     @ParameterizedTest
     @CsvSource("haka-tampere,haka,true", "haka-helsinki,haka,true", "haka-tampere,suomifi,false", "suomifi,suomifi,true", "suomifi,haka,false")
     fun assertionAudienceIsRestrictedToItsRegistration(registrationId: String, audienceSuffix: String, valid: Boolean) {
@@ -106,6 +125,19 @@ class SamlMigrationTest {
         assertThat(requireNotNull(validator.convert(assertionToken("suomifi", "suomifi"))).hasErrors()).isFalse()
         assertThat(requireNotNull(validator.convert(assertionToken("haka-tampere", "suomifi"))).hasErrors()).isTrue()
         assertThat(requireNotNull(validator.convert(assertionToken("haka-helsinki", "haka"))).hasErrors()).isFalse()
+    }
+
+    @Test
+    fun suomifiValidatorUsesAudienceOfEachResolvedRegistration() {
+        val validator = testSecurityConfiguration().createAssertionValidator()
+        val firstHost = "https://first.example"
+        val secondHost = "https://second.example"
+
+        assertThat(requireNotNull(validator.convert(assertionToken("suomifi", "suomifi", spBaseUrl = firstHost))).hasErrors()).isFalse()
+        assertThat(requireNotNull(validator.convert(assertionToken("suomifi", "suomifi", spBaseUrl = secondHost))).hasErrors()).isFalse()
+        assertThat(requireNotNull(validator.convert(assertionToken(
+            "suomifi", "suomifi", spBaseUrl = secondHost, audienceBaseUrl = firstHost
+        ))).hasErrors()).isTrue()
     }
 
     @ParameterizedTest
@@ -155,9 +187,15 @@ class SamlMigrationTest {
             }.build()
     }
 
-    private fun assertionToken(id: String, audienceSuffix: String, expiredSeconds: Long = -60): OpenSaml5AuthenticationProvider.AssertionToken {
-        val registration = registration(id).mutate().entityId("https://elsapalvelu.fi/saml/$id")
-            .assertionConsumerServiceLocation("https://elsapalvelu.fi/login/saml2/sso/$id").build()
+    private fun assertionToken(
+        id: String,
+        audienceSuffix: String,
+        expiredSeconds: Long = -60,
+        spBaseUrl: String = "https://elsapalvelu.fi",
+        audienceBaseUrl: String = spBaseUrl
+    ): OpenSaml5AuthenticationProvider.AssertionToken {
+        val registration = registration(id).mutate().entityId("$spBaseUrl/saml/$id")
+            .assertionConsumerServiceLocation("$spBaseUrl/login/saml2/sso/$id").build()
         val assertion = saml<Assertion>(Assertion.DEFAULT_ELEMENT_NAME).apply {
             this.id = "assertion-test"
             issueInstant = Instant.now()
@@ -166,7 +204,7 @@ class SamlMigrationTest {
                 notBefore = Instant.now().minusSeconds(1200)
                 notOnOrAfter = Instant.now().minusSeconds(expiredSeconds)
                 audienceRestrictions.add(saml<AudienceRestriction>(AudienceRestriction.DEFAULT_ELEMENT_NAME).apply {
-                    audiences.add(saml<Audience>(Audience.DEFAULT_ELEMENT_NAME).apply { uri = "https://elsapalvelu.fi/saml/$audienceSuffix" })
+                    audiences.add(saml<Audience>(Audience.DEFAULT_ELEMENT_NAME).apply { uri = "$audienceBaseUrl/saml/$audienceSuffix" })
                 })
             }
             subject = saml<Subject>(Subject.DEFAULT_ELEMENT_NAME).apply {

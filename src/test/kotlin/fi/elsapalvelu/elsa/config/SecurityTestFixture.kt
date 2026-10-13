@@ -18,20 +18,27 @@ internal fun testSecurityConfiguration(
     opintotietodataServices: List<OpintotietodataFetchingService> = emptyList(),
     opintosuorituksetServices: List<OpintosuorituksetFetchingService> = emptyList(),
     opintosuorituksetPersistenceService: OpintosuorituksetPersistenceService =
-        mock(OpintosuorituksetPersistenceService::class.java)
+        mock(OpintosuorituksetPersistenceService::class.java),
+    applicationProperties: ApplicationProperties = ApplicationProperties(),
+    userService: UserService = mock(UserService::class.java),
+    opintooikeusService: OpintooikeusService = mock(OpintooikeusService::class.java),
+    opintotietodataPersistenceService: OpintotietodataPersistenceService = mock(OpintotietodataPersistenceService::class.java),
+    kayttajaRepository: KayttajaRepository = mock(KayttajaRepository::class.java),
+    userRepository: UserRepository = mock(UserRepository::class.java),
+    verificationTokenRepository: VerificationTokenRepository = mock(VerificationTokenRepository::class.java)
 ) = SecurityConfiguration(
     mock(CorsFilter::class.java),
-    ApplicationProperties(),
-    mock(UserService::class.java),
-    mock(OpintooikeusService::class.java),
+    applicationProperties,
+    userService,
+    opintooikeusService,
     opintotietodataServices,
-    mock(OpintotietodataPersistenceService::class.java),
+    opintotietodataPersistenceService,
     opintosuorituksetServices,
     opintosuorituksetPersistenceService,
-    mock(VerificationTokenRepository::class.java),
+    verificationTokenRepository,
     mock(OpintooikeusRepository::class.java),
-    mock(KayttajaRepository::class.java),
-    mock(UserRepository::class.java),
+    kayttajaRepository,
+    userRepository,
     mock(KouluttajavaltuutusRepository::class.java),
     mock(Environment::class.java),
     mock(ApplicationContext::class.java),
@@ -41,4 +48,3 @@ internal fun testSecurityConfiguration(
 private object DirectTestDispatcher : CoroutineDispatcher() {
     override fun dispatch(context: CoroutineContext, block: Runnable) = block.run()
 }
-

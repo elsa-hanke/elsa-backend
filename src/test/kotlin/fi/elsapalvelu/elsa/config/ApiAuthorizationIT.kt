@@ -105,6 +105,64 @@ class ApiAuthorizationIT {
         }
     }
 
+    @Test
+    fun oneRoleCannotWriteAnotherRolesApi() {
+        TestSecurityContextHolder.clearContext()
+        val writeEndpoints = listOf(
+            Triple(HttpMethod.POST, "/api/yek-koulutettava/valmistumispyynto", YEK_KOULUTETTAVA),
+            Triple(HttpMethod.PUT, "/api/vastuuhenkilo/terveyskeskuskoulutusjakson-hyvaksynta/{id}", VASTUUHENKILO),
+            Triple(HttpMethod.DELETE, "/api/tekninen-paakayttaja/ilmoitukset/{id}", TEKNINEN_PAAKAYTTAJA)
+        )
+        val registeredMethodsAndPaths = requestMappings.handlerMethods.keys.flatMap { mapping ->
+            mapping.patternValues.flatMap { path -> mapping.methodsCondition.methods.map { method -> method.name to path } }
+        }
+        assertThat(registeredMethodsAndPaths).containsAll(
+            writeEndpoints.map { (method, path) -> method.name() to path }
+        )
+
+        writeEndpoints.forEach { (method, pattern, allowedRole) ->
+            val path = pattern.replace("{id}", "1")
+            listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA, KOULUTTAJA, VASTUUHENKILO,
+                TEKNINEN_PAAKAYTTAJA, OPINTOHALLINNON_VIRKAILIJA)
+                .filter { it != allowedRole }
+                .forEach { otherRole ->
+                    val response = mockMvc.perform(
+                        request(method, path)
+                            .with(user("test-user").authorities(SimpleGrantedAuthority(otherRole)))
+                            .with(csrf())
+                    ).andReturn().response
+                    System.out.println("$otherRole $method $pattern -> ${response.status}")
+                    assertThat(response.status).describedAs("$otherRole must not access $method $pattern")
+                        .isEqualTo(403)
+                }
+        }
+    }
+
+    @Test
+    fun authenticatedWritesRequireCsrfToken() {
+        TestSecurityContextHolder.clearContext()
+        val endpoint = "/api/yek-koulutettava/valmistumispyynto"
+        val authenticated = user("test-user").authorities(SimpleGrantedAuthority(YEK_KOULUTETTAVA))
+
+        mockMvc.perform(request(HttpMethod.POST, endpoint).with(authenticated))
+            .andExpect(status().isForbidden)
+        // Invalid CSRF must be rejected before the controller can write anything.
+        mockMvc.perform(request(HttpMethod.POST, endpoint).with(authenticated).with(csrf().useInvalidToken()))
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun impersonationAndAuthInfoAreRestrictedAtFilterChain() {
+        TestSecurityContextHolder.clearContext()
+        mockMvc.perform(get("/api/auth-info").with(anonymous())).andExpect(status().isUnauthorized)
+        mockMvc.perform(get("/api/auth-info")
+            .with(user("test-user").authorities(SimpleGrantedAuthority(VASTUUHENKILO))))
+            .andExpect(status().isForbidden)
+        mockMvc.perform(get("/api/login/impersonate")
+            .with(user("test-user").authorities(SimpleGrantedAuthority(YEK_KOULUTETTAVA))))
+            .andExpect(status().isForbidden)
+    }
+
     private fun isPublic(path: String): Boolean =
         path == "/" || path == "/kirjaudu" || path == "/api/" ||
             path == "/api/ping" || path == "/api/haka-yliopistot" ||
