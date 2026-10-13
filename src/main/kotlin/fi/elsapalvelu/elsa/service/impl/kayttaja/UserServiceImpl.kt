@@ -6,30 +6,18 @@ import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.security.Principal
 import fi.elsapalvelu.elsa.config.ANONYMOUS_USER
 import fi.elsapalvelu.elsa.config.LoginException
-import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.koejakso.*
-import fi.elsapalvelu.elsa.domain.tyoskentely.*
-import fi.elsapalvelu.elsa.domain.arviointi.*
-import fi.elsapalvelu.elsa.domain.suoritteet.*
-import fi.elsapalvelu.elsa.domain.koulutus.*
-import fi.elsapalvelu.elsa.domain.seuranta.*
-import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
-import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
-import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.repository.koejakso.*
-import fi.elsapalvelu.elsa.repository.tyoskentely.*
 import fi.elsapalvelu.elsa.repository.arviointi.*
-import fi.elsapalvelu.elsa.repository.suoritteet.*
-import fi.elsapalvelu.elsa.repository.koulutus.*
 import fi.elsapalvelu.elsa.repository.seuranta.*
-import fi.elsapalvelu.elsa.repository.valmistuminen.*
 import fi.elsapalvelu.elsa.repository.kayttaja.*
-import fi.elsapalvelu.elsa.repository.perustiedot.*
+import fi.elsapalvelu.elsa.service.AvatarValidationResult
+import fi.elsapalvelu.elsa.service.AvatarValidator
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.dto.kayttaja.OmatTiedotDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import net.coobird.thumbnailator.Thumbnails
 import net.coobird.thumbnailator.tasks.UnsupportedFormatException
 import org.apache.commons.text.similarity.LevenshteinDistance
@@ -41,7 +29,9 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.*
 import javax.crypto.Cipher
@@ -50,6 +40,44 @@ import javax.crypto.spec.IvParameterSpec
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityNotFoundException
 
+private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
+
+private fun updateAvatar(
+    user: User,
+    omatTiedotDTO: OmatTiedotDTO,
+    avatarValidator: AvatarValidator,
+    rejectAvatar: (String?, String) -> Nothing
+) {
+    if (!omatTiedotDTO.avatarUpdated) return
+
+    val avatar = omatTiedotDTO.avatar
+    if (avatar == null || avatar.isEmpty) {
+        user.avatar = null
+        return
+    }
+
+    val bytes = avatar.bytes
+    val validationResult = avatarValidator.validate(bytes, avatar.contentType)
+    if (validationResult != AvatarValidationResult.VALID) {
+        rejectAvatar(avatar.originalFilename, "hylättiin, syy: $validationResult")
+    }
+
+    user.avatar = try {
+        val outputStream = ByteArrayOutputStream()
+        Thumbnails.of(ByteArrayInputStream(bytes))
+            .size(256, 256)
+            .outputQuality(0.8)
+            .outputFormat("jpg")
+            .toOutputStream(outputStream)
+        outputStream.toByteArray()
+    } catch (_: UnsupportedFormatException) {
+        rejectAvatar(avatar.originalFilename, "ei ole tuettu")
+    } catch (_: IOException) {
+        rejectAvatar(avatar.originalFilename, "käsittely epäonnistui")
+    } catch (_: OutOfMemoryError) {
+        rejectAvatar(avatar.originalFilename, "käsittely epäonnistui muistin loppumisen vuoksi")
+    }
+}
 
 @Service
 @Transactional
@@ -66,7 +94,8 @@ class UserServiceImpl(
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository,
     private val seurantajaksoRepository: SeurantajaksoRepository,
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+    private val avatarValidator: AvatarValidator
 ) : UserService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -136,28 +165,26 @@ class UserServiceImpl(
         user.email = omatTiedotDTO.email
         user.phoneNumber = omatTiedotDTO.phoneNumber
 
-        try {
-            if (omatTiedotDTO.avatarUpdated) {
-                omatTiedotDTO.avatar?.inputStream?.let {
-                    val outputStream = ByteArrayOutputStream()
-                    Thumbnails.of(it)
-                        .size(256, 256)
-                        .outputQuality(0.8)
-                        .outputFormat("jpg")
-                        .toOutputStream(outputStream)
-                    user.avatar = outputStream.toByteArray()
-                    it.close()
-                } ?: run {
-                    user.avatar = null
-                }
-            }
-        } catch (_: UnsupportedFormatException) {
-            log.debug("Päivitettävä profiilikuva ei ole tuettu")
+        updateAvatar(user, omatTiedotDTO, avatarValidator) { originalFilename, reason ->
+            rejectAvatar(userId, originalFilename, reason)
         }
 
         user = userRepository.save(user)
 
         return UserDTO(user)
+    }
+
+    /**
+     * Logs the reason an uploaded avatar was rejected and throws a [BadRequestAlertException]
+     * with a generic message, avoiding leaking internal validation details to the client.
+     */
+    private fun rejectAvatar(userId: String, originalFilename: String?, reason: String): Nothing {
+        log.warn("Käyttäjä: $userId - Ladattu profiilikuva '$originalFilename' $reason.")
+        throw BadRequestAlertException(
+            "Ladattu profiilikuva ei ole kelvollinen kuvatiedosto.",
+            KAYTTAJA_ENTITY_NAME,
+            "dataillegal.avatar-tiedosto-ei-kelpaa"
+        )
     }
 
     override fun updateEmail(email: String, userId: String) {
