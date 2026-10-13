@@ -3,6 +3,8 @@ package fi.elsapalvelu.elsa.config
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import jakarta.servlet.Filter
 import okhttp3.tls.HeldCertificate
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -12,6 +14,7 @@ import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.security.saml2.core.Saml2X509Credential
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
@@ -30,14 +33,16 @@ import org.springframework.web.filter.ForwardedHeaderFilter
 import java.util.Base64
 
 @ActiveProfiles("dev", "test")
-@SpringBootTest(classes = [ElsaBackendApp::class], properties = [
+@SpringBootTest(classes = [ElsaBackendApp::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = [
     "application.security.saml-scheme=https",
+    "server.forward-headers-strategy=native",
     "spring.datasource.url=jdbc:tc:postgresql:16.9:///elsaBackend?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true",
     "spring.liquibase.change-log=classpath:/config/liquibase/test-master.xml",
     "spring.liquibase.contexts=test"
 ])
 class SamlFilterChainIT {
     @Autowired private lateinit var context: WebApplicationContext
+    @Autowired private lateinit var serverContext: ServletWebServerApplicationContext
     @Autowired @Qualifier("springSecurityFilterChain") private lateinit var securityFilterChain: Filter
     @MockitoBean private lateinit var registrations: RelyingPartyRegistrationRepository
 
@@ -89,6 +94,24 @@ class SamlFilterChainIT {
     }
 
     @Test
+    fun albHeadersUseApiHostForSuomifiSamlRequestThroughTomcat() {
+        val port = requireNotNull(serverContext.webServer).port
+        val request = Request.Builder()
+            .url("http://localhost:$port/saml2/authenticate/suomifi")
+            .header("Host", "api.elsapalvelu.fi")
+            .header("X-Forwarded-Proto", "https")
+            .header("X-Forwarded-Port", "443")
+            .build()
+
+        OkHttpClient.Builder().followRedirects(false).build().newCall(request).execute().use { response ->
+            assertThat(response.code).isEqualTo(200)
+            val xml = assertSamlUrl(requireNotNull(response.body).string(),
+                "https://api.elsapalvelu.fi/login/saml2/sso/suomifi")
+            assertThat(xml).contains("https://api.elsapalvelu.fi/saml/suomifi")
+        }
+    }
+
+    @Test
     fun internalHttpRequestUsesConfiguredHttpsInSamlUrl() {
         val result = mockMvc.perform(get("/saml2/authenticate/haka-tampere"))
             .andExpect(status().isOk)
@@ -109,10 +132,15 @@ class SamlFilterChainIT {
     }
 
     private fun assertSamlUrl(result: MvcResult, expectedUrl: String) {
+        assertSamlUrl(result.response.contentAsString, expectedUrl)
+    }
+
+    private fun assertSamlUrl(html: String, expectedUrl: String): String {
         val encoded = Regex("name=\"SAMLRequest\" type=\"hidden\" value=\"([^\"]+)\"")
-            .find(result.response.contentAsString)?.groupValues?.get(1)
+            .find(html)?.groupValues?.get(1)
         val xml = String(Base64.getDecoder().decode(requireNotNull(encoded)))
         assertThat(xml).contains(expectedUrl)
         assertThat(xml).doesNotContain("httpss")
+        return xml
     }
 }
