@@ -113,10 +113,10 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
                 .with(csrf())
         ).andExpect(status().isCreated)
 
-        val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+        val opintooikeus = requireNotNull(erikoistuvaLaakari.getOpintooikeusKaytossa())
         val kayttajatList = kayttajaRepository.findAll()
         assertThat(kayttajatList).hasSize(databaseSizeBeforeCreate + 1)
-        val testLahikouluttaja = kayttajatList[kayttajatList.size - 1]
+        val testLahikouluttaja = kayttajaRepository.findOneByUserEmail(DEFAULT_EMAIL).orElseThrow()
 
         assertThat(testLahikouluttaja.getNimi()).isEqualTo("$DEFAULT_ETUNIMI $DEFAULT_SUKUNIMI")
         assertThat(testLahikouluttaja.user?.email).isEqualTo(DEFAULT_EMAIL)
@@ -149,9 +149,8 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
                 .with(csrf())
         ).andExpect(status().isCreated)
 
-        val kayttajatList = kayttajaRepository.findAll()
-        assertThat(kayttajatList).hasSize(databaseSizeBeforeCreate + 1)
-        val testLahikouluttaja = kayttajatList[kayttajatList.size - 1]
+        assertThat(kayttajaRepository.findAll()).hasSize(databaseSizeBeforeCreate + 1)
+        val testLahikouluttaja = kayttajaRepository.findOneByUserEmail(DEFAULT_EMAIL).orElseThrow()
 
         assertThat(testLahikouluttaja.getNimi()).isEqualTo("$DEFAULT_ETUNIMI $DEFAULT_SUKUNIMI")
         assertThat(testLahikouluttaja.user?.email).isEqualTo(DEFAULT_EMAIL)
@@ -171,7 +170,7 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
     @Test
     @Transactional
     fun `test that existing kouluttaja with same yliopisto and erikoisala is not added`() {
-        val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+        val opintooikeus = requireNotNull(erikoistuvaLaakari.getOpintooikeusKaytossa())
         initKouluttajaWithYliopistoAndErikoisala(opintooikeus.yliopisto, opintooikeus.erikoisala)
 
         val databaseSizeBeforeCreate = kayttajaRepository.findAll().size
@@ -203,15 +202,18 @@ class ErikoistuvaLaakariMuutToiminnotResourceIT {
                 .with(csrf())
         ).andExpect(status().isOk)
 
-        val opintooikeus = em.findAll(Opintooikeus::class).get(0)
-        val kayttajatList = kayttajaRepository.findAll()
-        assertThat(kayttajatList).hasSize(databaseSizeBeforeCreate)
-        val testLahikouluttaja = kayttajatList[kayttajatList.size - 1]
-        val yliopistotAndErikoisalatList = testLahikouluttaja.yliopistotAndErikoisalat.toList()
-
-        assertThat(yliopistotAndErikoisalatList).hasSize(2)
-        assertThat(yliopistotAndErikoisalatList[1].yliopisto).isEqualTo(opintooikeus.yliopisto)
-        assertThat(yliopistotAndErikoisalatList[1].erikoisala).isEqualTo(opintooikeus.erikoisala)
+        val opintooikeus = requireNotNull(erikoistuvaLaakari.getOpintooikeusKaytossa())
+        val expectedYliopistoAndErikoisala = opintooikeus.yliopisto?.id to opintooikeus.erikoisala?.id
+        assertThat(kayttajaRepository.findAll()).hasSize(databaseSizeBeforeCreate)
+        em.flush()
+        em.clear()
+        val testLahikouluttaja = kayttajaRepository.findOneByUserEmail(DEFAULT_EMAIL).orElseThrow()
+        assertThat(testLahikouluttaja.yliopistotAndErikoisalat.map {
+            it.yliopisto?.id to it.erikoisala?.id
+        }).containsExactlyInAnyOrder(
+            existingYliopisto.id to existingErikoisala.id,
+            expectedYliopistoAndErikoisala
+        )
     }
 
     @Test
