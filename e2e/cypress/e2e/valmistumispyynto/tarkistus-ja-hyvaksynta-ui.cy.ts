@@ -45,7 +45,8 @@ type Graduation = {
   opintooikeusId: number
   erikoistujanNimi: string
   erikoistujanKuittausaika: string
-  tila: string
+  tila: string | null
+  arkistoitava?: boolean | null
   virkailijanKuittausaika: string | null
   virkailijanSaate: string | null
   vastuuhenkiloHyvaksyjaKuittausaika: string | null
@@ -67,7 +68,7 @@ const summaryBody = () =>
     .should('be.visible')
     .its('0.contentDocument.body')
     .should('not.be.empty')
-    .then((body) => cy.wrap(body as HTMLElement))
+    .then((body: HTMLBodyElement) => cy.wrap(Cypress.$(body)))
 const finnishDate = (date: string) => {
   const [year, month, day] = date.split('-')
   return `${Number(day)}.${Number(month)}.${year}`
@@ -89,6 +90,7 @@ for (const yek of [false, true]) {
       : 'Erikoistumiskoulutuksen valmistumisen yhteenveto'
     const checkFields = yek ? CHECKS : [...CHECKS, 'teoriakoulutusTarkistettu']
     let original: Graduation
+    let traineeCookies: Cypress.Cookie[]
 
     const loginClerk = () =>
       cy
@@ -106,9 +108,9 @@ for (const yek of [false, true]) {
         erikoistujanKuittausaika: original.erikoistujanKuittausaika
       })
     }
-    const pendingApproval = (saved: Graduation) => {
+    // PUT review responses contain persisted fields; role-specific GETs compute tila.
+    const reviewSaved = (saved: Graduation) => {
       sameRequest(saved)
-      expect(saved.tila).to.eq('ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA')
       expect(saved.virkailijanKuittausaika).to.match(DATE)
       expect(saved).to.include({
         virkailijanSaate: COVER_NOTE,
@@ -117,6 +119,12 @@ for (const yek of [false, true]) {
         liitteetAsiakirjaId: null
       })
     }
+    const pendingApproval = (saved: Graduation) => {
+      reviewSaved(saved)
+      expect(saved.tila).to.eq('ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA')
+    }
+    // tila and archiving eligibility are computed for the actor reading the record.
+    const persistedRequest = ({ tila, arkistoitava, ...persisted }: Graduation) => persisted
     const openActor = (path: string, api: string, alias: string) => {
       cy.intercept({ method: 'GET', url: `**${api}/${original.id}`, times: 1 }).as(alias)
       cy.visit(path)
@@ -126,18 +134,31 @@ for (const yek of [false, true]) {
       })
     }
     const traineeView = (expected: Graduation) => {
-      cy.loginAsErikoistuva()
-      // The cached resident session selects EL. Choose the same YEK study right explicitly.
-      if (yek) {
-        cy.apiRequest({
-          method: 'POST',
-          url: '/api/vaihda-rooli',
-          form: true,
-          body: { rooli: 'ROLE_YEK_KOULUTETTAVA' }
-        })
-          .its('status')
-          .should('eq', 204)
-      }
+      // YEK setup logs out of the original cached EL session. Restore the live
+      // trainee session captured after setup instead of reusing that invalid cache.
+      cy.clearAllCookies()
+      cy.clearAllLocalStorage()
+      cy.clearAllSessionStorage()
+      cy.then(() => {
+        expect(traineeCookies, 'authenticated trainee cookies captured during setup').not.to.be
+          .empty
+        for (const cookie of traineeCookies) {
+          cy.setCookie(cookie.name, cookie.value, {
+            domain: cookie.domain,
+            path: cookie.path,
+            secure: cookie.secure,
+            httpOnly: cookie.httpOnly,
+            sameSite: cookie.sameSite,
+            expiry: cookie.expiry
+          })
+        }
+      })
+      cy.apiRequest({ method: 'GET', url: '/api/kayttaja' }).then(({ status, body }) => {
+        expect(status).to.eq(200)
+        expect(body.activeAuthority).to.eq(
+          yek ? 'ROLE_YEK_KOULUTETTAVA' : 'ROLE_ERIKOISTUVA_LAAKARI'
+        )
+      })
       cy.intercept({ method: 'GET', url: `**${traineeApi}`, times: 1 }).as('traineeResult')
       cy.visit(traineePage)
       cy.wait('@traineeResult').then(({ response }) => {
@@ -190,6 +211,9 @@ for (const yek of [false, true]) {
         original = body
         expect(original.virkailijanKuittausaika).to.eq(null)
         expect(original.vastuuhenkiloHyvaksyjaKuittausaika).to.eq(null)
+      })
+      cy.getCookies().then((cookies) => {
+        traineeCookies = cookies
       })
       if (!yek) {
         loginApprover()
@@ -248,7 +272,9 @@ for (const yek of [false, true]) {
         sameRequest(before.valmistumispyynto)
         expect(before.valmistumispyynto.tila).to.eq('ODOTTAA_VIRKAILIJAN_TARKASTUSTA')
       })
-      cy.get(MAIN).contains('h1', 'Valmistumispyynnön tarkistus').should('be.visible')
+      cy.get(MAIN)
+        .contains('h1', yek ? /^YEK valmistumispyyntö$/ : /^Valmistumispyyntö$/)
+        .should('be.visible')
       reviewButton().click()
       cy.get('body').find(`${MODAL}:visible`).should('have.length', 0)
       cy.get(MAIN)
@@ -263,10 +289,8 @@ for (const yek of [false, true]) {
         .each((checkbox) => cy.wrap(checkbox).check({ force: true }))
       field('Kommentit muille virkailijoille').find('textarea').type(NOTES)
       if (!yek) {
-        summaryBody()
-          .should('have.attr', 'contenteditable', 'true')
-          .type(SUMMARY.join('{enter}'))
-          .blur()
+        summaryBody().should('have.attr', 'contenteditable', 'true')
+        summaryBody().type(SUMMARY.join('{enter}')).blur()
       }
       reviewButton().click()
       cy.get(MODAL).should('be.visible').and('contain.text', 'Vahvista lomakkeen lähetys')
@@ -304,15 +328,19 @@ for (const yek of [false, true]) {
           expectSummary(sentFields?.virkailijanYhteenveto)
           expectSummary(saved.virkailijanYhteenveto)
         }
-        pendingApproval(saved.valmistumispyynto)
+        reviewSaved(saved.valmistumispyynto)
       })
       cy.location('pathname').should('eq', '/valmistumispyynnot')
       cy.get('@reviewPut.all').should('have.length', 1)
       cy.then(() => openActor(reviewPage(original.id), REVIEW_API, 'reviewReopened')).then(
         (body) => {
-          expect(body.valmistumispyynto).to.deep.eq(saved.valmistumispyynto)
+          pendingApproval(body.valmistumispyynto)
+          expect(persistedRequest(body.valmistumispyynto)).to.deep.eq(
+            persistedRequest(saved.valmistumispyynto)
+          )
           for (const key of [...checkFields, 'kommentitVirkailijoille', 'virkailijanYhteenveto'])
             expect(body[key], key).to.deep.eq(saved[key])
+          saved = body
         }
       )
       reviewButton().should('not.exist')
@@ -354,7 +382,7 @@ for (const yek of [false, true]) {
         })
       ).then(({ status, body }) => {
         expect(status).to.eq(200)
-        pendingApproval(body.valmistumispyynto)
+        reviewSaved(body.valmistumispyynto)
         original = body.valmistumispyynto
       })
       loginApprover()
@@ -363,9 +391,11 @@ for (const yek of [false, true]) {
       })
       cy.then(() => {
         cy.intercept('PUT', `**${APPROVAL_API}/${original.id}`).as('approvalPut')
-        openActor(approvalPage(original.id), APPROVAL_API, 'approvalBefore').then((body) =>
+        openActor(approvalPage(original.id), APPROVAL_API, 'approvalBefore').then((body) => {
           pendingApproval(body.valmistumispyynto)
-        )
+          expect(persistedRequest(body.valmistumispyynto)).to.deep.eq(persistedRequest(original))
+          original = body.valmistumispyynto
+        })
       })
       cy.get(MAIN).contains(COVER_NOTE).should('be.visible')
       if (!yek) {
@@ -406,7 +436,7 @@ for (const yek of [false, true]) {
       cy.then(() => openActor(approvalPage(original.id), APPROVAL_API, 'approvalReopened')).then(
         (body) => {
           approved(body.valmistumispyynto)
-          expect(body.valmistumispyynto).to.deep.eq(saved)
+          expect(persistedRequest(body.valmistumispyynto)).to.deep.eq(persistedRequest(saved))
         }
       )
       cy.get(MAIN)
