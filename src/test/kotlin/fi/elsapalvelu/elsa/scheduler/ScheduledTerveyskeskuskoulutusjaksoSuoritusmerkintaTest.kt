@@ -120,7 +120,7 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkintaTest {
     fun `completed study right is excluded on next run so notification is not repeated`(academicCredit: Boolean) {
         val right = right(1L)
         // Model the candidate service's contract: only study rights with the completion flag false are returned.
-        whenever(studyRights.findAllByTerveyskoulutusjaksoSuorittamatta()).thenAnswer {
+        whenever(studyRights.findAllByTerveyskoulutusjaksoSuorittamatta()).thenAnswer { _ ->
             listOf(right).filterNot { it.terveyskoulutusjaksoSuoritettu }
         }
         whenever(credits.getTerveyskoulutusjaksoSuoritettu(1L, 101L)).thenReturn(academicCredit)
