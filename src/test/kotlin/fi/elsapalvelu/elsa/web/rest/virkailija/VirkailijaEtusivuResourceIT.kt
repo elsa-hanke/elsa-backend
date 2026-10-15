@@ -177,9 +177,7 @@ class VirkailijaEtusivuResourceIT {
 
         erikoistuvaLaakari2.getOpintooikeusKaytossa()?.yliopisto = anotherYliopisto
 
-        tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari1.kayttaja?.user).apply {
-            opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa()
-        }
+        tyoskentelyjakso = createTyoskentelyjaksoForFirstErikoistuva()
         em.persist(tyoskentelyjakso)
         em.persist(TeoriakoulutusHelper.createEntity(em, erikoistuvaLaakari1.kayttaja?.user, LocalDate.ofEpochDay(0), LocalDate.ofEpochDay(5), 37.5))
         em.persist(TeoriakoulutusHelper.createEntity(em, erikoistuvaLaakari1.kayttaja?.user, LocalDate.ofEpochDay(5), LocalDate.ofEpochDay(10), 20.0))
@@ -397,7 +395,7 @@ class VirkailijaEtusivuResourceIT {
     fun testImpersonation() {
         initTest()
 
-        tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari1.kayttaja?.user)
+        tyoskentelyjakso = createTyoskentelyjaksoForFirstErikoistuva()
         em.persist(tyoskentelyjakso)
 
         restEtusivuMockMvc.perform(
@@ -560,11 +558,7 @@ class VirkailijaEtusivuResourceIT {
             opintooikeusRepository.save(it)
         }
 
-        tyoskentelyjakso =
-            TyoskentelyjaksoHelper.createEntity(
-                em,
-                erikoistuvaLaakari1.kayttaja?.user
-            )
+        tyoskentelyjakso = createTyoskentelyjaksoForFirstErikoistuva()
         em.persist(tyoskentelyjakso)
 
         restEtusivuMockMvc.perform(
@@ -691,6 +685,11 @@ class VirkailijaEtusivuResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").value(IsCollectionWithSize.hasSize<Int>(0)))
     }
+
+    private fun createTyoskentelyjaksoForFirstErikoistuva(): Tyoskentelyjakso =
+        TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari1.kayttaja?.user).apply {
+            opintooikeus = erikoistuvaLaakari1.getOpintooikeusKaytossa()
+        }
 
     fun initTest() {
         val user = KayttajaResourceWithMockUserIT.createEntity(
