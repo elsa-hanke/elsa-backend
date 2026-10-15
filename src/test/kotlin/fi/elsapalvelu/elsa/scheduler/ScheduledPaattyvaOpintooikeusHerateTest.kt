@@ -148,7 +148,7 @@ class ScheduledPaattyvaOpintooikeusHerateTest {
         whenever(reminders.save(any<OpintooikeusHerate>())).thenAnswer { invocation ->
             val reminder = invocation.getArgument<OpintooikeusHerate>(0)
             if (reminder.erikoistuvaLaakari === failed.erikoistuvaLaakari) {
-                throw IllegalStateException("Persistence failed")
+                error("Persistence failed")
             }
             reminder
         }
