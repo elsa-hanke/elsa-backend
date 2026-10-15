@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.1...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...HEAD)
 
 - Bump proxy-addr from 2.0.7 to 2.0.8 in /frontend [`#775`](https://github.com/elsa-hanke/elsa-backend/pull/775)(9 October 2026)
 - Bump shell-quote from 1.10.0 to 1.12.0 in /frontend [`#773`](https://github.com/elsa-hanke/elsa-backend/pull/773)(9 October 2026)
@@ -27,6 +27,10 @@
 - e2e testi: seurantajakson kouluttajan arviointi [`#745`](https://github.com/elsa-hanke/elsa-backend/pull/745)(29 September 2026)
 - e2e testi: koejakson virkailijan tarkistus [`#743`](https://github.com/elsa-hanke/elsa-backend/pull/743)(28 September 2026)
 - e2e testi: kehittämistoimenpiteiden hyvaksyntä [`#740`](https://github.com/elsa-hanke/elsa-backend/pull/740)(28 September 2026)
+
+## [v2.4.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.1...v2.4.2) - 15 October 2026
+
+- fix: make feedback recipient configurable via environment variable [`#779`](https://github.com/elsa-hanke/elsa-backend/pull/779)(15 October 2026)
 
 ## [v2.4.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...v2.4.1) - 7 October 2026
 
