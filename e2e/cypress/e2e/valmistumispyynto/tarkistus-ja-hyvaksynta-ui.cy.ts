@@ -363,7 +363,8 @@ for (const yek of [false, true]) {
         .should('be.visible')
     })
 
-    it('vastuuhenkilö hyväksyy vahvistuksesta ja tallennettu päätös sekä PDF:t näkyvät myös koulutettavalle', () => {
+    const approveThroughUi = (failure?: 'network' | 'http500') => {
+      const submittedBodies: unknown[] = []
       let saved: Graduation
       let expectedContacts: { sahkoposti: string; puhelinnumero: string | null }
       // Clerk review is setup in this actor-specific test; the preceding test protects its UI.
@@ -390,7 +391,22 @@ for (const yek of [false, true]) {
         expectedContacts = { sahkoposti: body.email, puhelinnumero: body.phoneNumber }
       })
       cy.then(() => {
-        cy.intercept('PUT', `**${APPROVAL_API}/${original.id}`).as('approvalPut')
+        cy.intercept('PUT', `**${APPROVAL_API}/${original.id}`, (request) => {
+          submittedBodies.push(request.body)
+          if (failure && submittedBodies.length === 1) {
+            // Fail before the request reaches the server. The retry must use the real backend.
+            request.alias = 'failedApproval'
+            if (failure === 'network') request.destroy()
+            else
+              request.reply({
+                statusCode: 500,
+                headers: { 'content-type': 'application/problem+json' },
+                body: { status: 500, title: 'Internal Server Error' }
+              })
+          } else {
+            request.alias = 'successfulApproval'
+          }
+        }).as('approvalPut')
         openActor(approvalPage(original.id), APPROVAL_API, 'approvalBefore').then((body) => {
           pendingApproval(body.valmistumispyynto)
           expect(persistedRequest(body.valmistumispyynto)).to.deep.eq(persistedRequest(original))
@@ -423,16 +439,54 @@ for (const yek of [false, true]) {
         ({ body }) => expect(body.valmistumispyynto).to.deep.eq(original)
       )
       if (!yek) field('Matkapuhelinnumero').find('input').should('have.value', '+358501234567')
+      if (failure) {
+        button(approveLabel).click()
+        button(approveLabel, MODAL).click()
+        cy.wait('@failedApproval').then(({ request, response, error }) => {
+          expect(request.body).to.deep.eq({ id: original.id, ...expectedContacts })
+          if (failure === 'network') expect(error, 'network failure without HTTP response').to.exist
+          else expect(response?.statusCode).to.eq(500)
+        })
+        cy.contains('.toast-body', 'Valmistumispyynnön hyväksynnän lähetys epäonnistui')
+          .should('be.visible')
+          .closest('.toast')
+          .find('button.close')
+          .click()
+        cy.then(() => cy.location('pathname').should('eq', approvalPage(original.id)))
+        cy.get('body').find(`${MODAL}:visible`).should('have.length', 0)
+        button(approveLabel).should('be.visible').and('not.be.disabled')
+        cy.get(MAIN).contains(COVER_NOTE).should('be.visible')
+        if (!yek) {
+          field('Sähköpostiosoite').find('input').should('have.value', VASTUUHENKILO_EMAIL)
+          field('Matkapuhelinnumero').find('input').should('have.value', '+358501234567')
+        }
+        // A fresh read must still show the pending request and no generated approval documents.
+        cy.then(() => cy.apiRequest({ method: 'GET', url: `${APPROVAL_API}/${original.id}` })).then(
+          ({ status, body }) => {
+            expect(status).to.eq(200)
+            pendingApproval(body.valmistumispyynto)
+            expect(body.valmistumispyynto).to.deep.eq(original)
+            expect(submittedBodies).to.have.length(1)
+          }
+        )
+        cy.apiRequest({ method: 'GET', url: '/api/kayttaja' })
+          .its('body.activeAuthority')
+          .should('eq', 'ROLE_VASTUUHENKILO')
+      }
       button(approveLabel).click()
       button(approveLabel, MODAL).click()
-      cy.wait('@approvalPut', { responseTimeout: 120000 }).then(({ request, response }) => {
+      cy.wait('@successfulApproval', { responseTimeout: 120000 }).then(({ request, response }) => {
         expect(request.body).to.deep.eq({ id: original.id, ...expectedContacts })
         expect(response?.statusCode).to.eq(200)
         saved = response?.body.valmistumispyynto
         approved(saved)
       })
       cy.location('pathname').should('eq', '/valmistumispyynnot')
-      cy.get('@approvalPut.all').should('have.length', 1)
+      cy.get('@approvalPut.all').should('have.length', failure ? 2 : 1)
+      cy.then(() => {
+        const expected = { id: original.id, ...expectedContacts }
+        expect(submittedBodies).to.deep.eq(failure ? [expected, expected] : [expected])
+      })
       cy.then(() => openActor(approvalPage(original.id), APPROVAL_API, 'approvalReopened')).then(
         (body) => {
           approved(body.valmistumispyynto)
@@ -496,6 +550,18 @@ for (const yek of [false, true]) {
           })
         })
       }
+    }
+
+    it('vastuuhenkilö hyväksyy vahvistuksesta ja tallennettu päätös sekä PDF:t näkyvät myös koulutettavalle', () => {
+      approveThroughUi()
     })
+
+    for (const failure of ['network', 'http500'] as const) {
+      it(`${
+        failure === 'network' ? 'verkkovirhe' : 'HTTP 500'
+      } säilyttää hyväksyntälomakkeen ja sallii yhden onnistuneen uudelleenyrityksen`, () => {
+        approveThroughUi(failure)
+      })
+    }
   })
 }
