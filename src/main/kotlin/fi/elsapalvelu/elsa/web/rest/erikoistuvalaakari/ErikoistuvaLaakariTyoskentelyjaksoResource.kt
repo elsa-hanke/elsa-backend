@@ -71,7 +71,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     @PostMapping("/tyoskentelyjaksot")
     fun createTyoskentelyjakso(
         @Valid @RequestParam tyoskentelyjaksoJson: String,
-        @Valid @RequestParam files: List<MultipartFile>?,
+        @RequestParam files: List<MultipartFile>?,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -100,7 +100,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     @PutMapping("/tyoskentelyjaksot")
     fun updateTyoskentelyjakso(
         @Valid @RequestParam tyoskentelyjaksoJson: String,
-        @Valid @RequestParam files: List<MultipartFile>?,
+        @RequestParam files: List<MultipartFile>?,
         @RequestParam deletedAsiakirjaIdsJson: String?,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
@@ -228,7 +228,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     @PutMapping("/tyoskentelyjaksot/{id}/asiakirjat")
     fun updateTyoskentelyjaksoAsiakirjat(
         @PathVariable id: Long,
-        @Valid @RequestParam addedFiles: List<MultipartFile>?,
+        @RequestParam addedFiles: List<MultipartFile>?,
         @RequestParam deletedFiles: List<Int>?,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
