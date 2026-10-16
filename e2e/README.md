@@ -29,6 +29,22 @@ just e2e        # headless run
 just e2e-open   # interactive runner
 ```
 
+## Suomi.fi logout regression
+
+`cypress/e2e/auth/suomifi-logout.cy.ts` logs in without `cy.session()`, uses the
+real navbar logout, waits for the SAML logout callback, and checks that the next
+login requires a new HETU. It does not clear cookies or storage between logins.
+The test also verifies that the ELSA session is no longer authenticated.
+
+Run against the isolated E2E stack with Suomi.fi test-IdP credentials configured:
+
+```bash
+cd e2e
+yarn cy:run --spec cypress/e2e/auth/suomifi-logout.cy.ts
+```
+
+The setup cleans the E2E user through database tasks; use the E2E database.
+
 ## Parallel GitHub Actions runs
 
 `.github/workflows/e2e.yml` runs three shards on separate runners. Each shard

@@ -83,4 +83,131 @@ describe('Liitetiedoston virheen syy', () => {
     expect(wrapper.emitted('selectedFiles')).toHaveLength(1)
     wrapper.destroy()
   })
+
+  it.each(['a', 'ä', '漢', '😀'])(
+    'accepts a 255-unit filename containing %s',
+    async (character) => {
+      const filename =
+        character.repeat(Math.floor(251 / character.length)) +
+        'a'.repeat(251 % character.length) +
+        '.pdf'
+      expect(filename.length).toBe(255)
+      const wrapper = mount(AsiakirjatUpload, {
+        localVue,
+        i18n,
+        propsData: { buttonText: 'Lisää liitetiedosto' },
+        stubs: { 'font-awesome-icon': true }
+      })
+      const input = wrapper.find('input[type="file"]')
+      const file = new File([new Uint8Array(11 * 1024)], filename, { type: 'application/pdf' })
+      Object.defineProperty(input.element, 'files', { configurable: true, value: [file] })
+      await input.trigger('change')
+      expect(wrapper.emitted('selectedFiles')?.[0]).toEqual([[file]])
+      expect(wrapper.find('.alert-danger').exists()).toBe(false)
+      wrapper.destroy()
+    }
+  )
+
+  it.each(['ä'.repeat(252) + '.pdf', '   '])(
+    'rejects an invalid filename before uploading: %s',
+    async (filename) => {
+      const wrapper = mount(AsiakirjatUpload, {
+        localVue,
+        i18n,
+        propsData: { buttonText: 'Lisää liitetiedosto' },
+        stubs: { 'font-awesome-icon': true }
+      })
+      const input = wrapper.find('input[type="file"]')
+      Object.defineProperty(input.element, 'files', {
+        configurable: true,
+        value: [new File([new Uint8Array(11 * 1024)], filename, { type: 'application/pdf' })]
+      })
+      await input.trigger('change')
+      expect(wrapper.emitted('selectedFiles')).toBeUndefined()
+      expect(wrapper.find('.alert-danger').text()).toContain('255 merkkiä')
+
+      // A corrected selection must clear the filename error.
+      Object.defineProperty(input.element, 'files', {
+        configurable: true,
+        value: [new File([new Uint8Array(11 * 1024)], 'corrected.pdf', { type: 'application/pdf' })]
+      })
+      await input.trigger('change')
+      expect(wrapper.emitted('selectedFiles')).toHaveLength(1)
+      expect(wrapper.find('.alert-danger').exists()).toBe(false)
+      wrapper.destroy()
+    }
+  )
+
+  it.each([
+    [0, 90, true],
+    [0, 91, false],
+    [89, 1, true],
+    [90, 1, false],
+    [80, 11, false]
+  ])(
+    'checks %i pending files plus %i selected files',
+    async (pendingFilesCount, selectedCount, accepted) => {
+      const wrapper = mount(AsiakirjatUpload, {
+        localVue,
+        i18n,
+        propsData: { buttonText: 'Lisää liitetiedosto', pendingFilesCount },
+        stubs: { 'font-awesome-icon': true }
+      })
+      const input = wrapper.find('input[type="file"]')
+      const files = Array.from(
+        { length: selectedCount },
+        (_, index) => new File([new Uint8Array(100)], `image-${index}.png`, { type: 'image/png' })
+      )
+      Object.defineProperty(input.element, 'files', { configurable: true, value: files })
+      await input.trigger('change')
+      if (accepted) {
+        expect(wrapper.emitted('selectedFiles')?.[0]).toEqual([files])
+        expect(wrapper.find('.alert-danger').exists()).toBe(false)
+      } else {
+        expect(wrapper.emitted('selectedFiles')).toBeUndefined()
+        expect(wrapper.find('.alert-danger').text()).toContain('90 uutta liitetiedostoa')
+        // Removing pending files allows another selection and clears the error.
+        await wrapper.setProps({ pendingFilesCount: 0 })
+        Object.defineProperty(input.element, 'files', { configurable: true, value: [files[0]] })
+        await input.trigger('change')
+        expect(wrapper.emitted('selectedFiles')).toHaveLength(1)
+        expect(wrapper.find('.alert-danger').exists()).toBe(false)
+      }
+      wrapper.destroy()
+    }
+  )
+
+  it('counts previously selected files and deletions when one file is selected at a time', async () => {
+    const message = i18n.t('tyoskentelyjakson-liitteiden-osien-enimmaismaara-ylitetty') as string
+    const wrapper = mount(AsiakirjatUpload, {
+      localVue,
+      i18n,
+      propsData: {
+        buttonText: 'Lisää liitetiedosto',
+        allowMultiplesFiles: false,
+        maxPartsPerRequest: 100,
+        maxPartsExceededMessage: message,
+        pendingFilesCount: 98
+      },
+      stubs: { 'font-awesome-icon': true }
+    })
+    const input = wrapper.find('input[type="file"]')
+    const choose = async (name: string) => {
+      Object.defineProperty(input.element, 'files', {
+        configurable: true,
+        value: [new File([new Uint8Array(100)], name, { type: 'image/png' })]
+      })
+      await input.trigger('change')
+    }
+    await choose('first.png')
+    expect(wrapper.emitted('selectedFiles')).toHaveLength(1)
+    await wrapper.setProps({ pendingFilesCount: 99 })
+    await choose('second.png')
+    expect(wrapper.emitted('selectedFiles')).toHaveLength(2)
+    await wrapper.setProps({ pendingFilesCount: 100 })
+    await choose('third.png')
+    expect(wrapper.emitted('selectedFiles')).toHaveLength(2)
+    expect(wrapper.find('.alert-danger').text()).toContain(message)
+    wrapper.destroy()
+  })
 })

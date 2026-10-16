@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.config
 
-import com.fasterxml.jackson.datatype.hibernate5.jakarta.Hibernate5JakartaModule
+import com.fasterxml.jackson.datatype.hibernate7.Hibernate7Module
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import org.springframework.context.annotation.Bean
@@ -27,5 +27,5 @@ class JacksonConfiguration {
      * Support for Hibernate types in Jackson.
      */
     @Bean
-    fun hibernate5JakartaModule() = Hibernate5JakartaModule()
+    fun hibernate7Module() = Hibernate7Module()
 }

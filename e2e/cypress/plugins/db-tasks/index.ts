@@ -1,3 +1,4 @@
+import { terveyskeskusTasks } from './terveyskeskus'
 import { kouluttajaTasks } from './kouluttaja'
 import { erikoistuvaLaakariTasks } from './erikoistuva'
 import { tyoskentelyjaksotTasks } from './tyoskentelyjakso'
@@ -18,6 +19,7 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
     ...kouluttajaTasks,
     ...erikoistuvaLaakariTasks,
     ...tyoskentelyjaksotTasks,
+    ...terveyskeskusTasks,
     ...pingTask,
     ...koejaksoTasks,
     ...vastuuhenkiloTasks,

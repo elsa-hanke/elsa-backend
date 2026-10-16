@@ -200,6 +200,13 @@ async function deletePaivakirjamerkintaRows(client: Client, el_id: number): Prom
 // ─── Opintooikeus cleanup ─────────────────────────────────────────────────────
 
 async function deleteOpintooikeusRows(client: Client, el_id: number): Promise<void> {
+  // Approval records can exist for either EL or YEK rights, including fixtures
+  // left by another spec. Remove them before deleting the parent study rights.
+  await client.query(
+    `DELETE FROM terveyskeskuskoulutusjakson_hyvaksynta
+     WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)`,
+    [el_id]
+  )
   await client.query(
     `DELETE FROM asiakirja
      WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)`,

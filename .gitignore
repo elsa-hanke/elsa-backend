@@ -6,7 +6,7 @@
 infra/.env.e2e
 
 # Generated YEK document downloads from Cypress tests
-/e2e/cypress/downloads/yek-*.pdf
+/e2e/cypress/downloads/*
 
 ######################
 # Node
@@ -84,6 +84,7 @@ out/
 # Gradle
 ######################
 .gradle/
+/.kotlin/
 /build/
 
 ######################

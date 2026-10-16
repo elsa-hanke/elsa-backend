@@ -40,12 +40,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -111,8 +111,9 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
         val tyoskentelyjaksoDTO = tyoskentelyjaksoMapper.toDto(tyoskentelyjakso)
         val tyoskentelyjaksoJson = objectMapper.writeValueAsString(tyoskentelyjaksoDTO)
 
-        restTyoskentelyjaksoMockMvc.perform(multipart("/api/yek-koulutettava/tyoskentelyjaksot").file(mockMultipartFile1).file(mockMultipartFile2)
-                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson).with(csrf())).andExpect(status().isCreated)
+        val response = restTyoskentelyjaksoMockMvc.perform(multipart("/api/yek-koulutettava/tyoskentelyjaksot").file(mockMultipartFile1).file(mockMultipartFile2)
+                .param("tyoskentelyjaksoJson", tyoskentelyjaksoJson).with(csrf())).andExpect(status().isCreated).andReturn().response
+        val createdId = requireNotNull(objectMapper.readTree(response.contentAsString).get("id")).asLong()
 
         val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(user.id!!)
         requireNotNull(kirjautunutErikoistuvaLaakari)
@@ -120,7 +121,7 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
         val defaultTyoskentelypaikka = TyoskentelypaikkaHelper.createEntity(em)
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeCreate + 1)
-        val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
+        val testTyoskentelyjakso = tyoskentelyjaksoRepository.findById(createdId).orElseThrow()
         assertThat(testTyoskentelyjakso.opintooikeus?.id).isEqualTo(kirjautunutErikoistuvaLaakari.getOpintooikeusKaytossa()?.id)
         assertThat(testTyoskentelyjakso.tyoskentelypaikka?.nimi).isEqualTo(defaultTyoskentelypaikka.nimi)
         assertThat(testTyoskentelyjakso.tyoskentelypaikka?.tyyppi).isEqualTo(defaultTyoskentelypaikka.tyyppi)
@@ -259,7 +260,7 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeUpdate)
-        val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
+        val testTyoskentelyjakso = tyoskentelyjaksoRepository.findById(id).orElseThrow()
 
         assertThat(testTyoskentelyjakso.tyoskentelypaikka?.nimi).isEqualTo(updatedTyoskentelypaikka.nimi)
         assertThat(testTyoskentelyjakso.tyoskentelypaikka?.tyyppi).isEqualTo(updatedTyoskentelypaikka.tyyppi)
@@ -280,8 +281,7 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
 
         assertThat(tyoskentelyjakso.suoritusarvioinnit).isEmpty()
 
-        tyoskentelyjakso.suoritusarvioinnit.add(SuoritusarviointiHelper.createEntity(em, user, YekKoulutettavaTyoskentelyjaksoHelper.UPDATED_ALKAMISPAIVA.plusDays(1)))
-        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        persistSuoritusarviointi(YekKoulutettavaTyoskentelyjaksoHelper.UPDATED_ALKAMISPAIVA.plusDays(1))
 
         val tyoskentelyjaksoTableSizeBeforeUpdate = tyoskentelyjaksoRepository.findAll().size
         val id = tyoskentelyjakso.id
@@ -313,7 +313,7 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
 
         val tyoskentelyjaksoList = tyoskentelyjaksoRepository.findAll()
         assertThat(tyoskentelyjaksoList).hasSize(tyoskentelyjaksoTableSizeBeforeUpdate)
-        val testTyoskentelyjakso = tyoskentelyjaksoList[tyoskentelyjaksoList.size - 1]
+        val testTyoskentelyjakso = tyoskentelyjaksoRepository.findById(id).orElseThrow()
 
         assertThat(testTyoskentelyjakso.tyoskentelypaikka?.nimi).isEqualTo(updatedTyoskentelypaikka.nimi)
         assertThat(testTyoskentelyjakso.tyoskentelypaikka?.tyyppi).isEqualTo(updatedTyoskentelypaikka.tyyppi)
@@ -334,8 +334,7 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
 
         assertThat(tyoskentelyjakso.suoritusarvioinnit).isEmpty()
 
-        tyoskentelyjakso.suoritusarvioinnit.add(SuoritusarviointiHelper.createEntity(em, user, LocalDate.of(2020, 1, 20)))
-        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        persistSuoritusarviointi(LocalDate.of(2020, 1, 20))
 
         val id = tyoskentelyjakso.id
         assertNotNull(id)
@@ -359,8 +358,7 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
         assertThat(tyoskentelyjakso.suoritusarvioinnit).isEmpty()
         val suoritusarviointiTapahtumanAjankohta = LocalDate.of(2020, 1, 20)
 
-        tyoskentelyjakso.suoritusarvioinnit.add(SuoritusarviointiHelper.createEntity(em, user, suoritusarviointiTapahtumanAjankohta))
-        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        persistSuoritusarviointi(suoritusarviointiTapahtumanAjankohta)
 
         val id = tyoskentelyjakso.id
         assertNotNull(id)
@@ -486,7 +484,7 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
         em.flush()
         YekKoulutettavaTyoskentelyjaksoHelper.createEntity(em, toinenUser)
         TestSecurityContextHolder.getContext().authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(toinenUser.id, mapOf<String, List<Any>>()),
+            testSamlPrincipal(toinenUser.id, mapOf<String, List<Any>>()),
             "test",
             listOf(SimpleGrantedAuthority(YEK_KOULUTETTAVA))
         )
@@ -753,13 +751,23 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
         assertEquals(AsiakirjaHelper.ASIAKIRJA_PNG_TYYPPI, erikoistuvaLaakari?.laillistamispaivanLiitetiedostonTyyppi)
     }
 
+    private fun persistSuoritusarviointi(tapahtumanAjankohta: LocalDate) {
+        tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
+        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em, user, tapahtumanAjankohta)
+        suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
+        suoritusarviointiRepository.saveAndFlush(suoritusarviointi)
+        em.clear()
+        val saved = tyoskentelyjaksoRepository.findById(requireNotNull(tyoskentelyjakso.id)).orElseThrow()
+        assertThat(saved.suoritusarvioinnit.map { it.id }).contains(suoritusarviointi.id)
+    }
+
     fun initTest(userId: String? = null, kaytannonKoulutus: KaytannonKoulutusTyyppi? = YekKoulutettavaTyoskentelyjaksoHelper.DEFAULT_KAYTANNON_KOULUTUS) {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
         val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(YEK_KOULUTETTAVA))
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(userId ?: user.id, userDetails), "test", authorities)
+        val authentication = Saml2Authentication(testSamlPrincipal(userId ?: user.id, userDetails), "test", authorities)
         TestSecurityContextHolder.getContext().authentication = authentication
         tyoskentelyjakso = YekKoulutettavaTyoskentelyjaksoHelper.createEntity(em, user, kaytannonKoulutus = kaytannonKoulutus)
     }

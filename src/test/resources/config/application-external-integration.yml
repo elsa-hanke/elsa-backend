@@ -1,3 +1,12 @@
+# External tests exercise remote clients and use repository mocks. They do not
+# need a local database or Docker in CodeBuild.
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
+      - org.springframework.boot.liquibase.autoconfigure.LiquibaseAutoConfiguration
+
 application:
   arkistointi:
     tre:

@@ -796,7 +796,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT: ResourceIntegrationTestBase(
     fun initTest(userId: String? = null, kaytannonKoulutus: KaytannonKoulutusTyyppi? = DEFAULT_KAYTANNON_KOULUTUS) {
         user = KayttajaResourceWithMockUserIT.createEntity()
         persistAndFlush(user)
-        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(userId ?: user.id, mapOf<String, List<Any>>()),
+        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(testSamlPrincipal(userId ?: user.id, mapOf<String, List<Any>>()),
             "test", listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI)))
         tyoskentelyjakso = ErikoistuvaLaakariTyoskentelyjaksoHelper.createEntity(em, user, kaytannonKoulutus = kaytannonKoulutus)
     }

@@ -450,7 +450,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun updateLiitettyKoejaksoon(
         @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         principal: Principal?
-    ): ResponseEntity<TyoskentelyjaksoDTO?> {
+    ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())

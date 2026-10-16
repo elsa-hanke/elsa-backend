@@ -2,13 +2,12 @@ import com.adarshr.gradle.testlogger.theme.ThemeType
 
 buildscript {
     repositories {
-        maven { url = 'https://repo.spring.io/milestone' }
-        gradlePluginPortal()
         mavenCentral()
+        gradlePluginPortal()
     }
     dependencies {
         classpath "org.liquibase:liquibase-gradle-plugin:${liquibasePluginVersion}"
-        classpath "org.liquibase:liquibase-core:4.31.1"
+        classpath "org.liquibase:liquibase-core:5.0.3"
     }
 }
 
@@ -44,8 +43,6 @@ version = "0.0.1-SNAPSHOT"
 
 description = ""
 
-assert System.properties["java.specification.version"] == "11" || "12" || "13" || "14" || "15" || "16" || "17"
-
 apply from: "gradle/docker.gradle"
 apply from: "gradle/sonar.gradle"
 apply from: 'gradle/kotlin.gradle'
@@ -63,10 +60,24 @@ springBoot {
 }
 
 ext {
-    // Override Spring Boot's managed versions for security fixes, keeping each family aligned.
-    set('netty.version', '4.1.137.Final')
-    set('jackson-bom.version', '2.21.7')
-    set('postgresql.version', '42.7.12')
+    // Keep Kotlin runtime aligned with the compiler plugin.
+    set('kotlin.version', kotlinVersion)
+    // Security fixes newer than the Boot BOM; Jackson 2 remains for application/AWS compatibility.
+    set('jackson-2-bom.version', '2.21.7')
+    set('jackson-bom.version', '3.1.7')
+    set('tomcat.version', '11.0.25')
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}"
+    }
+    dependencies {
+        // Keep the crypto modules used by SAML and iText on the same release.
+        dependency "org.bouncycastle:bcprov-jdk18on:1.86"
+        dependency "org.bouncycastle:bcpkix-jdk18on:1.86"
+        dependency "org.bouncycastle:bcutil-jdk18on:1.86"
+    }
 }
 
 test {
@@ -91,9 +102,6 @@ tasks.register('integrationTest', Test) {
     include "**/*IT*", "**/*IntTest*"
     testLogging {
         events 'FAILED', 'SKIPPED'
-    }
-    if (project.hasProperty('testcontainers')) {
-        environment 'spring.profiles.active', 'testcontainers'
     }
     reports.html.required = false
 }
@@ -144,7 +152,6 @@ gitProperties {
 
 configurations {
     providedRuntime
-    implementation.exclude module: "spring-boot-starter-tomcat"
 }
 
 repositories {
@@ -154,55 +161,49 @@ repositories {
 }
 
 dependencies {
-    constraints {
-        implementation("org.bouncycastle:bcprov-jdk18on:1.85")
-        implementation("org.bouncycastle:bcpkix-jdk18on:1.85")
-        implementation("org.bouncycastle:bcutil-jdk18on:1.85")
-    }
-
     implementation "tech.jhipster:jhipster-framework:${jhipsterDependenciesVersion}"
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5-jakarta"
-    implementation "org.ehcache:ehcache:3.10.9"
-    implementation "org.hibernate.orm:hibernate-jcache:${hibernateVersion}"
-    implementation "org.hibernate.orm:hibernate-envers:${hibernateVersion}"
-    implementation "org.liquibase:liquibase-core"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate7"
+    implementation "org.ehcache:ehcache"
+    implementation "org.hibernate.orm:hibernate-jcache"
+    implementation "org.hibernate.orm:hibernate-envers"
     implementation "org.springframework.boot:spring-boot-starter-mail"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
     implementation "org.springframework.boot:spring-boot-starter-security"
     implementation "org.springframework.boot:spring-boot-starter-validation"
-    implementation("org.springframework.boot:spring-boot-starter-web") {
-        exclude module: "spring-boot-starter-tomcat"
-    }
-    implementation "org.springframework.boot:spring-boot-starter-undertow"
-    implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
-    implementation "org.thymeleaf:thymeleaf:${thymeleafVersion}"
-    implementation "org.thymeleaf:thymeleaf-spring6:${thymeleafVersion}"
-    implementation "org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE"
-    implementation "org.springframework.security:spring-security-saml2-service-provider:${springSecurityVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-webmvc"
+    implementation "org.springframework.boot:spring-boot-jackson2"
+    implementation "org.springframework.boot:spring-boot-starter-restclient"
+    implementation "org.springframework.boot:spring-boot-starter-cache"
+    implementation "org.springframework.boot:spring-boot-starter-liquibase"
+    implementation "org.springframework.boot:spring-boot-starter-aspectj"
+    implementation "org.springframework.boot:spring-boot-starter-thymeleaf"
+    implementation "org.springframework.security:spring-security-saml2-service-provider"
     runtimeOnly "org.postgresql:postgresql"
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
-    annotationProcessor "org.hibernate.orm:hibernate-jpamodelgen:${hibernateVersion}"
+    annotationProcessor "org.hibernate.orm:hibernate-processor:${hibernateVersion}"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
-    testImplementation "org.springframework.boot:spring-boot-starter-test"
-    testImplementation "org.springframework.security:spring-security-test"
-    testImplementation "com.squareup.okhttp3:mockwebserver:4.9.3"
-    testImplementation "com.h2database:h2:2.4.240"
+    testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-security-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-data-jpa-test"
+    testImplementation "com.squareup.okhttp3:mockwebserver:${okhttpVersion}"
+    testImplementation "org.testcontainers:testcontainers-jdbc"
+    testImplementation "org.testcontainers:testcontainers-postgresql"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.9.0"
-    implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.2.1'
-    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.2.1'
-    implementation 'io.awspring.cloud:spring-cloud-aws-starter-sns:3.2.1'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j"
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-sns'
     implementation 'io.micrometer:micrometer-registry-cloudwatch2'
     implementation "org.apache.commons:commons-text:1.15.0"
     implementation "net.coobird:thumbnailator:0.4.21"
-    implementation "net.logstash.logback:logstash-logback-encoder:8.0"
+    implementation "net.logstash.logback:logstash-logback-encoder:9.0"
     implementation "org.fluentd:fluent-logger:0.3.4"
     implementation "com.sndyuk:logback-more-appenders:1.8.6"
     implementation "com.apollographql.apollo:apollo-runtime:${apolloVersion}"
-    implementation "com.squareup.okhttp3:okhttp-tls:4.9.3"
+    implementation "com.squareup.okhttp3:okhttp-tls:${okhttpVersion}"
     implementation "net.javacrumbs.shedlock:shedlock-spring:4.33.0"
     implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.33.0"
     implementation "com.itextpdf:kernel:${itextVersion}"
