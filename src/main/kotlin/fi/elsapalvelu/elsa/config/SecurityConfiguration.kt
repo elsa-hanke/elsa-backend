@@ -421,13 +421,27 @@ class SecurityConfiguration(
     ): User {
         val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
         val verificationToken = attr.request.getParameter("RelayState")
+        attr.request.getSession(false)?.removeAttribute(LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE)
         var tokenUser: User? = null
 
         // Kutsuttu käyttäjä
         if (verificationToken != null && verificationToken != DEFAULT_RELAY_STATE) {
             verificationTokenRepository.findById(verificationToken).ifPresent {
                 tokenUser = userRepository.findByIdWithAuthorities(it.user?.id.required()).get()
-                userService.createOrUpdateUserWithToken(tokenUser, it, cipher, originalKey, hetu, eppn, firstName, lastName)
+                try {
+                    userService.createOrUpdateUserWithToken(tokenUser, it, cipher, originalKey, hetu, eppn, firstName, lastName)
+                } catch (ex: Exception) {
+                    if (ex.message == LoginException.VIRHEELLINEN_NIMI.name) {
+                        attr.request.session.setAttribute(
+                            LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE,
+                            LoginNameMismatch(
+                                invitationName = listOfNotNull(tokenUser.firstName, tokenUser.lastName).joinToString(" "),
+                                authenticatedName = "$firstName $lastName"
+                            )
+                        )
+                    }
+                    throw ex
+                }
             }
         }
 

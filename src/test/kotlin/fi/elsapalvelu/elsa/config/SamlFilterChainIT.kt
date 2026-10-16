@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
+import fi.elsapalvelu.elsa.security.LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE
+import fi.elsapalvelu.elsa.security.LoginNameMismatch
 import jakarta.servlet.Filter
 import okhttp3.tls.HeldCertificate
 import okhttp3.OkHttpClient
@@ -17,6 +19,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.security.saml2.core.Saml2X509Credential
+import org.springframework.security.saml2.core.Saml2Error
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException
+import org.springframework.security.web.WebAttributes
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding
@@ -26,11 +31,16 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.filter.ForwardedHeaderFilter
 import java.util.Base64
+import java.time.Instant
 
 @ActiveProfiles("dev", "test")
 @SpringBootTest(classes = [ElsaBackendApp::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = [
@@ -129,6 +139,69 @@ class SamlFilterChainIT {
             it
         }).andExpect(status().isOk).andReturn()
         assertSamlUrl(result, "https://elsapalvelu.fi:8443/login/saml2/sso/haka-tampere")
+    }
+
+    @Test
+    fun nameMismatchDetailsStayInTheirOwnFailedLoginSessionThroughSecurityFilters() {
+        val endpoint = "/api/julkinen/kirjautuminen/nimivirhe"
+        val firstSession = failedNameLogin(LoginNameMismatch("Aleksi Räisänen", "Kari Räisänen"))
+        val secondSession = failedNameLogin(LoginNameMismatch("Mia Haavisto", "Anna Mia Haavisto"))
+
+        mockMvc.perform(get("/kirjaudu").session(firstSession))
+            .andExpect(status().isFound)
+            .andExpect(redirectedUrl("http://localhost:9060/kirjautuminen?virhe=VIRHEELLINEN_NIMI"))
+        mockMvc.perform(get(endpoint).session(firstSession))
+            .andExpect(status().isOk)
+            .andExpect(header().string("Cache-Control", "no-store"))
+            .andExpect(jsonPath("$.invitationName").value("Aleksi Räisänen"))
+            .andExpect(jsonPath("$.authenticatedName").value("Kari Räisänen"))
+            .andExpect(jsonPath("$.expiresAt").doesNotExist())
+
+        mockMvc.perform(get(endpoint).session(secondSession))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.invitationName").value("Mia Haavisto"))
+            .andExpect(jsonPath("$.authenticatedName").value("Anna Mia Haavisto"))
+
+        mockMvc.perform(get(endpoint).session(MockHttpSession())
+            .param("userId", "invited-user")
+            .param("virhe", LoginException.VIRHEELLINEN_NIMI.name))
+            .andExpect(status().isNoContent)
+            .andExpect(content().string(""))
+        mockMvc.perform(get(endpoint))
+            .andExpect(status().isNoContent)
+            .andExpect(header().string("Cache-Control", "no-store"))
+
+        // Reading login error details must not authenticate either session.
+        listOf(firstSession, secondSession).forEach { session ->
+            mockMvc.perform(get("/api/kayttaja").session(session))
+                .andExpect(status().isUnauthorized)
+        }
+    }
+
+    @Test
+    fun expiredNameMismatchDetailsAreRemovedThroughSecurityFilters() {
+        val session = failedNameLogin(LoginNameMismatch("Aleksi Räisänen", "Kari Räisänen", Instant.EPOCH))
+
+        mockMvc.perform(get("/api/julkinen/kirjautuminen/nimivirhe").session(session))
+            .andExpect(status().isNoContent)
+            .andExpect(header().string("Cache-Control", "no-store"))
+            .andExpect(content().string(""))
+
+        assertThat(session.getAttribute(LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE)).isNull()
+        mockMvc.perform(get("/kirjaudu").session(session))
+            .andExpect(status().isFound)
+            .andExpect(redirectedUrl("http://localhost:9060/kirjautuminen?virhe=VIRHEELLINEN_NIMI"))
+    }
+
+    private fun failedNameLogin(mismatch: LoginNameMismatch) = MockHttpSession().apply {
+        setAttribute(
+            WebAttributes.AUTHENTICATION_EXCEPTION,
+            Saml2AuthenticationException(
+                Saml2Error("invalid_response", LoginException.VIRHEELLINEN_NIMI.name),
+                LoginException.VIRHEELLINEN_NIMI.name
+            )
+        )
+        setAttribute(LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE, mismatch)
     }
 
     private fun assertSamlUrl(result: MvcResult, expectedUrl: String) {
