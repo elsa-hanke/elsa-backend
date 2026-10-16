@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import jakarta.validation.Valid
 
 @RestController
 @RequestMapping("/api/erikoistuva-laakari")
@@ -42,7 +41,7 @@ class ErikoistuvaLaakariAsiakirjaResource(
 
     @PostMapping("/asiakirjat")
     fun createAsiakirjat(
-        @Valid @RequestParam files: List<MultipartFile>,
+        @RequestParam files: List<MultipartFile>,
         principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)

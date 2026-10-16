@@ -116,7 +116,7 @@ open class SuoritusarviointiResource(
     @PutMapping("/suoritusarvioinnit")
     fun updateSuoritusarviointi(
         @Valid @RequestParam suoritusarviointiJson: String,
-        @Valid @RequestParam arviointiFiles: List<MultipartFile>?,
+        @RequestParam arviointiFiles: List<MultipartFile>?,
         @RequestParam deletedAsiakirjaIdsJson: String?,
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
