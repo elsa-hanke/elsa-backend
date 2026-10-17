@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...HEAD)
 
+- Refactor: remove redundant @Valid annotations from MultipartFile parameters [`#780`](https://github.com/elsa-hanke/elsa-backend/pull/780)(16 October 2026)
+- Spring boot v3 -&gt; v4 bump [`#778`](https://github.com/elsa-hanke/elsa-backend/pull/778)(16 October 2026)
 - Bump proxy-addr from 2.0.7 to 2.0.8 in /frontend [`#775`](https://github.com/elsa-hanke/elsa-backend/pull/775)(9 October 2026)
 - Bump shell-quote from 1.10.0 to 1.12.0 in /frontend [`#773`](https://github.com/elsa-hanke/elsa-backend/pull/773)(9 October 2026)
 - Bump compression from 1.7.4 to 1.8.2 in /frontend [`#772`](https://github.com/elsa-hanke/elsa-backend/pull/772)(9 October 2026)
