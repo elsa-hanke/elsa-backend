@@ -62,7 +62,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val overlappingTyoskentelyjaksoValidationService: OverlappingTyoskentelyjaksoValidationService,
     private val overlappingKeskeytysaikaValidationService: OverlappingKeskeytysaikaValidationService,
     private val opintooikeusService: OpintooikeusService,
-    private val koulutusjaksoService: KoulutusjaksoService,
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
     private val opintosuoritusService: OpintosuoritusService,
@@ -72,7 +71,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     @PostMapping("/tyoskentelyjaksot")
     fun createTyoskentelyjakso(
         @Valid @RequestParam tyoskentelyjaksoJson: String,
-        @Valid @RequestParam files: List<MultipartFile>?,
+        @RequestParam files: List<MultipartFile>?,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
@@ -101,7 +100,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     @PutMapping("/tyoskentelyjaksot")
     fun updateTyoskentelyjakso(
         @Valid @RequestParam tyoskentelyjaksoJson: String,
-        @Valid @RequestParam files: List<MultipartFile>?,
+        @RequestParam files: List<MultipartFile>?,
         @RequestParam deletedAsiakirjaIdsJson: String?,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
@@ -229,7 +228,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     @PutMapping("/tyoskentelyjaksot/{id}/asiakirjat")
     fun updateTyoskentelyjaksoAsiakirjat(
         @PathVariable id: Long,
-        @Valid @RequestParam addedFiles: List<MultipartFile>?,
+        @RequestParam addedFiles: List<MultipartFile>?,
         @RequestParam deletedFiles: List<Int>?,
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoDTO> {
@@ -242,11 +241,12 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         return try {
             tyoskentelyjaksoService.updateAsiakirjat(
                 id,
+                opintooikeusId,
                 tyoskentelyjaksoResourceSupport.getMappedFiles(addedFiles, opintooikeusId),
                 deletedFiles?.toSet()
             )?.let {
                 ResponseEntity.ok(it)
-            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+            } ?: throw ResponseStatusException(HttpStatus.FORBIDDEN)
         } catch (e: ValidationException) {
             throw tyoskentelyjaksoResourceSupport.liitettyTerveyskoulutusjaksoonException(e)
         }
@@ -264,8 +264,6 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
 
-        asiakirjaService.removeTyoskentelyjaksoReference(id)
-        koulutusjaksoService.removeTyoskentelyjaksoReference(id)
         if (tyoskentelyjaksoService.delete(id, opintooikeusId)) {
             return ResponseEntity
                 .noContent()
@@ -452,7 +450,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun updateLiitettyKoejaksoon(
         @RequestBody tyoskentelyjaksoDTO: TyoskentelyjaksoDTO,
         principal: Principal?
-    ): ResponseEntity<TyoskentelyjaksoDTO?> {
+    ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())

@@ -6,6 +6,7 @@ import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
 import fi.elsapalvelu.elsa.domain.valmistuminen.TerveyskeskuskoulutusjaksonHyvaksynta
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
@@ -87,7 +88,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
         kayttaja.yliopistotAndErikoisalat.filter {
             hyvaksynta?.opintooikeus?.yliopisto?.id == it.yliopisto?.id &&
-                if (hyvaksynta?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                if (hyvaksynta?.opintooikeus.isYek()) {
                     it.vastuuhenkilonTehtavat.map { tehtava -> tehtava.nimi }
                         .contains(VastuuhenkilonTehtavatyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO)
                 } else {
@@ -177,7 +178,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
         opintooikeusRepository.findById(opintooikeusId).orElse(null)?.let {
             val tyoskentelyjaksot =
-                if (it.erikoisala?.id == YEK_ERIKOISALA_ID)
+                if (it.isYek())
                     tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(opintooikeusId, TyoskentelyjaksoTyyppi.TERVEYSKESKUS)
                 else tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
                     opintooikeusId,
@@ -326,9 +327,9 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         if (result.virkailijaHyvaksynyt) {
             mailService.sendEmailFromTemplate(
                 to = vastuuhenkilo?.user?.email,
-                templateName = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusTarkastettavissa.html"
+                templateName = if (result.opintooikeus.isYek()) "yekTkkjaksonHyvaksymishakemusTarkastettavissa.html"
                 else "tkkjaksonHyvaksymishakemusTarkastettavissa.html",
-                titleKey = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "email.yektkkjaksonhyvaksymishakemustarkastettavissa.title"
+                titleKey = if (result.opintooikeus.isYek()) "email.yektkkjaksonhyvaksymishakemustarkastettavissa.title"
                 else "email.tkkjaksonhyvaksymishakemustarkastettavissa.title",
                 properties = mapOf(
                     Pair(MailProperty.ID, result.id.toString()),
@@ -392,9 +393,9 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             )
             mailService.sendEmailFromTemplate(
                 to = hyvaksynta.opintooikeus?.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
-                templateName = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "yekTkkjaksonHyvaksymishakemusHyvaksytty.html"
+                templateName = if (result.opintooikeus.isYek()) "yekTkkjaksonHyvaksymishakemusHyvaksytty.html"
                 else "tkkjaksonHyvaksymishakemusHyvaksytty.html",
-                titleKey = if (result.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) "email.yektkkjaksonhyvaksymishakemushyvaksytty.title"
+                titleKey = if (result.opintooikeus.isYek()) "email.yektkkjaksonhyvaksymishakemushyvaksytty.title"
                 else "email.tkkjaksonhyvaksymishakemushyvaksytty.title",
                 properties = mapOf(
                     Pair(
@@ -421,7 +422,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
 
     private fun mapTerveyskeskuskoulutusjakso(hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksynta): TerveyskeskuskoulutusjaksonHyvaksyntaDTO {
         val tyoskentelyjaksot =
-            if (hyvaksynta.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
+            if (hyvaksynta.opintooikeus.isYek()) tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppi(
                 hyvaksynta.opintooikeus?.id.required(),
                 TyoskentelyjaksoTyyppi.TERVEYSKESKUS)
             else tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(
@@ -467,7 +468,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         return kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
             listOf(VASTUUHENKILO),
             opintooikeus?.yliopisto?.id,
-            if (opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) VastuuhenkilonTehtavatyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO
+            if (opintooikeus.isYek()) VastuuhenkilonTehtavatyyppiEnum.YEK_TERVEYSKESKUSKOULUTUSJAKSO
             else VastuuhenkilonTehtavatyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSOJEN_HYVAKSYMINEN
         )
     }

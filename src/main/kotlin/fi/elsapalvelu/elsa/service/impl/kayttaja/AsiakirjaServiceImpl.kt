@@ -198,16 +198,4 @@ class AsiakirjaServiceImpl(
             it.opintooikeus?.id == opintooikeusId
         }.let { asiakirjaRepository.deleteAll(it) }
     }
-
-    override fun removeTyoskentelyjaksoReference(tyoskentelyJaksoId: Long?) {
-        val asiakirjaIdsByTyoskentelyjakso =
-            asiakirjaRepository.findAllByTyoskentelyjaksoId(tyoskentelyJaksoId).map { it.id }
-        val asiakirjaEntitiesByTyoskentelyjakso =
-            asiakirjaRepository.findAllById(asiakirjaIdsByTyoskentelyjakso)
-        asiakirjaEntitiesByTyoskentelyjakso.forEach {
-            it.tyoskentelyjakso = null
-        }
-
-        asiakirjaRepository.saveAll(asiakirjaEntitiesByTyoskentelyjakso)
-    }
 }

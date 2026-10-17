@@ -25,6 +25,8 @@ interface KoejaksonLoppukeskusteluRepository : JpaRepository<KoejaksonLoppukesku
 
     fun findOneByIdAndLahiesimiesHyvaksynytTrue(id: Long): Optional<KoejaksonLoppukeskustelu>
 
+    fun findAllByLahikouluttajaIdOrLahiesimiesId(lahikouluttajaId: Long, lahiesimiesId: Long): List<KoejaksonLoppukeskustelu>
+
     @Query(
         "select l from KoejaksonLoppukeskustelu l left join l.lahikouluttaja lk left join l.lahiesimies le " +
             "where lk.user.id = :userId or (le.user.id = :userId and (l.lahikouluttajaHyvaksynyt = true or (l.korjausehdotus != null and l.korjausehdotus != '')))"

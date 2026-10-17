@@ -700,10 +700,7 @@ class ErikoistuvaLaakariKoejaksoResource(
         opintooikeusId: Long
     ): MutableSet<AsiakirjaDTO>? {
         files?.let {
-            if (!fileValidationService.validate(it, opintooikeusId)) {
-                throw BadRequestAlertException("Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
-                    ErikoistuvaLaakariTeoriakoulutusResource.ASIAKIRJA_ENTITY_NAME, "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa")
-            }
+            fileValidationService.validate(it, opintooikeusId)
             return it.map { file -> file.mapAsiakirja() }.toMutableSet()
         }
 

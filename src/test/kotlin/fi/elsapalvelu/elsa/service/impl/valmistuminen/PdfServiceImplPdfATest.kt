@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfServiceImpl
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfCachingResourceRetriever
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.service.PdfA2bService
@@ -24,6 +26,7 @@ class PdfServiceImplPdfATest {
         pdfMetrics = PdfGenerationMetricsService(SimpleMeterRegistry()),
         pdfContentValidator = PdfContentValidator(),
         pdfTextFieldValidator = mock<PdfTextFieldValidator>(),
+        resourceRetriever = PdfCachingResourceRetriever(),
         pdfA2bService = pdfA2bService
     )
 

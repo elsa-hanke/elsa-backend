@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.domain
 
 import fi.elsapalvelu.elsa.security.AuditRevisionListener
-import org.hibernate.envers.DefaultRevisionEntity
+import org.hibernate.envers.RevisionMapping
 import org.hibernate.envers.RevisionEntity
 import java.time.LocalDateTime
 import jakarta.persistence.Column
@@ -19,4 +19,4 @@ data class AuditRevisionEntity (
     @Column(name = "modified_date", nullable = false)
     var modifiedDate: LocalDateTime
 
-) : DefaultRevisionEntity()
+) : RevisionMapping()

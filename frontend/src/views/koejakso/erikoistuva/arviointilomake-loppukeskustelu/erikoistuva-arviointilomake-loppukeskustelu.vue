@@ -215,6 +215,7 @@
     Opintooikeus
   } from '@/types'
   import { LomakeTilat } from '@/utils/constants'
+  import { formatSaveError } from '@/utils/errorMessage'
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
   import { resolveOpintooikeusKaytossa } from '@/utils/opintooikeus'
   import { toastFail, toastSuccess } from '@/utils/toast'
@@ -410,8 +411,13 @@
         this.buttonStates.primaryButtonLoading = false
         toastSuccess(this, this.$t('loppukeskustelu-lahetetty-onnistuneesti'))
         this.setKoejaksoData()
-      } catch {
-        toastFail(this, this.$t('loppukeskustelu-tallennus-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('loppukeskustelu-tallennus-epaonnistui'))
+        )
+      } finally {
+        this.buttonStates.primaryButtonLoading = false
       }
     }
 

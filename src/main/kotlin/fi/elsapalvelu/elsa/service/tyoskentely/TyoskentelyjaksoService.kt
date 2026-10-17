@@ -32,6 +32,15 @@ interface TyoskentelyjaksoService {
 
     fun findOne(id: Long, opintooikeusId: Long): TyoskentelyjaksoDTO?
 
+    /**
+     * Poistaa työskentelyjakson ja siihen liittyvät viittaukset (asiakirjat, koulutusjaksot) samassa
+     * transaktiossa. Viittauksia ei muuteta ennen kuin omistajuus on varmistettu.
+     *
+     * @return true jos poisto onnistui, false jos poisto ei ole sallittu (jaksolla on tapahtumia tai se
+     * on liitetty terveyskeskuskoulutusjaksoon)
+     * @throws org.springframework.security.access.AccessDeniedException jos työskentelyjaksoa ei ole tai
+     * se ei kuulu annettuun opintooikeuteen
+     */
     fun delete(id: Long, opintooikeusId: Long): Boolean
 
     fun getTilastot(opintooikeusId: Long): TyoskentelyjaksotTilastotDTO
@@ -53,6 +62,7 @@ interface TyoskentelyjaksoService {
 
     fun updateAsiakirjat(
         id: Long,
+        opintooikeusId: Long,
         addedFiles: Set<AsiakirjaDTO>?,
         deletedFiles: Set<Int>?
     ): TyoskentelyjaksoDTO?
