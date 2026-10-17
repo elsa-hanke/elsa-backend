@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
+import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto.Companion.fromValmistumispyyntoArvioija
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto.Companion.fromValmistumispyyntoArvioijaHyvaksyja
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto.Companion.fromValmistumispyyntoHyvaksyja
@@ -143,7 +144,4 @@ class ValmistumispyynnonTilaService {
 
         else -> null
     }
-
-    private fun Valmistumispyynto.isYek() =
-        opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
 }

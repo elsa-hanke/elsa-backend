@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
+import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
@@ -61,7 +62,7 @@ class ValmistumispyynnonOsapuoliService(
             id,
             yliopistoId
         ) ?: throw valmistumispyyntoaEiLoydy()
-        val yek = valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
+        val yek = valmistumispyynto.isYek()
         val onkoTehtava = kayttaja.yliopistotAndErikoisalat.any { yliopistoErikoisala ->
             val tehtavat = yliopistoErikoisala.vastuuhenkilonTehtavat.map { it.nimi }
             if (yek) {
@@ -132,7 +133,7 @@ class ValmistumispyynnonOsapuoliService(
                 yliopistoId
             )
         return valmistumispyynto?.erikoistujanKuittausaika != null &&
-            (valmistumispyynto.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID ||
+            (valmistumispyynto.isYek() ||
                 valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika != null) &&
             valmistumispyynto.virkailijanKuittausaika == null
     }
@@ -145,9 +146,12 @@ class ValmistumispyynnonOsapuoliService(
             haeYliopisto(kayttaja).id.required(),
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         )
-        return valmistumispyynto.virkailijanKuittausaika != null &&
-            valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika == null
+        return onkoLopullinenHyvaksyntaAvoin(valmistumispyynto)
     }
+
+    fun onkoLopullinenHyvaksyntaAvoin(valmistumispyynto: Valmistumispyynto): Boolean =
+        valmistumispyynto.virkailijanKuittausaika != null &&
+            valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika == null
 
     fun valmistumispyyntoaEiLoydy() = EntityNotFoundException(
         "Valmistumispyyntöä ei löydy tai sinulla ei ole oikeuksia tarkastella " +

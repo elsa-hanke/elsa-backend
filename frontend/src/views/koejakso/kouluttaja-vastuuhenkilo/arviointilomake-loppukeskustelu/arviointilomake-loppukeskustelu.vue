@@ -295,6 +295,7 @@
   } from '@/types'
   import { resolveRolePath } from '@/utils/apiRolePathResolver'
   import { LomakeTilat, LomakeTyypit } from '@/utils/constants'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
@@ -462,8 +463,10 @@
         this.buttonStates.secondaryButtonLoading = false
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
         toastSuccess(this, this.$t('loppukeskustelu-palautettu-muokattavaksi'))
-      } catch {
-        toastFail(this, this.$t('loppukeskustelu-palautus-epaonnistui'))
+      } catch (err) {
+        toastFail(this, formatSaveError(this, err, this.$t('loppukeskustelu-palautus-epaonnistui')))
+      } finally {
+        this.buttonStates.secondaryButtonLoading = false
       }
     }
 
@@ -479,8 +482,13 @@
 
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
         toastSuccess(this, this.$t('loppukeskustelu-lahetys-onnistui'))
-      } catch {
-        toastFail(this, this.$t('loppukeskustelun-tallennus-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('loppukeskustelun-tallennus-epaonnistui'))
+        )
+      } finally {
+        this.buttonStates.primaryButtonLoading = false
       }
     }
 

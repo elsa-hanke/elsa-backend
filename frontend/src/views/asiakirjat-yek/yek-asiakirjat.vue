@@ -17,6 +17,7 @@
           </asiakirjat-upload>
           <asiakirjat-content
             :asiakirjat="asiakirjat"
+            :asiakirja-data-endpoint-url="endpointUrl + '/'"
             :loading="loading"
             :sort-by="sortBy"
             :confirm-delete-title="$t('poista-asiakirja')"

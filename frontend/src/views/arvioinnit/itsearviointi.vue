@@ -31,7 +31,7 @@
   import { putSuoritusarviointi } from '@/api/erikoistuva'
   import ArviointiForm from '@/forms/arviointi-form.vue'
   import { Suoritusarviointi } from '@/types'
-  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -105,7 +105,7 @@
       } catch (err) {
         toastFail(
           this,
-          formatPdfTextSaveError(this, err, this.$t('itsearvioinnin-tallentaminen-epaonnistui'))
+          formatSaveError(this, err, this.$t('itsearvioinnin-tallentaminen-epaonnistui'))
         )
       }
       params.saving = false

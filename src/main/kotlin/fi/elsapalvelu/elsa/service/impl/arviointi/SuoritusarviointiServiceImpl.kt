@@ -264,6 +264,17 @@ class SuoritusarviointiServiceImpl(
                 *newAsiakirjat.map { "liitetiedoston-nimi" to it.nimi }.toTypedArray()
             )
         )
+        suoritusarviointiDTO.arviointityokaluVastaukset.forEach { vastaus ->
+            if (!vastaus.tekstiVastaus.isNullOrBlank()) {
+                val kysymys = vastaus.arviointityokaluKysymysId?.let {
+                    arviointityokaluKysymysRepository.findByIdOrNull(it)
+                }
+                validatePdfText(
+                    suoritusarviointiDTO,
+                    listOf((kysymys?.otsikko ?: "arviointityokalu") to vastaus.tekstiVastaus)
+                )
+            }
+        }
     }
 
     @Transactional(readOnly = true)

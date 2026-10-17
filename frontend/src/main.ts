@@ -14,6 +14,7 @@ import '@/plugins/registerComponentHooks'
 import '@/plugins/roles'
 import router from '@/router'
 import store from '@/store'
+import { installActiveContextSync } from '@/utils/active-context-sync'
 
 import '@/styles/app.scss'
 import 'mutationobserver-shim'
@@ -21,6 +22,9 @@ import 'mutationobserver-shim'
 Vue.use(Vuelidate)
 Vue.use(VueScreen, 'bootstrap')
 Vue.config.productionTip = false
+
+// ELSAINSI-73: pidetään aktiivinen rooli / opinto-oikeus synkronoituna välilehtien ja palvelimen välillä
+installActiveContextSync(router)
 
 new Vue({
   router,

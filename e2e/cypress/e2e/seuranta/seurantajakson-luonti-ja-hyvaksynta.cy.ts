@@ -96,14 +96,14 @@ describe('Seurantajakson luonti', () => {
       expect(request.body.omaArviointi).to.eq('Erikoistuminen etenee suunnitellusti.')
       expect(response?.statusCode).to.eq(201)
       expect(response?.body?.id).to.be.a('number')
-      Cypress.env('unsupportedCharacterSeurantajaksoId', response?.body?.id)
+      Cypress.expose('unsupportedCharacterSeurantajaksoId', response?.body?.id)
     })
 
     cy.url().should('match', /\/seurantakeskustelut\/seurantajakso\/\d+$/)
     cy.contains('Erikoistuminen etenee suunnitellusti.').should('be.visible')
 
     cy.then(() => {
-      const seurantajaksoId = Number(Cypress.env('unsupportedCharacterSeurantajaksoId'))
+      const seurantajaksoId = Number(Cypress.expose('unsupportedCharacterSeurantajaksoId'))
       cy.apiRequest({
         method: 'GET',
         url: `/api/erikoistuva-laakari/seurantakeskustelut/seurantajakso/${seurantajaksoId}`,
@@ -164,10 +164,10 @@ describe('Seurantajakson luonti', () => {
         paattymispaiva: '2025-06-30',
         omaArviointi: 'E2E oma arviointi seurantajaksolta.',
       })
-      expect(Number(request.body.kouluttaja.id)).to.eq(Number(Cypress.env('kouluttajaId')))
+      expect(Number(request.body.kouluttaja.id)).to.eq(Number(Cypress.expose('kouluttajaId')))
       expect(response?.statusCode).to.eq(201)
       expect(response?.body?.id).to.be.a('number')
-      Cypress.env('seurantajaksoId', response?.body?.id)
+      Cypress.expose('seurantajaksoId', response?.body?.id)
     })
 
     cy.url().should('match', /\/seurantakeskustelut\/seurantajakso\/\d+$/)
@@ -179,7 +179,7 @@ describe('Seurantajakson luonti', () => {
     cy.contains(KOULUTTAJA_NIMI).should('be.visible')
 
     cy.then(() => {
-      const seurantajaksoId = Number(Cypress.env('seurantajaksoId'))
+      const seurantajaksoId = Number(Cypress.expose('seurantajaksoId'))
 
       cy.apiRequest({
         method: 'GET',
@@ -189,7 +189,7 @@ describe('Seurantajakson luonti', () => {
         expect(body.tila).to.eq('ODOTTAA_ARVIOINTIA_JA_YHTEISIA_MERKINTOJA')
       })
 
-      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+      cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
       cy.apiRequest({
         method: 'GET',
         url: `/api/kouluttaja/seurantakeskustelut/seurantajakso/${seurantajaksoId}`,
@@ -221,7 +221,7 @@ describe('Seurantajakson luonti', () => {
         }).its('status').should('eq', 200)
       })
 
-      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+      cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
       cy.apiRequest({
         method: 'GET',
         url: `/api/kouluttaja/seurantakeskustelut/seurantajakso/${seurantajaksoId}`,

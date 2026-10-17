@@ -39,6 +39,8 @@ import jakarta.servlet.http.HttpServletResponse
  * Kouluttaja/vastuuhenkilö/opintohallinnon virkailija voi haluta katsoa erikoistujan tietoja, jolloin autentikaatiota
  * täytyy impersonoida. Toteutettu SwitchUserFilter pohjalta ja mukautettu toimimaan SAML kanssa.
  */
+// Legacy SAML principal compatibility; migrate with login, logout and impersonation.
+@Suppress("DEPRECATION", "Deprecation")
 class ElsaSwitchUserFilter(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val kayttajaRepository: KayttajaRepository,
@@ -77,7 +79,7 @@ class ElsaSwitchUserFilter(
             SecurityContextHolder.getContext().authentication = originalUser
             logger.debug(LogMessage.format("Set SecurityContextHolder to %s", originalUser))
             val principal =
-                SecurityContextHolder.getContext().authentication.principal as Saml2AuthenticatedPrincipal
+                SecurityContextHolder.getContext().authentication.required().principal as Saml2AuthenticatedPrincipal
             SecurityLoggingWrapper.info("User with id ${principal.name} switched back to original session")
             val originalUrl = request.session.getAttribute("originalUrl")
             originalUrl?.let {
@@ -90,11 +92,11 @@ class ElsaSwitchUserFilter(
         filterChain.doFilter(request, response)
     }
 
-    private fun requiresSwitchUser(request: HttpServletRequest?): Boolean {
+    private fun requiresSwitchUser(request: HttpServletRequest): Boolean {
         return switchUserMatcher.matches(request)
     }
 
-    private fun requiresExitUser(request: HttpServletRequest?): Boolean {
+    private fun requiresExitUser(request: HttpServletRequest): Boolean {
         return this.exitUserMatcher.matches(request)
     }
 
@@ -106,7 +108,7 @@ class ElsaSwitchUserFilter(
         val yekOikeus = opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID
         val erikoistuvaLaakari = opintooikeus.erikoistuvaLaakari
         val principal =
-            SecurityContextHolder.getContext().authentication.principal as Saml2AuthenticatedPrincipal
+            SecurityContextHolder.getContext().authentication.required().principal as Saml2AuthenticatedPrincipal
 
         val impersonatedRole = getImpersonatedRole(principal, opintooikeus)
         if (impersonatedRole == null) {
@@ -119,7 +121,7 @@ class ElsaSwitchUserFilter(
         // Annetaan käyttäjälle uusi rooli ja tallennetaan nykyinen autentikaatio, jotta käyttäjä
         // saa poistuessa oman autentikaation takaisin
         val currentAuthentication: Authentication =
-            SecurityContextHolder.getContext().authentication
+            SecurityContextHolder.getContext().authentication.required()
         val switchAuthority: GrantedAuthority = SwitchUserGrantedAuthority(
             impersonatedRole,
             currentAuthentication
@@ -189,7 +191,7 @@ class ElsaSwitchUserFilter(
     }
 
     private fun attemptExitUser(): Authentication {
-        val current = SecurityContextHolder.getContext().authentication
+        val current = SecurityContextHolder.getContext().authentication.required()
         return getSourceAuthentication(current)
             ?: throw AuthenticationCredentialsNotFoundException("Alkuperäistä käyttäjää ei löytynyt")
     }

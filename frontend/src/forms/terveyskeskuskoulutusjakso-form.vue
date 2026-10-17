@@ -243,6 +243,11 @@
                 class="mt-3"
                 :is-primary-button="false"
                 :allow-multiples-files="false"
+                :pending-files-count="pendingPartsForTyoskentelyjakso(sp.id)"
+                :max-parts-per-request="maxMultipartParts"
+                :max-parts-exceeded-message="
+                  $t('tyoskentelyjakson-liitteiden-osien-enimmaismaara-ylitetty')
+                "
                 :button-text="$t('lisaa-liitetiedosto')"
                 :existing-file-names-in-current-view="existingFileNamesInCurrentView"
                 :existing-file-names-in-other-views="reservedAsiakirjaNimetMutable"
@@ -452,6 +457,7 @@
     TyoskentelyjaksoTyyppi
   } from '@/utils/constants'
   import { mapFile, mapFiles } from '@/utils/fileMapper'
+  import { maxMultipartParts } from '@/utils/multipart'
   import {
     tyoskentelyjaksoKaytannonKoulutusLabel,
     tyoskentelypaikkaTyyppiLabel
@@ -472,6 +478,16 @@
     }
   })
   export default class TerveyskeskuskoulutusjaksoForm extends Mixins(validationMixin) {
+    maxMultipartParts = maxMultipartParts
+
+    pendingPartsForTyoskentelyjakso(id?: number | null): number {
+      const changes = this.form.tyoskentelyjaksoAsiakirjat.find((item) => item.id === id)
+      if (!changes) return 0
+      return this.yek
+        ? changes.addedFiles.length + changes.deletedFiles.length
+        : changes.deletedFiles.length
+    }
+
     $refs!: {
       laillistamispaiva: ElsaFormDatepicker
     }

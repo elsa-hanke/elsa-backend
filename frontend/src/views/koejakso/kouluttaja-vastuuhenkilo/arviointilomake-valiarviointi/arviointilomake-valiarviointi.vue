@@ -315,6 +315,7 @@
   } from '@/types'
   import { resolveRolePath } from '@/utils/apiRolePathResolver'
   import { KehittamistoimenpideKategoria, LomakeTilat, LomakeTyypit } from '@/utils/constants'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
@@ -518,8 +519,10 @@
         this.$emit('skipRouteExitConfirm', true)
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
         toastSuccess(this, this.$t('valiarviointi-palautettu-muokattavaksi'))
-      } catch {
-        toastFail(this, this.$t('valiarviointi-palautus-epaonnistui'))
+      } catch (err) {
+        toastFail(this, formatSaveError(this, err, this.$t('valiarviointi-palautus-epaonnistui')))
+      } finally {
+        this.buttonStates.secondaryButtonLoading = false
       }
     }
 
@@ -542,8 +545,10 @@
         this.$emit('skipRouteExitConfirm', true)
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
         toastSuccess(this, this.$t('valiarviointi-lahetetty-onnistuneesti'))
-      } catch {
-        toastFail(this, this.$t('valiarvioinnin-tallennus-epaonnistui'))
+      } catch (err) {
+        toastFail(this, formatSaveError(this, err, this.$t('valiarvioinnin-tallennus-epaonnistui')))
+      } finally {
+        this.buttonStates.primaryButtonLoading = false
       }
     }
 

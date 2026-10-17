@@ -1,7 +1,67 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.2...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...HEAD)
 
+- Refactor: remove redundant @Valid annotations from MultipartFile parameters [`#780`](https://github.com/elsa-hanke/elsa-backend/pull/780)(16 October 2026)
+- Spring boot v3 -&gt; v4 bump [`#778`](https://github.com/elsa-hanke/elsa-backend/pull/778)(16 October 2026)
+- Bump proxy-addr from 2.0.7 to 2.0.8 in /frontend [`#775`](https://github.com/elsa-hanke/elsa-backend/pull/775)(9 October 2026)
+- Bump shell-quote from 1.10.0 to 1.12.0 in /frontend [`#773`](https://github.com/elsa-hanke/elsa-backend/pull/773)(9 October 2026)
+- Bump compression from 1.7.4 to 1.8.2 in /frontend [`#772`](https://github.com/elsa-hanke/elsa-backend/pull/772)(9 October 2026)
+- bump libs 102026 [`#777`](https://github.com/elsa-hanke/elsa-backend/pull/777)(9 October 2026)
+- Bump source-map-js from 1.0.2 to 1.2.2 in /frontend [`#771`](https://github.com/elsa-hanke/elsa-backend/pull/771)(9 October 2026)
+- Bump joi from 17.13.7 to 17.13.8 in /frontend [`#774`](https://github.com/elsa-hanke/elsa-backend/pull/774)(9 October 2026)
+- cypress bump 15.21.0 -&gt; 16.1.1 [`#776`](https://github.com/elsa-hanke/elsa-backend/pull/776)(8 October 2026)
+- e2e testien rinnakkainen suorittaminen CI/CD:llä [`#770`](https://github.com/elsa-hanke/elsa-backend/pull/770)(8 October 2026)
+- Release v2.4.X merge [`#769`](https://github.com/elsa-hanke/elsa-backend/pull/769)(8 October 2026)
+- ELSAINSI-73 Rooli ja käytössä oleva opinto-oikeus voivat mennä epäsynkkaan usean välilehden välillä - YEK-sivut virheellisesti tavoitettavissa/estettyinä [`#768`](https://github.com/elsa-hanke/elsa-backend/pull/768)(8 October 2026)
+- ELSAINSI-61 Työskentelyjakson poisto mahdollistaa toisen käyttäjän liitteiden irrottamisen ennen käyttöoikeustarkistusta [`#759`](https://github.com/elsa-hanke/elsa-backend/pull/759)(6 October 2026)
+- ELSAINSI-76 (Pessimistinen lukko hyväksyntätransaktion alussa) [`#760`](https://github.com/elsa-hanke/elsa-backend/pull/760)(4 October 2026)
+- ELSAINSI-76 PDF tiedostojen generointi optimoinnit (ItextPdfAssembler and ItextPdfAssemblerTest) [`#757`](https://github.com/elsa-hanke/elsa-backend/pull/757)(2 October 2026)
+- More pdf integration tests [`#758`](https://github.com/elsa-hanke/elsa-backend/pull/758)(2 October 2026)
+- Bump dompurify from 3.4.13 to 3.4.16 in /frontend [`#754`](https://github.com/elsa-hanke/elsa-backend/pull/754)(2 October 2026)
+- Bump axios from 1.18.0 to 1.20.0 in /frontend [`#753`](https://github.com/elsa-hanke/elsa-backend/pull/753)(2 October 2026)
+- ELSAINSI-76 PDF tiedostojen generointi optimoinnit (PR1) [`#751`](https://github.com/elsa-hanke/elsa-backend/pull/751)(2 October 2026)
+- gradle 9.7.1 -&gt; 9.8.0 [`#755`](https://github.com/elsa-hanke/elsa-backend/pull/755)(2 October 2026)
+- Add PDF content assertions and regression tests [`#752`](https://github.com/elsa-hanke/elsa-backend/pull/752)(2 October 2026)
+- Enable HelsinkiArkistointiExternalIntegrationTests [`#711`](https://github.com/elsa-hanke/elsa-backend/pull/711)(1 October 2026)
+- ELSAINSI-59 Käyttäjä voi lisätä ja poistaa asiakirjoja muiden käyttäjien työskentelyjaksoista [`#710`](https://github.com/elsa-hanke/elsa-backend/pull/710)(1 October 2026)
+- e2e testi: osaamisen arviointi [`#749`](https://github.com/elsa-hanke/elsa-backend/pull/749)(29 September 2026)
+- e2e testi: seurantajakson kouluttajan arviointi [`#745`](https://github.com/elsa-hanke/elsa-backend/pull/745)(29 September 2026)
+- e2e testi: koejakson virkailijan tarkistus [`#743`](https://github.com/elsa-hanke/elsa-backend/pull/743)(28 September 2026)
+- e2e testi: kehittämistoimenpiteiden hyvaksyntä [`#740`](https://github.com/elsa-hanke/elsa-backend/pull/740)(28 September 2026)
+
+## [v2.4.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.1...v2.4.2) - 15 October 2026
+
+- fix: make feedback recipient configurable via environment variable [`#779`](https://github.com/elsa-hanke/elsa-backend/pull/779)(15 October 2026)
+
+## [v2.4.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.0...v2.4.1) - 7 October 2026
+
+- ELSA-1251 Erikoistuvan tili ei avaudu [`#767`](https://github.com/elsa-hanke/elsa-backend/pull/767)(7 October 2026)
+- ELSA-1245 Osasuoritusten siirtyminen Pepistä ELSAan [`#764`](https://github.com/elsa-hanke/elsa-backend/pull/764)(7 October 2026)
+- cypress e2e testit erikoismerkit [`#763`](https://github.com/elsa-hanke/elsa-backend/pull/763)(7 October 2026)
+- fix: Tila ei ohjaa käyttöoikeutta, joten tuntematon tila ei saa estää päättymispäivän, katseluajan ja asetuksen synkronointia (#762) [`#762`](https://github.com/elsa-hanke/elsa-backend/pull/762)(6 October 2026)
+- Tiedoston lataamisen tarkistuksen parannukset  [`#761`](https://github.com/elsa-hanke/elsa-backend/pull/761)(6 October 2026)
+
+## [v2.4.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.4...v2.4.0) - 22 September 2026
+
+- ELSAINSI-71 Käyttäjätilien yhdistäminen epäonnistuu, jos kouluttajatili on valittu keskeneräiselle koejaksolomakkeelle [`#732`](https://github.com/elsa-hanke/elsa-backend/pull/732)(22 September 2026)
+- e2e test aloituskeskustelun hyväksyntä [`#735`](https://github.com/elsa-hanke/elsa-backend/pull/735)(22 September 2026)
+- test: add end-to-end tests for koulutussopimuksen vastuuhenkilön hyväksyntä [`#734`](https://github.com/elsa-hanke/elsa-backend/pull/734)(22 September 2026)
+- e2e testi: koulutussopimuksen kouluttajan hyväksyntä [`#733`](https://github.com/elsa-hanke/elsa-backend/pull/733)(21 September 2026)
+- fix: simplify frontend image tag assignment in CI workflow [`#728`](https://github.com/elsa-hanke/elsa-backend/pull/728)(21 September 2026)
+- bouncycastle runtime exception fix  [`#729`](https://github.com/elsa-hanke/elsa-backend/pull/729)(21 September 2026)
+- fix: bump Bouncy Castle provider version to 1.85 in build.gradle [`#727`](https://github.com/elsa-hanke/elsa-backend/pull/727)(19 September 2026)
+- Enhance alert system to publish recovery alerts for incidents [`#725`](https://github.com/elsa-hanke/elsa-backend/pull/725)(17 September 2026)
+- Päivämerkintä max length 255 [`#724`](https://github.com/elsa-hanke/elsa-backend/pull/724)(16 September 2026)
+- Replace Teams notifications with email notifications for stage / prod [`#723`](https://github.com/elsa-hanke/elsa-backend/pull/723)(16 September 2026)
+- Release v2.3.X merge [`#722`](https://github.com/elsa-hanke/elsa-backend/pull/722)(16 September 2026)
+- Bump baseline-browser-mapping from 2.10.30 to 2.11.21 in /frontend [`#719`](https://github.com/elsa-hanke/elsa-backend/pull/719)(11 September 2026)
+- Bump js-yaml from 3.15.1 to 3.15.2 in /frontend [`#720`](https://github.com/elsa-hanke/elsa-backend/pull/720)(11 September 2026)
+- Bump svgo from 2.8.3 to 2.8.4 in /frontend [`#721`](https://github.com/elsa-hanke/elsa-backend/pull/721)(10 September 2026)
+- Improve logging for successful and unrecognized study rights [`#716`](https://github.com/elsa-hanke/elsa-backend/pull/716)(10 September 2026)
+- Bump joi from 17.6.0 to 17.13.7 in /frontend [`#717`](https://github.com/elsa-hanke/elsa-backend/pull/717)(10 September 2026)
+- Release v2.3.X merge [`#718`](https://github.com/elsa-hanke/elsa-backend/pull/718)(10 September 2026)
+- Bump fast-uri from 3.1.5 to 3.1.7 in /frontend [`#707`](https://github.com/elsa-hanke/elsa-backend/pull/707)(4 September 2026)
 - ELSAINSI-56 Validointi koskien erikoismerkkejä [`#704`](https://github.com/elsa-hanke/elsa-backend/pull/704)(2 September 2026)
 - Update feedback email and enhance file validation logging [`#621`](https://github.com/elsa-hanke/elsa-backend/pull/621)(12 June 2026)
 - ELSA-1140 + e2e testit [`#608`](https://github.com/elsa-hanke/elsa-backend/pull/608)(5 June 2026)
@@ -11,6 +71,16 @@
 - ELSA-1135: jacksonVersion conflict fix + enhance error logging for exception handlers [`#548`](https://github.com/elsa-hanke/elsa-backend/pull/548)(7 May 2026)
 - enhance approval logging with detailed information and error handling [`#546`](https://github.com/elsa-hanke/elsa-backend/pull/546)(6 May 2026)
 - ELSA-1134: Lisäty logitusta, jotta nähdään mihin käsittely epäonnistuu [`#545`](https://github.com/elsa-hanke/elsa-backend/pull/545)(6 May 2026)
+
+## [v2.3.4](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.3...v2.3.4) - 17 September 2026
+
+- fix: update siilo-koodi values in application.yml for archiving metadata [`#726`](https://github.com/elsa-hanke/elsa-backend/pull/726)(17 September 2026)
+
+## [v2.3.3-1](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.2...v2.3.3-1) - 15 September 2026
+
+- Enhance error handling with localized messages for save operations [`#713`](https://github.com/elsa-hanke/elsa-backend/pull/713)(10 September 2026)
+- ELSA-1224 Erikoistuja ei saa auki Elsa-palveluun liitettyjä dokumentteja [`#712`](https://github.com/elsa-hanke/elsa-backend/pull/712)(10 September 2026)
+- fix: update Netty handler dependency to version 4.1.137.Final [`#714`](https://github.com/elsa-hanke/elsa-backend/pull/714)(10 September 2026)
 
 ## [v2.3.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.3.1...v2.3.2) - 4 September 2026
 
