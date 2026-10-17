@@ -503,6 +503,8 @@
     "kouluttaja-ohje": "Jos kyseessä on ensimmäinen kirjautuminen, käytät kutsulinkkiä, joka on saapunut osoitteesta reply@mail.elsapalvelu.fi otsikolla ”[ELSA-palvelu] Olet saanut kutsun liittyä ELSA-palvelun käyttäjäksi”. Muu kirjautumistapa ei toimi tilin aktivointiin.",
     "tarkista-seuraavat-tiedot": "Tarkistathan seuraavat kohdat, ennen yhteydenottoa:",
     "virheellinen-nimi-ohje": "Sisäänkirjautuminen epäonnistui. Kutsuun liitetty nimi ei vastaa kirjautumisessa saatua nimeä. Syynä saattaa olla käytössä oleva kutsumanimi tai kutsussa sattunut kirjoitusvirhe.",
+    "kutsussa-oleva-nimi": "Kutsussa oleva nimi:",
+    "tunnistautumisessa-saatu-nimi": "Tunnistautumisessa saatu nimi:",
     "virheellinen-nimi-ota-yhteys": "Nimen muokkaamiseksi ota yhteys tekniseen pääkäyttäjään osoitteeseen julia.sillanpaa@tuni.fi tai ohjaamasi erikoistujan yliopiston opintohallintoon, yhteystiedot:",
     "yhteystiedot": "https://www.laaketieteelliset.fi/ammatillinen-jatkokoulutus/yhteystiedot"
   },

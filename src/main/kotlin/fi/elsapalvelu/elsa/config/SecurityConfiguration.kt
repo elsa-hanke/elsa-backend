@@ -419,17 +419,7 @@ class SecurityConfiguration(
     private fun findLoginUser(
         cipher: Cipher, originalKey: SecretKey, hetu: String?, eppn: String?, firstName: String, lastName: String
     ): User {
-        val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
-        val verificationToken = attr.request.getParameter("RelayState")
-        var tokenUser: User? = null
-
-        // Kutsuttu käyttäjä
-        if (verificationToken != null && verificationToken != DEFAULT_RELAY_STATE) {
-            verificationTokenRepository.findById(verificationToken).ifPresent {
-                tokenUser = userRepository.findByIdWithAuthorities(it.user?.id.required()).get()
-                userService.createOrUpdateUserWithToken(tokenUser, it, cipher, originalKey, hetu, eppn, firstName, lastName)
-            }
-        }
+        val tokenUser = processInvitation(cipher, originalKey, hetu, eppn, firstName, lastName)
 
         var existingUser = userService.findExistingUser(cipher, originalKey, hetu, eppn)
 
@@ -470,6 +460,33 @@ class SecurityConfiguration(
             }
         }
         return existingUser
+    }
+
+    private fun processInvitation(
+        cipher: Cipher, originalKey: SecretKey, hetu: String?, eppn: String?, firstName: String, lastName: String
+    ): User? {
+        val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
+        attr.request.getSession(false)?.removeAttribute(LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE)
+        val verificationToken = attr.request.getParameter("RelayState")
+        if (verificationToken == null || verificationToken == DEFAULT_RELAY_STATE) return null
+
+        val token = verificationTokenRepository.findById(verificationToken).orElse(null) ?: return null
+        val tokenUser = userRepository.findByIdWithAuthorities(token.user?.id.required()).get()
+        try {
+            userService.createOrUpdateUserWithToken(tokenUser, token, cipher, originalKey, hetu, eppn, firstName, lastName)
+        } catch (ex: Exception) {
+            if (ex.message == LoginException.VIRHEELLINEN_NIMI.name) {
+                attr.request.session.setAttribute(
+                    LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE,
+                    LoginNameMismatch(
+                        invitationName = listOfNotNull(tokenUser.firstName, tokenUser.lastName).joinToString(" "),
+                        authenticatedName = "$firstName $lastName"
+                    )
+                )
+            }
+            throw ex
+        }
+        return tokenUser
     }
 
     private fun shouldFetchOpintotietodata(
