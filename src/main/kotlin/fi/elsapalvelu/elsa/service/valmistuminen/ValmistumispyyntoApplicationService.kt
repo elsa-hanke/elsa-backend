@@ -46,7 +46,7 @@ class ValmistumispyyntoApplicationService(
     ): ValmistumispyyntoDTO {
         validateRequest(userId, opintooikeusId, uusiValmistumispyyntoDTO, laillistamistodistus, entityName)
         validateValmistumispyyntoNotExists(opintooikeusId, entityName)
-        validateLaillistamistodistusIfExists(laillistamistodistus, entityName)
+        validateLaillistamistodistusIfExists(laillistamistodistus)
         updateLaillistamistiedot(userId, uusiValmistumispyyntoDTO, laillistamistodistus)
 
         return valmistumispyyntoService.create(opintooikeusId, uusiValmistumispyyntoDTO)
@@ -93,7 +93,7 @@ class ValmistumispyyntoApplicationService(
         entityName: String
     ): ValmistumispyyntoDTO {
         validateRequest(userId, opintooikeusId, uusiValmistumispyyntoDTO, laillistamistodistus, entityName)
-        validateLaillistamistodistusIfExists(laillistamistodistus, entityName)
+        validateLaillistamistodistusIfExists(laillistamistodistus)
         if (requireNotSent) {
             validateValmistumispyyntoNotSent(opintooikeusId, entityName)
         }
@@ -176,16 +176,9 @@ class ValmistumispyyntoApplicationService(
     }
 
     private fun validateLaillistamistodistusIfExists(
-        laillistamistodistus: MultipartFile?,
-        entityName: String
+        laillistamistodistus: MultipartFile?
     ) {
-        if (laillistamistodistus != null && !fileValidationService.validate(listOf(laillistamistodistus))) {
-            throw BadRequestAlertException(
-                "Tiedosto ei ole kelvollinen.",
-                entityName,
-                "dataillegal.tiedosto-ei-ole-kelvollinen"
-            )
-        }
+        laillistamistodistus?.let { fileValidationService.validate(listOf(it)) }
     }
 
     private fun updateLaillistamistiedot(

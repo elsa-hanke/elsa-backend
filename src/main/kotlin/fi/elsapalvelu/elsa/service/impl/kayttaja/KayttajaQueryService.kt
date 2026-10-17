@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.impl.kayttaja
 
 import fi.elsapalvelu.elsa.required
 
-import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.*
@@ -67,12 +66,10 @@ class KayttajaQueryService(
 
     @Transactional(readOnly = true)
     fun findByCriteriaAndAuthorities(
-        activeAuthority: String?,
         criteria: KayttajahallintaCriteria?,
         pageable: Pageable,
         langkey: String?,
         authorities: List<String>,
-        yliopistot: List<Long?>,
         nullAuthority: Boolean?
     ): Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO> {
 
@@ -85,10 +82,6 @@ class KayttajaQueryService(
                     .and(hasName(criteria?.nimi, langkey))
                     .and(hasErikoisala(criteria?.erikoisalaId))
             }
-
-        if (activeAuthority != null && activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name && yliopistot.isNotEmpty()) {
-            specification.and(hasOpintooikeusYliopisto(yliopistot[0]))
-        }
 
         return kayttajaRepository.findAll(specification, pageable).map { mapKayttajaErikoistujaKouluttaja(it) }
     }
@@ -110,21 +103,6 @@ class KayttajaQueryService(
                 )
                 cb.exists(subquery)
             }
-        })
-    }
-
-    private fun hasOpintooikeusYliopisto(yliopistoId: Long?): Specification<Kayttaja> {
-        return (Specification<Kayttaja> { root, query, cb ->
-            val subquery = query.required().subquery(Long::class.java)
-            val subRoot = subquery.from(Opintooikeus::class.java)
-            val rootJoin = subRoot.join(Opintooikeus_.erikoistuvaLaakari)
-            val yliopistoJoin = subRoot.join(Opintooikeus_.yliopisto)
-            subquery.select(subRoot.get(Opintooikeus_.id))
-            subquery.where(
-                cb.equal(yliopistoJoin.get(Yliopisto_.id), yliopistoId),
-                cb.equal(root.get(Kayttaja_.id), rootJoin.get(ErikoistuvaLaakari_.kayttaja))
-            )
-            cb.exists(subquery)
         })
     }
 

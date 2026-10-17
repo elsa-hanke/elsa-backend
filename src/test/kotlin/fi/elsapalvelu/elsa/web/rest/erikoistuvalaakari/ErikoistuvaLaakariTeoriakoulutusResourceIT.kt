@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
@@ -7,6 +8,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.mapper.koulutus.TeoriakoulutusMapper
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -23,16 +25,17 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
@@ -62,6 +65,9 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
     @Autowired
     private lateinit var restTeoriakoulutusMockMvc: MockMvc
 
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
     private lateinit var teoriakoulutus: Teoriakoulutus
 
     private lateinit var user: User
@@ -89,8 +95,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
                         DEFAULT_FILE
                     )
                 )
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("koulutuksenNimi", requireNotNull(teoriakoulutusDTO.koulutuksenNimi))
+                .param("koulutuksenPaikka", requireNotNull(teoriakoulutusDTO.koulutuksenPaikka))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -118,6 +124,101 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
 
     @Test
     @Transactional
+    fun `creates teoriakoulutus with a permission-restricted certificate and stores the original`() {
+        initTest()
+        val sizeBeforeCreate = teoriakoulutusRepository.count()
+        val certificate = PdfTestData.certificate(openingPassword = "")
+
+        val response = uploadCertificate(certificate).andExpect(status().isCreated).andReturn().response
+        val id = objectMapper.readTree(response.contentAsString).get("id").longValue()
+        em.flush()
+        em.clear()
+
+        assertThat(teoriakoulutusRepository.count()).isEqualTo(sizeBeforeCreate + 1)
+        val stored = teoriakoulutusRepository.findById(id).orElseThrow()
+        assertThat(stored.todistukset).hasSize(1)
+        val attachment = stored.todistukset.single()
+        assertThat(attachment.nimi).isEqualTo("restricted-certificate.pdf")
+        assertThat(attachment.tyyppi).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+        assertThat(attachment.asiakirjaData?.data).isEqualTo(certificate)
+    }
+
+    @Test
+    @Transactional
+    fun `rejects a certificate requiring an opening password without saving teoriakoulutus`() {
+        initTest()
+        val sizeBeforeCreate = teoriakoulutusRepository.count()
+        val certificate = PdfTestData.certificate(openingPassword = "required-password")
+
+        uploadCertificate(certificate).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("error.dataillegal.pdf-tiedosto-vaatii-salasanan"))
+
+        assertThat(teoriakoulutusRepository.count()).isEqualTo(sizeBeforeCreate)
+    }
+
+    @Test
+    @Transactional
+    fun `rejects invalid PDF content with its own message`() {
+        assertRejectedUpload("not a PDF".toByteArray(), "application/pdf", "pdf-tiedostoa-ei-voitu-kasitella")
+    }
+
+    @Test
+    @Transactional
+    fun `rejects an empty file with its own message`() {
+        assertRejectedUpload(ByteArray(0), "application/pdf", "tiedosto-on-tyhja")
+    }
+
+    @Test
+    @Transactional
+    fun `rejects an unsupported type with its own message`() {
+        assertRejectedUpload("text".toByteArray(), "text/plain", "tiedostotyyppi-ei-ole-sallittu")
+    }
+
+    @Test
+    @Transactional
+    fun `rejects an existing attachment name with its own message`() {
+        initTest()
+        val certificate = PdfTestData.certificate()
+        uploadCertificate(certificate).andExpect(status().isCreated)
+        val sizeAfterFirstUpload = teoriakoulutusRepository.count()
+
+        uploadCertificate(certificate).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("error.dataillegal.samanniminen-tiedosto-on-jo-olemassa"))
+
+        assertThat(teoriakoulutusRepository.count()).isEqualTo(sizeAfterFirstUpload)
+    }
+
+    private fun assertRejectedUpload(data: ByteArray, contentType: String, key: String) {
+        initTest()
+        val sizeBeforeCreate = teoriakoulutusRepository.count()
+        uploadCertificate(data, contentType).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("error.dataillegal.$key"))
+        assertThat(teoriakoulutusRepository.count()).isEqualTo(sizeBeforeCreate)
+    }
+
+    private fun uploadCertificate(certificate: ByteArray, contentType: String = MediaType.APPLICATION_PDF_VALUE): ResultActions {
+        val dto = teoriakoulutusMapper.toDto(teoriakoulutus)
+        return restTeoriakoulutusMockMvc.perform(
+            multipart(ENTITY_API_URL)
+                .file(
+                    MockMultipartFile(
+                        "todistusFiles",
+                        "restricted-certificate.pdf",
+                        contentType,
+                        certificate
+                    )
+                )
+                .param("koulutuksenNimi", requireNotNull(dto.koulutuksenNimi))
+                .param("koulutuksenPaikka", requireNotNull(dto.koulutuksenPaikka))
+                .param("alkamispaiva", dto.alkamispaiva.toString())
+                .param("paattymispaiva", dto.paattymispaiva.toString())
+                .param("erikoistumiseenHyvaksyttavaTuntimaara", dto.erikoistumiseenHyvaksyttavaTuntimaara.toString())
+                .with(csrf())
+        )
+    }
+
+    @Test
+    @Transactional
     @Throws(Exception::class)
     fun createTeoriakoulutusWithoutOpintooikeus() {
         user = KayttajaResourceWithMockUserIT.createEntity()
@@ -127,7 +228,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         )
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            testSamlPrincipal(user.id, userDetails),
             "test",
             authorities
         )
@@ -139,8 +240,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         val teoriakoulutusDTO = teoriakoulutusMapper.toDto(teoriakoulutus)
         restTeoriakoulutusMockMvc.perform(
             multipart(ENTITY_API_URL)
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("koulutuksenNimi", requireNotNull(teoriakoulutusDTO.koulutuksenNimi))
+                .param("koulutuksenPaikka", requireNotNull(teoriakoulutusDTO.koulutuksenPaikka))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -168,8 +269,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         restTeoriakoulutusMockMvc.perform(
             multipart(ENTITY_API_URL)
                 .param("id", teoriakoulutusDTO.id.toString())
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("koulutuksenNimi", requireNotNull(teoriakoulutusDTO.koulutuksenNimi))
+                .param("koulutuksenPaikka", requireNotNull(teoriakoulutusDTO.koulutuksenPaikka))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -196,8 +297,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
 
         restTeoriakoulutusMockMvc.perform(
             multipart(ENTITY_API_URL)
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("koulutuksenPaikka", requireNotNull(teoriakoulutusDTO.koulutuksenPaikka))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -224,8 +324,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
 
         restTeoriakoulutusMockMvc.perform(
             multipart(ENTITY_API_URL)
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("koulutuksenNimi", requireNotNull(teoriakoulutusDTO.koulutuksenNimi))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -252,8 +351,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
 
         restTeoriakoulutusMockMvc.perform(
             multipart(ENTITY_API_URL)
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("koulutuksenNimi", requireNotNull(teoriakoulutusDTO.koulutuksenNimi))
+                .param("koulutuksenPaikka", requireNotNull(teoriakoulutusDTO.koulutuksenPaikka))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -395,8 +494,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
                 )
                 .param("deletedAsiakirjaIdsJson", "[$asiakirjaId]")
                 .param("id", teoriakoulutusDTO.id.toString())
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("koulutuksenNimi", requireNotNull(teoriakoulutusDTO.koulutuksenNimi))
+                .param("koulutuksenPaikka", requireNotNull(teoriakoulutusDTO.koulutuksenPaikka))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -452,8 +551,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
                     )
                 )
                 .param("id", teoriakoulutusDTO.id.toString())
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("koulutuksenNimi", requireNotNull(teoriakoulutusDTO.koulutuksenNimi))
+                .param("koulutuksenPaikka", requireNotNull(teoriakoulutusDTO.koulutuksenPaikka))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -480,8 +579,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         restTeoriakoulutusMockMvc.perform(
             multipart(ENTITY_API_URL_ID, teoriakoulutus.id)
                 .param("id", teoriakoulutusDTO.id.toString())
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("koulutuksenNimi", requireNotNull(teoriakoulutusDTO.koulutuksenNimi))
+                .param("koulutuksenPaikka", requireNotNull(teoriakoulutusDTO.koulutuksenPaikka))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -510,8 +609,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         restTeoriakoulutusMockMvc.perform(
             multipart(ENTITY_API_URL_ID, count.incrementAndGet())
                 .param("id", teoriakoulutusDTO.id.toString())
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("koulutuksenNimi", requireNotNull(teoriakoulutusDTO.koulutuksenNimi))
+                .param("koulutuksenPaikka", requireNotNull(teoriakoulutusDTO.koulutuksenPaikka))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -546,9 +645,9 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
 
         restTeoriakoulutusMockMvc.perform(
             multipart(ENTITY_API_URL_ID, teoriakoulutus.id)
-                .param("id", null)
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("id", "")
+                .param("koulutuksenNimi", requireNotNull(teoriakoulutusDTO.koulutuksenNimi))
+                .param("koulutuksenPaikka", requireNotNull(teoriakoulutusDTO.koulutuksenPaikka))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -575,8 +674,8 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         restTeoriakoulutusMockMvc.perform(
             multipart(ENTITY_API_URL)
                 .param("id", teoriakoulutusDTO.id.toString())
-                .param("koulutuksenNimi", teoriakoulutusDTO.koulutuksenNimi)
-                .param("koulutuksenPaikka", teoriakoulutusDTO.koulutuksenPaikka)
+                .param("koulutuksenNimi", requireNotNull(teoriakoulutusDTO.koulutuksenNimi))
+                .param("koulutuksenPaikka", requireNotNull(teoriakoulutusDTO.koulutuksenPaikka))
                 .param("alkamispaiva", teoriakoulutusDTO.alkamispaiva.toString())
                 .param("paattymispaiva", teoriakoulutusDTO.paattymispaiva.toString())
                 .param(
@@ -618,7 +717,7 @@ class ErikoistuvaLaakariTeoriakoulutusResourceIT {
         )
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            testSamlPrincipal(user.id, userDetails),
             "test",
             authorities
         )

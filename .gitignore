@@ -5,6 +5,9 @@
 /src/test/javascript/coverage/
 infra/.env.e2e
 
+# Generated YEK document downloads from Cypress tests
+/e2e/cypress/downloads/*
+
 ######################
 # Node
 ######################
@@ -81,6 +84,7 @@ out/
 # Gradle
 ######################
 .gradle/
+/.kotlin/
 /build/
 
 ######################
@@ -157,3 +161,5 @@ Desktop.ini
 .env
 .env.replica
 .nvmrc
+/infra-live/
+/AGENTS.md

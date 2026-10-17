@@ -24,7 +24,7 @@ open class TerveyskeskuskoulutusjaksoBaseResource(
      *  - EntityNotFoundException  → "Vastuuhenkilöä ei löytynyt"
      *  - ValidationException      → "vähimmäispituus ei täyty"
      */
-    protected fun <T> withTerveyskeskusExceptionHandling(block: () -> ResponseEntity<T>): ResponseEntity<T> =
+    protected fun <T : Any> withTerveyskeskusExceptionHandling(block: () -> ResponseEntity<T>): ResponseEntity<T> =
         try {
             block()
         } catch (e: EntityNotFoundException) {

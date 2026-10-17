@@ -19,7 +19,6 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.Mockito
@@ -29,6 +28,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Profile
 import org.springframework.test.context.ActiveProfiles
 import java.nio.file.Paths
 import java.util.stream.Stream
@@ -39,7 +39,6 @@ import java.util.stream.Stream
  */
 @SpringBootTest(classes = [HelsinkiArkistointiExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class HelsinkiArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport() {
 
     @Autowired
@@ -84,6 +83,7 @@ class HelsinkiArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppo
 }
 
 @SpringBootConfiguration
+@Profile("external-integration")
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     HelsinkiSiiloService::class,

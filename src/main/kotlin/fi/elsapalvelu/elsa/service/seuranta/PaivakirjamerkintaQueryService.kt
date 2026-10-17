@@ -46,8 +46,8 @@ class PaivakirjamerkintaQueryService(
             .map(paivakirjamerkintaMapper::toDto)
     }
 
-    private fun createSpecification(criteria: PaivakirjamerkintaCriteria?, spec: Specification<Paivakirjamerkinta?>? = null): Specification<Paivakirjamerkinta?> {
-        var specification: Specification<Paivakirjamerkinta?> = spec ?: Specification.unrestricted()
+    private fun createSpecification(criteria: PaivakirjamerkintaCriteria?, spec: Specification<Paivakirjamerkinta>? = null): Specification<Paivakirjamerkinta> {
+        var specification: Specification<Paivakirjamerkinta> = spec ?: Specification.unrestricted()
         if (criteria != null) {
             if (criteria.id != null) {
                 specification = specification.and { root, _, cb -> cb.equal(root.get(Paivakirjamerkinta_.id), criteria.id.required().equals) }

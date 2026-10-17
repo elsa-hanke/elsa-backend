@@ -8,20 +8,13 @@ import java.security.Principal
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
 import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
-import fi.elsapalvelu.elsa.service.dto.*
-import fi.elsapalvelu.elsa.service.dto.koejakso.*
-import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
-import fi.elsapalvelu.elsa.service.dto.arviointi.*
-import fi.elsapalvelu.elsa.service.dto.suoritteet.*
-import fi.elsapalvelu.elsa.service.dto.koulutus.*
-import fi.elsapalvelu.elsa.service.dto.seuranta.*
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
-import fi.elsapalvelu.elsa.service.dto.kayttaja.*
-import fi.elsapalvelu.elsa.service.dto.perustiedot.*
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonAsiakirjaService
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
+import fi.elsapalvelu.elsa.web.rest.errors.ValmistumispyynnonHyvaksyntaKaynnissaException
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -34,7 +27,8 @@ import jakarta.validation.Valid
 @RequestMapping("/api/vastuuhenkilo")
 class VastuuhenkiloValmistumispyyntoResource(
     private val userService: UserService,
-    private val valmistumispyyntoService: ValmistumispyyntoService
+    private val valmistumispyyntoService: ValmistumispyyntoService,
+    private val asiakirjaService: ValmistumispyynnonAsiakirjaService
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     @GetMapping("/valmistumispyynnot")
@@ -141,6 +135,8 @@ class VastuuhenkiloValmistumispyyntoResource(
             throw ex
         } catch (ex: UnsupportedPdfCharactersException) {
             throw ex
+        } catch (ex: ValmistumispyynnonHyvaksyntaKaynnissaException) {
+            throw ex
         } catch (ex: Exception) {
             log.error("PUT request failed for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id", ex)
             throw ex
@@ -154,7 +150,7 @@ class VastuuhenkiloValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirja(user.id.required(), valmistumispyyntoId, asiakirjaId)
+        val asiakirja = asiakirjaService.haeValmistumispyynnonAsiakirja(user.id.required(), valmistumispyyntoId, asiakirjaId)
 
         return asiakirja?.asiakirjaData?.fileInputStream
             ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
@@ -168,7 +164,7 @@ class VastuuhenkiloValmistumispyyntoResource(
         principal: Principal?
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
-        val asiakirja = valmistumispyyntoService.getValmistumispyynnonTyoskentelyjaksoAsiakirja(user.id.required(), valmistumispyyntoId, asiakirjaId)
+        val asiakirja = asiakirjaService.haeTyoskentelyjaksonAsiakirja(user.id.required(), valmistumispyyntoId, asiakirjaId)
 
         return asiakirja?.asiakirjaData?.fileInputStream
             ?.toFileDownloadResponse(asiakirja.nimi.orEmpty(), asiakirja.tyyppi.orEmpty())
