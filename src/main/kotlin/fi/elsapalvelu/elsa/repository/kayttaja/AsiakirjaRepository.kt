@@ -18,10 +18,13 @@ interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
         """
         select a from Asiakirja a join a.opintooikeus o
         where o.id in :opintooikeusId and a.arviointi.id is null and a.itsearviointi.id is null
+          and a.archiveSnapshot = false
         """
     )
     fun findAllByOpintooikeusId(opintooikeusId: Long): List<Asiakirja>
 
+    @Query("select a from Asiakirja a where a.opintooikeus.id = :opintooikeusId and a.archiveSnapshot = false " +
+        "and ((:tyoskentelyJaksoId is null and a.tyoskentelyjakso is null) or a.tyoskentelyjakso.id = :tyoskentelyJaksoId)")
     fun findAllByOpintooikeusIdAndTyoskentelyjaksoId(
         opintooikeusId: Long,
         tyoskentelyJaksoId: Long?

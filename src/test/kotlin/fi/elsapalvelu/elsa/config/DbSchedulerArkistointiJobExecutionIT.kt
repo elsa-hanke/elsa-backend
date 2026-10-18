@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer
+import org.ehcache.jsr107.EhcacheCachingProvider
+import org.ehcache.core.config.DefaultConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
@@ -18,6 +21,8 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.Duration
 import java.time.Instant
+import java.net.URI
+import javax.cache.Caching
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
@@ -80,6 +85,14 @@ class DbSchedulerArkistointiJobExecutionIT {
     class ProcessorConfiguration {
         @Bean
         fun recordingProcessor() = RecordingProcessor()
+
+        // Closing this @DirtiesContext must not close the provider's default manager
+        // still used by other cached Spring test contexts.
+        @Bean
+        fun isolatedJCacheManager(customizer: JCacheManagerCustomizer): javax.cache.CacheManager =
+            (Caching.getCachingProvider() as EhcacheCachingProvider).getCacheManager(
+                URI("urn:elsa:db-scheduler-execution-it"), DefaultConfiguration(javaClass.classLoader)
+            ).also(customizer::customize)
     }
 
     class RecordingProcessor : ArkistointiJobProcessor {

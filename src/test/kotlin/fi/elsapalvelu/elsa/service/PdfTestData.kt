@@ -5,8 +5,7 @@ import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy
-import org.apache.pdfbox.pdmodel.font.PDType1Font
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts
+import org.apache.pdfbox.pdmodel.font.PDType0Font
 import java.io.ByteArrayOutputStream
 
 object PdfTestData {
@@ -23,7 +22,9 @@ object PdfTestData {
             document.addPage(page)
             PDPageContentStream(document, page).use { content ->
                 content.beginText()
-                content.setFont(PDType1Font(Standard14Fonts.FontName.HELVETICA), 12f)
+                val font = requireNotNull(javaClass.getResourceAsStream("/fonts/LiberationSerif-Regular.ttf"))
+                    .use { PDType0Font.load(document, it) }
+                content.setFont(font, 12f)
                 content.newLineAtOffset(50f, 700f)
                 content.showText(text)
                 content.endText()

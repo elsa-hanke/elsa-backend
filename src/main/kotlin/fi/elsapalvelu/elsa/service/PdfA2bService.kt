@@ -4,12 +4,17 @@ import com.itextpdf.io.image.ImageDataFactory
 import com.itextpdf.kernel.geom.PageSize
 import com.itextpdf.kernel.pdf.PdfAConformanceLevel
 import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfDictionary
+import com.itextpdf.kernel.pdf.PdfName
+import com.itextpdf.kernel.pdf.PdfObject
+import com.itextpdf.kernel.font.PdfFontFactory
 import com.itextpdf.kernel.pdf.PdfOutputIntent
 import com.itextpdf.kernel.pdf.PdfReader
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.layout.Document
 import com.itextpdf.layout.element.Image
 import com.itextpdf.pdfa.PdfADocument
+import com.itextpdf.pdfa.checker.PdfA2Checker
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -52,18 +57,13 @@ class PdfA2bService(
         }
 
         return try {
-            val declaredPdfA2b = PdfDocument(PdfReader(ByteArrayInputStream(data))).use { document ->
-                document.numberOfPages > 0 &&
-                    document.reader.pdfAConformanceLevel == PdfAConformanceLevel.PDF_A_2B
-            }
-            if (!declaredPdfA2b) {
-                return false
-            }
-            PdfADocument(
-                PdfReader(ByteArrayInputStream(data)),
-                PdfWriter(ByteArrayOutputStream())
-            ).use { document ->
-                check(document.numberOfPages > 0)
+            // Validate the original in read-only mode: stamping can repair metadata before checking it.
+            PdfDocument(PdfReader(ByteArrayInputStream(data))).use { document ->
+                if (document.numberOfPages == 0 ||
+                    document.reader.pdfAConformanceLevel != PdfAConformanceLevel.PDF_A_2B) {
+                    return false
+                }
+                StrictPdfA2Checker().checkDocument(document.catalog)
             }
             true
         } catch (_: Exception) {
@@ -88,11 +88,17 @@ class PdfA2bService(
             return data.copyOf()
         }
 
+        // Remove permission restrictions from a processing copy; an opening password still fails.
+        val prepared = try {
+            PdfPreparation.prepare(data)
+        } catch (exception: Exception) {
+            throw IllegalArgumentException("Arkistoitavaa PDF-tiedostoa ei voida kasitella", exception)
+        }
         return try {
-            copyPdfToPdfA(data)
+            copyPdfToPdfA(prepared).also { check(isPdfA2b(it)) }
         } catch (_: Exception) {
             try {
-                rasterizePdfToPdfA(data)
+                rasterizePdfToPdfA(prepared).also { check(isPdfA2b(it)) }
             } catch (exception: Exception) {
                 throw IllegalArgumentException("Arkistoitavaa PDF-tiedostoa ei voida kasitella", exception)
             }
@@ -117,6 +123,17 @@ class PdfA2bService(
         Loader.loadPDF(data).use { source ->
             require(!source.isEncrypted && source.numberOfPages > 0) {
                 "Arkistoitava PDF on salattu tai sivuton"
+            }
+            require(source.numberOfPages <= MAX_RASTER_PAGES) { "PDF contains too many pages to rasterize" }
+            var totalPixels = 0.0
+            source.pages.forEach { page ->
+                val width = page.cropBox.width.toDouble() * RASTER_DPI / POINTS_PER_INCH
+                val height = page.cropBox.height.toDouble() * RASTER_DPI / POINTS_PER_INCH
+                val pixels = kotlin.math.ceil(width) * kotlin.math.ceil(height)
+                require(width.isFinite() && height.isFinite() && width > 0 && height > 0 &&
+                    pixels <= MAX_PAGE_PIXELS) { "PDF page is too large to rasterize" }
+                totalPixels += pixels
+                require(totalPixels <= MAX_TOTAL_PIXELS) { "PDF is too large to rasterize" }
             }
             val renderer = PDFRenderer(source)
             createDocument(output).use { target ->
@@ -147,6 +164,19 @@ class PdfA2bService(
     }
 
     private fun imageToPdfA(data: ByteArray): ByteArray {
+        ImageIO.createImageInputStream(ByteArrayInputStream(data)).use { input ->
+            val readers = ImageIO.getImageReaders(input)
+            require(readers.hasNext()) { "Unsupported image" }
+            val reader = readers.next()
+            try {
+                reader.input = input
+                require(reader.getWidth(0).toLong() * reader.getHeight(0) <= MAX_PAGE_PIXELS) {
+                    "Image is too large to normalize"
+                }
+            } finally {
+                reader.dispose()
+            }
+        }
         val output = ByteArrayOutputStream()
         val imageData = ImageDataFactory.create(data)
         val pageSize = pageSize(imageData.width, imageData.height)
@@ -160,7 +190,7 @@ class PdfA2bService(
                 )
             }
         }
-        return output.toByteArray()
+        return output.toByteArray().also { check(isPdfA2b(it)) }
     }
 
     private fun pageSize(width: Float, height: Float) = PageSize(
@@ -169,9 +199,28 @@ class PdfA2bService(
     )
 
     private companion object {
+        const val MAX_RASTER_PAGES = 200
+        const val MAX_PAGE_PIXELS = 10_000_000.0
+        const val MAX_TOTAL_PIXELS = 50_000_000.0
         const val RASTER_DPI = 150F
         const val POINTS_PER_INCH = 72F
         const val MIN_PAGE_SIZE = 3F
         const val MAX_PAGE_SIZE = 14_400F
+    }
+}
+
+/** Check existing streams and fonts too; iText's stamping defaults assume a conforming source. */
+private class StrictPdfA2Checker : PdfA2Checker(PdfAConformanceLevel.PDF_A_2B) {
+    init {
+        isFullCheckMode = true
+    }
+
+    override fun checkResources(resources: PdfDictionary?, pdfObject: PdfObject?) {
+        resources?.getAsDictionary(PdfName.Font)?.let { fonts ->
+            fonts.keySet().forEach { name ->
+                checkFont(PdfFontFactory.createFont(fonts.getAsDictionary(name)))
+            }
+        }
+        super.checkResources(resources, pdfObject)
     }
 }

@@ -12,7 +12,8 @@ import org.springframework.transaction.annotation.Transactional
 class ArkistointiJobCreatorImpl(
     private val jobRepository: ArkistointiJobRepository,
     private val jobScheduler: ArkistointiJobScheduler,
-    private val pdfA2bService: PdfA2bService
+    private val pdfA2bService: PdfA2bService,
+    private val snapshotService: ArkistointiAsiakirjaSnapshotService
 ) : ArkistointiJobCreator {
 
     @Transactional
@@ -32,9 +33,12 @@ class ArkistointiJobCreatorImpl(
             key = pyynto.key
         )
         pyynto.asiakirjat.sortedBy { it.jarjestysnumero }.forEach { reference ->
+            val snapshot = snapshotService.createReference(
+                reference.asiakirja, reference.asiakirjatyyppi, reference.jarjestysnumero
+            )
             job.lisaaAsiakirja(
                 ArkistointiJobAsiakirja(
-                    asiakirja = reference.asiakirja,
+                    asiakirja = snapshot.asiakirja,
                     asiakirjatyyppi = reference.asiakirjatyyppi,
                     jarjestysnumero = reference.jarjestysnumero,
                     filename = reference.filename,
