@@ -7,6 +7,8 @@ import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfDictionary
 import com.itextpdf.kernel.pdf.PdfName
 import com.itextpdf.kernel.pdf.PdfObject
+import com.itextpdf.kernel.pdf.PdfResources
+import com.itextpdf.kernel.pdf.PdfStream
 import com.itextpdf.kernel.font.PdfFontFactory
 import com.itextpdf.kernel.pdf.PdfOutputIntent
 import com.itextpdf.kernel.pdf.PdfReader
@@ -59,11 +61,11 @@ class PdfA2bService(
         return try {
             // Validate the original in read-only mode: stamping can repair metadata before checking it.
             PdfDocument(PdfReader(ByteArrayInputStream(data))).use { document ->
-                if (document.numberOfPages == 0 ||
+                if (document.reader.isEncrypted || document.numberOfPages == 0 ||
                     document.reader.pdfAConformanceLevel != PdfAConformanceLevel.PDF_A_2B) {
                     return false
                 }
-                StrictPdfA2Checker().checkDocument(document.catalog)
+                StrictPdfA2Checker().validate(document)
             }
             true
         } catch (_: Exception) {
@@ -215,6 +217,18 @@ private class StrictPdfA2Checker : PdfA2Checker(PdfAConformanceLevel.PDF_A_2B) {
         isFullCheckMode = true
     }
 
+    fun validate(document: PdfDocument) {
+        setPdfAOutputIntentColorSpace(document.catalog.pdfObject)
+        // checkDocument checks stream operands, but canvas checks need interpreted graphics state.
+        // Interpret first so its color/transparency usage is available to the document checks.
+        for (pageNumber in 1..document.numberOfPages) {
+            val page = document.getPage(pageNumber)
+            val stream = if (page.contentStreamCount > 0) page.getContentStream(0) else null
+            PdfA2bCanvasValidator(this, stream).processPageContent(page)
+        }
+        checkDocument(document.catalog)
+    }
+
     override fun checkResources(resources: PdfDictionary?, pdfObject: PdfObject?) {
         resources?.getAsDictionary(PdfName.Font)?.let { fonts ->
             fonts.keySet().forEach { name ->
@@ -222,5 +236,13 @@ private class StrictPdfA2Checker : PdfA2Checker(PdfAConformanceLevel.PDF_A_2B) {
             }
         }
         super.checkResources(resources, pdfObject)
+    }
+
+    override fun checkAppearanceStream(appearanceStream: PdfStream) {
+        PdfA2bCanvasValidator(this, appearanceStream).processContent(
+            appearanceStream.bytes,
+            PdfResources(appearanceStream.getAsDictionary(PdfName.Resources) ?: PdfDictionary())
+        )
+        super.checkAppearanceStream(appearanceStream)
     }
 }
