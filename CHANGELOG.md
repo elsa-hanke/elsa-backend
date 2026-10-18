@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...HEAD)
 
+- ELSAINSI-82 Nimen oikeellisuuden tarkistus virheviesti [`#781`](https://github.com/elsa-hanke/elsa-backend/pull/781)(17 October 2026)
 - Refactor: remove redundant @Valid annotations from MultipartFile parameters [`#780`](https://github.com/elsa-hanke/elsa-backend/pull/780)(16 October 2026)
 - Spring boot v3 -&gt; v4 bump [`#778`](https://github.com/elsa-hanke/elsa-backend/pull/778)(16 October 2026)
 - Bump proxy-addr from 2.0.7 to 2.0.8 in /frontend [`#775`](https://github.com/elsa-hanke/elsa-backend/pull/775)(9 October 2026)
