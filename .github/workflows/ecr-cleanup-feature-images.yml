@@ -79,17 +79,37 @@ jobs:
 
           OFFSET=0
           CHUNK_SIZE=100
+          DESCRIBE_ERROR=$(mktemp)
+          trap 'rm -f "$DESCRIBE_ERROR"' EXIT
           while [ "$OFFSET" -lt "$TOTAL" ]; do
             CHUNK=$(jq -c --argjson o "$OFFSET" --argjson c "$CHUNK_SIZE" \
               '.[$o:$o+$c]' <<< "$IMAGE_IDS")
 
             # Re-read tags immediately before deletion: a candidate may now be protected.
             # ECR does not support an atomic "delete only if still untagged" condition.
-            CURRENT_IMAGES=$(aws ecr describe-images \
+            if CURRENT_IMAGES=$(aws ecr describe-images \
               --repository-name "$REPO_NAME" \
               --image-ids "$CHUNK" \
               --output json \
-              --query 'imageDetails[*].{digest:imageDigest,tags:imageTags}')
+              --query 'imageDetails[*].{digest:imageDigest,tags:imageTags}' \
+              2> "$DESCRIBE_ERROR"); then
+              :
+            elif grep -Fq '(ImageNotFoundException)' "$DESCRIBE_ERROR"; then
+              # A concurrent cleanup may have removed a candidate. Listing the
+              # repository avoids failing on missing IDs; keep only this batch.
+              echo "Some candidates no longer exist; refreshing the remaining images."
+              CURRENT_IMAGES=$(aws ecr describe-images \
+                --repository-name "$REPO_NAME" \
+                --filter tagStatus=ANY \
+                --output json \
+                --query 'imageDetails[*].{digest:imageDigest,tags:imageTags}' |
+                jq -c --argjson ids "$CHUNK" '[
+                  .[] | select(.digest as $digest | $ids | any(.imageDigest == $digest))
+                ]')
+            else
+              cat "$DESCRIBE_ERROR" >&2
+              exit 1
+            fi
             CURRENT_IMAGE_IDS=$(select_image_ids <<< "$CURRENT_IMAGES")
 
             if [ "$CURRENT_IMAGE_IDS" != "[]" ]; then
@@ -101,7 +121,12 @@ jobs:
               echo "$RESULT"
 
               # ECR can report individual failures even when the CLI exits successfully.
-              if ! jq -e '.failures == []' <<< "$RESULT" > /dev/null; then
+              # Keep children of retained manifest lists, and tolerate images
+              # removed by a concurrent cleanup after the tag recheck.
+              if ! jq -e 'all(.failures[];
+                .failureCode == "ImageReferencedByManifestList" or
+                .failureCode == "ImageNotFound"
+              )' <<< "$RESULT" > /dev/null; then
                 echo "ECR did not successfully delete every requested image." >&2
                 exit 1
               fi
