@@ -167,7 +167,7 @@ dependencies {
     implementation "org.ehcache:ehcache"
     implementation "org.hibernate.orm:hibernate-jcache"
     implementation "org.hibernate.orm:hibernate-envers"
-    implementation "com.github.kagkarlsson:db-scheduler-spring-boot-starter:${dbSchedulerVersion}"
+    implementation "com.github.kagkarlsson:db-scheduler-spring-boot-4-starter:${dbSchedulerVersion}"
     implementation "org.springframework.boot:spring-boot-starter-mail"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
