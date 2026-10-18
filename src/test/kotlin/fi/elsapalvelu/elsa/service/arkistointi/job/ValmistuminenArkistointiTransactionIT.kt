@@ -117,11 +117,11 @@ class ValmistuminenArkistointiTransactionIT {
             val job = jobs.findByKey(key)!!
             assertThat(em.find(Valmistumispyynto::class.java, fixture.id).vastuuhenkiloHyvaksyjaKuittausaika)
                 .isEqualTo(LocalDate.now())
-            assertThat(job.asiakirjat.map { it.asiakirjatyyppi }).containsExactlyElementsOf(expectedTypes)
-            assertThat(job.asiakirjat.map { it.jarjestysnumero }).containsExactlyElementsOf(expectedTypes.indices.toList())
-            job.asiakirjat.forEach {
-                assertThat(it.asiakirja!!.archiveSnapshot).isTrue
-                assertThat(pdfA.isPdfA2b(loader.load(it).sisalto)).isTrue
+            assertThat(job.asiakirjat.map { asiakirja -> asiakirja.asiakirjatyyppi }).containsExactlyElementsOf(expectedTypes)
+            assertThat(job.asiakirjat.map { asiakirja -> asiakirja.jarjestysnumero }).containsExactlyElementsOf(expectedTypes.indices.toList())
+            job.asiakirjat.forEach { asiakirja ->
+                assertThat(asiakirja.asiakirja!!.archiveSnapshot).isTrue
+                assertThat(pdfA.isPdfA2b(loader.load(asiakirja).sisalto)).isTrue
             }
             assertThat(taskCount(job.id!!)).isEqualTo(1)
             val stored = job.payload!!
@@ -151,7 +151,9 @@ class ValmistuminenArkistointiTransactionIT {
         transactions.executeWithoutResult {
             val stored = jobs.findByKey(key)!!
             assertThat(stored.payload).isEqualTo(payload)
-            stored.asiakirjat.forEach { assertThat(pdfA.isPdfA2b(loader.load(it).sisalto)).isTrue }
+            stored.asiakirjat.forEach { asiakirja ->
+                assertThat(pdfA.isPdfA2b(loader.load(asiakirja).sisalto)).isTrue
+            }
         }
         assertThrows<BadRequestAlertException> { approve(fixture) }
         assertThat(jdbc.queryForObject("select count(*) from arkistointi_job where job_key = ?", Long::class.javaObjectType, key))
@@ -262,11 +264,11 @@ class ValmistuminenArkistointiTransactionIT {
 
     private fun fixture(kind: String, certificate: ByteArray? = PdfTestData.certificate()): ApprovalFixture = transactions.execute {
         val university = YliopistoHelper.createReferenceData(em, YliopistoEnum.TAMPEREEN_YLIOPISTO)
-        val specialty = em.findAll(Erikoisala::class).first {
+        val specialty = em.findAll(Erikoisala::class).first { erikoisala ->
             when (kind) {
-                "YEK" -> it.id == YEK_ERIKOISALA_ID
-                "EHL" -> it.tyyppi == ErikoisalaTyyppi.HAMMASLAAKETIEDE
-                else -> it.tyyppi == ErikoisalaTyyppi.LAAKETIEDE && it.id != YEK_ERIKOISALA_ID
+                "YEK" -> erikoisala.id == YEK_ERIKOISALA_ID
+                "EHL" -> erikoisala.tyyppi == ErikoisalaTyyppi.HAMMASLAAKETIEDE
+                else -> erikoisala.tyyppi == ErikoisalaTyyppi.LAAKETIEDE && erikoisala.id != YEK_ERIKOISALA_ID
             }
         }
         val guide = OpintoopasHelper.createEntity(em, erikoisala = specialty)
@@ -284,7 +286,7 @@ class ValmistuminenArkistointiTransactionIT {
             else VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         approver.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(
             kayttaja = approver, yliopisto = university, erikoisala = specialty,
-            vastuuhenkilonTehtavat = em.findAll(VastuuhenkilonTehtavatyyppi::class).filter { it.nimi == task }.toMutableSet()
+            vastuuhenkilonTehtavat = em.findAll(VastuuhenkilonTehtavatyyppi::class).filter { vastuuhenkilonTehtava -> vastuuhenkilonTehtava.nimi == task }.toMutableSet()
         ))
         em.persist(approver)
         val request = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
