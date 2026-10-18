@@ -33,17 +33,21 @@ class ArkistointiJobCreatorImplTest {
     @Mock
     private lateinit var pdfA2bService: PdfA2bService
 
+    @Mock
+    private lateinit var snapshotService: ArkistointiAsiakirjaSnapshotService
+
     private lateinit var creator: ArkistointiJobCreatorImpl
 
     @BeforeEach
     fun setUp() {
-        creator = ArkistointiJobCreatorImpl(repository, scheduler, pdfA2bService)
+        creator = ArkistointiJobCreatorImpl(repository, scheduler, pdfA2bService, snapshotService)
     }
 
     @Test
     fun `persists document references and schedules the job`() {
         val request = request()
         whenever(pdfA2bService.isPdfA2b(any())).thenReturn(true)
+        whenever(snapshotService.createReference(any(), any(), any())).thenReturn(request.asiakirjat.single())
         whenever(repository.saveAndFlush(any<ArkistointiJob>())).thenAnswer { invocation ->
             invocation.getArgument<ArkistointiJob>(0).apply { id = 42L }
         }

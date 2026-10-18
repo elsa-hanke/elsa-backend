@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.kayttaja
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
@@ -13,6 +14,8 @@ import fi.elsapalvelu.elsa.service.mapper.kayttaja.AsiakirjaMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
 import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
 
@@ -175,6 +178,7 @@ class AsiakirjaServiceImpl(
 
     override fun delete(id: Long, opintooikeusId: Long) {
         asiakirjaRepository.findOneByIdAndOpintooikeusId(id, opintooikeusId)?.let {
+            checkDeletable(it)
             deleteKoulutussuunnitelmaReferenceIfExists(id)
             asiakirjaRepository.deleteById(id)
         }
@@ -196,6 +200,15 @@ class AsiakirjaServiceImpl(
     override fun delete(ids: List<Long>, opintooikeusId: Long) {
         asiakirjaRepository.findAllById(ids).filter {
             it.opintooikeus?.id == opintooikeusId
-        }.let { asiakirjaRepository.deleteAll(it) }
+        }.let { documents ->
+            documents.forEach(::checkDeletable)
+            asiakirjaRepository.deleteAll(documents)
+        }
+    }
+
+    private fun checkDeletable(asiakirja: Asiakirja) {
+        if (asiakirja.archiveSnapshot) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, "Archive snapshots cannot be deleted")
+        }
     }
 }

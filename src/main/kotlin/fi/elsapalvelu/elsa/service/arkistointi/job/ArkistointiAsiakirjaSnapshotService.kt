@@ -17,6 +17,7 @@ class ArkistointiAsiakirjaSnapshotService(
     private val pdfA2bService: PdfA2bService
 ) {
 
+    @Transactional
     fun createReference(
         asiakirja: Asiakirja,
         asiakirjatyyppi: RecordType,
@@ -36,6 +37,13 @@ class ArkistointiAsiakirjaSnapshotService(
         }
         if (asiakirja.tyyppi != MediaType.APPLICATION_PDF_VALUE || !pdfA2bService.isPdfA2b(data)) {
             throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.notPdfA2b(identifier))
+        }
+
+        if (!asiakirja.archiveSnapshot) {
+            return createSnapshot(
+                requireNotNull(asiakirja.opintooikeus), asiakirja.nimi, asiakirja.tyyppi,
+                data, asiakirjatyyppi, jarjestysnumero
+            )
         }
 
         return ArkistointiAsiakirjaReference(
@@ -80,7 +88,8 @@ class ArkistointiAsiakirjaSnapshotService(
                 nimi = pdfFilename(filename, asiakirjatyyppi),
                 tyyppi = MediaType.APPLICATION_PDF_VALUE,
                 lisattypvm = LocalDateTime.now(),
-                asiakirjaData = AsiakirjaData(data = normalizedData)
+                asiakirjaData = AsiakirjaData(data = normalizedData),
+                archiveSnapshot = true
             )
         )
         return createReference(snapshot, asiakirjatyyppi, jarjestysnumero)

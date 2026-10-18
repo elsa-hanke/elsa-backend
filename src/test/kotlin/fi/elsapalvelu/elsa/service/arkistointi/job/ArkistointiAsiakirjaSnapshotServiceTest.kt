@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.PdfA2bService
+import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -59,6 +60,28 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
             ArkistointiChecksum.sha256(reference.asiakirja.asiakirjaData?.data!!)
         )
         assertThat(reference.asiakirja.asiakirjaData?.data).isNotEqualTo(certificate)
+        assertThat(reference.asiakirja.archiveSnapshot).isTrue
+    }
+
+    @Test
+    fun `snapshot supports a certificate with copying restrictions`() {
+        whenever(repository.save(any<Asiakirja>())).thenAnswer { invocation ->
+            invocation.getArgument<Asiakirja>(0).apply { id = 124L }
+        }
+        val original = PdfTestData.certificate(openingPassword = "")
+        val reference = service.createLaillistamistodistusReference(
+            Opintooikeus(
+                id = 10L,
+                erikoistuvaLaakari = ErikoistuvaLaakari(
+                    laillistamistodistus = AsiakirjaData(data = original),
+                    laillistamispaivanLiitetiedostonNimi = "certificate.pdf",
+                    laillistamispaivanLiitetiedostonTyyppi = MediaType.APPLICATION_PDF_VALUE
+                )
+            ), 0
+        )
+        assertThat(reference.asiakirja.archiveSnapshot).isTrue
+        assertThat(PdfA2bService(ClassPathResource("sRGB_CS_profile.icm")).isPdfA2b(reference.asiakirja.asiakirjaData!!.data)).isTrue
+        org.apache.pdfbox.Loader.loadPDF(original).use { assertThat(it.isEncrypted).isTrue }
     }
 
     @Test
