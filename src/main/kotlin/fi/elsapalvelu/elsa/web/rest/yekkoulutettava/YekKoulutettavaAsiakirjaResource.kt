@@ -21,8 +21,6 @@ import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
-import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.GrantedAuthority
@@ -31,8 +29,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-
-private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
 
 @RestController
 @RequestMapping("/api/yek-koulutettava")
@@ -46,7 +42,7 @@ class YekKoulutettavaAsiakirjaResource(
 
     @PostMapping("/asiakirjat")
     fun createAsiakirjat(
-      @Valid @RequestParam files: List<MultipartFile>,
+      @RequestParam files: List<MultipartFile>,
       principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)
@@ -55,13 +51,7 @@ class YekKoulutettavaAsiakirjaResource(
                 user.id.required(), YEK_ERIKOISALA_ID
             )
 
-        if (!fileValidationService.validate(files, opintooikeusId)) {
-            throw BadRequestAlertException(
-              "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
-              ASIAKIRJA_ENTITY_NAME,
-              "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
-            )
-        }
+        fileValidationService.validate(files, opintooikeusId)
 
         val asiakirjat = files.map { it.mapAsiakirja() }
         return asiakirjaService.create(asiakirjat, opintooikeusId)?.let {

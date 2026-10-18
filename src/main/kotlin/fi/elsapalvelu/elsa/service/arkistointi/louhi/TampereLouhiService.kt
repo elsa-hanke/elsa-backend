@@ -62,9 +62,9 @@ class TampereLouhiService internal constructor(
             }
 
             return DefaultSftpSessionFactory(client, false).apply {
-                setHost(arkistointiProperties.host)
+                setHost(requireNotNull(arkistointiProperties.host))
                 setPort(arkistointiProperties.port?.takeIf { it.isNotBlank() }?.toIntOrNull() ?: 22)
-                setUser(arkistointiProperties.user)
+                setUser(requireNotNull(arkistointiProperties.user))
             }
         }
     }

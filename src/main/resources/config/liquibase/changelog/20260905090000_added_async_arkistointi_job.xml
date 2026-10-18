@@ -5,9 +5,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
 
     <property name="schedulerBinaryType" value="bytea" dbms="postgresql"/>
-    <property name="schedulerBinaryType" value="varbinary" dbms="h2"/>
     <property name="schedulerKeyType" value="text" dbms="postgresql"/>
-    <property name="schedulerKeyType" value="varchar(100)" dbms="h2"/>
 
     <changeSet id="20260905090000-1" author="elsa">
         <createTable tableName="scheduled_tasks">

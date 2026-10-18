@@ -101,18 +101,11 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResource(
         opintooikeusId: Long
     ): AsiakirjaDTO? {
         file?.let {
-            if (!fileValidationService.validate(
-                    listOf(it),
-                    opintooikeusId,
-                    listOf(MediaType.APPLICATION_PDF_VALUE)
-                )
-            ) {
-                throw BadRequestAlertException(
-                    "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
-                    ENTITY_NAME,
-                    "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
-                )
-            }
+            fileValidationService.validate(
+                listOf(it),
+                opintooikeusId,
+                listOf(MediaType.APPLICATION_PDF_VALUE)
+            )
             return file.mapAsiakirja()
         }
 

@@ -47,7 +47,7 @@ class KouluttajaEtusivuResource(
         criteria: ErikoistujanEteneminenCriteria,
         pageable: Pageable,
         principal: Principal?
-    ): ResponseEntity<Page<ErikoistujanEteneminenDTO>?> {
+    ): ResponseEntity<Page<ErikoistujanEteneminenDTO>> {
         val user = userService.getAuthenticatedUser(principal)
         return ResponseEntity.ok(etusivuService.getErikoistujienSeurantaForKouluttaja(user.id.required(), criteria, pageable))
     }

@@ -282,10 +282,12 @@
         :existing-file-names-in-current-view="existingFileNamesInCurrentView"
         :existing-file-names-in-other-views="existingFileNamesInOtherViews"
         :disabled="reservedAsiakirjaNimetMutable === undefined"
+        :pending-files-count="addedFiles.length"
         @selectedFiles="onFilesAdded"
       />
       <asiakirjat-content
         :asiakirjat="asiakirjatTableItems"
+        asiakirja-data-endpoint-url="yek-koulutettava/asiakirjat/"
         :sorting-enabled="false"
         :pagination-enabled="false"
         :enable-search="false"

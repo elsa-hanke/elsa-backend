@@ -116,7 +116,7 @@ open class SuoritusarviointiResource(
     @PutMapping("/suoritusarvioinnit")
     fun updateSuoritusarviointi(
         @Valid @RequestParam suoritusarviointiJson: String,
-        @Valid @RequestParam arviointiFiles: List<MultipartFile>?,
+        @RequestParam arviointiFiles: List<MultipartFile>?,
         @RequestParam deletedAsiakirjaIdsJson: String?,
         principal: Principal?
     ): ResponseEntity<SuoritusarviointiDTO> {
@@ -175,17 +175,10 @@ open class SuoritusarviointiResource(
 
     private fun getMappedFiles(arviointiFiles: List<MultipartFile>?): MutableSet<AsiakirjaDTO>? {
         return arviointiFiles?.let {
-            if (!fileValidationService.validate(
-                    it,
-                    listOf(MediaType.APPLICATION_PDF_VALUE)
-                )
-            ) {
-                throw BadRequestAlertException(
-                    "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
-                    ENTITY_NAME,
-                    "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
-                )
-            }
+            fileValidationService.validate(
+                it,
+                listOf(MediaType.APPLICATION_PDF_VALUE)
+            )
             return it.map { file -> file.mapAsiakirja() }.toMutableSet()
         }
     }

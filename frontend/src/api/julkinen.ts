@@ -2,6 +2,15 @@ import axios from 'axios'
 
 import { Ilmoitus } from '@/types'
 
+export interface LoginNameMismatch {
+  invitationName: string
+  authenticatedName: string
+}
+
+export async function getLoginNameMismatch() {
+  return await axios.get<LoginNameMismatch | ''>('/julkinen/kirjautuminen/nimivirhe')
+}
+
 export async function getSeuraavaPaivitys() {
   const path = '/julkinen/seuraava-paivitys'
   return await axios.get<string>(path)

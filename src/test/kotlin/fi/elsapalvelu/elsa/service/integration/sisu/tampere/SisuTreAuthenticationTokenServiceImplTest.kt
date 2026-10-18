@@ -116,7 +116,8 @@ class SisuTreAuthenticationTokenServiceImplTest {
         assertThat(service.requestToken()).isEqualTo("token-value")
         assertThat(service.requestToken()).isNull()
 
-        verify(alertPublisherService, times(2)).publishAlert(any(), any())
+        // Initial failure, recovery after receiving a valid token, and a new failure.
+        verify(alertPublisherService, times(3)).publishAlert(any(), any())
     }
 
     private fun invalidClientResponse() = response(
