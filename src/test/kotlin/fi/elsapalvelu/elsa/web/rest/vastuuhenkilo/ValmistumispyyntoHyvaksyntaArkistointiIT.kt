@@ -29,6 +29,8 @@ import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaReference
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaSnapshotService
@@ -78,7 +80,7 @@ private const val ARKISTOINTI_HYVAKSYNTA_ENDPOINT = "/api/vastuuhenkilo/valmistu
  * ValmistumispyyntoService.updateValmistumispyyntoByHyvaksyjaUserId:
  *
  * 1. Happy path — archiving disabled (default test config), approval committed to DB.
- * 2. Exception path — archiving enabled (mocked), [ArkistointiService.muodostaSahke] throws:
+ * 2. Exception path — async archiving enabled, [ArkistointiJobCreator.create] throws:
  *    - Controller must respond 5xx
  *    - Error must be logged at ERROR level with the exception message
  *    - Spring @Transactional must roll back the kuittausaika save
@@ -111,6 +113,9 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      */
     @MockitoBean
     private lateinit var arkistointiService: ArkistointiService
+
+    @MockitoBean
+    private lateinit var configurationProvider: ArkistointiConfigurationProvider
 
     @MockitoBean
     private lateinit var arkistointiJobCreator: ArkistointiJobCreator
@@ -192,6 +197,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
     @BeforeEach
     fun stubArchivingDocumentSnapshots() {
+        whenever(configurationProvider.isAsyncEnabled(any(), any())).thenReturn(true)
         whenever(asiakirjaSnapshotService.createReference(any(), any(), any())).thenAnswer { invocation ->
             archiveReference(invocation.getArgument(1), invocation.getArgument(2))
         }
@@ -345,7 +351,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     }
 
     // -------------------------------------------------------------------------
-    // Test 2 — Exception in muodostaSahke: 5xx, error logged, transaction rolled back
+    // Test 2 — Exception during job creation: 5xx, error logged, transaction rolled back
     // -------------------------------------------------------------------------
 
     /**
@@ -353,7 +359,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      *
      * Given: valmistumispyynto is in state "odottaa hyvaksyntaa"
      * And:   arkistointiService.onKaytossa returns TRUE (archiving enabled)
-     * And:   arkistointiService.muodostaSahke throws RuntimeException("Arkistointipalvelu ei vastaa")
+     * And:   arkistointiJobCreator.create throws a persistence exception
      * When:  vastuuhenkilo sends PUT hyvaksynta
      * Then:
      *   - HTTP 5xx returned to the client
@@ -367,7 +373,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      * committed DB state via a fresh EntityManager transaction.
      */
     @Test
-    fun updateValmistumispyyntoByHyvaksyjaUserId_whenMuodostaSahkeThrows_returns5xxLogsErrorAndRollsBack() {
+    fun updateValmistumispyyntoByHyvaksyjaUserId_whenJobCreationThrows_returns5xxLogsErrorAndRollsBack() {
 
         val valmistumispyyntoId: Long = initTestInTransaction()
 
@@ -428,11 +434,11 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     }
 
     // -------------------------------------------------------------------------
-    // Test 3 — JVM Error (not Exception) in muodostaSahke: also caught, logged, rolled back
+    // Test 3 — JVM Error during job creation: also caught, logged, rolled back
     // -------------------------------------------------------------------------
 
     /**
-     * Verifies that a JVM [Error] thrown from [ArkistointiService.muodostaSahke]
+     * Verifies that a JVM [Error] thrown from [ArkistointiJobCreator.create]
      * (e.g. OutOfMemoryError during ZIP creation) is handled correctly.
      *
      * [Error] is a sibling of [Exception] under [Throwable].
@@ -440,14 +446,14 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      * [fi.elsapalvelu.elsa.web.rest.errors.BadRequestExceptionAdvice] has an
      * @ExceptionHandler(Error::class) that logs at ERROR level and returns HTTP 500.
      *
-     * Given: archiving enabled, muodostaSahke throws OutOfMemoryError
+     * Given: async archiving enabled, job creation throws OutOfMemoryError
      * Then:
      *   - HTTP 500 (INTERNAL_SERVER_ERROR) returned by BadRequestExceptionAdvice
      *   - ERROR log emitted by BadRequestExceptionAdvice containing the error message
      *   - DB rolled back: vastuuhenkiloHyvaksyjaKuittausaika remains null
      */
     @Test
-    fun updateValmistumispyyntoByHyvaksyjaUserId_whenMuodostaSahkeThrowsError_returns5xxLogsErrorAndRollsBack() {
+    fun updateValmistumispyyntoByHyvaksyjaUserId_whenJobCreationThrowsError_returns5xxLogsErrorAndRollsBack() {
 
         val valmistumispyyntoId: Long = initTestInTransaction()
 
@@ -500,7 +506,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      * Reproduces the production incident (the same valmistumispyynto approved four times).
      *
      * The first approval is held *inside* its transaction — after it has taken the row lock and
-     * saved the kuittausaika, while archiving ([ArkistointiService.muodostaSahke]) is still
+     * saved the kuittausaika, while job creation ([ArkistointiJobCreator.create]) is still
      * running — by a latch. While it is held, a second approval of the same valmistumispyynto is
      * sent.
      *
@@ -520,18 +526,17 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
 
         val firstApprovalInsideTransaction = CountDownLatch(1)
         val releaseFirstApproval = CountDownLatch(1)
-        val muodostaSahkeCalls = AtomicInteger(0)
+        val jobCreationCalls = AtomicInteger(0)
 
         whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
-        whenever(arkistointiService.muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
-        ).thenAnswer {
-            if (muodostaSahkeCalls.incrementAndGet() == 1) {
+        whenever(arkistointiJobCreator.create(any())).thenAnswer {
+            if (jobCreationCalls.incrementAndGet() == 1) {
                 firstApprovalInsideTransaction.countDown()
                 check(releaseFirstApproval.await(30, TimeUnit.SECONDS)) {
                     "Test did not release the first approval in time"
                 }
             }
-            ArkistointiResult("/tmp/valmistumispyynto.zip", null)
+            ArkistointiJob(id = 42L)
         }
 
         val executor = Executors.newSingleThreadExecutor()
@@ -560,7 +565,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         }
 
         // One approval, one archiving run, one e-mail set.
-        assertThat(muodostaSahkeCalls.get()).isEqualTo(1)
+        assertThat(jobCreationCalls.get()).isEqualTo(1)
         verifyEmailSent()
 
         // One document set: every generated asiakirja is still linked to the valmistumispyynto,
@@ -730,15 +735,14 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private fun gateFirstArchivingCall(): ArchivingGate {
         val gate = ArchivingGate()
         whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
-        whenever(arkistointiService.muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
-        ).thenAnswer {
+        whenever(arkistointiJobCreator.create(any())).thenAnswer {
             if (gate.calls.incrementAndGet() == 1) {
                 gate.firstEntered.countDown()
                 check(gate.release.await(30, TimeUnit.SECONDS)) {
                     "Test did not release the held approval in time"
                 }
             }
-            ArkistointiResult("/tmp/valmistumispyynto.zip", null)
+            ArkistointiJob(id = 42L)
         }
         return gate
     }
@@ -908,23 +912,6 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         }
     }
 
-    private fun archiveReference(type: RecordType, order: Int): ArkistointiAsiakirjaReference {
-        val data = "archive-$order".toByteArray()
-        return ArkistointiAsiakirjaReference(
-            asiakirja = Asiakirja(
-                id = (order + 1).toLong(),
-                nimi = "archive-$order.pdf",
-                tyyppi = MediaType.APPLICATION_PDF_VALUE,
-                asiakirjaData = AsiakirjaData(data = data)
-            ),
-            asiakirjatyyppi = type,
-            jarjestysnumero = order,
-            filename = "archive-$order.pdf",
-            contentType = MediaType.APPLICATION_PDF_VALUE,
-            sha256 = ArkistointiChecksum.sha256(data)
-        )
-    }
-
     private fun verifyEmailSent(times: Int = 1) {
         verify(mailService, org.mockito.kotlin.times(times)).sendEmailFromTemplate(
             any<User>(),
@@ -962,4 +949,17 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
             any()
         )
     }
+}
+
+private fun archiveReference(type: RecordType, order: Int): ArkistointiAsiakirjaReference {
+    val data = "archive-$order".toByteArray()
+    return ArkistointiAsiakirjaReference(
+        asiakirja = Asiakirja(
+            id = (order + 1).toLong(), nimi = "archive-$order.pdf",
+            tyyppi = MediaType.APPLICATION_PDF_VALUE, asiakirjaData = AsiakirjaData(data = data)
+        ),
+        asiakirjatyyppi = type, jarjestysnumero = order,
+        filename = "archive-$order.pdf", contentType = MediaType.APPLICATION_PDF_VALUE,
+        sha256 = ArkistointiChecksum.sha256(data)
+    )
 }

@@ -6,6 +6,8 @@ import fi.elsapalvelu.elsa.domain.valmistuminen.ValmistumispyynnonTarkistus
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.service.arkistointi.job.ValmistuminenArkistointiPayload
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaSnapshotService
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.CreateArkistointiJobRequest
@@ -14,6 +16,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.mapper.valmistuminen.ValmistumispyynnonTarkistusMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import com.fasterxml.jackson.databind.ObjectMapper
 
 @Service
 class ValmistumispyynnonViimeistelyService(
@@ -23,7 +26,9 @@ class ValmistumispyynnonViimeistelyService(
     private val ilmoitusService: ValmistumispyynnonIlmoitusService,
     private val arkistointiService: ArkistointiService,
     private val arkistointiJobCreator: ArkistointiJobCreator,
-    private val asiakirjaSnapshotService: ArkistointiAsiakirjaSnapshotService
+    private val asiakirjaSnapshotService: ArkistointiAsiakirjaSnapshotService,
+    private val configurationProvider: ArkistointiConfigurationProvider,
+    private val objectMapper: ObjectMapper
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -50,17 +55,46 @@ class ValmistumispyynnonViimeistelyService(
         }
 
         val yek = valmistumispyynto.opintooikeus?.erikoisala.required().id == YEK_ERIKOISALA_ID
+        if (!configurationProvider.isAsyncEnabled(yliopisto.required(), CaseType.VALMISTUMINEN)) {
+            archiveSynchronously(valmistumispyynto, yliopisto.required(), asiakirjat, yek)
+            return
+        }
         val references = createDocumentReferences(asiakirjat, valmistumispyynto, yek)
         arkistointiJobCreator.create(
             CreateArkistointiJobRequest(
                 university = yliopisto.required(),
                 caseType = CaseType.VALMISTUMINEN,
-                payload = "{\"valmistumispyyntoId\":$valmistumispyyntoId}",
+                payload = objectMapper.writeValueAsString(
+                    ValmistuminenArkistointiPayload.create(valmistumispyynto, yliopisto.required())
+                ),
                 key = "valmistuminen:${yliopisto.required().name}:$valmistumispyyntoId",
                 asiakirjat = references
             )
         )
         log.info("Arkistointi-job luotu [valmistumispyyntoId=$valmistumispyyntoId, yek=$yek]")
+    }
+
+    private fun archiveSynchronously(
+        valmistumispyynto: Valmistumispyynto,
+        yliopisto: YliopistoEnum,
+        asiakirjat: List<RecordProperties>,
+        yek: Boolean
+    ) {
+        val sahke = arkistointiService.muodostaSahke(
+            valmistumispyynto.opintooikeus, asiakirjat,
+            caseId = valmistumispyynto.id.required().toString(),
+            tarkastaja = valmistumispyynto.virkailija?.user?.getName(),
+            tarkastusPaiva = valmistumispyynto.virkailijanKuittausaika,
+            hyvaksyja = valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.getName(),
+            hyvaksymisPaiva = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika,
+            yliopisto = yliopisto, caseType = CaseType.VALMISTUMINEN
+        )
+        arkistointiService.laheta(
+            yliopisto = yliopisto, filePath = sahke.zipFilePath,
+            caseType = CaseType.VALMISTUMINEN, yek = yek,
+            caseId = valmistumispyynto.id.required().toString(),
+            erikoistujanNimi = valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
+        )
     }
 
     private fun createDocumentReferences(

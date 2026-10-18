@@ -251,6 +251,8 @@ class ApplicationProperties {
         }
 
         class Case {
+            // Enable only after the asynchronous processor and university adapter are deployed.
+            var asyncEnabled: Boolean = false
             var title: String? = null
             var type: String? = null
             var siiloKoodi: String? = null

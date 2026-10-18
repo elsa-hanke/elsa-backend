@@ -310,6 +310,8 @@ application:
         retention-reason: "Sisältää henkilötietoja"
         cases:
           valmistuminen:
+            # Keep false until the asynchronous processor and university adapter are deployed.
+            async-enabled: false
             title: "Valmistuminen"
             type: "Valmistuminen"
             function: "04.02.05"
@@ -342,6 +344,7 @@ application:
         use-type: "Säilytys"
         cases:
           valmistuminen:
+            async-enabled: false
             title: "Valmistumisen yhteenveto"
             type: "Raportti"
             siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_VALMISTUMINEN_SIILO_KOODI:0b00000000000008}
