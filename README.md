@@ -66,6 +66,29 @@ skeemamuutoksia. Testien `test-master.xml` suorittaa lisäksi kahden
 sarakekohtaisen sekvenssin kohdistuksen ladatun viitedatan suurimpaan ID-arvoon.
 Envers käyttää samoja audit-taulujen ja revision-sarakkeiden nimiä kuin tuotannossa.
 
+### Arkistoinnin kuvasnapshotit
+
+Arkistosnapshot tukee PDF-, JPEG- ja PNG-tiedostoja; `image/jpg` käsitellään
+JPEG-aliasmuotona kuten tiedostojen latauksessa. Vain arkistokopio normalisoidaan
+PDF/A-2b-muotoon. Alkuperäisen tiedoston tavut, nimi ja MIME-tyyppi eivät muutu.
+Tavallinen PDF-yhdistäminen ei käytä tätä kuvien normalisointia tai sen rajoja.
+Pakollisen laillistamistodistuksen puuttuminen tai virheellinen sisältö estää
+snapshotin luonnin hallitulla virheellä; puutteellista aineistoa ei hyväksytä.
+
+`ArchiveImageNormalizer` tarkistaa ennen rasterin lukemista enintään 20 MiB:n
+tiedostokoon, 16 384 pikselin sivun ja 40 megapikselin lähdekuvan rajat. Lisäksi
+256 MiB:n laskennallinen työmuistibudjetti varaa 8 tavua/lähdepikseli,
+kaksi kopiota pakatusta aineistosta ja 32 tavua/dekoodattu pikseli.
+Tämä on konservatiivinen hyväksymisarvio, ei takuu JVM:n kokonaismuistinkulutuksesta;
+myös näitä kokorajoja pienempi kuva voidaan hylätä muistibudjetin perusteella.
+Dekooderi pienentää kuvaa tasaisesti jo lukuvaiheessa enintään 10 megapikseliin
+ja 4096 pikselin sivuun sekä jäljellä olevaan muistibudjettiin. Esimerkiksi
+4000 × 3000 pikselin kuva luetaan 2000 × 1500 pikselin rasteriksi. Jos rajoihin
+mahtuminen vaatisi yli nelinkertaisen pienennyksen kummallakin akselilla,
+kuva hylätään hallitusti liian voimakkaan laadun heikentämisen sijaan.
+Värimalli muunnetaan sRGB:ksi, läpinäkyvyys valkoista taustaa vasten ja EXIF-suunta
+huomioidaan. PDF-tiedostojen aiemmat rasterointirajat säilyvät ennallaan.
+
 ### Ulkoiset integraatiotestit
 
 Ulkoiset integraatiotestit testaavat etäpalveluita eivätkä käytä paikallista

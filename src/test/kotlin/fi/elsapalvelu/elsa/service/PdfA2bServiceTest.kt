@@ -48,7 +48,7 @@ class PdfA2bServiceTest {
 
     @Test
     fun `normalizes a supported image to PDF-A 2b`() {
-        val normalized = service.normalize(fixture("valid.jpg"), MediaType.IMAGE_JPEG_VALUE)
+        val normalized = service.normalize(ArchiveImageTestData.image(), MediaType.IMAGE_JPEG_VALUE)
 
         assertThat(service.isPdfA2b(normalized)).isTrue
     }
@@ -68,7 +68,7 @@ class PdfA2bServiceTest {
 
     @Test
     fun `rejects a declared PDF-A document with an unembedded font`() {
-        val valid = service.normalize(fixture("valid.jpg"), MediaType.IMAGE_JPEG_VALUE)
+        val valid = service.normalize(ArchiveImageTestData.image(), MediaType.IMAGE_JPEG_VALUE)
         val output = ByteArrayOutputStream()
         PdfDocument(PdfReader(ByteArrayInputStream(valid)), PdfWriter(output)).use { document ->
             PdfCanvas(document.getFirstPage()).beginText()
@@ -81,7 +81,7 @@ class PdfA2bServiceTest {
 
     @Test
     fun `checks unchanged content streams instead of trusting PDF-A metadata`() {
-        val valid = service.normalize(fixture("valid.jpg"), MediaType.IMAGE_JPEG_VALUE)
+        val valid = service.normalize(ArchiveImageTestData.image(), MediaType.IMAGE_JPEG_VALUE)
         val output = ByteArrayOutputStream()
         PdfDocument(PdfReader(ByteArrayInputStream(valid)), PdfWriter(output)).use { document ->
             document.getFirstPage().put(
@@ -118,7 +118,7 @@ class PdfA2bServiceTest {
 
     @Test
     fun `removes encryption even when the source still declares PDF-A 2b`() {
-        val valid = service.normalize(fixture("valid.jpg"), MediaType.IMAGE_JPEG_VALUE)
+        val valid = service.normalize(ArchiveImageTestData.image(), MediaType.IMAGE_JPEG_VALUE)
         val output = ByteArrayOutputStream()
         val properties = WriterProperties().setStandardEncryption(
             byteArrayOf(), "owner".toByteArray(), EncryptionConstants.ALLOW_PRINTING,
@@ -235,7 +235,7 @@ class PdfA2bServiceTest {
     }
 
     private fun declaredPdfAWithContent(edit: (PdfDocument) -> Unit): ByteArray {
-        val valid = service.normalize(fixture("valid.jpg"), MediaType.IMAGE_JPEG_VALUE)
+        val valid = service.normalize(ArchiveImageTestData.image(), MediaType.IMAGE_JPEG_VALUE)
         val output = ByteArrayOutputStream()
         PdfDocument(PdfReader(ByteArrayInputStream(valid)), PdfWriter(output)).use(edit)
         return output.toByteArray()

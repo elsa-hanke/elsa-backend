@@ -76,9 +76,10 @@ class PdfA2bService(
     fun normalize(data: ByteArray?, contentType: String?): ByteArray {
         require(data != null && data.isNotEmpty()) { "Arkistoitava asiakirja on tyhja" }
 
-        return when (contentType?.substringBefore(';')?.trim()?.lowercase()) {
+        val canonicalType = DocumentContentTypes.canonical(contentType)
+        return when (canonicalType) {
             MediaType.APPLICATION_PDF_VALUE -> normalizePdf(data)
-            MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE -> imageToPdfA(data)
+            MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE -> imageToPdfA(data, canonicalType)
             else -> throw IllegalArgumentException(
                 "Arkistoitavan asiakirjan sisaltotyyppia '$contentType' ei tueta"
             )
@@ -165,29 +166,16 @@ class PdfA2bService(
         return output.toByteArray()
     }
 
-    private fun imageToPdfA(data: ByteArray): ByteArray {
-        ImageIO.createImageInputStream(ByteArrayInputStream(data)).use { input ->
-            val readers = ImageIO.getImageReaders(input)
-            require(readers.hasNext()) { "Unsupported image" }
-            val reader = readers.next()
-            try {
-                reader.input = input
-                require(reader.getWidth(0).toLong() * reader.getHeight(0) <= MAX_PAGE_PIXELS) {
-                    "Image is too large to normalize"
-                }
-            } finally {
-                reader.dispose()
-            }
-        }
+    private fun imageToPdfA(data: ByteArray, contentType: String): ByteArray {
         val output = ByteArrayOutputStream()
-        val imageData = ImageDataFactory.create(data)
+        val imageData = ImageDataFactory.create(ArchiveImageNormalizer().normalize(data, contentType))
         val pageSize = pageSize(imageData.width, imageData.height)
         createDocument(output).use { target ->
             Document(target).use { document ->
                 target.addNewPage(pageSize)
                 document.add(
                     Image(imageData)
-                        .scaleAbsolute(pageSize.width, pageSize.height)
+                        .scaleToFit(pageSize.width, pageSize.height)
                         .setFixedPosition(1, 0F, 0F)
                 )
             }
