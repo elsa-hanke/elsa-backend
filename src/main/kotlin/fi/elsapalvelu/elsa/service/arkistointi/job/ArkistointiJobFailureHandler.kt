@@ -19,7 +19,8 @@ class ArkistointiJobFailureHandler(
         val exhausted = execution.consecutiveFailures >= policy.maxAttempts - 1
         val cause = completed.cause.orElse(null) as? ArkistointiProcessingException
         val lastError = cause?.error ?: unexpectedArchiveError()
-        val error = if (exhausted) {
+        val terminal = exhausted || cause?.retryable == false
+        val error = if (exhausted && cause?.retryable != false) {
             ArkistointiError.create(
                 "ARCHIVE_RETRIES_EXHAUSTED",
                 "Arkistoinnin enimmainen yritysmaara saavutettiin. ${lastError.code}: ${lastError.description}"
@@ -31,12 +32,14 @@ class ArkistointiJobFailureHandler(
         val retry = try {
             state.fail(
                 ArkistointiJobExecution(execution.taskInstance.taskName, execution.taskInstance.id, execution.version), error,
-                terminal = exhausted || cause?.retryable == false
+                terminal = terminal
             )
         } catch (_: StaleArkistointiExecutionException) {
             return
         } catch (_: Exception) {
-            kotlin.error("Archive job state could not be persisted")
+            // Preserve this live execution's sanitized outcome; never acknowledge a failed commit.
+            // Dead-execution recovery cannot reconstruct an outcome that was never committed.
+            throw ArkistointiProcessingException(error, retryable = !terminal)
         }
         if (retry) {
             operations.reschedule(completed, completed.timeDone.plus(policy.delay(execution.consecutiveFailures)))

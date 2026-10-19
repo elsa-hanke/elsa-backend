@@ -21,23 +21,16 @@ class ArkistointiJobProcessorImpl(
         } catch (exception: StaleArkistointiExecutionException) {
             throw exception
         } catch (exception: ArkistointiProcessingException) {
-            if (exception.retryable) throw exception
-            recordPermanentFailure(execution, exception.error)
+            // The failure handler owns failure persistence, including permanent outcomes.
+            throw exception
         } catch (exception: ArkistointiAsiakirjaException) {
             // Document errors may contain personal filenames: persist only the code and a fixed description.
-            recordPermanentFailure(execution, ArkistointiError.create(exception.error.code, "Arkistoitavan asiakirjan tarkistus epaonnistui"))
+            throw ArkistointiProcessingException(
+                ArkistointiError.create(exception.error.code, "Arkistoitavan asiakirjan tarkistus epaonnistui"),
+                retryable = false
+            )
         } catch (_: Exception) {
             // No original exception/cause: scheduler logs must not expose payloads or HTTP response bodies.
-            throw ArkistointiProcessingException(unexpectedArchiveError())
-        }
-    }
-
-    private fun recordPermanentFailure(execution: ArkistointiJobExecution, error: ArkistointiError) {
-        try {
-            state.fail(execution, error, terminal = true)
-        } catch (exception: StaleArkistointiExecutionException) {
-            throw exception
-        } catch (_: Exception) {
             throw ArkistointiProcessingException(unexpectedArchiveError())
         }
     }
@@ -50,9 +43,12 @@ class ArkistointiJobProcessorImpl(
                 retryable = false
             )
         when (val result = adapter.arkistoi(submission)) {
-            is ArkistointiResult.Success -> state.succeed(execution, result.externalId)
+            is ArkistointiResult.Success -> {
+                ArkistointiExternalId.validate(result.externalId)
+                state.succeed(execution, result.externalId)
+            }
             is ArkistointiResult.RetryableFailure -> throw ArkistointiProcessingException(result.error)
-            is ArkistointiResult.PermanentFailure -> state.fail(execution, result.error, terminal = true)
+            is ArkistointiResult.PermanentFailure -> throw ArkistointiProcessingException(result.error, retryable = false)
         }
     }
 }

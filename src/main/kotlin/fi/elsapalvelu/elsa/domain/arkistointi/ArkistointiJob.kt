@@ -55,8 +55,8 @@ data class ArkistointiJob(
     @Column(name = "job_key", nullable = false, unique = true, length = 255)
     var key: String? = null,
 
-    @get:Size(max = 255)
-    @Column(name = "external_id", length = 255)
+    @get:Size(max = MAX_EXTERNAL_ID_LENGTH)
+    @Column(name = "external_id", length = MAX_EXTERNAL_ID_LENGTH)
     var externalId: String? = null,
 
     @get:Size(max = 100)
@@ -117,6 +117,7 @@ data class ArkistointiJob(
         "}"
 
     companion object {
+        const val MAX_EXTERNAL_ID_LENGTH = 255
         private const val serialVersionUID = 1L
     }
 }

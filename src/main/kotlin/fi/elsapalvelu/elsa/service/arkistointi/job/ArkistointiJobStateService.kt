@@ -55,6 +55,7 @@ class ArkistointiJobStateService(
         lockExecution(execution)
         val job = requireNotNull(jobs.findByIdForStateChange(execution.jobId))
         if (job.isTerminal()) return
+        ArkistointiExternalId.validate(externalId)
         job.startProcessing()
         job.transitionTo(ArkistointiJobStatus.LAHETETTY)
         job.externalId = externalId

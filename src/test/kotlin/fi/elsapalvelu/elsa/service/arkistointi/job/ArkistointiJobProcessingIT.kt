@@ -7,6 +7,8 @@ import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import com.github.kagkarlsson.scheduler.task.CompletionHandler
 import com.github.kagkarlsson.scheduler.task.ExecutionContext
 import com.github.kagkarlsson.scheduler.task.TaskInstance
+import com.github.kagkarlsson.scheduler.task.ExecutionComplete
+import com.github.kagkarlsson.scheduler.task.FailureHandler
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
@@ -143,12 +145,163 @@ class ArkistointiJobProcessingIT {
         assertThat(adapter.submissions).hasSize(3)
     }
 
-    @Test
-    fun `permanent adapter failure terminates without retry`() {
+    @ParameterizedTest
+    @ValueSource(ints = [0, 2, 3])
+    fun `permanent adapter failure terminates without retry`(previousFailures: Int) {
         val jobId = fixture()
+        transactions.executeWithoutResult {
+            jdbc.update("update scheduled_tasks set consecutive_failures = ? where task_instance = ?", previousFailures, jobId.toString())
+        }
         adapter.behavior = { ArkistointiResult.PermanentFailure(ArkistointiError.create("REJECTED", "Aineisto hylattiin")) }
         assertTerminal(jobId, "REJECTED")
         assertThat(adapter.submissions).hasSize(1)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["NULL", "MAX_ASCII", "MAX_UNICODE", "OPAQUE", "TOO_LONG", "TOO_LONG_UNICODE",
+        "EMPTY", "BLANK", "NUL", "HIGH_SURROGATE", "LOW_SURROGATE"])
+    fun `external ID contract controls whether success or manual intervention is committed`(kind: String) {
+        val externalId = ArkistointiExternalIdTestData.value(kind)
+        val valid = kind in setOf("NULL", "MAX_ASCII", "MAX_UNICODE", "OPAQUE")
+        adapter.behavior = { ArkistointiResult.Success(externalId) }
+        val jobId = fixture()
+        val originalExecution = execution(jobId)
+        val scheduler = scheduler()
+        runUntil(scheduler) { assertThat(taskCount(jobId)).isZero() }
+        val stored = jobs.findById(jobId).orElseThrow()
+        if (valid) {
+            assertThat(stored.status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+            assertThat(stored.externalId).isEqualTo(externalId)
+            assertThat(stored.completedAt).isNotNull()
+            assertThat(stored.errorCode).isNull()
+            assertThat(stored.lastError).isNull()
+        } else {
+            assertThat(stored.status).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
+            assertThat(stored.externalId).isNull()
+            assertThat(stored.completedAt).isNull()
+            assertThat(stored.errorCode).isEqualTo("ARCHIVE_ADAPTER_RESPONSE_INVALID")
+            assertThat(stored.lastError).doesNotContain("private-response")
+        }
+        assertThrows<StaleArkistointiExecutionException> { processor.process(originalExecution) }
+        scheduler.triggerCheckForDueExecutions()
+        assertThat(adapter.submissions).hasSize(1)
+    }
+
+    @ParameterizedTest
+    @CsvSource("PERMANENT,false", "INVALID_SUCCESS,false", "PERMANENT,true", "INVALID_SUCCESS,true")
+    fun `scheduler recovers failed terminal commit with the same key and bounded attempts`(result: String, exhaust: Boolean) {
+        val expectedCode = if (result == "PERMANENT") "OLD_ERROR" else "ARCHIVE_ADAPTER_RESPONSE_INVALID"
+        val jobId = fixture()
+        val originalExecution = execution(jobId)
+        val originalKey = jobs.findById(jobId).orElseThrow().key
+        val attemptCounters = CopyOnWriteArrayList<Int>()
+        adapter.behavior = {
+            attemptCounters.add(failures(jobId))
+            if (exhaust && adapter.submissions.size > 1) retryable() else lateResult(result)
+        }
+        val failedCommit = CountDownLatch(1)
+        val failure = AtomicReference<Throwable>()
+        val observingHandler = FailureHandler<Unit> { current, executionOperations ->
+            try {
+                failureHandler.onFailure(current, executionOperations)
+            } catch (exception: Exception) {
+                failure.set(exception)
+                failedCommit.countDown()
+                throw exception
+            }
+        }
+        installFailingTerminalCommit()
+        val observedTask = object : OneTimeTask<Unit>(ARKISTOINTI_JOB_TASK.taskName, Unit::class.java, observingHandler, task.deadExecutionHandler) {
+            override fun executeOnce(instance: TaskInstance<Unit>, context: ExecutionContext) = task.executeOnce(instance, context)
+        }
+        val scheduler = scheduler(observedTask, Duration.ofHours(1))
+        try {
+            scheduler.triggerCheckForDueExecutions()
+            assertThat(failedCommit.await(10, TimeUnit.SECONDS)).isTrue()
+            await().atMost(Duration.ofSeconds(10)).untilAsserted { assertThat(scheduler.currentlyExecuting).isEmpty() }
+            val exception = failure.get() as ArkistointiProcessingException
+            assertThat(exception.retryable).isFalse()
+            assertThat(exception.error.code).isEqualTo(expectedCode)
+            assertThat(exception.cause).isNull()
+            assertUncommittedTerminalState(jobId)
+        } finally {
+            scheduler.stop()
+            transactions.executeWithoutResult {
+                jdbc.execute("DROP TRIGGER IF EXISTS fail_archive_terminal ON arkistointi_job")
+                jdbc.execute("DROP FUNCTION IF EXISTS fail_archive_terminal()")
+            }
+        }
+        // Recovery must receive a fresh event from db-scheduler, without the uncommitted outcome.
+        val recovered = CopyOnWriteArrayList<ExecutionComplete>()
+        transactions.executeWithoutResult {
+            jdbc.update("update scheduled_tasks set last_heartbeat = ? where task_instance = ?",
+                java.sql.Timestamp.from(Instant.now().minusSeconds(60)), jobId.toString())
+        }
+        val recoveryScheduler = scheduler(observingRecoveryTask(recovered))
+        runUntil(recoveryScheduler) { assertThat(taskCount(jobId)).isZero() }
+        assertThat(recovered).hasSize(1)
+        assertThat(recovered.single().cause).isEmpty()
+        assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
+        assertThat(jobs.findById(jobId).orElseThrow().errorCode)
+            .isEqualTo(if (exhaust) "ARCHIVE_RETRIES_EXHAUSTED" else expectedCode)
+        assertThat(attemptCounters).containsExactlyElementsOf(if (exhaust) listOf(0, 1, 2) else listOf(0, 1))
+        assertThat(adapter.submissions.map { it.key }).containsOnly(originalKey)
+        assertThrows<StaleArkistointiExecutionException> { processor.process(originalExecution) }
+        assertThat(adapter.submissions).hasSize(if (exhaust) 3 else 2)
+    }
+
+    private fun observingRecoveryTask(recovered: MutableList<ExecutionComplete>): OneTimeTask<Unit> =
+        object : OneTimeTask<Unit>(ARKISTOINTI_JOB_TASK.taskName, Unit::class.java, failureHandler,
+            { current, operations ->
+                recovered.add(current)
+                task.deadExecutionHandler.deadExecution(current, operations)
+            }) {
+            override fun executeOnce(instance: TaskInstance<Unit>, context: ExecutionContext) = task.executeOnce(instance, context)
+        }
+
+    private fun assertUncommittedTerminalState(jobId: Long) {
+        assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.KASITTELYSSA)
+        assertThat(jobs.findById(jobId).orElseThrow().errorCode).isNull()
+        assertThat(schedulerState(jobId)).containsEntry("picked", true)
+        assertThat(failures(jobId)).isZero()
+    }
+
+    private fun installFailingTerminalCommit() {
+        transactions.executeWithoutResult {
+            jdbc.execute("""
+                CREATE FUNCTION fail_archive_terminal() RETURNS trigger LANGUAGE plpgsql AS ${'$'}${'$'}
+                BEGIN
+                    IF NEW.status = 'VAATII_TOIMENPITEITA' THEN RAISE EXCEPTION 'Test terminal commit failure'; END IF;
+                    RETURN NEW;
+                END; ${'$'}${'$'}
+            """.trimIndent())
+            // Deferred constraint trigger: the UPDATE/flush succeeds and COMMIT itself fails.
+            jdbc.execute("CREATE CONSTRAINT TRIGGER fail_archive_terminal AFTER UPDATE ON arkistointi_job " +
+                "DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION fail_archive_terminal()")
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `state success validates response defensively after checking execution ownership`(stale: Boolean) {
+        val jobId = fixture()
+        simulateCrash(jobId)
+        val originalExecution = execution(jobId)
+        if (stale) transactions.executeWithoutResult {
+            jdbc.update("update scheduled_tasks set version = version + 1 where task_instance = ?", jobId.toString())
+        }
+        val beforeJob = jobState(jobId)
+        val beforeSchedule = schedulerState(jobId)
+        if (stale) {
+            assertThrows<StaleArkistointiExecutionException> { state.succeed(originalExecution, "x".repeat(256)) }
+        } else {
+            val exception = assertThrows<ArkistointiProcessingException> { state.succeed(originalExecution, "x".repeat(256)) }
+            assertThat(exception.error.code).isEqualTo("ARCHIVE_ADAPTER_RESPONSE_INVALID")
+            assertThat(exception.retryable).isFalse()
+        }
+        assertThat(jobState(jobId)).isEqualTo(beforeJob)
+        assertThat(schedulerState(jobId)).isEqualTo(beforeSchedule)
+        assertThat(adapter.submissions).isEmpty()
     }
 
     @Test
@@ -418,8 +571,8 @@ class ArkistointiJobProcessingIT {
     private fun schedulerStateOrEmpty(jobId: Long) = if (taskCount(jobId) == 0L) emptyMap() else schedulerState(jobId)
 
     @ParameterizedTest
-    @CsvSource("PERMANENT,false", "SUCCESS,false", "RETRYABLE,false", "EXCEPTION,false",
-        "PERMANENT,true", "SUCCESS,true", "RETRYABLE,true", "EXCEPTION,true")
+    @CsvSource("PERMANENT,false", "SUCCESS,false", "INVALID_SUCCESS,false", "RETRYABLE,false", "EXCEPTION,false",
+        "PERMANENT,true", "SUCCESS,true", "INVALID_SUCCESS,true", "RETRYABLE,true", "EXCEPTION,true")
     fun `late adapter result cannot overwrite a newer execution`(result: String, afterSuccess: Boolean) {
         val firstEntered = CountDownLatch(1)
         val secondEntered = CountDownLatch(1)
@@ -478,6 +631,7 @@ class ArkistointiJobProcessingIT {
     private fun lateResult(result: String): ArkistointiResult = when (result) {
         "PERMANENT" -> ArkistointiResult.PermanentFailure(ArkistointiError.create("OLD_ERROR", "Vanha virhe"))
         "SUCCESS" -> ArkistointiResult.Success("old-external-id")
+        "INVALID_SUCCESS" -> ArkistointiResult.Success("x".repeat(256))
         "RETRYABLE" -> retryable()
         else -> error("secret old response")
     }

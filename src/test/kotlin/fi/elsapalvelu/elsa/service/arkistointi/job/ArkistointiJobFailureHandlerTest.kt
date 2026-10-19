@@ -6,6 +6,9 @@ import com.github.kagkarlsson.scheduler.task.ExecutionOperations
 import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import org.assertj.core.api.Assertions.assertThat
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
@@ -41,8 +44,34 @@ class ArkistointiJobFailureHandlerTest {
     @Test
     fun `failed state commit never acknowledges or reschedules the execution`() {
         whenever(state.fail(any(), any(), any())).thenThrow(IllegalStateException("db unavailable"))
-        assertThrows<IllegalStateException> { handler.onFailure(failure(0), operations) }
+        assertThrows<ArkistointiProcessingException> { handler.onFailure(failure(0), operations) }
         verify(operations, never()).remove()
+        verify(operations, never()).reschedule(any(), any())
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [0, 2, 3])
+    fun `permanent error takes priority over exhausted retry counter`(previousFailures: Int) {
+        val error = ArkistointiError.create("REJECTED", "Aineisto hylattiin")
+        val completed = failure(previousFailures, ArkistointiProcessingException(error, retryable = false))
+        handler.onFailure(completed, operations)
+        verify(state).fail(ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, "42", 1L), error, true)
+        verify(operations).remove()
+        verify(operations, never()).reschedule(any(), any())
+    }
+
+    @Test
+    fun `failed permanent commit preserves classification and can be completed after database recovery`() {
+        val error = ArkistointiError.create("REJECTED", "Aineisto hylattiin")
+        val completed = failure(0, ArkistointiProcessingException(error, retryable = false))
+        whenever(state.fail(any(), any(), eq(true))).thenThrow(IllegalStateException("private database detail")).thenReturn(false)
+        val exception = assertThrows<ArkistointiProcessingException> { handler.onFailure(completed, operations) }
+        assertThat(exception.error).isEqualTo(error)
+        assertThat(exception.retryable).isFalse()
+        assertThat(exception.cause).isNull()
+        verifyNoInteractions(operations)
+        handler.onFailure(completed, operations)
+        verify(operations).remove()
         verify(operations, never()).reschedule(any(), any())
     }
 
@@ -53,10 +82,10 @@ class ArkistointiJobFailureHandlerTest {
         verifyNoInteractions(operations)
     }
 
-    private fun failure(previousFailures: Int): ExecutionComplete {
+    private fun failure(previousFailures: Int, cause: ArkistointiProcessingException = ArkistointiProcessingException(unexpectedArchiveError())): ExecutionComplete {
         val now = Instant.parse("2026-01-01T00:00:00Z")
         val execution = Execution(now, ARKISTOINTI_JOB_TASK.instance("42").build())
         execution.consecutiveFailures = previousFailures
-        return ExecutionComplete.failure(execution, now, now, ArkistointiProcessingException(unexpectedArchiveError()))
+        return ExecutionComplete.failure(execution, now, now, cause)
     }
 }

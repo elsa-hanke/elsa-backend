@@ -127,6 +127,24 @@ Toimitus on at-least-once: jos ulkoinen arkisto hyväksyy aineiston mutta paikal
 
 Processor saa käynnistyksessä muuttumattoman suoritustunnisteen (`task_name`, `task_instance`, `version`). Sekä aloitus, onnistuminen että kaikki virhe- ja palautuskäsittelijän tilamuutokset lukitsevat ensin vastaavan poimitun `scheduled_tasks`-rivin ja sitten job-rivin samassa transaktiossa. Vanhentunut suoritus ei muuta jobia eikä uudempaa ajastusta; ennen lähetystä havaittu vanhentunut suoritus ei kutsu adapteria. Processorissa havaittu vanhentuminen päättyy ilman scheduler-rivin kuittausta, ja normaalissa kuittauksessa db-scheduler tarkistaa edelleen version. Lukitukset vapautuvat ennen verkkokutsua ja ennen db-schedulerin reschedule/remove-toimintoa. Versiotarkistus ei peruuta jo alkanutta ulkoista pyyntöä. Manuaalisessa uusinnassa on huomioitava erikseen suorituksen identiteetti: samaan task-instanssiin poiston jälkeen luotavan rivin version ei oleteta kasvavan edellisestä.
 
+Adapterin `Success.externalId` on joko `null` tai ei-tyhjä, kelvollinen Unicode-merkkijono,
+jonka pituus on enintään 255 UTF-16-koodiyksikköä (sama mitta kuin entiteetin
+`@Size`-validoinnissa). Pelkkä tyhjätila, NUL ja irralliset surrogaatit eivät kelpaa.
+Tunniste tallennetaan sellaisenaan, ilman lyhentämistä, trimmausta tai hajautusta.
+Virheellinen onnistumisvastaus johtaa koodiin `ARCHIVE_ADAPTER_RESPONSE_INVALID` ja
+tilaan `VAATII_TOIMENPITEITA`: arkisto on voinut jo hyväksyä toimituksen, joten
+tilanne on selvitettävä ennen uutta lähetystä. Tunnistetta tai vastausrunkoa ei tallenneta virhekuvaukseen.
+
+Failure handler tallentaa myös pysyvät virheet. Pysyvän virheen alkuperäinen turvallinen
+koodi säilyy myös viimeisellä yrityksellä. Tallennuksen epäonnistuessa koodi ja pysyvä
+luokittelu säilyvät handlerin välittämässä poikkeuksessa. Scheduler-riviä ei kuitata eikä
+ajasteta uudelleen, jos tilan commit epäonnistuu.
+Jos tulosta ei ole saatu tallennettua, dead-execution-palautuminen ei voi tietää
+aiemmin saatua pysyvää tulosta, vaikka prosessi olisi edelleen käynnissä:
+adapterikutsu voidaan uusia samalla avaimella. Handler ei tee paikallista automaattista
+tallennusuusintaa eikä säilytä tulosta omassa muistirekisterissä.
+Tämä rajoitus koskee myös virheellistä onnistumisvastausta; paikallista exactly-once-takuuta ei ole.
+
 ### Koodin laadun analysointi
 
 Sonaria käytetään koodin laadun analysointiin. Voit käynnistää paikallisen Sonar palvelimen (
