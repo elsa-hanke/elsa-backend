@@ -136,6 +136,15 @@ Käsittelijä lukee asiakirjan tavut suoraan tietokannasta ja siirtää adapteri
 
 Tilapäisten virheiden uusinnat käyttää db-schedulerin `consecutive_failures`-laskuria ja failure/dead-execution-käsittelijöitä. Asetukset ovat `application.arkistointi.retry.max-attempts` (oletus 5, sisältää ensimmäisen yrityksen sekä keskeytyneet suoritukset), `initial-delay` (1m), `multiplier` (2.0) ja `max-delay` (1h). Viimeisen sallitun yrityksen epäonnistuminen johtaa tilaan `VAATII_TOIMENPITEITA`. Tietokantahäiriön aikana suoritus säilyy palautettavana, kunnes myös lopputila voidaan tallentaa.
 
+Jobin tilan commit ja db-schedulerin `reschedule`/`remove` ovat erillisiä vaiheita.
+Jos ajastuksen päivitys epäonnistuu commitin jälkeen, poimittu suoritus jää
+db-schedulerin dead-execution-palautuksen käsiteltäväksi. Jo tallennettua lopputilaa
+ei lähetetä uudelleen. Tietokantahäiriö voi viivästyttää palautumista.
+Versiotarkistus estää vanhentuneen suorituksen tilapäivityksen, mutta saman version
+kaksi handleria voivat ehtiä tallentaa tilan ennen ajastuksen päivitystä.
+Ajastuksen päivityksessä kirjaston oma versiotarkistus sallii vain yhden onnistua;
+hävinnyt operaatio ei muuta uudempaa aikataulua tai kasvata laskuria uudelleen.
+
 Toimitus on at-least-once: jos ulkoinen arkisto hyväksyy aineiston mutta paikallinen onnistumisen tallennus keskeytyy, adapteria voidaan kutsua uudelleen samalla `ArkistointiSubmission.key`-avaimella. Adapterin ja vastaanottavan järjestelmän on estettävä kaksoistoimitus tällä avaimella atomisesti myös samanaikaisissa pyynnöissä: palautettavaksi tulkittu vanha suoritus voi edelleen olla verkkokutsussa uuden alkaessa. Pelkkä olemassaolon tarkistus ennen luontia ei riitä. Pelkkä db-scheduler ei takaa exactly-once-toimitusta. Adapterin virhekoodit ja kuvaukset eivät saa sisältää henkilötietoja, tiedostonimiä, tunnuksia tai HTTP-vastausten sisältöä.
 
 Processor saa käynnistyksessä muuttumattoman suoritustunnisteen (`task_name`, `task_instance`, `version`). Sekä aloitus, onnistuminen että kaikki virhe- ja palautuskäsittelijän tilamuutokset lukitsevat ensin vastaavan poimitun `scheduled_tasks`-rivin ja sitten job-rivin samassa transaktiossa. Vanhentunut suoritus ei muuta jobia eikä uudempaa ajastusta; ennen lähetystä havaittu vanhentunut suoritus ei kutsu adapteria. Processorissa havaittu vanhentuminen päättyy ilman scheduler-rivin kuittausta, ja normaalissa kuittauksessa db-scheduler tarkistaa edelleen version. Lukitukset vapautuvat ennen verkkokutsua ja ennen db-schedulerin reschedule/remove-toimintoa. Versiotarkistus ei peruuta jo alkanutta ulkoista pyyntöä. Manuaalisessa uusinnassa on huomioitava erikseen suorituksen identiteetti: samaan task-instanssiin poiston jälkeen luotavan rivin version ei oleteta kasvavan edellisestä.
