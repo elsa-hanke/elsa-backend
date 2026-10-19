@@ -13,6 +13,8 @@ interface ArkistointiAdapter {
      * code units (matching the entity's Size validation), without NUL. The ID is stored unchanged,
      * including any leading/trailing whitespace; it is never truncated, trimmed or hashed.
      * An invalid success response requires manual reconciliation: the archive may already have accepted it.
+     * Treat each document's sisalto as read-only. Mutating it changes the current submission;
+     * a retry always reloads the immutable bytes from the database.
      */
     fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult
 }

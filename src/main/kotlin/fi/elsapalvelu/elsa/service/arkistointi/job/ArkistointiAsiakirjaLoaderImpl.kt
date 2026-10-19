@@ -1,13 +1,14 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
-import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
+import fi.elsapalvelu.elsa.required
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ArkistointiAsiakirjaLoaderImpl(
-    private val asiakirjaRepository: AsiakirjaRepository
+    private val jdbc: JdbcTemplate
 ) : ArkistointiAsiakirjaLoader {
 
     @Transactional(readOnly = true)
@@ -15,9 +16,13 @@ class ArkistointiAsiakirjaLoaderImpl(
         val identifier = viite.filename ?: viite.id?.toString() ?: "tuntematon"
         val asiakirjaId = viite.asiakirja?.id
             ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
-        val asiakirja = asiakirjaRepository.findOneWithDataById(asiakirjaId)
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
-        val data = asiakirja.asiakirjaData?.data
+        // The ResultSet owns this byte array. No managed Asiakirja/AsiakirjaData or shared cache
+        // retains it after prepare commits; each retry reads a fresh array from PostgreSQL.
+        val data = jdbc.query(
+            "select d.data from asiakirja a join asiakirja_data d on d.id = a.asiakirja_data_id where a.id = ?",
+            { rs, _ -> rs.getBytes(1) },
+            asiakirjaId
+        ).firstOrNull()
             ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
         if (data.isEmpty()) {
             throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.empty(identifier))
@@ -32,6 +37,15 @@ class ArkistointiAsiakirjaLoaderImpl(
             )
         }
 
-        return LoadedArkistointiAsiakirja(viite, data.copyOf())
+        // Only saved job metadata crosses the transaction boundary. The adapter must not mutate sisalto.
+        return LoadedArkistointiAsiakirja(
+            asiakirjaId,
+            viite.asiakirjatyyppi.required(),
+            viite.jarjestysnumero.required(),
+            viite.filename.required(),
+            viite.contentType.required(),
+            expectedChecksum,
+            data
+        )
     }
 }

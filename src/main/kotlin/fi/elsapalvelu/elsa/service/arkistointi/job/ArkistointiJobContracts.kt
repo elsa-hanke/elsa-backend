@@ -56,9 +56,16 @@ data class ArkistointiJobExecution(val taskName: String, val taskInstanceId: Str
 internal class StaleArkistointiExecutionException : RuntimeException("Archive execution is no longer current")
 
 data class LoadedArkistointiAsiakirja(
-    val viite: ArkistointiJobAsiakirja,
+    val asiakirjaId: Long,
+    val asiakirjatyyppi: RecordType,
+    val jarjestysnumero: Int,
+    val filename: String,
+    val contentType: String,
+    val sha256: String,
     val sisalto: ByteArray
-)
+) {
+    override fun toString() = "LoadedArkistointiAsiakirja(asiakirjaId=$asiakirjaId)"
+}
 
 interface ArkistointiAsiakirjaLoader {
     fun load(viite: ArkistointiJobAsiakirja): LoadedArkistointiAsiakirja
