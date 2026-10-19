@@ -22,6 +22,9 @@ import com.itextpdf.pdfa.PdfADocument
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.spy
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import java.io.ByteArrayInputStream
@@ -30,6 +33,21 @@ import java.io.ByteArrayOutputStream
 class PdfA2bServiceTest {
 
     private val service = PdfA2bService(ClassPathResource("sRGB_CS_profile.icm"))
+
+    @Test
+    fun `changing caller bytes during validation cannot change accepted output`() {
+        val original = service.normalize(ArchiveImageTestData.image(), MediaType.IMAGE_JPEG_VALUE)
+        val expected = original.copyOf()
+        val validating = spy(service)
+        doAnswer {
+            val result = it.callRealMethod()
+            original.fill(0)
+            result
+        }.`when`(validating).isPdfA2b(any())
+        val normalized = validating.normalize(original, MediaType.APPLICATION_PDF_VALUE)
+        assertThat(normalized).containsExactly(*expected)
+        assertThat(service.isPdfA2b(normalized)).isTrue()
+    }
 
     @Test
     fun `normalizes a regular PDF to PDF-A 2b`() {

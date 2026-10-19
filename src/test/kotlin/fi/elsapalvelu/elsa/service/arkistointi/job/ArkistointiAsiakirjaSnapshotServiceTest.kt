@@ -20,6 +20,8 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
@@ -178,6 +180,7 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
             id = 4L, nimi = "attachment.pdf", tyyppi = MediaType.APPLICATION_PDF_VALUE,
             opintooikeus = Opintooikeus(id = 10L), asiakirjaData = AsiakirjaData(data = original)
         )
+        whenever(repository.findOneWithDataById(4L)).thenReturn(source)
 
         val reference = service.createReference(source, RecordType.LIITE, 0)
 
@@ -203,6 +206,7 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
             id = 4L, nimi = "attachment.pdf", tyyppi = MediaType.APPLICATION_PDF_VALUE,
             opintooikeus = Opintooikeus(id = 10L), asiakirjaData = AsiakirjaData(data = data)
         )
+        whenever(repository.findOneWithDataById(4L)).thenReturn(source)
 
         val reference = service.createReference(source, RecordType.LIITE, 0)
 
@@ -217,13 +221,15 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
             id = 4L, nimi = "snapshot.pdf", tyyppi = MediaType.APPLICATION_PDF_VALUE,
             asiakirjaData = AsiakirjaData(data = PdfTestData.unembeddedFontPdf(1)), archiveSnapshot = true
         )
+        whenever(repository.findOneWithDataById(4L)).thenReturn(snapshot)
+        whenever(repository.findArchiveSnapshotFlagById(4L)).thenReturn(true)
 
         val exception = assertThrows<ArkistointiAsiakirjaException> {
             service.createReference(snapshot, RecordType.LIITE, 0)
         }
 
         assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_NOT_PDFA_2B")
-        verifyNoInteractions(repository)
+        verify(repository, never()).save(any<Asiakirja>())
     }
 
 }

@@ -117,6 +117,7 @@ class PdfServiceImplMergeTest {
         val source = attachment(output.toByteArray(), MediaType.APPLICATION_PDF_VALUE).apply {
             opintooikeus = Opintooikeus(id = 10L)
         }
+        whenever(repository.findOneWithDataById(1L)).thenReturn(source)
         val reference = ArkistointiAsiakirjaSnapshotService(repository, pdfA2bService)
             .createReference(source, RecordType.LIITE, 0)
         val snapshot = reference.asiakirja.asiakirjaData!!.data!!

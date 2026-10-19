@@ -73,12 +73,14 @@ class PdfA2bService(
         }
     }
 
+    /** Every returned byte array has passed full PDF/A validation; callers must preserve its integrity. */
     fun normalize(data: ByteArray?, contentType: String?): ByteArray {
         require(data != null && data.isNotEmpty()) { "Arkistoitava asiakirja on tyhja" }
-
         val canonicalType = DocumentContentTypes.canonical(contentType)
         return when (canonicalType) {
-            MediaType.APPLICATION_PDF_VALUE -> normalizePdf(data)
+            // The PDF fast path must copy before checking: the caller cannot change bytes between validation and return.
+            MediaType.APPLICATION_PDF_VALUE -> normalizePdf(data.copyOf())
+            // Image output is newly generated and validated; enforce encoded-size limits before making any extra copies.
             MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE -> imageToPdfA(data, canonicalType)
             else -> throw IllegalArgumentException(
                 "Arkistoitavan asiakirjan sisaltotyyppia '$contentType' ei tueta"
@@ -88,7 +90,8 @@ class PdfA2bService(
 
     private fun normalizePdf(data: ByteArray): ByteArray {
         if (isPdfA2b(data)) {
-            return data.copyOf()
+            // normalize already owns this copy; returning it avoids retaining another full PDF array.
+            return data
         }
 
         // Remove permission restrictions from a processing copy; an opening password still fails.

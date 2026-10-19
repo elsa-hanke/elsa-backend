@@ -23,6 +23,40 @@ class ArkistointiAsiakirjaSnapshotService(
         asiakirjatyyppi: RecordType,
         jarjestysnumero: Int
     ): ArkistointiAsiakirjaReference {
+        documentData(asiakirja, jarjestysnumero)
+        val stored = loadDocument(asiakirja.id, asiakirja.nimi ?: "tuntematon")
+        return prepareReference(stored, asiakirjatyyppi, jarjestysnumero)
+    }
+
+    /** Resolve caller-supplied references against persisted contents; a DTO or flag alone is not proof. */
+    @Transactional
+    fun resolveReference(reference: ArkistointiAsiakirjaReference): ArkistointiAsiakirjaReference {
+        val stored = loadDocument(reference.asiakirja.id, reference.filename)
+        val data = documentData(stored, reference.jarjestysnumero)
+        val checksum = ArkistointiChecksum.sha256(data)
+        if (!checksum.equals(reference.sha256, ignoreCase = true)) {
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.checksumMismatch(reference.filename))
+        }
+        if (reference.filename != stored.nimi || reference.contentType != stored.tyyppi) {
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid(reference.filename))
+        }
+        val proof = reference.validation as? ValidatedSnapshot
+        if (proof != null) {
+            val id = requireNotNull(stored.id)
+            if (proof != ValidatedSnapshot(id, checksum, reference.filename, reference.contentType) ||
+                asiakirjaRepository.findArchiveSnapshotFlagById(id) != true) {
+                throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid(reference.filename))
+            }
+            return verifiedReference(stored, reference.asiakirjatyyppi, reference.jarjestysnumero, checksum)
+        }
+        return prepareReference(stored, reference.asiakirjatyyppi, reference.jarjestysnumero)
+    }
+
+    private fun loadDocument(id: Long?, identifier: String): Asiakirja =
+        id?.let(asiakirjaRepository::findOneWithDataById)
+            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
+
+    private fun documentData(asiakirja: Asiakirja, jarjestysnumero: Int): ByteArray {
         val identifier = asiakirja.nimi ?: asiakirja.id?.toString() ?: "tuntematon"
         if (jarjestysnumero < 0 || asiakirja.nimi.isNullOrBlank()) {
             throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid(identifier))
@@ -35,8 +69,18 @@ class ArkistointiAsiakirjaSnapshotService(
         if (asiakirja.id == null) {
             throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
         }
+        return data
+    }
+
+    private fun prepareReference(
+        asiakirja: Asiakirja,
+        asiakirjatyyppi: RecordType,
+        jarjestysnumero: Int
+    ): ArkistointiAsiakirjaReference {
+        val data = documentData(asiakirja, jarjestysnumero)
+        val identifier = requireNotNull(asiakirja.nimi)
         // Ordinary merged documents need not be PDF/A. Normalize only their archival copy.
-        if (!asiakirja.archiveSnapshot) {
+        if (asiakirjaRepository.findArchiveSnapshotFlagById(requireNotNull(asiakirja.id)) != true) {
             return createSnapshot(
                 requireNotNull(asiakirja.opintooikeus), asiakirja.nimi, asiakirja.tyyppi,
                 data, asiakirjatyyppi, jarjestysnumero
@@ -47,16 +91,7 @@ class ArkistointiAsiakirjaSnapshotService(
             throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.notPdfA2b(identifier))
         }
 
-        return ArkistointiAsiakirjaReference(
-            asiakirja = asiakirja,
-            asiakirjatyyppi = asiakirjatyyppi,
-            jarjestysnumero = jarjestysnumero,
-            filename = asiakirja.nimi
-                ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier)),
-            contentType = asiakirja.tyyppi
-                ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier)),
-            sha256 = ArkistointiChecksum.sha256(data)
-        )
+        return verifiedReference(asiakirja, asiakirjatyyppi, jarjestysnumero, ArkistointiChecksum.sha256(data))
     }
 
     @Transactional
@@ -69,6 +104,9 @@ class ArkistointiAsiakirjaSnapshotService(
         jarjestysnumero: Int
     ): ArkistointiAsiakirjaReference {
         val identifier = filename ?: asiakirjatyyppi.name
+        if (jarjestysnumero < 0) {
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid(identifier))
+        }
         val normalizedData = try {
             pdfA2bService.normalize(data, contentType)
         } catch (exception: RuntimeException) {
@@ -93,8 +131,29 @@ class ArkistointiAsiakirjaSnapshotService(
                 archiveSnapshot = true
             )
         )
-        return createReference(snapshot, asiakirjatyyppi, jarjestysnumero)
+        // normalize validates its final bytes (including fallback). Bind proof to those exact bytes.
+        // No subsequent PDF/A parse is needed; consumers must still check the persisted checksum.
+        return verifiedReference(snapshot, asiakirjatyyppi, jarjestysnumero, ArkistointiChecksum.sha256(normalizedData))
     }
+
+    private fun verifiedReference(
+        snapshot: Asiakirja,
+        type: RecordType,
+        order: Int,
+        checksum: String
+    ): ArkistointiAsiakirjaReference = ArkistointiAsiakirjaReference(
+        snapshot, type, order, requireNotNull(snapshot.nimi), requireNotNull(snapshot.tyyppi), checksum
+    ).also {
+        it.validation = ValidatedSnapshot(requireNotNull(snapshot.id), checksum, it.filename, it.contentType)
+    }
+
+    /** Only this service can construct a proof. No bytes are retained, just their immutable digest. */
+    private data class ValidatedSnapshot(
+        val id: Long,
+        val checksum: String,
+        val filename: String,
+        val contentType: String
+    ) : ArkistointiSnapshotValidation
 
     @Transactional
     fun createLaillistamistodistusReference(
