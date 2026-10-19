@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...HEAD)
 
+- Release v2.4.X merge [`#785`](https://github.com/elsa-hanke/elsa-backend/pull/785)(19 October 2026)
+- Update ECR cleanup script to remove untagged and old branch images [`#730`](https://github.com/elsa-hanke/elsa-backend/pull/730)(18 October 2026)
 - ELSAINSI-82 Nimen oikeellisuuden tarkistus virheviesti [`#781`](https://github.com/elsa-hanke/elsa-backend/pull/781)(17 October 2026)
 - Refactor: remove redundant @Valid annotations from MultipartFile parameters [`#780`](https://github.com/elsa-hanke/elsa-backend/pull/780)(16 October 2026)
 - Spring boot v3 -&gt; v4 bump [`#778`](https://github.com/elsa-hanke/elsa-backend/pull/778)(16 October 2026)
