@@ -12,8 +12,7 @@ class ArkistointiJobFailureHandler(
 ) : FailureHandler<Unit> {
     override fun onFailure(completed: ExecutionComplete, operations: ExecutionOperations<Unit>) {
         val execution = completed.execution
-        val jobId = execution.taskInstance.id.toLongOrNull()
-        if (jobId == null) {
+        if (execution.taskInstance.id.toLongOrNull() == null) {
             operations.remove()
             return
         }
@@ -30,13 +29,15 @@ class ArkistointiJobFailureHandler(
         }
         // If this commit fails, do not acknowledge the scheduler row. Dead-execution recovery retries it.
         val retry = try {
-            state.failExecution(
-                jobId, execution.taskInstance.taskName, execution.version, error,
+            state.fail(
+                ArkistointiJobExecution(execution.taskInstance.taskName, execution.taskInstance.id, execution.version), error,
                 terminal = exhausted || cause?.retryable == false
             )
+        } catch (_: StaleArkistointiExecutionException) {
+            return
         } catch (_: Exception) {
             kotlin.error("Archive job state could not be persisted")
-        } ?: return
+        }
         if (retry) {
             operations.reschedule(completed, completed.timeDone.plus(policy.delay(execution.consecutiveFailures)))
         } else {

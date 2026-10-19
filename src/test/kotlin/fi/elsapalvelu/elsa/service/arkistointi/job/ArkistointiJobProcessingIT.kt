@@ -4,6 +4,9 @@ import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.SchedulerName
 import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
 import com.github.kagkarlsson.scheduler.task.helper.Tasks
+import com.github.kagkarlsson.scheduler.task.CompletionHandler
+import com.github.kagkarlsson.scheduler.task.ExecutionContext
+import com.github.kagkarlsson.scheduler.task.TaskInstance
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
@@ -20,8 +23,10 @@ import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
@@ -32,6 +37,8 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DelegatingDataSource
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+import org.mockito.kotlin.verifyNoInteractions
 import org.ehcache.core.config.DefaultConfiguration
 import org.ehcache.jsr107.EhcacheCachingProvider
 import java.io.ByteArrayOutputStream
@@ -74,6 +81,7 @@ class ArkistointiJobProcessingIT {
     @Autowired private lateinit var processor: ArkistointiJobProcessor
     @Autowired private lateinit var failureHandler: ArkistointiJobFailureHandler
     @Autowired private lateinit var state: ArkistointiJobStateService
+    @MockitoSpyBean private lateinit var loader: ArkistointiAsiakirjaLoader
     private val schedulers = mutableListOf<Scheduler>()
 
     @BeforeEach
@@ -85,11 +93,15 @@ class ArkistointiJobProcessingIT {
     @AfterEach
     fun stopSchedulers() {
         schedulers.forEach(Scheduler::stop)
+        transactions.executeWithoutResult {
+            jdbc.update("delete from scheduled_tasks where task_name = ?", ARKISTOINTI_JOB_TASK.taskName)
+        }
     }
 
     @Test
     fun `retry is delayed and success persists metadata before removing scheduler row`() {
         val jobId = fixture()
+        val originalExecution = execution(jobId)
         adapter.behavior = {
             if (adapter.submissions.size == 1) retryable() else ArkistointiResult.Success("external-id")
         }
@@ -112,13 +124,14 @@ class ArkistointiJobProcessingIT {
         assertThat(adapter.submissions.map { it.payload }).containsOnly("{\"approved\":true}")
         assertThat(adapter.submissions.first().asiakirjat.single().sisalto)
             .containsExactly(*adapter.submissions.last().asiakirjat.single().sisalto)
-        processor.process(jobId)
+        assertThrows<StaleArkistointiExecutionException> { processor.process(originalExecution) }
         assertThat(adapter.submissions).hasSize(2)
     }
 
     @Test
     fun `retry limit includes the first delivery`() {
         val jobId = fixture()
+        val originalExecution = execution(jobId)
         adapter.behavior = { retryable() }
         val scheduler = scheduler()
         runUntil(scheduler) { assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA) }
@@ -126,7 +139,7 @@ class ArkistointiJobProcessingIT {
         assertThat(adapter.submissions).hasSize(3)
         assertThat(jobs.findById(jobId).orElseThrow().errorCode).isEqualTo("ARCHIVE_RETRIES_EXHAUSTED")
         assertThat(jobs.findById(jobId).orElseThrow().lastError).contains("UNAVAILABLE", "Palvelu ei vastaa")
-        processor.process(jobId)
+        assertThrows<StaleArkistointiExecutionException> { processor.process(originalExecution) }
         assertThat(adapter.submissions).hasSize(3)
     }
 
@@ -186,7 +199,8 @@ class ArkistointiJobProcessingIT {
     @Test
     fun `dead execution after successful commit is acknowledged without another delivery`() {
         val jobId = fixture()
-        processor.process(jobId)
+        simulateCrash(jobId)
+        processor.process(execution(jobId))
         simulateCrash(jobId, completed = true)
         val scheduler = scheduler()
         runUntil(scheduler) { assertThat(taskCount(jobId)).isZero() }
@@ -340,6 +354,10 @@ class ArkistointiJobProcessingIT {
     @Test
     fun `concurrent state writer rechecks terminal status after waiting for a row lock`() {
         val jobId = fixture()
+        transactions.executeWithoutResult {
+            jdbc.update("update scheduled_tasks set picked = true where task_instance = ?", jobId.toString())
+        }
+        val currentExecution = execution(jobId)
         val executor = Executors.newSingleThreadExecutor()
         lateinit var lateFailure: Future<Boolean>
         try {
@@ -347,7 +365,7 @@ class ArkistointiJobProcessingIT {
                 val job = jobs.findByIdForStateChange(jobId)!!
                 val lockOwner = jdbc.queryForObject("select pg_backend_pid()", Int::class.javaObjectType)!!
                 lateFailure = executor.submit<Boolean> {
-                    state.fail(jobId, ArkistointiError.create("LATE_ERROR", "Viivastynyt virhe"), false)
+                    state.fail(currentExecution, ArkistointiError.create("LATE_ERROR", "Viivastynyt virhe"), false)
                 }
                 // Wait for an actual database lock wait, rather than relying on thread timing.
                 await().atMost(Duration.ofSeconds(10)).until {
@@ -372,6 +390,129 @@ class ArkistointiJobProcessingIT {
             executor.shutdownNow()
         }
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["UNPICKED", "REPLACED", "ACKNOWLEDGED"])
+    fun `stale prepare never loads or sends documents`(reason: String) {
+        val jobId = fixture()
+        val originalExecution = execution(jobId)
+        transactions.executeWithoutResult {
+            when (reason) {
+                "REPLACED" -> jdbc.update("update scheduled_tasks set picked = true, version = version + 1 where task_instance = ?", jobId.toString())
+                "ACKNOWLEDGED" -> jdbc.update("delete from scheduled_tasks where task_instance = ?", jobId.toString())
+            }
+        }
+        val stored = schedulerStateOrEmpty(jobId)
+        assertThrows<StaleArkistointiExecutionException> { processor.process(originalExecution) }
+        verifyNoInteractions(loader)
+        assertThat(adapter.submissions).isEmpty()
+        assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.ODOTTAA)
+        assertThat(schedulerStateOrEmpty(jobId)).isEqualTo(stored)
+    }
+
+    private fun execution(jobId: Long) = ArkistointiJobExecution(
+        ARKISTOINTI_JOB_TASK.taskName, jobId.toString(),
+        jdbc.queryForObject("select version from scheduled_tasks where task_instance = ?", Long::class.javaObjectType, jobId.toString())!!
+    )
+
+    private fun schedulerStateOrEmpty(jobId: Long) = if (taskCount(jobId) == 0L) emptyMap() else schedulerState(jobId)
+
+    @ParameterizedTest
+    @CsvSource("PERMANENT,false", "SUCCESS,false", "RETRYABLE,false", "EXCEPTION,false",
+        "PERMANENT,true", "SUCCESS,true", "RETRYABLE,true", "EXCEPTION,true")
+    fun `late adapter result cannot overwrite a newer execution`(result: String, afterSuccess: Boolean) {
+        val firstEntered = CountDownLatch(1)
+        val secondEntered = CountDownLatch(1)
+        val releaseFirst = CountDownLatch(1)
+        val releaseSecond = CountDownLatch(1)
+        val calls = AtomicInteger()
+        val versions = CopyOnWriteArrayList<Long>()
+        adapter.behavior = {
+            if (calls.getAndIncrement() == 0) {
+                firstEntered.countDown()
+                check(releaseFirst.await(20, TimeUnit.SECONDS))
+                lateResult(result)
+            } else {
+                secondEntered.countDown()
+                check(releaseSecond.await(20, TimeUnit.SECONDS))
+                ArkistointiResult.Success("new-external-id")
+            }
+        }
+        val jobId = fixture()
+        val first = scheduler(observedTask(versions), Duration.ofHours(1))
+        try {
+            assertThat(firstEntered.await(10, TimeUnit.SECONDS)).isTrue()
+            // Lose the heartbeat without stopping or interrupting the original adapter call.
+            transactions.executeWithoutResult {
+                jdbc.update("update scheduled_tasks set last_heartbeat = ? where task_instance = ?",
+                    java.sql.Timestamp.from(Instant.now().minusSeconds(60)), jobId.toString())
+            }
+            val second = scheduler(observedTask(versions))
+            runUntil(second) { assertThat(secondEntered.count).isZero() }
+            assertThat(versions).hasSize(2)
+            assertThat(versions.last()).isGreaterThan(versions.first())
+            val current = schedulerState(jobId)
+            val currentJob = jobState(jobId)
+            if (afterSuccess) {
+                releaseSecond.countDown()
+                runUntil(second) { assertThat(taskCount(jobId)).isZero() }
+            }
+            releaseFirst.countDown()
+            await().atMost(Duration.ofSeconds(10)).untilAsserted { assertThat(first.currentlyExecuting).isEmpty() }
+            assertThat(status(jobId)).isEqualTo(
+                if (afterSuccess) ArkistointiJobStatus.LAHETETTY else ArkistointiJobStatus.KASITTELYSSA
+            )
+            if (!afterSuccess) {
+                assertThat(schedulerState(jobId)).isEqualTo(current)
+                assertThat(jobState(jobId)).isEqualTo(currentJob)
+            }
+            releaseSecond.countDown()
+            runUntil(second) { assertThat(taskCount(jobId)).isZero() }
+            assertNewSuccess(jobId)
+        } finally {
+            releaseFirst.countDown()
+            releaseSecond.countDown()
+        }
+    }
+
+    private fun lateResult(result: String): ArkistointiResult = when (result) {
+        "PERMANENT" -> ArkistointiResult.PermanentFailure(ArkistointiError.create("OLD_ERROR", "Vanha virhe"))
+        "SUCCESS" -> ArkistointiResult.Success("old-external-id")
+        "RETRYABLE" -> retryable()
+        else -> error("secret old response")
+    }
+
+    private fun schedulerState(jobId: Long) = jdbc.queryForMap(
+        "select version, picked, execution_time, consecutive_failures from scheduled_tasks where task_instance = ?",
+        jobId.toString()
+    )
+
+    private fun jobState(jobId: Long) = jobs.findById(jobId).orElseThrow().let {
+        listOf(it.status, it.externalId, it.completedAt, it.errorCode, it.lastError)
+    }
+
+    private fun assertNewSuccess(jobId: Long) {
+        val stored = jobs.findById(jobId).orElseThrow()
+        assertThat(stored.status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+        assertThat(stored.externalId).isEqualTo("new-external-id")
+        assertThat(stored.completedAt).isNotNull()
+        assertThat(stored.errorCode).isNull()
+        assertThat(stored.lastError).isNull()
+        assertThat(adapter.submissions).hasSize(2)
+        assertThat(adapter.submissions.map { it.key }.distinct()).hasSize(1)
+    }
+
+    private fun observedTask(versions: MutableList<Long>): OneTimeTask<Unit> =
+        object : OneTimeTask<Unit>(ARKISTOINTI_JOB_TASK.taskName, Unit::class.java,
+            failureHandler, task.deadExecutionHandler) {
+            override fun executeOnce(instance: TaskInstance<Unit>, context: ExecutionContext) =
+                task.executeOnce(instance, context)
+
+            override fun execute(instance: TaskInstance<Unit>, context: ExecutionContext): CompletionHandler<Unit> {
+                versions.add(context.execution.version)
+                return task.execute(instance, context)
+            }
+        }
 
     private class RecoveryGate {
         private val secondDetected = CountDownLatch(1)
@@ -420,13 +561,13 @@ class ArkistointiJobProcessingIT {
         }
     }
 
-    private fun scheduler(knownTask: OneTimeTask<Unit> = task): Scheduler {
+    private fun scheduler(knownTask: OneTimeTask<Unit> = task, heartbeat: Duration = Duration.ofSeconds(1)): Scheduler {
         val autoCommitDataSource = object : DelegatingDataSource(dataSource) {
             override fun getConnection(): Connection = super.getConnection().apply { autoCommit = true }
         }
         return Scheduler.create(autoCommitDataSource, knownTask)
             .schedulerName(SchedulerName.Fixed("archive-it-${UUID.randomUUID()}"))
-            .threads(1).pollingInterval(Duration.ofHours(1)).heartbeatInterval(Duration.ofSeconds(1))
+            .threads(1).pollingInterval(Duration.ofHours(1)).heartbeatInterval(heartbeat)
             .missedHeartbeatsLimit(4).shutdownMaxWait(Duration.ofSeconds(3)).build()
             .also { schedulers.add(it); it.start() }
     }
@@ -443,7 +584,7 @@ class ArkistointiJobProcessingIT {
         "select count(*) from scheduled_tasks where task_instance = ?", Long::class.javaObjectType, jobId.toString()
     )!!
     private fun failures(jobId: Long) = jdbc.queryForObject(
-        "select consecutive_failures from scheduled_tasks where task_instance = ?", Int::class.javaObjectType, jobId.toString()
+        "select coalesce(consecutive_failures, 0) from scheduled_tasks where task_instance = ?", Int::class.javaObjectType, jobId.toString()
     )!!
 
     private fun fixture(university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO): Long = transactions.execute {

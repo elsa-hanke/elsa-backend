@@ -23,7 +23,9 @@ class ArkistointiJobStateService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun prepare(jobId: Long): ArkistointiSubmission? {
+    fun prepare(execution: ArkistointiJobExecution): ArkistointiSubmission? {
+        lockExecution(execution)
+        val jobId = execution.jobId
         val job = jobs.findByIdForStateChange(jobId)
         if (job == null) {
             log.warn("Archive job missing [jobId={}]", jobId)
@@ -49,8 +51,9 @@ class ArkistointiJobStateService(
         )
     }
 
-    fun succeed(jobId: Long, externalId: String?) {
-        val job = requireNotNull(jobs.findByIdForStateChange(jobId))
+    fun succeed(execution: ArkistointiJobExecution, externalId: String?) {
+        lockExecution(execution)
+        val job = requireNotNull(jobs.findByIdForStateChange(execution.jobId))
         if (job.isTerminal()) return
         job.startProcessing()
         job.transitionTo(ArkistointiJobStatus.LAHETETTY)
@@ -61,29 +64,21 @@ class ArkistointiJobStateService(
     }
 
     /** Returns false once no further automatic execution is needed. */
-    fun fail(jobId: Long, error: ArkistointiError, terminal: Boolean): Boolean {
-        val job = jobs.findByIdForStateChange(jobId) ?: return false
+    fun fail(execution: ArkistointiJobExecution, error: ArkistointiError, terminal: Boolean): Boolean {
+        lockExecution(execution)
+        val job = jobs.findByIdForStateChange(execution.jobId) ?: return false
         return recordFailure(job, error, terminal)
     }
 
-    /** Null means this execution has already been replaced or acknowledged: do nothing. */
-    fun failExecution(
-        jobId: Long,
-        taskName: String,
-        executionVersion: Long,
-        error: ArkistointiError,
-        terminal: Boolean
-    ): Boolean? {
+    private fun lockExecution(execution: ArkistointiJobExecution) {
         // Lock order: scheduled_tasks -> arkistointi_job. Keep the scheduler's version stable until
         // the job update commits; a separate SELECT without FOR UPDATE would leave another race.
         val current = jdbc.query(
             "select version from scheduled_tasks where task_name = ? and task_instance = ? " +
                 "and version = ? and picked = true for update",
-            { _, _ -> true }, taskName, jobId.toString(), executionVersion
+            { _, _ -> true }, execution.taskName, execution.taskInstanceId, execution.version
         ).isNotEmpty()
-        if (!current) return null
-        val job = jobs.findByIdForStateChange(jobId) ?: return false
-        return recordFailure(job, error, terminal)
+        if (!current) throw StaleArkistointiExecutionException()
     }
 
     private fun recordFailure(job: ArkistointiJob, error: ArkistointiError, terminal: Boolean): Boolean {

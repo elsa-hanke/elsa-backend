@@ -4,6 +4,7 @@ import com.github.kagkarlsson.scheduler.Scheduler
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobScheduler
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobExecution
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Assertions.assertNull
@@ -100,8 +101,8 @@ class DbSchedulerArkistointiJobExecutionIT {
     class RecordingProcessor : ArkistointiJobProcessor {
         val jobIds = LinkedBlockingQueue<Long>()
 
-        override fun process(jobId: Long) {
-            jobIds.add(jobId)
+        override fun process(execution: ArkistointiJobExecution) {
+            jobIds.add(execution.jobId)
         }
     }
 }

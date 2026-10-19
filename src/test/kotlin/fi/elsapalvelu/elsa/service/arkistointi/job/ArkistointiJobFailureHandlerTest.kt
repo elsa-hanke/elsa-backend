@@ -25,13 +25,13 @@ class ArkistointiJobFailureHandlerTest {
     @Test
     fun `scheduler counter determines delay and last allowed attempt terminates`() {
         val failure = failure(1)
-        whenever(state.failExecution(eq(42L), any(), any(), any(), eq(false))).thenReturn(true)
-        whenever(state.failExecution(eq(42L), any(), any(), any(), eq(true))).thenReturn(false)
+        whenever(state.fail(any(), any(), eq(false))).thenReturn(true)
+        whenever(state.fail(any(), any(), eq(true))).thenReturn(false)
         handler.onFailure(failure, operations)
         verify(operations).reschedule(failure, failure.timeDone.plus(Duration.ofMinutes(2)))
 
         handler.onFailure(failure(2), operations)
-        verify(state).failExecution(42L, ARKISTOINTI_JOB_TASK.taskName, 1L, ArkistointiError.create(
+        verify(state).fail(ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, "42", 1L), ArkistointiError.create(
             "ARCHIVE_RETRIES_EXHAUSTED",
             "Arkistoinnin enimmainen yritysmaara saavutettiin. ARCHIVE_PROCESSING_FAILED: Arkistoinnin kasittely epaonnistui"
         ), true)
@@ -40,7 +40,7 @@ class ArkistointiJobFailureHandlerTest {
 
     @Test
     fun `failed state commit never acknowledges or reschedules the execution`() {
-        whenever(state.failExecution(eq(42L), any(), any(), any(), any())).thenThrow(IllegalStateException("db unavailable"))
+        whenever(state.fail(any(), any(), any())).thenThrow(IllegalStateException("db unavailable"))
         assertThrows<IllegalStateException> { handler.onFailure(failure(0), operations) }
         verify(operations, never()).remove()
         verify(operations, never()).reschedule(any(), any())
@@ -48,7 +48,7 @@ class ArkistointiJobFailureHandlerTest {
 
     @Test
     fun `stale execution does not remove or reschedule a newer execution`() {
-        whenever(state.failExecution(eq(42L), any(), any(), any(), any())).thenReturn(null)
+        whenever(state.fail(any(), any(), any())).thenThrow(StaleArkistointiExecutionException())
         handler.onFailure(failure(0), operations)
         verifyNoInteractions(operations)
     }

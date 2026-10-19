@@ -4,7 +4,11 @@ import com.github.kagkarlsson.scheduler.SchedulerClient
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer
 import com.github.kagkarlsson.scheduler.task.TaskDescriptor
 import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
-import com.github.kagkarlsson.scheduler.task.helper.Tasks
+import com.github.kagkarlsson.scheduler.task.CompletionHandler
+import com.github.kagkarlsson.scheduler.task.ExecutionContext
+import com.github.kagkarlsson.scheduler.task.TaskInstance
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobExecution
+import fi.elsapalvelu.elsa.service.arkistointi.job.StaleArkistointiExecutionException
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobScheduler
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
@@ -39,16 +43,26 @@ class ArkistointiDbSchedulerConfiguration {
         retryPolicy: ArkistointiRetryPolicy
     ): OneTimeTask<Unit> {
         retryPolicy.validate()
-        return Tasks.oneTime(ARKISTOINTI_JOB_TASK)
-            .onFailure(failureHandler)
-            .onDeadExecution { completed, operations -> failureHandler.onFailure(completed, operations) }
-            .execute { taskInstance, _ ->
-                val jobId = taskInstance.id.toLongOrNull()
-                    ?: throw IllegalArgumentException("Arkistointi-jobin tunniste ei ole numero")
+        return object : OneTimeTask<Unit>(
+            ARKISTOINTI_JOB_TASK.taskName, Unit::class.java, failureHandler,
+            { completed, operations -> failureHandler.onFailure(completed, operations) }
+        ) {
+            override fun executeOnce(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext) {
+                val execution = ArkistointiJobExecution(taskInstance.taskName, taskInstance.id, executionContext.execution.version)
                 val processor = processorProvider.getIfAvailable()
                     ?: error("ArkistointiJobProcessor is not registered")
-                processor.process(jobId)
+                processor.process(execution)
             }
+
+            override fun execute(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext): CompletionHandler<Unit> =
+                try {
+                    super.execute(taskInstance, executionContext)
+                } catch (_: StaleArkistointiExecutionException) {
+                    // Returning normally from executeOnce would acknowledge the replaced execution.
+                    // Do not touch its scheduler row; normal completions still use version-checked removal.
+                    CompletionHandler { _, _ -> }
+                }
+        }
     }
 
     @Bean

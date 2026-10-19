@@ -39,8 +39,16 @@ interface ArkistointiJobScheduler {
 }
 
 interface ArkistointiJobProcessor {
-    fun process(jobId: Long)
+    fun process(execution: ArkistointiJobExecution)
 }
+
+/** Captured once when db-scheduler claims a task; never replace it with a newer database version. */
+data class ArkistointiJobExecution(val taskName: String, val taskInstanceId: String, val version: Long) {
+    val jobId: Long = requireNotNull(taskInstanceId.toLongOrNull()) { "Arkistointi-jobin tunniste ei ole numero" }
+}
+
+/** Control flow: another execution owns this task, or it has already been acknowledged. */
+internal class StaleArkistointiExecutionException : RuntimeException("Archive execution is no longer current")
 
 data class LoadedArkistointiAsiakirja(
     val viite: ArkistointiJobAsiakirja,

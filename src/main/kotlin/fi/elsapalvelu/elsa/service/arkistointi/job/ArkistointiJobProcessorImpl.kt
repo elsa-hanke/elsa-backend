@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
-/** The adapter must deduplicate uncertain deliveries using submission.key. */
+/** The adapter must atomically deduplicate concurrent and uncertain deliveries using submission.key. */
 @Service
 class ArkistointiJobProcessorImpl(
     private val state: ArkistointiJobStateService,
@@ -15,40 +15,44 @@ class ArkistointiJobProcessorImpl(
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    override fun process(jobId: Long) {
+    override fun process(execution: ArkistointiJobExecution) {
         try {
-            processSubmission(jobId)
+            processSubmission(execution)
+        } catch (exception: StaleArkistointiExecutionException) {
+            throw exception
         } catch (exception: ArkistointiProcessingException) {
             if (exception.retryable) throw exception
-            recordPermanentFailure(jobId, exception.error)
+            recordPermanentFailure(execution, exception.error)
         } catch (exception: ArkistointiAsiakirjaException) {
             // Document errors may contain personal filenames: persist only the code and a fixed description.
-            recordPermanentFailure(jobId, ArkistointiError.create(exception.error.code, "Arkistoitavan asiakirjan tarkistus epaonnistui"))
+            recordPermanentFailure(execution, ArkistointiError.create(exception.error.code, "Arkistoitavan asiakirjan tarkistus epaonnistui"))
         } catch (_: Exception) {
             // No original exception/cause: scheduler logs must not expose payloads or HTTP response bodies.
             throw ArkistointiProcessingException(unexpectedArchiveError())
         }
     }
 
-    private fun recordPermanentFailure(jobId: Long, error: ArkistointiError) {
+    private fun recordPermanentFailure(execution: ArkistointiJobExecution, error: ArkistointiError) {
         try {
-            state.fail(jobId, error, terminal = true)
+            state.fail(execution, error, terminal = true)
+        } catch (exception: StaleArkistointiExecutionException) {
+            throw exception
         } catch (_: Exception) {
             throw ArkistointiProcessingException(unexpectedArchiveError())
         }
     }
 
-    private fun processSubmission(jobId: Long) {
-        val submission = state.prepare(jobId) ?: return
+    private fun processSubmission(execution: ArkistointiJobExecution) {
+        val submission = state.prepare(execution) ?: return
         val adapter = adaptersByUniversity[submission.university]
             ?: throw ArkistointiProcessingException(
                 ArkistointiError.create("ARCHIVE_ADAPTER_MISSING", "Yliopiston arkistointiadapteria ei ole maaritelty"),
                 retryable = false
             )
         when (val result = adapter.arkistoi(submission)) {
-            is ArkistointiResult.Success -> state.succeed(jobId, result.externalId)
+            is ArkistointiResult.Success -> state.succeed(execution, result.externalId)
             is ArkistointiResult.RetryableFailure -> throw ArkistointiProcessingException(result.error)
-            is ArkistointiResult.PermanentFailure -> state.fail(jobId, result.error, terminal = true)
+            is ArkistointiResult.PermanentFailure -> state.fail(execution, result.error, terminal = true)
         }
     }
 }
