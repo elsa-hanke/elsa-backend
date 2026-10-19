@@ -7,6 +7,8 @@ import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
 import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobScheduler
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiRetryPolicy
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -27,16 +29,27 @@ val ARKISTOINTI_JOB_TASK: TaskDescriptor<Unit> =
 class ArkistointiDbSchedulerConfiguration {
 
     @Bean
+    fun arkistointiRetryPolicy(properties: ApplicationProperties): ArkistointiRetryPolicy =
+        properties.getArkistointi().retry
+
+    @Bean
     fun arkistointiJobTask(
-        processorProvider: ObjectProvider<ArkistointiJobProcessor>
-    ): OneTimeTask<Unit> = Tasks.oneTime(ARKISTOINTI_JOB_TASK)
-        .execute { taskInstance, _ ->
-            val jobId = taskInstance.id.toLongOrNull()
-                ?: throw IllegalArgumentException("Arkistointi-jobin tunniste ei ole numero")
-            val processor = processorProvider.getIfAvailable()
-                ?: error("ArkistointiJobProcessor is not registered")
-            processor.process(jobId)
-        }
+        processorProvider: ObjectProvider<ArkistointiJobProcessor>,
+        failureHandler: ArkistointiJobFailureHandler,
+        retryPolicy: ArkistointiRetryPolicy
+    ): OneTimeTask<Unit> {
+        retryPolicy.validate()
+        return Tasks.oneTime(ARKISTOINTI_JOB_TASK)
+            .onFailure(failureHandler)
+            .onDeadExecution { completed, operations -> failureHandler.onFailure(completed, operations) }
+            .execute { taskInstance, _ ->
+                val jobId = taskInstance.id.toLongOrNull()
+                    ?: throw IllegalArgumentException("Arkistointi-jobin tunniste ei ole numero")
+                val processor = processorProvider.getIfAvailable()
+                    ?: error("ArkistointiJobProcessor is not registered")
+                processor.process(jobId)
+            }
+    }
 
     @Bean
     fun dbSchedulerCustomizer(dataSource: DataSource): DbSchedulerCustomizer =

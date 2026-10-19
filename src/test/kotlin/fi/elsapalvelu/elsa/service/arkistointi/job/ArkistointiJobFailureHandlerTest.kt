@@ -1,0 +1,62 @@
+package fi.elsapalvelu.elsa.service.arkistointi.job
+
+import com.github.kagkarlsson.scheduler.task.Execution
+import com.github.kagkarlsson.scheduler.task.ExecutionComplete
+import com.github.kagkarlsson.scheduler.task.ExecutionOperations
+import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
+import java.time.Duration
+import java.time.Instant
+
+class ArkistointiJobFailureHandlerTest {
+    private val state = mock<ArkistointiJobStateService>()
+    private val operations = mock<ExecutionOperations<Unit>>()
+    private val policy = ArkistointiRetryPolicy().apply { maxAttempts = 3 }
+    private val handler = ArkistointiJobFailureHandler(state, policy)
+
+    @Test
+    fun `scheduler counter determines delay and last allowed attempt terminates`() {
+        val failure = failure(1)
+        whenever(state.failExecution(eq(42L), any(), any(), any(), eq(false))).thenReturn(true)
+        whenever(state.failExecution(eq(42L), any(), any(), any(), eq(true))).thenReturn(false)
+        handler.onFailure(failure, operations)
+        verify(operations).reschedule(failure, failure.timeDone.plus(Duration.ofMinutes(2)))
+
+        handler.onFailure(failure(2), operations)
+        verify(state).failExecution(42L, ARKISTOINTI_JOB_TASK.taskName, 1L, ArkistointiError.create(
+            "ARCHIVE_RETRIES_EXHAUSTED",
+            "Arkistoinnin enimmainen yritysmaara saavutettiin. ARCHIVE_PROCESSING_FAILED: Arkistoinnin kasittely epaonnistui"
+        ), true)
+        verify(operations).remove()
+    }
+
+    @Test
+    fun `failed state commit never acknowledges or reschedules the execution`() {
+        whenever(state.failExecution(eq(42L), any(), any(), any(), any())).thenThrow(IllegalStateException("db unavailable"))
+        assertThrows<IllegalStateException> { handler.onFailure(failure(0), operations) }
+        verify(operations, never()).remove()
+        verify(operations, never()).reschedule(any(), any())
+    }
+
+    @Test
+    fun `stale execution does not remove or reschedule a newer execution`() {
+        whenever(state.failExecution(eq(42L), any(), any(), any(), any())).thenReturn(null)
+        handler.onFailure(failure(0), operations)
+        verifyNoInteractions(operations)
+    }
+
+    private fun failure(previousFailures: Int): ExecutionComplete {
+        val now = Instant.parse("2026-01-01T00:00:00Z")
+        val execution = Execution(now, ARKISTOINTI_JOB_TASK.instance("42").build())
+        execution.consecutiveFailures = previousFailures
+        return ExecutionComplete.failure(execution, now, now, ArkistointiProcessingException(unexpectedArchiveError()))
+    }
+}

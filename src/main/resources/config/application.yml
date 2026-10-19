@@ -292,6 +292,11 @@ application:
     turku:
     uef:
   arkistointi:
+    retry:
+      max-attempts: 5
+      initial-delay: 1m
+      max-delay: 1h
+      multiplier: 2.0
     tre:
       kaytossa: false
       host:

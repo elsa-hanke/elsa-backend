@@ -16,6 +16,7 @@ import org.ehcache.jsr107.EhcacheCachingProvider
 import org.ehcache.core.config.DefaultConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.transaction.support.TransactionTemplate
@@ -84,6 +85,7 @@ class DbSchedulerArkistointiJobExecutionIT {
     @TestConfiguration(proxyBeanMethods = false)
     class ProcessorConfiguration {
         @Bean
+        @Primary
         fun recordingProcessor() = RecordingProcessor()
 
         // Closing this @DirtiesContext must not close the provider's default manager
