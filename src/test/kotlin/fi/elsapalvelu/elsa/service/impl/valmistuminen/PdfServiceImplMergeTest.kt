@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.PdfA2bService
+import fi.elsapalvelu.elsa.service.ArchiveImageTestData
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
@@ -83,6 +84,19 @@ class PdfServiceImplMergeTest {
             assertThat(image.getAsName(PdfName.Subtype)).isEqualTo(PdfName.Image)
             assertThat(image.getAsName(PdfName.ColorSpace)).isEqualTo(PdfName.DeviceCMYK)
             assertThat(image.getAsNumber(PdfName.Width).intValue()).isEqualTo(8)
+        }
+    }
+
+    @Test
+    fun `merging includes a JPEG uploaded with the image jpg alias`() {
+        val output = ByteArrayOutputStream()
+        service.yhdistaAsiakirjat(listOf(
+            attachment(PdfTestData.certificate(), MediaType.APPLICATION_PDF_VALUE),
+            attachment(ArchiveImageTestData.image(), "image/jpg")
+        ), output)
+        PdfDocument(PdfReader(ByteArrayInputStream(output.toByteArray()))).use {
+            assertThat(it.numberOfPages).isEqualTo(2)
+            assertThat(it.getPage(2).resources.getResource(PdfName.XObject).size()).isEqualTo(1)
         }
     }
 

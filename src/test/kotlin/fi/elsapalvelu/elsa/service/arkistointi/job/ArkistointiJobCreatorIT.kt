@@ -3,9 +3,11 @@ package fi.elsapalvelu.elsa.service.arkistointi.job
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.PdfA2bService
+import fi.elsapalvelu.elsa.service.ArchiveImageTestData
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -14,6 +16,8 @@ import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
@@ -98,6 +102,47 @@ class ArkistointiJobCreatorIT {
         assertThrows<DataIntegrityViolationException> {
             jdbcTemplate.update("update asiakirja_data set data = ? where id = ?", "changed".toByteArray(), dataId)
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["image/jpg", "image/png"])
+    @Transactional
+    fun `large certificate image is archived without modifying its stored original`(contentType: String) {
+        val opintooikeus = AsiakirjaHelper.createEntity(entityManager).opintooikeus!!
+        val student = opintooikeus.erikoistuvaLaakari!!
+        val original = ArchiveImageTestData.image(if (contentType == "image/jpg") "jpeg" else "png", 4000, 3000)
+        val filename = "certificate.${contentType.substringAfter('/')}"
+        student.laillistamistodistus!!.data = original.copyOf()
+        student.laillistamispaivanLiitetiedostonNimi = filename
+        student.laillistamispaivanLiitetiedostonTyyppi = contentType
+        entityManager.flush()
+        val sourceId = student.laillistamistodistus!!.id
+
+        val reference = snapshotService.createLaillistamistodistusReference(opintooikeus, 0)
+        val job = creator.create(
+            CreateArkistointiJobRequest(
+                YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{\"approved\":true}",
+                "certificate-image-${opintooikeus.id}", listOf(reference)
+            )
+        )
+        entityManager.flush()
+        entityManager.clear()
+
+        val storedStudent = entityManager.find(ErikoistuvaLaakari::class.java, student.id)
+        assertThat(storedStudent.laillistamistodistus!!.id).isEqualTo(sourceId)
+        assertThat(storedStudent.laillistamistodistus!!.data).containsExactly(*original)
+        assertThat(storedStudent.laillistamispaivanLiitetiedostonNimi).isEqualTo(filename)
+        assertThat(storedStudent.laillistamispaivanLiitetiedostonTyyppi).isEqualTo(contentType)
+        val storedJob = jobRepository.findById(job.id!!).orElseThrow()
+        val storedReference = storedJob.asiakirjat.single()
+        val snapshotBytes = loader.load(storedReference).sisalto
+        assertThat(pdfA2bService.isPdfA2b(snapshotBytes)).isTrue
+        assertThat(storedReference.sha256).isEqualTo(ArkistointiChecksum.sha256(snapshotBytes))
+        assertThat(storedReference.filename).isEqualTo("certificate.pdf")
+        assertThat(storedReference.contentType).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+        assertThat(storedReference.asiakirja!!.archiveSnapshot).isTrue
+        assertThat(storedReference.asiakirja!!.asiakirjaData!!.id).isNotEqualTo(sourceId)
+        assertThat(scheduledTaskCount(job.id!!)).isEqualTo(1)
     }
 
     @Test
