@@ -115,7 +115,8 @@ class PeppiOuluClientAndFailureTest {
                 runBlocking { service.fetchOpintotietodata("test-identity") }
             }.isInstanceOf(RuntimeException::class.java)
 
-            verify(alertPublisherService, times(2)).publishAlert(any(), any())
+            // Initial failure, recovery after the authenticated response, and a new failure.
+            verify(alertPublisherService, times(3)).publishAlert(any(), any())
         } finally {
             server.shutdown()
         }

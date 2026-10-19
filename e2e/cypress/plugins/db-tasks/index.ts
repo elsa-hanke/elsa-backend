@@ -8,6 +8,8 @@ import { virkailijaTasks } from './virkailija'
 import {opintoOikeusTasks} from './opintooikeus'
 import { valmistumispyyntoTasks } from './valmistumispyynto'
 import { yekDocumentTasks } from './yek-documents'
+import { accountMergeTasks } from './account-merge'
+import { pdfTextTasks } from './pdf-text'
 export { dbClient } from './db-client'
 
 export function registerDbTasks(on: Cypress.PluginEvents): void {
@@ -21,6 +23,8 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
     ...virkailijaTasks,
     ...opintoOikeusTasks,
     ...valmistumispyyntoTasks,
-    ...yekDocumentTasks
+    ...yekDocumentTasks,
+    ...accountMergeTasks,
+    ...pdfTextTasks
   })
 }

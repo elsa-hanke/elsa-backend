@@ -75,7 +75,7 @@ class PeppiOuluOpintotietodataFetchingServiceImpl(
             PeppiOpintooikeudenTila.GRADUATED.toString() -> OpintooikeudenTila.VALMISTUNUT
             PeppiOpintooikeudenTila.RESIGNED.toString() -> OpintooikeudenTila.PERUUTETTU
             else -> {
-                log.error("PeppiOulu: tuntematon opinto-oikeuden tila: '$tila'")
+                log.warn("PeppiOulu: tuntematon opinto-oikeuden tila: '$tila'")
                 null
             }
         }

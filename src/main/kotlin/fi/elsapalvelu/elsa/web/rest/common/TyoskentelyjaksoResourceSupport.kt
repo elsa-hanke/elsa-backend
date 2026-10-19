@@ -25,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
-private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
 private const val TYOSKENTELYPAIKKA_ENTITY_NAME = "tyoskentelypaikka"
 
 @Component
@@ -42,13 +41,7 @@ class TyoskentelyjaksoResourceSupport(
         opintooikeusId: Long
     ): MutableSet<AsiakirjaDTO>? {
         files?.let {
-            if (!fileValidationService.validate(it, opintooikeusId)) {
-                throw BadRequestAlertException(
-                    "Tiedosto ei ole kelvollinen tai samanniminen tiedosto on jo olemassa.",
-                    ASIAKIRJA_ENTITY_NAME,
-                    "dataillegal.tiedosto-ei-ole-kelvollinen-tai-samanniminen-tiedosto-on-jo-olemassa"
-                )
-            }
+            fileValidationService.validate(it, opintooikeusId)
             return it.map { file -> file.mapAsiakirja() }.toMutableSet()
         }
 

@@ -1137,6 +1137,9 @@ export interface ElsaError {
   unsupportedCharacters?: string[]
   seurantajaksoId?: number
   seurantajaksoStartDate?: string
+  pdfSource?: string
+  sourceId?: number
+  sourceDate?: string
 }
 
 export type HakaYliopisto = {

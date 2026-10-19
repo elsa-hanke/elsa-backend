@@ -72,12 +72,16 @@ describe('Työskentelyjakso', () => {
     cy.contains('button', 'Lisää').click()
 
     cy.wait('@invalidTyoskentelyjaksoPost', { timeout: 30000 })
-      .its('response.statusCode')
-      .should('eq', 400)
+      .then(({ response }) => {
+        expect(response?.statusCode).to.eq(400)
+        expect(response?.body.message).to.eq(
+          'error.dataillegal.pdf-tiedostoa-ei-voitu-kasitella'
+        )
+      })
     cy.url().should('include', '/tyoskentelyjaksot/uusi')
     cy.contains(
       '.toast-body',
-      'Työskentelyjakson tallentaminen epäonnistui: Liitetiedostoa ei voitu käsitellä tai samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos toinen samanniminen tiedosto on jo lisätty ELSA-palveluun, anna tiedostolle toinen nimi, ja lataa se sitten uudelleen. Tarkista, että saat tiedoston aukeamaan normaalisti ennen lataamista ELSA-palveluun. Jos PDF-tiedosto avautuu normaalisti, tallenna se uudelleen PDF-muodossa ja yritä uudelleen.'
+      'Työskentelyjakson tallentaminen epäonnistui: Liitetiedostoa ei voitu käsitellä. Tarkista, että saat tiedoston aukeamaan normaalisti ennen lataamista ELSA-palveluun. Jos PDF-tiedosto avautuu normaalisti, tallenna se uudelleen PDF-muodossa ja yritä uudelleen.'
     ).should('be.visible')
   })
 

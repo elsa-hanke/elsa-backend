@@ -5,6 +5,9 @@ export {}
 describe('Päivittäinen merkintä', () => {
   before(() => {
     cy.resetErikoistuvaE2eState()
+  })
+
+  beforeEach(() => {
     cy.loginAsErikoistuva()
   })
 
@@ -54,4 +57,129 @@ describe('Päivittäinen merkintä', () => {
     cy.contains('E2E ohjauskeskustelu').should('be.visible')
     cy.contains('E2E reflektio päivittäisestä merkinnästä.').should('be.visible')
   })
+
+  it('Erikoistuja saa tallennettaessa tarkan virheen PDF-fontista puuttuvasta merkistä', () => {
+    cy.visit('/paivittaiset-merkinnat/uusi')
+    cy.contains('h1', 'Lisää merkintä').should('be.visible')
+    cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
+
+    cy.contains('label', 'Päivämäärä')
+      .parent()
+      .find('input.date-input, input[type="text"]')
+      .first()
+      .clear()
+      .type('16.05.2025')
+      .blur()
+
+    cy.get('input[name="paivakirja-merkinta-aihe"]').eq(1).check({ force: true })
+
+    cy.contains('label', 'Oppimistapahtuma')
+      .parent()
+      .find('input[type="text"]')
+      .clear()
+      .type('E2E PDF-merkkien tarkistus')
+
+    cy.contains('label', 'Ajatuksia opitusta ja sen soveltamisesta')
+      .parent()
+      .find('textarea')
+      .clear()
+      .type('Pohdinta sisältää tarkistusmerkin ✓')
+
+    cy.intercept('POST', '**/erikoistuva-laakari/paivakirjamerkinnat').as(
+      'pdfMerkkiPaivakirjamerkintaPost'
+    )
+    cy.contains('button', 'Tallenna merkintä').click()
+
+    cy.wait('@pdfMerkkiPaivakirjamerkintaPost').then(({ request, response }) => {
+      expect(request.body.reflektio).to.eq('Pohdinta sisältää tarkistusmerkin ✓')
+      expect(response?.statusCode).to.eq(400)
+      expect(response?.body).to.include({
+        message: 'error.dataillegal.pdf-tiedostossa-tukemattomia-merkkeja',
+        field: 'ajatuksia-opitusta-ja-sen-soveltamisesta',
+        pdfSource: 'paivakirjamerkinta',
+        sourceDate: '2025-05-16',
+      })
+      expect(response?.body?.unsupportedCharacters).to.deep.eq(['✓ (U+2713)'])
+    })
+
+    cy.contains(
+      'Kenttä "Ajatuksia opitusta ja sen soveltamisesta" sisältää merkkejä, joita ei ' +
+        'voida lisätä arkistoitavaan PDF-tiedostoon: ✓ (U+2713). Poista tai korvaa ' +
+        'merkit ja tallenna uudelleen.'
+    ).should('be.visible')
+
+    cy.contains('label', 'Ajatuksia opitusta ja sen soveltamisesta')
+      .parent()
+      .find('textarea')
+      .should('have.value', 'Pohdinta sisältää tarkistusmerkin ✓')
+      .clear()
+      .type('Pohdinta sisältää vain tuettuja merkkejä.')
+
+    cy.contains('button', 'Tallenna merkintä').click()
+    cy.wait('@pdfMerkkiPaivakirjamerkintaPost').then(({ response }) => {
+      expect(response?.statusCode).to.eq(201)
+      expect(response?.body?.id).to.be.a('number')
+    })
+
+    cy.url().should('match', /\/paivittaiset-merkinnat\/\d+$/)
+    cy.contains('Pohdinta sisältää vain tuettuja merkkejä.').should('be.visible')
+  })
+
+  it(
+    'Oppimistapahtuma- ja muun aiheen nimi -kentät rajoittavat syötteen 255 merkkiin, ' +
+      'eikä tallennus epäonnistu liian pitkän tekstin vuoksi',
+    () => {
+      cy.visit('/paivittaiset-merkinnat/uusi')
+      cy.contains('h1', 'Lisää merkintä').should('be.visible')
+      cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
+
+      cy.contains('label', 'Päivämäärä')
+        .parent()
+        .find('input.date-input, input[type="text"]')
+        .first()
+        .clear()
+        .type('17.05.2025')
+        .blur()
+
+      const pitkaTeksti = 'a'.repeat(300)
+      const rajattuTeksti = 'a'.repeat(255)
+
+      // "Muu aihe" -kategoria paljastaa muun aiheen nimikentän
+      cy.get('input[name="paivakirja-merkinta-aihe"]').eq(5).check({ force: true })
+
+      // Oppimistapahtuma-kenttä ei salli yli 255 merkkiä
+      cy.contains('label', 'Oppimistapahtuma')
+        .parent()
+        .find('input[type="text"]')
+        .clear()
+        .type(pitkaTeksti, { delay: 0 })
+        .should('have.value', rajattuTeksti)
+
+      // Muun aiheen nimikenttä ei salli yli 255 merkkiä
+      cy.get('.pl-4 input[type="text"]')
+        .clear()
+        .type(pitkaTeksti, { delay: 0 })
+        .should('have.value', rajattuTeksti)
+
+      cy.contains('label', 'Ajatuksia opitusta ja sen soveltamisesta')
+        .parent()
+        .find('textarea')
+        .clear()
+        .type('E2E reflektio liian pitkän tekstin testiin.')
+
+      cy.intercept('POST', '**/erikoistuva-laakari/paivakirjamerkinnat').as(
+        'pitkaTekstiPaivakirjamerkintaPost'
+      )
+      cy.contains('button', 'Tallenna merkintä').click()
+
+      cy.wait('@pitkaTekstiPaivakirjamerkintaPost').then(({ request, response }) => {
+        expect(request.body.oppimistapahtumanNimi).to.eq(rajattuTeksti)
+        expect(request.body.muunAiheenNimi).to.eq(rajattuTeksti)
+        expect(response?.statusCode).to.eq(201)
+        expect(response?.body?.id).to.be.a('number')
+      })
+
+      cy.url().should('match', /\/paivittaiset-merkinnat\/\d+$/)
+    }
+  )
 })

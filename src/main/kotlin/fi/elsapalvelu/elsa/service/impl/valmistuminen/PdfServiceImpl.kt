@@ -15,7 +15,9 @@ import com.itextpdf.layout.properties.UnitValue
 import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.service.PdfContentValidator
-import fi.elsapalvelu.elsa.service.PdfTextSanitizer
+import fi.elsapalvelu.elsa.service.PdfPreparation
+import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
+import fi.elsapalvelu.elsa.service.PdfHtmlText
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_LUO_PDF
@@ -23,7 +25,6 @@ import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion.OP_YHDISTA_PDF
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource
-import org.apache.pdfbox.Loader
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
@@ -36,7 +37,8 @@ import java.io.*
 class PdfServiceImpl(
     private val templateEngine: SpringTemplateEngine,
     private val pdfMetrics: PdfGenerationMetricsService,
-    private val pdfContentValidator: PdfContentValidator
+    private val pdfContentValidator: PdfContentValidator,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) : PdfService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -58,6 +60,13 @@ class PdfServiceImpl(
     override fun luoPdf(template: String, context: Context, outputStream: OutputStream) {
         pdfMetrics.trackOperation(OP_LUO_PDF) {
             val content = sanitizeContent(templateEngine.process(template, context))
+            if (isValidatedPdfTemplate(template)) {
+                pdfTextFieldValidator.validate(
+                    fields = emptyList(),
+                    htmlFields = listOf(pdfSectionField(template) to content),
+                    pdfSource = pdfSource(template)
+                )
+            }
             val pdf = PdfADocument(
                 PdfWriter(outputStream),
                 PdfAConformanceLevel.PDF_A_2B,
@@ -119,15 +128,7 @@ class PdfServiceImpl(
         }
     }
 
-    fun sanitizePdf(data: ByteArray?): ByteArray {
-        ByteArrayOutputStream().use { out ->
-            Loader.loadPDF(data).use { doc ->
-                doc.isAllSecurityToBeRemoved = true
-                doc.save(out)
-            }
-            return out.toByteArray()
-        }
-    }
+    fun sanitizePdf(data: ByteArray?): ByteArray = PdfPreparation.prepare(requireNotNull(data))
 
     override fun yhdistaPdf(
         source: InputStream,
@@ -135,18 +136,48 @@ class PdfServiceImpl(
         outputStream: OutputStream
     ) {
         pdfMetrics.trackOperation(OP_YHDISTA_PDF) {
-            val result = PdfDocument(PdfReader(source), PdfWriter(outputStream))
-            val resultDocument = Document(result)
-            val merger = PdfMerger(result)
-
-            val newDocument = PdfDocument(PdfReader(newPdf))
-            merger.merge(newDocument, 1, newDocument.numberOfPages)
-
-            resultDocument.close()
+            // The source is the generated combined document; the incoming PDF may
+            // be an uploaded certificate with copying restrictions.
+            val preparedData = newPdf.use { PdfPreparation.prepare(it.readBytes()) }
+            PdfDocument(PdfReader(source), PdfWriter(outputStream)).use { result ->
+                PdfDocument(PdfReader(ByteArrayInputStream(preparedData))).use { newDocument ->
+                    PdfMerger(result).merge(newDocument, 1, newDocument.numberOfPages)
+                }
+            }
         }
     }
 
-    private fun sanitizeContent(input: String): String = PdfTextSanitizer.sanitize(input)
+    private fun sanitizeContent(input: String): String = PdfHtmlText.sanitize(input)
+
+    private fun isValidatedPdfTemplate(template: String): Boolean =
+        template.startsWith("pdf/erikoistujantiedot/") ||
+            template.endsWith("valmistumisenyhteenveto.html") ||
+            template.endsWith("valmistumisenyhteenveto_yek.html") ||
+            template == "pdf/koulutussopimus.html" ||
+            template == "pdf/vastuuhenkilonarvio.html"
+
+    private fun pdfSectionField(template: String): String = when {
+        template == "pdf/koulutussopimus.html" -> "pdf-osio-koejakson-koulutussopimus"
+        template == "pdf/vastuuhenkilonarvio.html" -> "pdf-osio-koejakson-vastuuhenkilon-arvio"
+        template.endsWith("koulutussuunnitelma.html") -> "pdf-osio-koulutussuunnitelma"
+        template.endsWith("paivittaisetmerkinnat.html") -> "pdf-osio-paivittaiset-merkinnat"
+        template.endsWith("seurantajakso.html") -> "pdf-osio-seurantajakso"
+        template.endsWith("arvioinnit.html") || template.endsWith("arviointi.html") ->
+            "pdf-osio-arvioinnit"
+        template.endsWith("suoritemerkinnat.html") || template.endsWith("suoritemerkinta.html") ->
+            "pdf-osio-suoritemerkinnat"
+        template.endsWith("valmistumisenyhteenveto.html") ||
+            template.endsWith("valmistumisenyhteenveto_yek.html") ->
+            "pdf-osio-valmistumisen-yhteenveto"
+        else -> "arkistoitava-pdf"
+    }
+
+    private fun pdfSource(template: String): String = when {
+        template == "pdf/koulutussopimus.html" -> "koejaksonkoulutussopimus"
+        template == "pdf/vastuuhenkilonarvio.html" -> "koejaksonvastuuhenkilonarvio"
+        template.endsWith("seurantajakso.html") -> "seurantajakso"
+        else -> "valmistumispyynto"
+    }
 
     private fun invalidPdfAttachmentException(
         asiakirja: Asiakirja,

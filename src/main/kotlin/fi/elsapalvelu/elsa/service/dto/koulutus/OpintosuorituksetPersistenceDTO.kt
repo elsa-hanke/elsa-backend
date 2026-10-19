@@ -7,7 +7,10 @@ data class OpintosuorituksetPersistenceDTO(
 
     var yliopisto: YliopistoEnum,
 
-    var items: List<OpintosuoritusDTO>? = null
+    var items: List<OpintosuoritusDTO>? = null,
+
+    // Only a complete source snapshot may remove missing children. Null child lists remain unchanged.
+    var replaceOsakokonaisuudet: Boolean = false
 
 ) : Serializable {
     override fun toString() = "OpintosuorituksetPersistenceDTO"

@@ -430,7 +430,6 @@
 </template>
 
 <script lang="ts">
-  import { AxiosError } from 'axios'
   import { Component, Mixins } from 'vue-property-decorator'
   import { validationMixin } from 'vuelidate'
   import { requiredIf, required, email } from 'vuelidate/lib/validators'
@@ -456,12 +455,12 @@
     ValmistumispyyntoVaatimuksetLomake,
     ValmistumispyyntoLomakeErikoistuja,
     ValmistumispyyntoSuoritustenTila,
-    ElsaError,
     Asiakirja
   } from '@/types'
   import { confirmExit } from '@/utils/confirm'
   import { ErikoisalaTyyppi, ValmistumispyynnonTila, phoneNumber } from '@/utils/constants'
   import { mapFile, mapFiles } from '@/utils/fileMapper'
+  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
   import { toastFail, toastSuccess } from '@/utils/toast'
   import ValmistumispyynnonTilaErikoistuja from '@/views/valmistumispyynnot/erikoistuja/valmistumispyynnon-tila-erikoistuja.vue'
 
@@ -664,13 +663,9 @@
         this.$emit('skipRouteExitConfirm', true)
         toastSuccess(this, this.$t('valmistumispyynto-lahetetty-onnistuneesti'))
       } catch (err) {
-        const axiosError = err as AxiosError<ElsaError>
-        const message = axiosError?.response?.data?.message
         toastFail(
           this,
-          message
-            ? `${this.$t('valmistumispyynnon-tallentaminen-epaonnistui')}: ${this.$t(message)}`
-            : this.$t('valmistumispyynnon-tallentaminen-epaonnistui')
+          formatPdfTextSaveError(this, err, this.$t('valmistumispyynnon-tallentaminen-epaonnistui'))
         )
       }
       this.sending = false

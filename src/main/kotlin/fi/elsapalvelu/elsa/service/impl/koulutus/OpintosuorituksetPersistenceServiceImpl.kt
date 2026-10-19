@@ -4,14 +4,16 @@ import fi.elsapalvelu.elsa.required
 
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
-import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusOsakokonaisuus
 import fi.elsapalvelu.elsa.extensions.match
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusKurssikoodiRepository
 import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusRepository
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.service.koulutus.OpintosuorituksetPersistenceService
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuorituksetPersistenceDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintosuoritusDTO
@@ -28,6 +30,7 @@ import java.time.Instant
 @Transactional
 class OpintosuorituksetPersistenceServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
+    private val userRepository: UserRepository,
     private val opintosuoritusRepository: OpintosuoritusRepository,
     private val opintosuoritusMapper: OpintosuoritusMapper,
     private val opintosuoritusKurssikoodiRepository: OpintosuoritusKurssikoodiRepository,
@@ -41,6 +44,14 @@ class OpintosuorituksetPersistenceServiceImpl(
     @Suppress("CyclomaticComplexMethod")
     override fun createOrUpdateIfChanged(userId: String, opintosuoritukset: OpintosuorituksetPersistenceDTO) {
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+            ?: return logAndSkipUserWithoutErikoistuvaLaakari(userId)
+        val erikoistuvaLaakariId = erikoistuvaLaakari.id ?: run {
+            log.error(
+                "Käyttäjän $userId erikoistuvan lääkärin tietueeltä puuttuu id. " +
+                    "Opintosuorituksia ei tallennettu."
+            )
+            return
+        }
         val kurssikoodit =
             opintosuoritusKurssikoodiRepository.findAllByYliopistoNimi(opintosuoritukset.yliopisto)
 
@@ -72,12 +83,44 @@ class OpintosuorituksetPersistenceServiceImpl(
             )
                 ?.let { opintosuoritus ->
                     updateOpintosuoritusDetailsIfChanged(opintosuoritus, opintosuoritusDTO)
+                    if (opintosuoritukset.replaceOsakokonaisuudet) {
+                        opintosuoritusDTO.osakokonaisuudet?.let { incoming ->
+                            val incomingCodes = incoming.map { it.kurssikoodi }.toSet()
+                            val removed = opintosuoritus.osakokonaisuudet?.removeAll {
+                                it.kurssikoodi !in incomingCodes
+                            } == true
+                            if (removed) {
+                                opintosuoritus.muokkausaika = Instant.now()
+                            }
+                        }
+                    }
                     opintosuoritusDTO.osakokonaisuudet?.forEach { osakokonaisuusDTO ->
                         opintosuoritus.osakokonaisuudet?.find { it.kurssikoodi == osakokonaisuusDTO.kurssikoodi }?.let {
                             updateOpintosuoritusOsakokonaisuusDetailsIfChanged(it, osakokonaisuusDTO)
                         } ?: addNewOpintosuoritusOsakokonaisuus(opintosuoritus, osakokonaisuusDTO)
                     } ?: return@opintosuoritukset
-                } ?: addNewOpintosuoritus(opintosuoritusDTO, erikoistuvaLaakari, userId)
+                } ?: addNewOpintosuoritus(opintosuoritusDTO, erikoistuvaLaakariId, userId)
+        }
+    }
+
+    private fun logAndSkipUserWithoutErikoistuvaLaakari(userId: String) {
+        val user = userRepository.findByIdWithAuthorities(userId).orElse(null)
+        val hasStudentRole = user?.authorities?.any {
+            it.name == ERIKOISTUVA_LAAKARI || it.name == YEK_KOULUTETTAVA
+        } == true
+
+        when {
+            user == null -> log.error(
+                "Käyttäjää $userId ei löydy. Opintosuorituksia ei tallennettu."
+            )
+            hasStudentRole -> log.error(
+                "Käyttäjällä $userId on erikoistuvan lääkärin tai YEK-koulutettavan rooli, " +
+                    "mutta erikoistuvan lääkärin tietuetta ei löydy. Opintosuorituksia ei tallennettu."
+            )
+            else -> log.debug(
+                "Opintosuoritusten tallennus ohitettiin käyttäjälle $userId, koska käyttäjä ei ole " +
+                    "erikoistuva lääkäri tai YEK-koulutettava."
+            )
         }
     }
 
@@ -189,12 +232,12 @@ class OpintosuorituksetPersistenceServiceImpl(
 
     private fun addNewOpintosuoritus(
         opintosuoritusDTO: OpintosuoritusDTO,
-        erikoistuvaLaakari: ErikoistuvaLaakari?,
+        erikoistuvaLaakariId: Long,
         userId: String
     ) {
         val opintooikeus = findOpintooikeusOrLogError(
             opintosuoritusDTO,
-            erikoistuvaLaakari?.id.required(),
+            erikoistuvaLaakariId,
             userId
         ) ?: return
 

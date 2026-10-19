@@ -702,6 +702,7 @@
     TyoskentelyjaksoTyyppi,
     phoneNumber
   } from '@/utils/constants'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { checkCurrentRouteAndRedirect } from '@/utils/functions'
   import * as hyvaksynnatHelper from '@/utils/koejaksonVaiheHyvaksyntaMapper'
   import { toastFail, toastSuccess } from '@/utils/toast'
@@ -903,8 +904,13 @@
         this.$emit('skipRouteExitConfirm', true)
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
         toastSuccess(this, this.$t('vastuuhenkilon-arvio-hyvaksytty-onnistuneesti'))
-      } catch {
-        toastFail(this, this.$t('vastuuhenkilon-arvio-hyvaksynta-epaonnistui'))
+      } catch (err) {
+        toastFail(
+          this,
+          formatSaveError(this, err, this.$t('vastuuhenkilon-arvio-hyvaksynta-epaonnistui'))
+        )
+      } finally {
+        this.buttonStates.primaryButtonLoading = false
       }
     }
 
@@ -918,8 +924,10 @@
         this.buttonStates.primaryButtonLoading = false
         checkCurrentRouteAndRedirect(this.$router, '/koejakso')
         toastSuccess(this, this.$t('koejakso-palautettu-muokattavaksi'))
-      } catch {
-        toastFail(this, this.$t('koejakso-palautus-epaonnistui'))
+      } catch (err) {
+        toastFail(this, formatSaveError(this, err, this.$t('koejakso-palautus-epaonnistui')))
+      } finally {
+        this.buttonStates.secondaryButtonLoading = false
       }
     }
 

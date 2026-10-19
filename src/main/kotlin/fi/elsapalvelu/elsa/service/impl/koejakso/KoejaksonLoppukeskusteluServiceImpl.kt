@@ -50,7 +50,8 @@ class KoejaksonLoppukeskusteluServiceImpl(
     private val koejaksonValiarviointiRepository: KoejaksonValiarviointiRepository,
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
-    private val opintooikeusService: OpintooikeusService
+    private val opintooikeusService: OpintooikeusService,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) : KoejaksonLoppukeskusteluService {
 
     override fun create(
@@ -60,6 +61,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
             var loppukeskustelu =
                 koejaksonLoppukeskusteluMapper.toEntity(koejaksonLoppukeskusteluDTO)
+            validatePdfText(loppukeskustelu)
             loppukeskustelu.opintooikeus = it
             loppukeskustelu = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
 
@@ -110,6 +112,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
         loppukeskustelu: KoejaksonLoppukeskustelu,
         updated: KoejaksonLoppukeskustelu
     ): KoejaksonLoppukeskustelu {
+        validatePdfText(updated)
         loppukeskustelu.esitetaanKoejaksonHyvaksymista = updated.esitetaanKoejaksonHyvaksymista
         loppukeskustelu.jatkotoimenpiteet = updated.jatkotoimenpiteet
         loppukeskustelu.lahikouluttajaHyvaksynyt = true
@@ -175,6 +178,16 @@ class KoejaksonLoppukeskusteluServiceImpl(
         }
 
         return result
+    }
+
+    private fun validatePdfText(value: KoejaksonLoppukeskustelu) {
+        pdfTextFieldValidator.validate(
+            fields = listOf(
+                "selvitys-jatkotoimista" to value.jatkotoimenpiteet
+            ),
+            pdfSource = "koejaksonloppukeskustelu",
+            sourceId = value.id
+        )
     }
 
     @Transactional(readOnly = true)

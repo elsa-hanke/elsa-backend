@@ -86,6 +86,9 @@
             <li v-if="filesExceedingMaxSize.length > 0">
               {{ $t('asiakirjan-maksimi-tiedostokoko-ylitetty') }}
             </li>
+            <li v-if="emptyFiles.length > 0">
+              {{ $t('error.dataillegal.tiedosto-on-tyhja') }}
+            </li>
             <li v-if="filesBelowMinSize.length > 0">
               {{ $t('asiakirjan-minimi-tiedostokoko-alitettu') }}
             </li>
@@ -135,10 +138,18 @@
               </li>
             </ul>
           </span>
+          <span v-if="emptyFiles.length > 0">
+            {{ $t('error.dataillegal.tiedosto-on-tyhja') }}
+            <ul>
+              <li v-for="(file, index) in emptyFiles" :key="index">
+                {{ file.name }}
+              </li>
+            </ul>
+          </span>
           <span v-if="filesBelowMinSize.length > 0">
             {{ $t('asiakirjan-minimi-tiedostokoko-alitettu') }}
             <ul>
-              <li v-for="(file, index) in filesExceedingMaxSize" :key="index">
+              <li v-for="(file, index) in filesBelowMinSize" :key="index">
                 {{ file.name }}
               </li>
             </ul>
@@ -169,6 +180,7 @@
     duplicateFilesInOtherViews: File[] = []
     selectedFilesCount = 0
     filesBelowMinSize: File[] = []
+    emptyFiles: File[] = []
 
     @Prop({ required: false })
     uploading?: boolean
@@ -218,6 +230,7 @@
       this.duplicateFilesInCurrentView = this.getduplicateFilesInCurrentView(fileArray)
       this.duplicateFilesInOtherViews = this.getduplicateFilesInOtherViews(fileArray)
       this.filesBelowMinSize = this.getFilesBelowMinSize(fileArray)
+      this.emptyFiles = fileArray.filter((file) => file.size === 0)
 
       if (!this.hasErrors) {
         this.selectedFilesCount = 0
@@ -248,7 +261,9 @@
     // Yritetään suodattaa tyhjät tiedostot pois (PDF/10kt, muut 100b)
     getFilesBelowMinSize(files: File[]): File[] {
       return files.filter(
-        (file) => file.size < (file.type === 'application/pdf' ? minPdfFileSize : minFileSize)
+        (file) =>
+          file.size > 0 &&
+          file.size < (file.type === 'application/pdf' ? minPdfFileSize : minFileSize)
       )
     }
 
@@ -259,6 +274,7 @@
       this.duplicateFilesInCurrentView = []
       this.duplicateFilesInOtherViews = []
       this.filesBelowMinSize = []
+      this.emptyFiles = []
     }
 
     get uid() {
@@ -272,7 +288,8 @@
         this.filesOfWrongType.length > 0 ||
         this.duplicateFilesInCurrentView.length > 0 ||
         this.duplicateFilesInOtherViews.length > 0 ||
-        this.filesBelowMinSize.length > 0
+        this.filesBelowMinSize.length > 0 ||
+        this.emptyFiles.length > 0
       )
     }
 

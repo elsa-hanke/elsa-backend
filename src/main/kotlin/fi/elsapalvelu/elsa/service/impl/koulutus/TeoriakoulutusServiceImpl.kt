@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.required
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
+import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
 import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository
@@ -25,7 +26,8 @@ class TeoriakoulutusServiceImpl(
     private val teoriakoulutusMapper: TeoriakoulutusMapper,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val asiakirjaMapper: AsiakirjaMapper,
-    private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository
+    private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository,
+    private val pdfTextFieldValidator: PdfTextFieldValidator
 ) : TeoriakoulutusService {
 
     override fun save(
@@ -34,6 +36,15 @@ class TeoriakoulutusServiceImpl(
         deletedAsiakirjaIds: Set<Int>?,
         opintooikeusId: Long
     ): TeoriakoulutusDTO? {
+        pdfTextFieldValidator.validate(
+            fields = listOf(
+                "koulutuksen-nimi" to teoriakoulutusDTO.koulutuksenNimi,
+                "paikka" to teoriakoulutusDTO.koulutuksenPaikka
+            ),
+            pdfSource = "teoriakoulutus",
+            sourceId = teoriakoulutusDTO.id,
+            sourceDate = teoriakoulutusDTO.alkamispaiva
+        )
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let { opintooikeus ->
             if (teoriakoulutusDTO.id != null) {
                 teoriakoulutusRepository.findOneByIdAndOpintooikeusId(

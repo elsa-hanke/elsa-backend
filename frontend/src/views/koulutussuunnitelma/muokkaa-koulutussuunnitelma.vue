@@ -27,13 +27,14 @@
 </template>
 
 <script lang="ts">
-  import axios, { AxiosError } from 'axios'
+  import axios from 'axios'
   import { Component, Vue } from 'vue-property-decorator'
 
   import { putKoulutussuunnitelma } from '@/api/erikoistuva'
   import ElsaButton from '@/components/button/button.vue'
   import KoulutussuunnitelmaForm from '@/forms/koulutussuunnitelma-form.vue'
-  import { Koulutussuunnitelma, ElsaError } from '@/types'
+  import { Koulutussuunnitelma } from '@/types'
+  import { formatPdfTextSaveError } from '@/utils/pdfTextError'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -88,13 +89,13 @@
           name: 'koulutussuunnitelma'
         })
       } catch (err) {
-        const axiosError = err as AxiosError<ElsaError>
-        const message = axiosError?.response?.data?.message
         toastFail(
           this,
-          message
-            ? `${this.$t('koulutussuunnitelman-tallentaminen-epaonnistui')}: ${this.$t(message)}`
-            : this.$t('koulutussuunnitelman-tallentaminen-epaonnistui')
+          formatPdfTextSaveError(
+            this,
+            err,
+            this.$t('koulutussuunnitelman-tallentaminen-epaonnistui')
+          )
         )
       }
       params.saving = false

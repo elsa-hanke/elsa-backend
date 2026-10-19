@@ -113,7 +113,9 @@ export default class ValmistumispyyntoMixin extends Vue {
       return formatPdfTextError(
         this,
         error,
-        'valmistumispyynnon-seurantajaksossa-pdf-tiedostossa-tukemattomia-merkkeja'
+        error.pdfSource === 'seurantajakso'
+          ? 'valmistumispyynnon-seurantajaksossa-pdf-tiedostossa-tukemattomia-merkkeja'
+          : 'valmistumispyynnon-pdf-tiedostossa-tukemattomia-merkkeja'
       )
     }
 

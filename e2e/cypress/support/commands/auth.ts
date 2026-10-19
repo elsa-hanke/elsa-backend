@@ -2,6 +2,7 @@ import {
   E2E_ERIKOISTUVA_EMAIL,
   SSN_ERIKOISTUVA,
   SSN_KOULUTTAJA,
+  SSN_ESIHENKILO,
   SSN_VASTUUHENKILO,
   SSN_VIRKAILIJA,
 } from './credentials'
@@ -34,6 +35,9 @@ declare global {
        * and their account activated via the verification-token invite flow.
        */
       loginAsKouluttaja(token?: string): void
+
+      /** Logs in as a separate ROLE_KOULUTTAJA user acting as the supervisor. */
+      loginAsEsihenkilo(token?: string): void
 
       loginAsVastuuhenkilo(token?: string): void
 
@@ -121,6 +125,11 @@ Cypress.Commands.add('loginAsKouluttaja', (token?: string) => {
   // The kouluttaja account must have been pre-seeded via db:seedKouluttaja and
   // linked to this SSN through the verification-token invite flow beforehand.
   loginWithCachedSession(['kouluttaja', token ?? 'linked'], SSN_KOULUTTAJA, undefined, token)
+})
+
+// ── loginAsEsihenkilo ────────────────────────────────────────────────────────
+Cypress.Commands.add('loginAsEsihenkilo', (token?: string) => {
+  loginWithCachedSession(['esihenkilo', token ?? 'linked'], SSN_ESIHENKILO, undefined, token)
 })
 
 // ── loginAsVastuuhenkilo ─────────────────────────────────────────────────────
