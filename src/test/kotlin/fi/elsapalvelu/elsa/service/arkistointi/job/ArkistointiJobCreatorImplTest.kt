@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
-import fi.elsapalvelu.elsa.service.PdfA2bService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.assertj.core.api.Assertions.assertThat
@@ -31,23 +30,20 @@ class ArkistointiJobCreatorImplTest {
     private lateinit var scheduler: ArkistointiJobScheduler
 
     @Mock
-    private lateinit var pdfA2bService: PdfA2bService
-
-    @Mock
     private lateinit var snapshotService: ArkistointiAsiakirjaSnapshotService
 
     private lateinit var creator: ArkistointiJobCreatorImpl
 
     @BeforeEach
     fun setUp() {
-        creator = ArkistointiJobCreatorImpl(repository, scheduler, pdfA2bService, snapshotService)
+        creator = ArkistointiJobCreatorImpl(repository, scheduler, snapshotService)
     }
 
     @Test
     fun `persists document references and schedules the job`() {
         val request = request()
-        whenever(pdfA2bService.isPdfA2b(any())).thenReturn(true)
-        whenever(snapshotService.createReference(any(), any(), any())).thenReturn(request.asiakirjat.single())
+        val snapshot = request.asiakirjat.single().copy(filename = "normalized.pdf", sha256 = "b".repeat(64))
+        whenever(snapshotService.resolveReference(any())).thenReturn(snapshot)
         whenever(repository.saveAndFlush(any<ArkistointiJob>())).thenAnswer { invocation ->
             invocation.getArgument<ArkistointiJob>(0).apply { id = 42L }
         }
@@ -60,7 +56,8 @@ class ArkistointiJobCreatorImplTest {
         verify(repository).saveAndFlush(jobCaptor.capture())
         assertThat(jobCaptor.firstValue.asiakirjat).hasSize(1)
         assertThat(jobCaptor.firstValue.asiakirjat.single().sha256)
-            .isEqualTo(request.asiakirjat.single().sha256)
+            .isEqualTo(snapshot.sha256)
+        assertThat(jobCaptor.firstValue.asiakirjat.single().filename).isEqualTo(snapshot.filename)
         verify(scheduler).schedule(any(), any())
     }
 
@@ -81,7 +78,9 @@ class ArkistointiJobCreatorImplTest {
         val request = request().copy(
             asiakirjat = listOf(request().asiakirjat.single().copy(sha256 = "a".repeat(64)))
         )
-        whenever(pdfA2bService.isPdfA2b(any())).thenReturn(true)
+        whenever(snapshotService.resolveReference(any())).thenThrow(
+            ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.checksumMismatch("archive.pdf"))
+        )
 
         val exception = assertThrows<ArkistointiAsiakirjaException> {
             creator.create(request)
@@ -95,7 +94,9 @@ class ArkistointiJobCreatorImplTest {
     @Test
     fun `non PDF-A document prevents job creation`() {
         val request = request()
-        whenever(pdfA2bService.isPdfA2b(any())).thenReturn(false)
+        whenever(snapshotService.resolveReference(any())).thenThrow(
+            ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.notPdfA2b("archive.pdf"))
+        )
 
         val exception = assertThrows<ArkistointiAsiakirjaException> {
             creator.create(request)
