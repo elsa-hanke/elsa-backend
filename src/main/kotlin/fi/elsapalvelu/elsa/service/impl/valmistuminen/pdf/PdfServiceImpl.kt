@@ -108,19 +108,16 @@ class PdfServiceImpl(
         pdfMetrics.trackOperation(OP_YHDISTA_ASIAKIRJAT) {
             // Tahan ei kayteta smart modea: lahteet ovat kayttajien lataamia, mielivaltaisia
             // PDF-tiedostoja, joissa on vain vahan jaettavaa (mitattu hyoty 1 MiB).
-            val pdfOutput = ByteArrayOutputStream()
-            val result = pdfA2bService.createDocument(pdfOutput)
+            // Archive snapshots are normalized separately; ordinary merging must preserve uploaded content.
+            val result = PdfDocument(PdfWriter(outputStream))
             val resultDocument = Document(result)
             asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
                 if (!pdfContentValidator.isValid(it.asiakirjaData?.data)) {
                     throw invalidPdfAttachmentException(it)
                 }
                 try {
-                    val normalizedData = pdfA2bService.normalize(
-                        sanitizePdf(it.asiakirjaData?.data),
-                        MediaType.APPLICATION_PDF_VALUE
-                    )
-                    PdfDocument(PdfReader(ByteArrayInputStream(normalizedData))).use { srcDoc ->
+                    val sanitizedData = sanitizePdf(it.asiakirjaData?.data)
+                    PdfDocument(PdfReader(ByteArrayInputStream(sanitizedData))).use { srcDoc ->
                         for (i in 1..srcDoc.numberOfPages) {
                             val page = srcDoc.getPage(i).copyTo(result)
                             result.addPage(page)
@@ -144,7 +141,6 @@ class PdfServiceImpl(
                     }
                 }
             resultDocument.close()
-            outputStream.write(pdfOutput.toByteArray())
         }
     }
 
@@ -156,21 +152,13 @@ class PdfServiceImpl(
         outputStream: OutputStream
     ) {
         pdfMetrics.trackOperation(OP_YHDISTA_PDF) {
+            // Keep permission-restriction handling without imposing archive PDF/A limits on this path.
             val preparedData = newPdf.use { PdfPreparation.prepare(it.readBytes()) }
-            val normalizedSource = source.use {
-                pdfA2bService.normalize(it.readBytes(), MediaType.APPLICATION_PDF_VALUE)
-            }
-            val normalizedNewPdf = pdfA2bService.normalize(preparedData, MediaType.APPLICATION_PDF_VALUE)
-            val pdfOutput = ByteArrayOutputStream()
-            pdfA2bService.createDocument(pdfOutput).use { result ->
-                val merger = PdfMerger(result)
-                listOf(normalizedSource, normalizedNewPdf).forEach { data ->
-                    PdfDocument(PdfReader(ByteArrayInputStream(data))).use { document ->
-                        merger.merge(document, 1, document.numberOfPages)
-                    }
+            PdfDocument(PdfReader(source), PdfWriter(outputStream)).use { result ->
+                PdfDocument(PdfReader(ByteArrayInputStream(preparedData))).use { newDocument ->
+                    PdfMerger(result).merge(newDocument, 1, newDocument.numberOfPages)
                 }
             }
-            outputStream.write(pdfOutput.toByteArray())
         }
     }
 

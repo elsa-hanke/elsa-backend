@@ -35,15 +35,16 @@ class ArkistointiAsiakirjaSnapshotService(
         if (asiakirja.id == null) {
             throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
         }
-        if (asiakirja.tyyppi != MediaType.APPLICATION_PDF_VALUE || !pdfA2bService.isPdfA2b(data)) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.notPdfA2b(identifier))
-        }
-
+        // Ordinary merged documents need not be PDF/A. Normalize only their archival copy.
         if (!asiakirja.archiveSnapshot) {
             return createSnapshot(
                 requireNotNull(asiakirja.opintooikeus), asiakirja.nimi, asiakirja.tyyppi,
                 data, asiakirjatyyppi, jarjestysnumero
             )
+        }
+
+        if (asiakirja.tyyppi != MediaType.APPLICATION_PDF_VALUE || !pdfA2bService.isPdfA2b(data)) {
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.notPdfA2b(identifier))
         }
 
         return ArkistointiAsiakirjaReference(

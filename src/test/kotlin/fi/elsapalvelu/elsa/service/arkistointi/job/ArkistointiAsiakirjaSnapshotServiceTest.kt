@@ -114,6 +114,64 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
         assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_EMPTY")
     }
 
+    @Test
+    fun `ordinary attachment is normalized only in a separate immutable snapshot`() {
+        whenever(repository.save(any<Asiakirja>())).thenAnswer { invocation ->
+            invocation.getArgument<Asiakirja>(0).apply { id = 125L }
+        }
+        val original = PdfTestData.unembeddedFontPdf(1)
+        val source = Asiakirja(
+            id = 4L, nimi = "attachment.pdf", tyyppi = MediaType.APPLICATION_PDF_VALUE,
+            opintooikeus = Opintooikeus(id = 10L), asiakirjaData = AsiakirjaData(data = original)
+        )
+
+        val reference = service.createReference(source, RecordType.LIITE, 0)
+
+        val snapshot = reference.asiakirja
+        val snapshotData = snapshot.asiakirjaData!!.data!!
+        assertThat(snapshot.id).isEqualTo(125L)
+        assertThat(snapshot.archiveSnapshot).isTrue
+        assertThat(snapshot.tyyppi).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+        assertThat(PdfA2bService(ClassPathResource("sRGB_CS_profile.icm")).isPdfA2b(snapshotData)).isTrue
+        assertThat(reference.sha256).isEqualTo(ArkistointiChecksum.sha256(snapshotData))
+        assertThat(source.asiakirjaData!!.data).containsExactly(*original)
+        assertThat(source.archiveSnapshot).isFalse
+    }
+
+    @Test
+    fun `already conforming PDF is copied into a snapshot without changing bytes`() {
+        whenever(repository.save(any<Asiakirja>())).thenAnswer { invocation ->
+            invocation.getArgument<Asiakirja>(0).apply { id = 126L }
+        }
+        val data = PdfA2bService(ClassPathResource("sRGB_CS_profile.icm"))
+            .normalize(PdfTestData.certificate(), MediaType.APPLICATION_PDF_VALUE)
+        val source = Asiakirja(
+            id = 4L, nimi = "attachment.pdf", tyyppi = MediaType.APPLICATION_PDF_VALUE,
+            opintooikeus = Opintooikeus(id = 10L), asiakirjaData = AsiakirjaData(data = data)
+        )
+
+        val reference = service.createReference(source, RecordType.LIITE, 0)
+
+        assertThat(reference.asiakirja).isNotSameAs(source)
+        assertThat(reference.asiakirja.asiakirjaData!!.data).containsExactly(*data)
+        assertThat(reference.sha256).isEqualTo(ArkistointiChecksum.sha256(data))
+    }
+
+    @Test
+    fun `nonconforming immutable snapshot is rejected rather than repaired`() {
+        val snapshot = Asiakirja(
+            id = 4L, nimi = "snapshot.pdf", tyyppi = MediaType.APPLICATION_PDF_VALUE,
+            asiakirjaData = AsiakirjaData(data = PdfTestData.unembeddedFontPdf(1)), archiveSnapshot = true
+        )
+
+        val exception = assertThrows<ArkistointiAsiakirjaException> {
+            service.createReference(snapshot, RecordType.LIITE, 0)
+        }
+
+        assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_NOT_PDFA_2B")
+        verifyNoInteractions(repository)
+    }
+
     private fun fixture(name: String): ByteArray =
         requireNotNull(javaClass.getResourceAsStream("/fixtures/$name")).use { it.readBytes() }
 }
