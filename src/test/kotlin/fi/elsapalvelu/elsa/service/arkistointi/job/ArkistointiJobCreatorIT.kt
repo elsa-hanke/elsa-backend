@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.PdfA2bService
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
+import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -23,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.web.server.ResponseStatusException
 
@@ -55,6 +57,71 @@ class ArkistointiJobCreatorIT {
 
     @Autowired
     private lateinit var loader: ArkistointiAsiakirjaLoader
+
+    @Autowired
+    private lateinit var transactions: TransactionTemplate
+
+    @ParameterizedTest
+    @ValueSource(strings = ["pdf", "image"])
+    @Transactional
+    fun `untrusted mutable source produces a snapshot with its own checksum and metadata`(kind: String) {
+        val source = AsiakirjaHelper.createEntity(entityManager)
+        source.asiakirjaData!!.data = if (kind == "pdf") PdfTestData.unembeddedFontPdf(1) else ArchiveImageTestData.image()
+        source.tyyppi = if (kind == "pdf") "application/pdf" else "image/jpeg"
+        source.nimi = if (kind == "pdf") "source.pdf" else "source.jpg"
+        entityManager.persist(source)
+        entityManager.flush()
+        // The database flag remains false: this in-memory claim cannot establish immutability.
+        source.archiveSnapshot = true
+        val input = source.asiakirjaData!!.data!!.copyOf()
+        val job = creator.create(request(ArkistointiAsiakirjaReference(source, RecordType.LIITE, 0,
+            source.nimi!!, source.tyyppi!!, ArkistointiChecksum.sha256(input))))
+        entityManager.flush()
+        entityManager.clear()
+        val attached = jobRepository.findById(job.id!!).orElseThrow().asiakirjat.single()
+        val bytes = loader.load(attached).sisalto
+        assertThat(attached.asiakirja!!.id).isNotEqualTo(source.id)
+        assertThat(attached.filename).isEqualTo("source.pdf")
+        assertThat(attached.contentType).isEqualTo("application/pdf")
+        assertThat(attached.sha256).isEqualTo(ArkistointiChecksum.sha256(bytes)).isNotEqualTo(ArkistointiChecksum.sha256(input))
+        assertThat(pdfA2bService.isPdfA2b(bytes)).isTrue()
+        assertThat(entityManager.find(fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja::class.java, source.id).archiveSnapshot).isFalse()
+        assertThat(scheduledTaskCount(job.id!!)).isEqualTo(1)
+    }
+
+    @Test
+    @Transactional
+    fun `persisted snapshot flag cannot certify a nonconforming PDF`() {
+        val source = AsiakirjaHelper.createEntity(entityManager)
+        source.archiveSnapshot = true
+        source.asiakirjaData!!.data = PdfTestData.unembeddedFontPdf(1)
+        entityManager.persist(source)
+        val reference = ArkistointiAsiakirjaReference(source, RecordType.LIITE, 0,
+            source.nimi!!, source.tyyppi!!, ArkistointiChecksum.sha256(source.asiakirjaData!!.data!!))
+        val exception = assertThrows<ArkistointiAsiakirjaException> { creator.create(request(reference)) }
+        assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_NOT_PDFA_2B")
+    }
+
+    @Test
+    fun `validation failure rolls back new snapshots job and schedule`() {
+        val documentsBefore = asiakirjaRepository.count()
+        val jobsBefore = jobRepository.count()
+        val tasksBefore = jdbcTemplate.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)
+        assertThrows<ArkistointiAsiakirjaException> {
+            transactions.executeWithoutResult {
+                val first = storedSnapshot()
+                val second = storedSnapshot().copy(jarjestysnumero = 1, sha256 = "a".repeat(64))
+                creator.create(request(first).copy(asiakirjat = listOf(first, second)))
+            }
+        }
+        assertThat(asiakirjaRepository.count()).isEqualTo(documentsBefore)
+        assertThat(jobRepository.count()).isEqualTo(jobsBefore)
+        assertThat(jdbcTemplate.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)).isEqualTo(tasksBefore)
+    }
+
+    private fun request(reference: ArkistointiAsiakirjaReference) = CreateArkistointiJobRequest(
+        YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}", "snapshot-validation-${reference.asiakirja.id}", listOf(reference)
+    )
 
     @Test
     @Transactional

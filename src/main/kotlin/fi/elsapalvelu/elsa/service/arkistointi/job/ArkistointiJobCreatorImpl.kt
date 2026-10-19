@@ -3,8 +3,6 @@ package fi.elsapalvelu.elsa.service.arkistointi.job
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
-import fi.elsapalvelu.elsa.service.PdfA2bService
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional
 class ArkistointiJobCreatorImpl(
     private val jobRepository: ArkistointiJobRepository,
     private val jobScheduler: ArkistointiJobScheduler,
-    private val pdfA2bService: PdfA2bService,
     private val snapshotService: ArkistointiAsiakirjaSnapshotService
 ) : ArkistointiJobCreator {
 
@@ -26,8 +23,6 @@ class ArkistointiJobCreatorImpl(
         }
 
         jobRepository.findByKey(pyynto.key)?.let { return it }
-
-        pyynto.asiakirjat.forEach(::validateReference)
         val job = ArkistointiJob(
             university = pyynto.university,
             caseType = pyynto.caseType,
@@ -35,17 +30,15 @@ class ArkistointiJobCreatorImpl(
             key = pyynto.key
         )
         pyynto.asiakirjat.sortedBy { it.jarjestysnumero }.forEach { reference ->
-            val snapshot = snapshotService.createReference(
-                reference.asiakirja, reference.asiakirjatyyppi, reference.jarjestysnumero
-            )
+            val snapshot = snapshotService.resolveReference(reference)
             job.lisaaAsiakirja(
                 ArkistointiJobAsiakirja(
                     asiakirja = snapshot.asiakirja,
                     asiakirjatyyppi = reference.asiakirjatyyppi,
                     jarjestysnumero = reference.jarjestysnumero,
-                    filename = reference.filename,
-                    contentType = reference.contentType,
-                    sha256 = reference.sha256.lowercase()
+                    filename = snapshot.filename,
+                    contentType = snapshot.contentType,
+                    sha256 = snapshot.sha256
                 )
             )
         }
@@ -56,30 +49,4 @@ class ArkistointiJobCreatorImpl(
         return saved
     }
 
-    private fun validateReference(reference: ArkistointiAsiakirjaReference) {
-        val identifier = reference.filename
-        if (
-            reference.jarjestysnumero < 0 ||
-            reference.filename.isBlank() ||
-            reference.contentType != MediaType.APPLICATION_PDF_VALUE
-        ) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid(identifier))
-        }
-        val data = reference.asiakirja.asiakirjaData?.data
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
-        if (data.isEmpty()) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.empty(identifier))
-        }
-        if (reference.asiakirja.id == null) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
-        }
-        if (!pdfA2bService.isPdfA2b(data)) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.notPdfA2b(identifier))
-        }
-        if (!ArkistointiChecksum.sha256(data).equals(reference.sha256, ignoreCase = true)) {
-            throw ArkistointiAsiakirjaException(
-                ArkistointiAsiakirjaErrors.checksumMismatch(identifier)
-            )
-        }
-    }
 }

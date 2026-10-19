@@ -14,6 +14,10 @@ interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
     @Query("select a from Asiakirja a where a.id = :id")
     fun findOneWithDataById(id: Long): Asiakirja?
 
+    // Scalar query reads the persisted flag, even if a managed entity's non-updatable flag was changed in memory.
+    @Query("select a.archiveSnapshot from Asiakirja a where a.id = :id")
+    fun findArchiveSnapshotFlagById(id: Long): Boolean?
+
     @Query(
         """
         select a from Asiakirja a join a.opintooikeus o

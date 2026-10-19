@@ -75,6 +75,17 @@ Tavallinen PDF-yhdistäminen ei käytä tätä kuvien normalisointia tai sen raj
 Pakollisen laillistamistodistuksen puuttuminen tai virheellinen sisältö estää
 snapshotin luonnin hallitulla virheellä; puutteellista aineistoa ei hyväksytä.
 
+Normalisointi validoi lopulliset PDF/A-tavut. Snapshot-palvelu liittää viitteeseen
+sisäisen todisteen, joka sitoo tarkistuksen dokumentin ID:hen, metatietoihin ja
+SHA-256-tiivisteeseen. Creator tarkistaa tallennetun sisällön ja tiivisteen,
+mutta ei validoi samaa hyväksyttyä PDF/A-tulosta uudelleen. Viitteen `copy()`
+ei kopioi todistetta; ilman sitä olemassa oleva snapshot validoidaan uudelleen.
+Pelkkä `archiveSnapshot=true` ei riitä: palvelu tarkistaa tietokannan lipun ja
+käsittelee muuttuvan lähdedokumentin aina erillisenä arkistokopiona.
+Jobin nimi, MIME-tyyppi ja tiiviste otetaan lopullisesta snapshotista.
+Loader tarkistaa edelleen tiivisteen ennen lähetystä. Snapshotin luonnin transaktiorajat
+ja normalisoinnin fallback säilyvät.
+
 `ArchiveImageNormalizer` tarkistaa ennen rasterin lukemista enintään 20 MiB:n
 tiedostokoon, 16 384 pikselin sivun ja 40 megapikselin lähdekuvan rajat. Lisäksi
 256 MiB:n laskennallinen työmuistibudjetti varaa 8 tavua/lähdepikseli,
