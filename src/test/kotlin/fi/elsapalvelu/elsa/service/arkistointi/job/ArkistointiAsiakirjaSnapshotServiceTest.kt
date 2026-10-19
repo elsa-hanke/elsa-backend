@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
+import fi.elsapalvelu.elsa.service.ArchiveImageTestData
 import fi.elsapalvelu.elsa.service.PdfA2bService
 import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
@@ -42,7 +45,7 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
         whenever(repository.save(any<Asiakirja>())).thenAnswer { invocation ->
             invocation.getArgument<Asiakirja>(0).apply { id = 123L }
         }
-        val certificate = fixture("valid.jpg")
+        val certificate = ArchiveImageTestData.image()
         val erikoistuvaLaakari = ErikoistuvaLaakari(
             laillistamistodistus = AsiakirjaData(data = certificate),
             laillistamispaivanLiitetiedostonNimi = "licence.jpg",
@@ -82,6 +85,57 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
         assertThat(reference.asiakirja.archiveSnapshot).isTrue
         assertThat(PdfA2bService(ClassPathResource("sRGB_CS_profile.icm")).isPdfA2b(reference.asiakirja.asiakirjaData!!.data)).isTrue
         org.apache.pdfbox.Loader.loadPDF(original).use { assertThat(it.isEncrypted).isTrue }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["alias", "large-jpeg", "large-png", "cmyk", "sixteen-bit", "oriented"])
+    fun `image certificate snapshot preserves original bytes and metadata`(kind: String) {
+        whenever(repository.save(any<Asiakirja>())).thenAnswer { invocation ->
+            invocation.getArgument<Asiakirja>(0).apply { id = 127L }
+        }
+        val (contentType, original) = when (kind) {
+            "alias" -> "image/jpg" to ArchiveImageTestData.image()
+            "large-jpeg" -> "image/jpeg" to ArchiveImageTestData.image("jpeg", 4000, 3000)
+            "large-png" -> "image/png" to ArchiveImageTestData.image("png", 4000, 3000)
+            "cmyk" -> "image/jpeg" to PdfTestData.cmykJpeg()
+            "sixteen-bit" -> "image/png" to ArchiveImageTestData.sixteenBitPng()
+            else -> "image/jpeg" to ArchiveImageTestData.orientedJpeg(6)
+        }
+        val unchanged = original.copyOf()
+        val originalData = AsiakirjaData(data = original)
+        val student = ErikoistuvaLaakari(
+            laillistamistodistus = originalData,
+            laillistamispaivanLiitetiedostonNimi = "certificate.${contentType.substringAfter('/')}",
+            laillistamispaivanLiitetiedostonTyyppi = contentType
+        )
+        val filename = student.laillistamispaivanLiitetiedostonNimi
+
+        val reference = service.createLaillistamistodistusReference(Opintooikeus(id = 10L, erikoistuvaLaakari = student), 0)
+
+        val snapshot = reference.asiakirja
+        assertThat(snapshot.archiveSnapshot).isTrue
+        assertThat(snapshot.nimi).isEqualTo("certificate.pdf")
+        assertThat(snapshot.tyyppi).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+        assertThat(PdfA2bService(ClassPathResource("sRGB_CS_profile.icm")).isPdfA2b(snapshot.asiakirjaData!!.data)).isTrue
+        assertThat(reference.sha256).isEqualTo(ArkistointiChecksum.sha256(snapshot.asiakirjaData!!.data!!))
+        assertThat(student.laillistamistodistus).isSameAs(originalData)
+        assertThat(student.laillistamistodistus!!.data).containsExactly(*unchanged)
+        assertThat(student.laillistamispaivanLiitetiedostonNimi).isEqualTo(filename)
+        assertThat(student.laillistamispaivanLiitetiedostonTyyppi).isEqualTo(contentType)
+    }
+
+    @Test
+    fun `damaged certificate fails with a controlled error without saving a snapshot`() {
+        val student = ErikoistuvaLaakari(
+            laillistamistodistus = AsiakirjaData(data = byteArrayOf(1, 2, 3)),
+            laillistamispaivanLiitetiedostonNimi = "certificate.jpg",
+            laillistamispaivanLiitetiedostonTyyppi = "image/jpg"
+        )
+        val exception = assertThrows<ArkistointiAsiakirjaException> {
+            service.createLaillistamistodistusReference(Opintooikeus(erikoistuvaLaakari = student), 0)
+        }
+        assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_INVALID")
+        verifyNoInteractions(repository)
     }
 
     @Test
@@ -172,6 +226,4 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
         verifyNoInteractions(repository)
     }
 
-    private fun fixture(name: String): ByteArray =
-        requireNotNull(javaClass.getResourceAsStream("/fixtures/$name")).use { it.readBytes() }
 }

@@ -12,6 +12,7 @@ import com.itextpdf.layout.font.FontProvider
 import com.itextpdf.layout.properties.ObjectFit
 import com.itextpdf.layout.properties.UnitValue
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
+import fi.elsapalvelu.elsa.service.DocumentContentTypes
 import fi.elsapalvelu.elsa.service.PdfA2bService
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.PdfPreparation
@@ -127,7 +128,7 @@ class PdfServiceImpl(
                     throw invalidPdfAttachmentException(it, e)
                 }
             }
-            asiakirjat.filter { it.tyyppi == MediaType.IMAGE_JPEG_VALUE || it.tyyppi == MediaType.IMAGE_PNG_VALUE }
+            asiakirjat.filter { DocumentContentTypes.isImage(it.tyyppi) }
                 .forEach {
                     try {
                         val image = Image(ImageDataFactory.create(it.asiakirjaData?.data))
