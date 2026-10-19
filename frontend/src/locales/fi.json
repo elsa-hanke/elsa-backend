@@ -142,6 +142,10 @@
   "asiakirja-samanniminen-tiedosto": "Samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos toinen samanniminen tiedosto on jo lisätty ELSA-palveluun, anna tiedostolle toinen nimi, ja lataa se sitten uudelleen.",
   "asiakirja-samanniminen-tiedosto-toisessa-nakymassa": "Samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos toinen samanniminen tiedosto on jo lisätty ELSA-palveluun, anna tiedostolle toinen nimi, ja lataa se sitten uudelleen.",
   "asiakirjan": "asiakirjan",
+  "asiakirjojen-enimmaismaara-ylitetty": "Voit lisätä enintään 90 uutta liitetiedostoa kerralla. Tallenna nykyiset liitteet ennen uusien lisäämistä.",
+  "tyoskentelyjakson-liitteiden-osien-enimmaismaara-ylitetty": "Yhdessä lähetyksessä voi olla enintään 100 uutta ja poistettavaa liitettä yhteensä. Vähennä muutosten määrää ja yritä uudelleen.",
+  "tyoskentelyjakson-liitteet-osittain-tallennettu": "Osa liitemuutoksista on jo tallennettu. Päivitä sivu ja tarkista liitteet ennen uutta yritystä.",
+  "asiakirjan-tiedostonimi-ei-kelvollinen": "Tarkista tiedoston nimi. Nimi ei saa olla tyhjä ja sen enimmäispituus on 255 merkkiä, mukaan lukien tiedostopääte.",
   "asiakirjan-maksimi-tiedostokoko-ylitetty": "Maksimi tiedostokoko yksittäiselle asiakirjalle: 20 Mt",
   "asiakirjan-poistaminen-epaonnistui": "Asiakirjan poistaminen epäonnistui",
   "asiakirjan-poistaminen-onnistui": "Asiakirja poistettu onnistuneesti",
@@ -295,6 +299,7 @@
       "tyoskentelyjaksojen-yhteenlaskettu-aika-ylittyy": "päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ylittää 100%",
       "uuden-lahikouluttajan-voi-lisata-vain-erikoistuva-laakari": "uuden lahikouluttajan voi lisätä vain erikoistuja",
       "vastuuhenkilon-tehtavat-maaritettava-enintaan-yhdelle-vastuuhenkilolle": "jokaisen vastuuhenkilön tehtävän täytyy kuulua enintään yhdelle vastuuhenkilölle saman erikoisalan sisällä",
+      "valmistumispyynnon-hyvaksynta-on-jo-kaynnissa": "Hyväksyntä on jo käynnissä",
       "valmistumispyynnon-liite-ei-ole-kelvollinen-pdf": "Valmistumispyyntöön liittyvä liite \"{attachmentName}\" ({attachmentContext}) ei ole kelvollinen PDF-tiedosto. Pyydä liitteen lisääjää poistamaan se tai korvaamaan se kelvollisella PDF-tiedostolla ja yritä hyväksyntää uudelleen.",
       "valmistumispyynto-ei-ole-muokattavissa": "valmistumispyyntö ei ole muokattavissa",
       "valmistumispyynto-on-jo-lahetetty": "valmistumispyyntö on jo lähetetty"
@@ -498,6 +503,8 @@
     "kouluttaja-ohje": "Jos kyseessä on ensimmäinen kirjautuminen, käytät kutsulinkkiä, joka on saapunut osoitteesta reply@mail.elsapalvelu.fi otsikolla ”[ELSA-palvelu] Olet saanut kutsun liittyä ELSA-palvelun käyttäjäksi”. Muu kirjautumistapa ei toimi tilin aktivointiin.",
     "tarkista-seuraavat-tiedot": "Tarkistathan seuraavat kohdat, ennen yhteydenottoa:",
     "virheellinen-nimi-ohje": "Sisäänkirjautuminen epäonnistui. Kutsuun liitetty nimi ei vastaa kirjautumisessa saatua nimeä. Syynä saattaa olla käytössä oleva kutsumanimi tai kutsussa sattunut kirjoitusvirhe.",
+    "kutsussa-oleva-nimi": "Kutsussa oleva nimi:",
+    "tunnistautumisessa-saatu-nimi": "Tunnistautumisessa saatu nimi:",
     "virheellinen-nimi-ota-yhteys": "Nimen muokkaamiseksi ota yhteys tekniseen pääkäyttäjään osoitteeseen julia.sillanpaa@tuni.fi tai ohjaamasi erikoistujan yliopiston opintohallintoon, yhteystiedot:",
     "yhteystiedot": "https://www.laaketieteelliset.fi/ammatillinen-jatkokoulutus/yhteystiedot"
   },

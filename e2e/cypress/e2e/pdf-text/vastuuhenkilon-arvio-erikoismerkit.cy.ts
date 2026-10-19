@@ -34,7 +34,7 @@ const editor = () =>
     .then((body: HTMLBodyElement) => cy.wrap(Cypress.$(body)))
 
 function openOfficer(id: number) {
-  cy.loginAsVirkailija(Cypress.env('virkailijaToken'))
+  cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
   cy.intercept('GET', `**${OFFICER_API}/${id}`).as('officerReview')
   cy.intercept('PUT', `**${OFFICER_API}`).as('saveOfficer')
   cy.visit(`/koejakso/virkailijan-tarkistus/${id}`)
@@ -46,7 +46,7 @@ function openOfficer(id: number) {
 }
 
 function openResponsible(id: number) {
-  cy.loginAsVirkailija(Cypress.env('virkailijaToken'))
+  cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
   cy.apiRequest({ method: 'GET', url: `${OFFICER_API}/${id}` }).then(({ status, body }) => {
     expect(status).to.eq(200)
     return cy
@@ -65,7 +65,7 @@ function openResponsible(id: number) {
 }
 
 function visitResponsible(id: number) {
-  cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+  cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
   cy.intercept('GET', `**${RESPONSIBLE_API}/${id}`).as('responsibleReview')
   cy.intercept('PUT', `**${RESPONSIBLE_API}`).as('saveResponsible')
   cy.visit(`/koejakso/vastuuhenkilon-arvio/${id}`)

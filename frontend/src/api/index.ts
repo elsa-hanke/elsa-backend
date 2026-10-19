@@ -2,6 +2,7 @@ import axios from 'axios'
 
 import store from '@/store'
 import { OmatTiedotLomake, OmatTiedotLomakeErikoistuja } from '@/types'
+import { runActiveContextChange } from '@/utils/active-context-channel'
 import { setCookie, getCookie } from '@/utils/cookies'
 import { wrapToFormData } from '@/utils/functions'
 
@@ -81,5 +82,8 @@ export async function sloKaytossa() {
 }
 
 export async function vaihdaRooli(rooli: string) {
-  return await axios.post('vaihda-rooli', wrapToFormData({ rooli: rooli }))
+  // ELSAINSI-73: tämä välilehti latautuu itse uudelleen, muut välilehdet synkronoidaan
+  return await runActiveContextChange(() =>
+    axios.post('vaihda-rooli', wrapToFormData({ rooli: rooli }))
+  )
 }

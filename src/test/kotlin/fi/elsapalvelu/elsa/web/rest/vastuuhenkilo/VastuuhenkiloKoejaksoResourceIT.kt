@@ -56,7 +56,6 @@ class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
     private lateinit var koejaksonKehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet
     private lateinit var koejaksonLoppukeskustelu: KoejaksonLoppukeskustelu
     private lateinit var koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
-    private lateinit var user: User
 
     // convenience alias so all existing test calls compile unchanged
     private val restKoejaksoMockMvc get() = testMockMvc

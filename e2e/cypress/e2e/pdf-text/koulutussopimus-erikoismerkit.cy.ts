@@ -71,12 +71,12 @@ const approveTrainer = (body: any) =>
     .then(({ status }) => expect(status).to.eq(200))
 
 function openResponsible(id: number) {
-  cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+  cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
   cy.apiRequest({ method: 'GET', url: `${TRAINER_API}/${id}` }).then(({ status, body }) => {
     expect(status).to.eq(200)
     return approveTrainer(body)
   })
-  cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+  cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
   cy.intercept('GET', `**${RESPONSIBLE_API}/${id}`).as('responsibleContract')
   cy.intercept('PUT', `**${RESPONSIBLE_API}`).as('approveResponsible')
   cy.visit(`/koejakso/koulutussopimus/${id}`)
@@ -165,7 +165,7 @@ describe('Koulutussopimuksen PDF-erikoismerkit', () => {
         ],
         kouluttajat: [
           {
-            kayttajaId: Cypress.env('kouluttajaId'),
+            kayttajaId: Cypress.expose('kouluttajaId'),
             toimipaikka: 'Jyväskylä',
             lahiosoite: 'Lääkärinkatu 1',
             postitoimipaikka: 'Jyväskylä'
@@ -268,7 +268,7 @@ describe('Koulutussopimuksen PDF-erikoismerkit', () => {
 
   it('tarkistaa kouluttajan kaikki kentät ja sallii korjatun hyväksynnän käyttöliittymästä', () => {
     cy.submitKoulutussopimusViaUi('Lassekalevi Hummaamistes').then((id) => {
-      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+      cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
       cy.apiRequest({ method: 'GET', url: `${TRAINER_API}/${id}` }).then(
         ({ status, body: original }) => {
           expect(status).to.eq(200)

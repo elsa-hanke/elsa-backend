@@ -1,5 +1,8 @@
 import { defineConfig } from 'cypress'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
 import { registerDbTasks } from './cypress/plugins/db-tasks'
+import { registerTokenTasks } from './cypress/plugins/token-tasks'
 
 export default defineConfig({
   e2e: {
@@ -8,6 +11,33 @@ export default defineConfig({
     supportFile: 'cypress/support/e2e.ts',
     setupNodeEvents(on) {
       registerDbTasks(on)
+      registerTokenTasks(on)
+      // Persist each completed spec so interrupted shards retain partial results.
+      const resultsDirectory = process.env.E2E_RESULTS_DIR
+      if (resultsDirectory) {
+        mkdirSync(resultsDirectory, { recursive: true })
+        on('after:spec', (spec, results) => {
+          if (!results) return
+          writeFileSync(path.join(resultsDirectory, `${encodeURIComponent(spec.relative)}.json`), JSON.stringify({
+            spec: spec.relative.replace(/\\/g, '/'),
+            stats: results.stats,
+            failures: results.tests.filter((test) => test.state === 'failed').map((test) => ({
+              title: test.title.join(' > '),
+              error: test.displayError ?? 'No error details provided by Cypress',
+              attempts: test.attempts.length,
+            })),
+            error: results.error,
+          }, null, 2))
+        })
+        on('after:run', (results) => {
+          if ('runs' in results) {
+            writeFileSync(path.join(resultsDirectory, 'completed.json'), JSON.stringify({
+              completed: true,
+              durationMs: results.totalDuration,
+            }))
+          }
+        })
+      }
     },
     viewportWidth: 1280,
     viewportHeight: 800,

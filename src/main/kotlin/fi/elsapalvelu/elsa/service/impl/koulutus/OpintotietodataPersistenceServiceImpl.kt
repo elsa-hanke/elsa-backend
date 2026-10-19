@@ -173,7 +173,7 @@ class OpintotietodataPersistenceServiceImpl(
             )
         }
 
-        erikoistuvaLaakari?.let {
+        erikoistuvaLaakari.let {
             updateNimiIfChanged(it, etunimi, sukunimi)
 
             checkOpintooikeudetAmount(

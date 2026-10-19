@@ -85,7 +85,7 @@ class KayttajienYhdistaminenServiceImpl(
             lisaaKayttajalleRooli(tilanne, ensimmainenKayttaja.get().user.required(), Authority(KOULUTTAJA))
 
             try {
-                val ensimmainenUser = ensimmainenKayttaja.get().user
+                val ensimmainenUser = ensimmainenKayttaja.get().user.required()
                 ensimmainenUser.required().email = kayttajienYhdistaminenDTo.yhteinenSahkoposti
                 userRepository.save(ensimmainenUser)
                 log.info(
