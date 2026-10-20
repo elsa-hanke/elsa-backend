@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.sql.Connection
 import java.time.Instant
 import java.util.Optional
+import java.util.UUID
 import javax.sql.DataSource
 
 val ARKISTOINTI_JOB_TASK: TaskDescriptor<Unit> =
@@ -31,8 +32,13 @@ class ArkistointiDbSchedulerConfiguration {
         processorProvider: ObjectProvider<ArkistointiJobProcessor>
     ): OneTimeTask<Unit> = Tasks.oneTime(ARKISTOINTI_JOB_TASK)
         .execute { taskInstance, _ ->
-            val jobId = taskInstance.id.toLongOrNull()
-                ?: throw IllegalArgumentException("Arkistointi-jobin tunniste ei ole numero")
+            val jobId = try {
+                UUID.fromString(taskInstance.id).also {
+                    require(it.toString().equals(taskInstance.id, ignoreCase = true))
+                }
+            } catch (_: IllegalArgumentException) {
+                throw IllegalArgumentException("Arkistointi-jobin tunniste ei ole UUID")
+            }
             val processor = processorProvider.getIfAvailable()
                 ?: error("ArkistointiJobProcessor is not registered")
             processor.process(jobId)
@@ -66,7 +72,7 @@ class DbSchedulerArkistointiJobScheduler(
     ).build()
 
     @Transactional(propagation = Propagation.MANDATORY)
-    override fun schedule(jobId: Long, executionTime: Instant): Boolean =
+    override fun schedule(jobId: UUID, executionTime: Instant): Boolean =
         schedulerClient.scheduleIfNotExists(
             ARKISTOINTI_JOB_TASK.instance(jobId.toString()).scheduledTo(executionTime)
         )

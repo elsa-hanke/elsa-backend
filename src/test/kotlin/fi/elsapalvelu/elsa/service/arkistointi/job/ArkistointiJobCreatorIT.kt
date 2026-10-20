@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.web.server.ResponseStatusException
+import java.util.UUID
 
 @SpringBootTest(classes = [ElsaBackendApp::class])
 class ArkistointiJobCreatorIT {
@@ -272,9 +273,19 @@ class ArkistointiJobCreatorIT {
             .isEqualTo(reference.asiakirja.id)
         assertThat(stored.asiakirjat.single().sha256).isEqualTo(reference.sha256)
         assertThat(scheduledTaskCount(job.id!!)).isEqualTo(1)
+        val submission = ArkistointiSubmission(
+            requireNotNull(stored.id), requireNotNull(stored.university), requireNotNull(stored.caseType),
+            requireNotNull(stored.payload), stored.asiakirjat.map(loader::load)
+        )
+        assertThat(submission.key).isEqualTo(job.id)
+        assertThat(submission.key.toString()).isNotEqualTo(stored.key)
+        assertThat(jdbcTemplate.queryForObject(
+            "select task_instance from scheduled_tasks where task_name = ? and task_instance = ?",
+            String::class.java, ARKISTOINTI_JOB_TASK.taskName, submission.key.toString()
+        )).isEqualTo(submission.key.toString())
     }
 
-    private fun scheduledTaskCount(jobId: Long): Long =
+    private fun scheduledTaskCount(jobId: UUID): Long =
         jdbcTemplate.queryForObject(
             """
             select count(*)

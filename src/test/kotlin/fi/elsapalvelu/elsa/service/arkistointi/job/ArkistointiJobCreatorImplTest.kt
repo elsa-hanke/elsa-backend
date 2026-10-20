@@ -16,9 +16,11 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
 class ArkistointiJobCreatorImplTest {
@@ -42,23 +44,26 @@ class ArkistointiJobCreatorImplTest {
     @Test
     fun `persists document references and schedules the job`() {
         val request = request()
+        val jobId = UUID.randomUUID()
         val snapshot = request.asiakirjat.single().copy(filename = "normalized.pdf", sha256 = "b".repeat(64))
         whenever(snapshotService.resolveReference(any())).thenReturn(snapshot)
         whenever(repository.saveAndFlush(any<ArkistointiJob>())).thenAnswer { invocation ->
-            invocation.getArgument<ArkistointiJob>(0).apply { id = 42L }
+            invocation.getArgument<ArkistointiJob>(0).apply { id = jobId }
         }
         whenever(scheduler.schedule(any(), any())).thenReturn(true)
 
         val saved = creator.create(request)
 
-        assertThat(saved.id).isEqualTo(42L)
+        assertThat(saved.id).isEqualTo(jobId)
         val jobCaptor = argumentCaptor<ArkistointiJob>()
         verify(repository).saveAndFlush(jobCaptor.capture())
         assertThat(jobCaptor.firstValue.asiakirjat).hasSize(1)
         assertThat(jobCaptor.firstValue.asiakirjat.single().sha256)
             .isEqualTo(snapshot.sha256)
         assertThat(jobCaptor.firstValue.asiakirjat.single().filename).isEqualTo(snapshot.filename)
-        verify(scheduler).schedule(any(), any())
+        assertThat(saved.key).isEqualTo(request.key)
+        assertThat(saved.id.toString()).isNotEqualTo(request.key)
+        verify(scheduler).schedule(eq(jobId), any())
     }
 
     @Test
