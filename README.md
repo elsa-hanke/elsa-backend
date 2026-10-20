@@ -174,6 +174,14 @@ PDF-sivut eivät kuluta tätä budjettia. Osat käsitellään peräkkäin. Kuvie
 nykyiset koko-, dekoodaus- ja muistibudjettirajat säilyvät. Yksittäinen pitkä
 PDF, joka vaatii kokonaan rasteroinnin, voi edelleen ylittää budjetin.
 
+`replica`-profiili poistaa db-scheduler-workerin käytöstä erikseen
+(`db-scheduler.enabled=false`); pelkkä `application.scheduling.enabled=false`
+ei pysäytä sitä. Myös `dev`-profiilissa worker on oletuksena pois käytöstä.
+Paikallisella testitietokannalla sen voi ottaa nimenomaisesti käyttöön asetuksella
+`DB_SCHEDULER_ENABLED=true` tai `--db-scheduler.enabled=true`. Älä ota workeria
+käyttöön production-datan kopiolla: jo jonossa olevat jobit voivat edetä, vaikka
+uusien jobien luonti on estetty `async-enabled`- tai `kaytossa`-asetuksilla.
+
 Taustakäsittelijä lataa tallennetun payloadin ja tarkistussummalla varmistetut asiakirjakopiot. Job siirtyy tilaan `KASITTELYSSA` lyhyessä transaktiossa; adapterin verkkokutsu suoritetaan transaktion ulkopuolella. Onnistuminen tallentaa tilan `LAHETETTY`, ulkoisen tunnisteen ja valmistumisajan ennen db-scheduler-suorituksen poistamista. Pysyvä virhe, puuttuva adapteri tai virheellinen aineisto johtaa tilaan `VAATII_TOIMENPITEITA` ilman automaattista uusintaa.
 
 Käsittelijä lukee asiakirjan tavut suoraan tietokannasta ja siirtää adapterille vain tallennetut metatiedot sekä tarkistetun tavutaulukon. Adapterin tulee käsitellä tavutaulukkoa vain luettavana; uusintayritys lukee alkuperäiset tavut uudelleen tietokannasta.
