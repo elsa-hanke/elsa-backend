@@ -6,7 +6,6 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
-import fi.elsapalvelu.elsa.service.PdfA2bService
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
 import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
@@ -54,22 +53,21 @@ class ArkistointiJobCreatorIT {
     private lateinit var asiakirjaService: AsiakirjaService
 
     @Autowired
-    private lateinit var pdfA2bService: PdfA2bService
-
-    @Autowired
     private lateinit var loader: ArkistointiAsiakirjaLoader
 
     @Autowired
     private lateinit var transactions: TransactionTemplate
 
     @ParameterizedTest
-    @ValueSource(strings = ["pdf", "image"])
+    @ValueSource(strings = ["pdf", "long-pdf", "image"])
     @Transactional
     fun `untrusted mutable source produces a snapshot with its own checksum and metadata`(kind: String) {
         val source = AsiakirjaHelper.createEntity(entityManager)
-        source.asiakirjaData!!.data = if (kind == "pdf") PdfTestData.unembeddedFontPdf(1) else ArchiveImageTestData.image()
-        source.tyyppi = if (kind == "pdf") "application/pdf" else "image/jpeg"
-        source.nimi = if (kind == "pdf") "source.pdf" else "source.jpg"
+        val pdf = kind != "image"
+        source.asiakirjaData!!.data = if (pdf) PdfTestData.unembeddedFontPdf(if (kind == "long-pdf") 100 else 1)
+            else ArchiveImageTestData.image()
+        source.tyyppi = if (pdf) "application/pdf" else "image/jpeg"
+        source.nimi = if (pdf) "source.pdf" else "source.jpg"
         entityManager.persist(source)
         entityManager.flush()
         // The database flag remains false: this in-memory claim cannot establish immutability.
@@ -82,26 +80,28 @@ class ArkistointiJobCreatorIT {
         val attached = jobRepository.findById(job.id!!).orElseThrow().asiakirjat.single()
         val bytes = loader.load(attached).sisalto
         assertThat(attached.asiakirja!!.id).isNotEqualTo(source.id)
-        assertThat(attached.filename).isEqualTo("source.pdf")
-        assertThat(attached.contentType).isEqualTo("application/pdf")
-        assertThat(attached.sha256).isEqualTo(ArkistointiChecksum.sha256(bytes)).isNotEqualTo(ArkistointiChecksum.sha256(input))
-        assertThat(pdfA2bService.isPdfA2b(bytes)).isTrue()
+        assertThat(attached.filename).isEqualTo(source.nimi)
+        assertThat(attached.contentType).isEqualTo(source.tyyppi)
+        assertThat(bytes).containsExactly(*input)
+        assertThat(attached.sha256).isEqualTo(ArkistointiChecksum.sha256(input))
         assertThat(entityManager.find(fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja::class.java, source.id).archiveSnapshot).isFalse()
         assertThat(scheduledTaskCount(job.id!!)).isEqualTo(1)
     }
 
     @Test
     @Transactional
-    fun `persisted snapshot flag cannot certify a nonconforming PDF`() {
+    fun `persisted immutable ordinary PDF is accepted without conversion`() {
         val source = AsiakirjaHelper.createEntity(entityManager)
         source.archiveSnapshot = true
         source.asiakirjaData!!.data = PdfTestData.unembeddedFontPdf(1)
         entityManager.persist(source)
         val reference = ArkistointiAsiakirjaReference(source, RecordType.LIITE, 0,
             source.nimi!!, source.tyyppi!!, ArkistointiChecksum.sha256(source.asiakirjaData!!.data!!))
-        val exception = assertThrows<ArkistointiAsiakirjaException> { creator.create(request(reference)) }
-        assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_NOT_PDFA_2B")
-        assertThat(exception.category).isEqualTo(ArkistointiAsiakirjaErrorCategory.STORED_DOCUMENT)
+        val job = creator.create(request(reference))
+        val attached = job.asiakirjat.single()
+        assertThat(attached.asiakirja!!.id).isEqualTo(source.id)
+        assertThat(loader.load(attached).sisalto).containsExactly(*source.asiakirjaData!!.data!!)
+        assertThat(scheduledTaskCount(job.id!!)).isEqualTo(1)
     }
 
     @ParameterizedTest
@@ -140,7 +140,6 @@ class ArkistointiJobCreatorIT {
     @Transactional
     fun `changing the source does not change archived bytes or metadata`() {
         val source = AsiakirjaHelper.createEntity(entityManager)
-        source.asiakirjaData!!.data = pdfA2bService.normalize(source.asiakirjaData!!.data, source.tyyppi)
         entityManager.persist(source)
         val original = source.asiakirjaData!!.data!!.copyOf()
         // Even a caller constructing references directly cannot attach a mutable source to a job.
@@ -216,10 +215,10 @@ class ArkistointiJobCreatorIT {
         val storedJob = jobRepository.findById(job.id!!).orElseThrow()
         val storedReference = storedJob.asiakirjat.single()
         val snapshotBytes = loader.load(storedReference).sisalto
-        assertThat(pdfA2bService.isPdfA2b(snapshotBytes)).isTrue
+        assertThat(snapshotBytes).containsExactly(*original)
         assertThat(storedReference.sha256).isEqualTo(ArkistointiChecksum.sha256(snapshotBytes))
-        assertThat(storedReference.filename).isEqualTo("certificate.pdf")
-        assertThat(storedReference.contentType).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+        assertThat(storedReference.filename).isEqualTo(filename)
+        assertThat(storedReference.contentType).isEqualTo(contentType)
         assertThat(storedReference.asiakirja!!.archiveSnapshot).isTrue
         assertThat(storedReference.asiakirja!!.asiakirjaData!!.id).isNotEqualTo(sourceId)
         assertThat(scheduledTaskCount(job.id!!)).isEqualTo(1)
@@ -272,7 +271,7 @@ class ArkistointiJobCreatorIT {
                 university = YliopistoEnum.TURUN_YLIOPISTO,
                 caseType = CaseType.VALMISTUMINEN,
                 payload = "{\"caseId\":123}",
-                key = "valmistuminen-pdfa-it-${source.id}",
+                key = "valmistuminen-snapshot-it-${source.id}",
                 asiakirjat = listOf(reference)
             )
         )

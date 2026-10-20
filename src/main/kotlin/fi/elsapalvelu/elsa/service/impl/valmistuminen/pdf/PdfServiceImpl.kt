@@ -11,9 +11,9 @@ import com.itextpdf.layout.element.Image
 import com.itextpdf.layout.font.FontProvider
 import com.itextpdf.layout.properties.ObjectFit
 import com.itextpdf.layout.properties.UnitValue
+import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.service.DocumentContentTypes
-import fi.elsapalvelu.elsa.service.PdfA2bService
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.PdfPreparation
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
@@ -41,8 +41,7 @@ class PdfServiceImpl(
     private val pdfMetrics: PdfGenerationMetricsService,
     private val pdfContentValidator: PdfContentValidator,
     private val pdfTextFieldValidator: PdfTextFieldValidator,
-    private val resourceRetriever: PdfCachingResourceRetriever,
-    private val pdfA2bService: PdfA2bService
+    private val resourceRetriever: PdfCachingResourceRetriever
 ) : PdfService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -64,6 +63,9 @@ class PdfServiceImpl(
      */
     @Value("\${elsa.pdf.smart-mode:true}")
     var smartMode: Boolean = true
+
+    @Value("classpath:sRGB_CS_profile.icm")
+    var colorProfile: Resource? = null
 
     @Value("classpath:fonts/LiberationSerif-Bold.ttf")
     var liberationSerifFontBold: Resource? = null
@@ -87,7 +89,14 @@ class PdfServiceImpl(
                     pdfSource = pdfSource(template)
                 )
             }
-            val pdf = pdfA2bService.createDocument(outputStream)
+            val pdf = PdfADocument(
+                PdfWriter(outputStream),
+                PdfAConformanceLevel.PDF_A_2B,
+                PdfOutputIntent(
+                    "Custom", "", "https://www.color.org",
+                    "sRGB IEC61966-2.1", colorProfile?.inputStream
+                )
+            )
             val provider = FontProvider()
             provider.addFont(liberationSerifFont?.file?.absolutePath)
             provider.addFont(liberationSerifFontBold?.file?.absolutePath)
@@ -109,7 +118,7 @@ class PdfServiceImpl(
         pdfMetrics.trackOperation(OP_YHDISTA_ASIAKIRJAT) {
             // Tahan ei kayteta smart modea: lahteet ovat kayttajien lataamia, mielivaltaisia
             // PDF-tiedostoja, joissa on vain vahan jaettavaa (mitattu hyoty 1 MiB).
-            // Archive snapshots are normalized separately; ordinary merging must preserve uploaded content.
+            // Preserve the existing merged bytes for both synchronous sending and archive snapshots.
             val result = PdfDocument(PdfWriter(outputStream))
             val resultDocument = Document(result)
             asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
@@ -153,7 +162,8 @@ class PdfServiceImpl(
         outputStream: OutputStream
     ) {
         pdfMetrics.trackOperation(OP_YHDISTA_PDF) {
-            // Keep permission-restriction handling without imposing archive PDF/A limits on this path.
+            // The source is the generated combined document; the incoming PDF may
+            // be an uploaded certificate with copying restrictions.
             val preparedData = newPdf.use { PdfPreparation.prepare(it.readBytes()) }
             PdfDocument(PdfReader(source), PdfWriter(outputStream)).use { result ->
                 PdfDocument(PdfReader(ByteArrayInputStream(preparedData))).use { newDocument ->

@@ -45,7 +45,7 @@ class ArkistointiJobCreatorImplTest {
     fun `persists document references and schedules the job`() {
         val request = request()
         val jobId = UUID.randomUUID()
-        val snapshot = request.asiakirjat.single().copy(filename = "normalized.pdf", sha256 = "b".repeat(64))
+        val snapshot = request.asiakirjat.single().copy(filename = "snapshot.pdf", sha256 = "b".repeat(64))
         whenever(snapshotService.resolveReference(any())).thenReturn(snapshot)
         whenever(repository.saveAndFlush(any<ArkistointiJob>())).thenAnswer { invocation ->
             invocation.getArgument<ArkistointiJob>(0).apply { id = jobId }
@@ -85,22 +85,22 @@ class ArkistointiJobCreatorImplTest {
     }
 
     @Test
-    fun `non PDF-A document prevents job creation`() {
+    fun `invalid document reference prevents job creation`() {
         val request = request()
         whenever(snapshotService.resolveReference(any())).thenThrow(
-            ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.notPdfA2b())
+            ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid())
         )
 
         val exception = assertThrows<ArkistointiAsiakirjaException> {
             creator.create(request)
         }
 
-        assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_NOT_PDFA_2B")
+        assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_INVALID")
         verify(repository, never()).saveAndFlush(any())
     }
 
     private fun request(): CreateArkistointiJobRequest {
-        val data = "pdf-a-content".toByteArray()
+        val data = "document-content".toByteArray()
         val asiakirja = Asiakirja(
             id = 8L,
             nimi = "archive.pdf",
