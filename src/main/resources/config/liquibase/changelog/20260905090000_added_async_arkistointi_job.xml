@@ -158,6 +158,10 @@
             referencedColumnNames="id"
             constraintName="fk_arkistointi_job_asiakirja__asiakirja_id"/>
 
+        <createIndex tableName="arkistointi_job_asiakirja" indexName="idx_arkistointi_job_asiakirja__asiakirja_id">
+            <column name="asiakirja_id"/>
+        </createIndex>
+
         <addUniqueConstraint
             tableName="arkistointi_job_asiakirja"
             columnNames="job_id, jarjestys"
