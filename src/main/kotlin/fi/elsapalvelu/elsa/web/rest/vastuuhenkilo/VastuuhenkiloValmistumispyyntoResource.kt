@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaException
 import java.security.Principal
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
 import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
@@ -136,6 +137,9 @@ class VastuuhenkiloValmistumispyyntoResource(
         } catch (ex: UnsupportedPdfCharactersException) {
             throw ex
         } catch (ex: ValmistumispyynnonHyvaksyntaKaynnissaException) {
+            throw ex
+        } catch (ex: ArkistointiAsiakirjaException) {
+            // The dedicated advice logs only safe codes, never document details or a cause chain.
             throw ex
         } catch (ex: Exception) {
             log.error("PUT request failed for /api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id", ex)

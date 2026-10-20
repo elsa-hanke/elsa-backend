@@ -103,9 +103,14 @@ snapshotin luonnin hallitulla virheellä; puutteellista aineistoa ei hyväksytä
 
 `ArkistointiAsiakirjaException.category` erottaa hylätyn lähdeaineiston
 (`INPUT_DOCUMENT`), tallennetun aineiston eheysvirheen (`STORED_DOCUMENT`) ja
-odottamattoman käsittelyvirheen (`PROCESSING_FAILURE`). Vain ensimmäinen luokka
-soveltuu käyttäjän korjattavaksi 4xx-virheeksi; HTTP-muunnos toteutetaan hyväksynnän
-rajapinnassa erikseen. `errorKey` on vakaa `ARCHIVE_DOCUMENT_*`-koodi.
+odottamattoman käsittelyvirheen (`PROCESSING_FAILURE`). Hyväksynnän HTTP-rajapinta
+palauttaa ensimmäisestä luokasta 400 ja kahdesta muusta 500. ProblemDetail-vastaus
+sisältää vakaan `ARCHIVE_DOCUMENT_*`-arvon kentässä `errorKey`, kentän
+`message: error.<errorKey>` sekä `params: valmistumispyynto`. Vastaus ei sisällä
+tiedostonimeä, dokumentin sisältöä tai alkuperäistä virhekuvausta.
+Dokumenttivirheestä lokitetaan vain koodi ja tarvittaessa luokka, ei poikkeusta.
+Virhe peruuttaa hyväksymistransaktion; osittaisia snapshoteja tai jonorivejä ei jää.
+Frontendin käännökset ja virheen näyttäminen toteutetaan erillisessä tehtävässä.
 Dokumenttivirheen viesti ja kuvaus eivät sisällä tiedostonimeä tai sisältöä,
 eikä poikkeus säilytä kirjaston alkuperäistä cause-ketjua. Esimerkiksi palvelimen
 ICC-profiilin puuttuminen on käsittelyvirhe, ei virheellinen käyttäjän tiedosto.
