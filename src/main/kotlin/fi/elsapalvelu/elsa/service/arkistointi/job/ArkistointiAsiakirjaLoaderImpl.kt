@@ -12,23 +12,22 @@ class ArkistointiAsiakirjaLoaderImpl(
 
     @Transactional(readOnly = true)
     override fun load(viite: ArkistointiJobAsiakirja): LoadedArkistointiAsiakirja {
-        val identifier = viite.filename ?: viite.id?.toString() ?: "tuntematon"
         val asiakirjaId = viite.asiakirja?.id
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
+            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
         val asiakirja = asiakirjaRepository.findOneWithDataById(asiakirjaId)
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
+            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
         val data = asiakirja.asiakirjaData?.data
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
+            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
         if (data.isEmpty()) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.empty(identifier))
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.empty())
         }
         val expectedChecksum = viite.sha256
             ?: throw ArkistointiAsiakirjaException(
-                ArkistointiAsiakirjaErrors.checksumMismatch(identifier)
+                ArkistointiAsiakirjaErrors.checksumMismatch()
             )
         if (!ArkistointiChecksum.sha256(data).equals(expectedChecksum, ignoreCase = true)) {
             throw ArkistointiAsiakirjaException(
-                ArkistointiAsiakirjaErrors.checksumMismatch(identifier)
+                ArkistointiAsiakirjaErrors.checksumMismatch()
             )
         }
 

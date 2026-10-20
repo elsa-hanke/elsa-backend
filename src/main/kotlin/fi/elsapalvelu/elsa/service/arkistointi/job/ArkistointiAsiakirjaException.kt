@@ -1,33 +1,46 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
+enum class ArkistointiAsiakirjaErrorCategory {
+    INPUT_DOCUMENT,
+    STORED_DOCUMENT,
+    PROCESSING_FAILURE
+}
+
+/** Only INPUT_DOCUMENT is eligible for a client error; never attach a library exception or filename. */
 class ArkistointiAsiakirjaException(
     val error: ArkistointiError,
-    cause: Throwable? = null
-) : RuntimeException(error.description, cause)
+    val category: ArkistointiAsiakirjaErrorCategory = ArkistointiAsiakirjaErrorCategory.STORED_DOCUMENT
+) : RuntimeException(error.code, null) {
+    val errorKey: String get() = error.code
+}
 
 internal object ArkistointiAsiakirjaErrors {
-    fun missing(identifier: String) = ArkistointiError.create(
+    fun missing() = ArkistointiError.create(
         "ARCHIVE_DOCUMENT_MISSING",
-        "Arkistoitavaa asiakirjaa '$identifier' ei loydy"
+        "Arkistoitavaa asiakirjaa ei loydy"
     )
 
-    fun empty(identifier: String) = ArkistointiError.create(
+    fun empty() = ArkistointiError.create(
         "ARCHIVE_DOCUMENT_EMPTY",
-        "Arkistoitava asiakirja '$identifier' on tyhja"
+        "Arkistoitava asiakirja on tyhja"
     )
 
-    fun invalid(identifier: String) = ArkistointiError.create(
+    fun invalid() = ArkistointiError.create(
         "ARCHIVE_DOCUMENT_INVALID",
-        "Arkistoitavaa asiakirjaa '$identifier' ei voida kasitella"
+        "Arkistoitavaa asiakirjaa ei voida kasitella"
     )
 
-    fun notPdfA2b(identifier: String) = ArkistointiError.create(
+    fun notPdfA2b() = ArkistointiError.create(
         "ARCHIVE_DOCUMENT_NOT_PDFA_2B",
-        "Arkistoitava asiakirja '$identifier' ei ole PDF/A-2b-muodossa"
+        "Arkistoitava asiakirja ei ole PDF/A-2b-muodossa"
     )
 
-    fun checksumMismatch(identifier: String) = ArkistointiError.create(
+    fun checksumMismatch() = ArkistointiError.create(
         "ARCHIVE_DOCUMENT_CHECKSUM_MISMATCH",
-        "Arkistoitavan asiakirjan '$identifier' tarkistussumma ei vastaa tallennettua arvoa"
+        "Arkistoitavan asiakirjan tarkistussumma ei vastaa tallennettua arvoa"
+    )
+
+    fun processingFailed() = ArkistointiError.create(
+        "ARCHIVE_DOCUMENT_PROCESSING_FAILED", "Arkistoitavan asiakirjan kasittely epaonnistui"
     )
 }
