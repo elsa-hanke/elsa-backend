@@ -8,6 +8,9 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiRetryPolicy
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapterRegistry
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
+import org.springframework.mock.env.MockEnvironment
 import fi.elsapalvelu.elsa.service.arkistointi.job.StaleArkistointiExecutionException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -29,7 +32,8 @@ class ArkistointiDbSchedulerConfigurationTest {
         whenever(it.getIfAvailable()).thenReturn(processor)
     }
     private val task = ArkistointiDbSchedulerConfiguration().arkistointiJobTask(
-        provider, mock<ArkistointiJobFailureHandler>(), ArkistointiRetryPolicy()
+        provider, mock<ArkistointiJobFailureHandler>(), ArkistointiRetryPolicy(),
+        ArkistointiAdapterRegistry(emptyList()), ArkistointiConfigurationProvider(ApplicationProperties()), MockEnvironment()
     )
     private val jobId = UUID.randomUUID()
     private val instance = ARKISTOINTI_JOB_TASK.instance(jobId.toString()).build()

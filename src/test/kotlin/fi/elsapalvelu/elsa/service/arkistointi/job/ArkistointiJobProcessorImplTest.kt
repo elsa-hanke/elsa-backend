@@ -25,7 +25,7 @@ class ArkistointiJobProcessorImplTest {
     private val adapter = mock<ArkistointiAdapter>().apply {
         whenever(university).thenReturn(YliopistoEnum.TURUN_YLIOPISTO)
     }
-    private val processor = ArkistointiJobProcessorImpl(state, loader, listOf(adapter))
+    private val processor = ArkistointiJobProcessorImpl(state, loader, ArkistointiAdapterRegistry(listOf(adapter)))
     private val jobId = UUID.randomUUID()
     private val execution = ArkistointiJobExecution("arkistointi-job", jobId.toString(), 1L)
     private val descriptor = ArkistointiDocumentDescriptor(1L, RecordType.LIITE, 0, "private.pdf", "application/pdf", "a".repeat(64))

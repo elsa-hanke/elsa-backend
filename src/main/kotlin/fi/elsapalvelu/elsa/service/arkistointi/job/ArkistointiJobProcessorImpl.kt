@@ -9,11 +9,8 @@ import org.springframework.transaction.annotation.Transactional
 class ArkistointiJobProcessorImpl(
     private val state: ArkistointiJobStateService,
     private val loader: ArkistointiAsiakirjaLoader,
-    adapters: List<ArkistointiAdapter>
+    private val adapters: ArkistointiAdapterRegistry
 ) : ArkistointiJobProcessor {
-    private val adaptersByUniversity = adapters.associateBy { it.university }.also {
-        require(it.size == adapters.size) { "Multiple archive job adapters configured for the same university" }
-    }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     override fun process(execution: ArkistointiJobExecution) {
@@ -38,7 +35,7 @@ class ArkistointiJobProcessorImpl(
 
     private fun processSubmission(execution: ArkistointiJobExecution) {
         val prepared = state.prepare(execution) ?: return
-        val adapter = adaptersByUniversity[prepared.university]
+        val adapter = adapters.find(prepared.university)
             ?: throw ArkistointiProcessingException(
                 ArkistointiError.create("ARCHIVE_ADAPTER_MISSING", "Yliopiston arkistointiadapteria ei ole maaritelty"),
                 retryable = false

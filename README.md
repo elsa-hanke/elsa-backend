@@ -197,6 +197,24 @@ uusien jobien luonti on estetty `async-enabled`- tai `kaytossa`-asetuksilla.
 
 Taustakäsittelijä lataa tallennetun payloadin ja tarkistussummalla varmistetut asiakirjakopiot. Job siirtyy tilaan `KASITTELYSSA` lyhyessä transaktiossa; adapterin verkkokutsu suoritetaan transaktion ulkopuolella. Onnistuminen tallentaa tilan `LAHETETTY`, ulkoisen tunnisteen ja valmistumisajan ennen db-scheduler-suorituksen poistamista. Pysyvä virhe, puuttuva adapteri tai virheellinen aineisto johtaa tilaan `VAATII_TOIMENPITEITA` ilman automaattista uusintaa.
 
+Kun db-scheduler-worker on käytössä (myös ilman erillistä `enabled`-asetusta),
+jokainen `kaytossa=true` ja tapauskohtainen `async-enabled=true` -yhdistelmä
+vaatii yliopiston asynkronisen `service.arkistointi.job.ArkistointiAdapter`-beanin.
+Puuttuva adapteri estää käynnistyksen ennen workerin aloitusta; ulkoiseen arkistoon
+ei tehdä käynnistystarkistuksessa verkkokutsua. Saman yliopiston adapterit eivät
+saa olla päällekkäisiä. Workerista erillinen jonoon kirjoittava solmu voi käyttää
+asetusta `db-scheduler.enabled=false` ilman paikallisia adaptereita.
+
+Jo jonossa olevan jobin puuttuva adapteri tallentaa turvallisen virhekoodin
+`ARCHIVE_ADAPTER_MISSING` ja tilan `VAATII_TOIMENPITEITA`, eikä sitä uusita
+automaattisesti. Adapterin asentaminen ja sovelluksen uudelleenkäynnistys eivät
+palauta lopputilaan päätynyttä jobia jonoon. Korjauksen jälkeen tarvitaan hallittu
+manuaalinen uusinta samalla job-UUID:lla/toimitusavaimella, payloadilla ja
+asiakirjasnapshoteilla. Manuaalinen uusinta on erillinen toteutettava toiminto,
+jonka on oltava valmis ennen async-tilan production-käyttöönottoa. Lopputiloja ei
+palauteta automaattisesti massana. Huoltokatkoa varten pysäytä worker; adapterin
+poistaminen tai uusien jobien luonnin poistaminen käytöstä ei ole jonon tauotus.
+
 Tausta-ajossa dokumentin `INPUT_DOCUMENT`- ja `STORED_DOCUMENT`-virheet ovat
 pysyviä: tallennettua aineistoa ei generoida tai korjata uusintayrityksellä.
 `PROCESSING_FAILURE` sekä tietokantayhteyden häiriöt käyttävät db-schedulerin

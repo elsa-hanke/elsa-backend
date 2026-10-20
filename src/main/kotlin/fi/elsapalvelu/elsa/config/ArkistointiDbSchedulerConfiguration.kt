@@ -13,9 +13,12 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobScheduler
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiRetryPolicy
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapterRegistry
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.env.Environment
 import org.springframework.jdbc.datasource.DelegatingDataSource
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
 import org.springframework.stereotype.Component
@@ -41,9 +44,17 @@ class ArkistointiDbSchedulerConfiguration {
     fun arkistointiJobTask(
         processorProvider: ObjectProvider<ArkistointiJobProcessor>,
         failureHandler: ArkistointiJobFailureHandler,
-        retryPolicy: ArkistointiRetryPolicy
+        retryPolicy: ArkistointiRetryPolicy,
+        adapters: ArkistointiAdapterRegistry,
+        configuration: ArkistointiConfigurationProvider,
+        environment: Environment
     ): OneTimeTask<Unit> {
         retryPolicy.validate()
+        // Auto-configuration collects Task beans before constructing/starting the worker,
+        // including when delay-startup-until-context-ready=false. Producers may have no worker.
+        if (environment.getProperty("db-scheduler.enabled", Boolean::class.java, true)) {
+            adapters.validateWorkerConfiguration(configuration)
+        }
         return object : OneTimeTask<Unit>(
             ARKISTOINTI_JOB_TASK.taskName, Unit::class.java, failureHandler,
             { completed, operations -> failureHandler.onFailure(completed, operations) }
