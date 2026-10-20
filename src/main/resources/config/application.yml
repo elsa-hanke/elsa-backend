@@ -293,10 +293,11 @@ application:
     uef:
   arkistointi:
     retry:
-      max-attempts: 5
+      max-attempts: 25
       initial-delay: 1m
-      max-delay: 1h
+      max-delay: 4h
       multiplier: 2.0
+      jitter-factor: 0.1
     tre:
       kaytossa: false
       host:

@@ -24,7 +24,10 @@ class ArkistointiJobFailureHandlerTest {
     private val jobId = UUID.randomUUID()
     private val state = mock<ArkistointiJobStateService>()
     private val operations = mock<ExecutionOperations<Unit>>()
-    private val policy = ArkistointiRetryPolicy().apply { maxAttempts = 3 }
+    private val policy = ArkistointiRetryPolicy().apply {
+        maxAttempts = 3
+        jitterFactor = 0.0
+    }
     private val handler = ArkistointiJobFailureHandler(state, policy)
 
     @Test
@@ -41,6 +44,16 @@ class ArkistointiJobFailureHandlerTest {
             "Arkistoinnin enimmainen yritysmaara saavutettiin. ARCHIVE_PROCESSING_FAILED: Arkistoinnin kasittely epaonnistui"
         ), true)
         verify(operations).remove()
+    }
+
+    @Test
+    fun `jittered delay is passed to the scheduler reschedule API`() {
+        val jitteredPolicy = ArkistointiRetryPolicy { 0.5 }
+        val completed = failure(1)
+        whenever(state.fail(any(), any(), eq(false))).thenReturn(true)
+        ArkistointiJobFailureHandler(state, jitteredPolicy).onFailure(completed, operations)
+        verify(operations).reschedule(completed, completed.timeDone.plusSeconds(114))
+        verify(operations, never()).remove()
     }
 
     @Test

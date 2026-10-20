@@ -207,7 +207,14 @@ myös alkuperäisistä liitteistä yhdistetyn snapshotin luontivirheitä.
 
 Käsittelijä lukee asiakirjan tavut suoraan tietokannasta ja siirtää adapterille vain tallennetut metatiedot sekä tarkistetun tavutaulukon. Adapterin tulee käsitellä tavutaulukkoa vain luettavana; uusintayritys lukee alkuperäiset tavut uudelleen tietokannasta.
 
-Tilapäisten virheiden uusinnat käyttää db-schedulerin `consecutive_failures`-laskuria ja failure/dead-execution-käsittelijöitä. Asetukset ovat `application.arkistointi.retry.max-attempts` (oletus 5, sisältää ensimmäisen yrityksen sekä keskeytyneet suoritukset), `initial-delay` (1m), `multiplier` (2.0) ja `max-delay` (1h). Viimeisen sallitun yrityksen epäonnistuminen johtaa tilaan `VAATII_TOIMENPITEITA`. Tietokantahäiriön aikana suoritus säilyy palautettavana, kunnes myös lopputila voidaan tallentaa.
+Tilapäisten virheiden uusinnat käyttävät db-schedulerin `consecutive_failures`-laskuria ja failure/dead-execution-käsittelijöitä. Asetukset ovat `application.arkistointi.retry.max-attempts` (oletus 25, sisältää ensimmäisen yrityksen sekä keskeytyneet suoritukset), `initial-delay` (1m), `multiplier` (2.0) ja `max-delay` (4h). Oletuksilla ensimmäisen ja 25. yrityksen väliin kertyy 24 viivettä: 1, 2, 4, 8, 16, 32, 64 ja 128 minuuttia sekä 16 neljän tunnin viivettä, yhteensä enintään 68 tuntia 15 minuuttia ennen jitterin vaikutusta. Tämä on alle kolmen vuorokauden suunniteltu odotusaika; suoritusten kesto, schedulerin viiveet ja käyttökatkot voivat pidentää todellista aikaa. Asetus ei ole ehdoton 72 tunnin määräaika. Viimeisen sallitun yrityksen epäonnistuminen johtaa tilaan `VAATII_TOIMENPITEITA`. Tietokantahäiriön aikana suoritus säilyy palautettavana, kunnes myös lopputila voidaan tallentaa.
+
+Jitter asetetaan arvolla `application.arkistointi.retry.jitter-factor` (oletus `0.1`).
+Jokaisella uusinnalla viive arvotaan erikseen 90–100 prosenttiin rajatusta
+eksponentiaalisesta viiveestä; neljän tunnin kohdalla vaihteluväli on 3 h 36 min – 4 h.
+Jitter lyhentää viiveitä eikä kasvata yllä kuvattua enimmäisodotusaikaa. Arvo `0`
+poistaa jitterin käytöstä. Kelvollinen kerroin on vähintään 0 ja alle 1; viive on
+aina vähintään yksi millisekunti.
 
 Jobin tilan commit ja db-schedulerin `reschedule`/`remove` ovat erillisiä vaiheita.
 Jos ajastuksen päivitys epäonnistuu commitin jälkeen, poimittu suoritus jää
