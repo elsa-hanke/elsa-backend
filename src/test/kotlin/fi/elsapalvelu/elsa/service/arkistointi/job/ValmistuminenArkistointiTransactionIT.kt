@@ -510,7 +510,7 @@ class ValmistuminenArkistointiTransactionIT {
         PdfDocument(PdfReader(ByteArrayInputStream(bytes))).use { pdf ->
             (1..pdf.numberOfPages).map { page -> PdfTextExtractor.getTextFromPage(pdf.getPage(page)) }
         }
-    }!!
+    }
 
 
     private fun assertGeneratedSummary(request: Valmistumispyynto) {
