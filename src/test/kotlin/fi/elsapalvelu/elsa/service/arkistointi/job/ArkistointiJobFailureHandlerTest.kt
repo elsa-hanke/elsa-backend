@@ -18,8 +18,10 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import java.time.Duration
 import java.time.Instant
+import java.util.UUID
 
 class ArkistointiJobFailureHandlerTest {
+    private val jobId = UUID.randomUUID()
     private val state = mock<ArkistointiJobStateService>()
     private val operations = mock<ExecutionOperations<Unit>>()
     private val policy = ArkistointiRetryPolicy().apply { maxAttempts = 3 }
@@ -34,7 +36,7 @@ class ArkistointiJobFailureHandlerTest {
         verify(operations).reschedule(failure, failure.timeDone.plus(Duration.ofMinutes(2)))
 
         handler.onFailure(failure(2), operations)
-        verify(state).fail(ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, "42", 1L), ArkistointiError.create(
+        verify(state).fail(ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, jobId.toString(), 1L), ArkistointiError.create(
             "ARCHIVE_RETRIES_EXHAUSTED",
             "Arkistoinnin enimmainen yritysmaara saavutettiin. ARCHIVE_PROCESSING_FAILED: Arkistoinnin kasittely epaonnistui"
         ), true)
@@ -55,7 +57,7 @@ class ArkistointiJobFailureHandlerTest {
         val error = ArkistointiError.create("REJECTED", "Aineisto hylattiin")
         val completed = failure(previousFailures, ArkistointiProcessingException(error, retryable = false))
         handler.onFailure(completed, operations)
-        verify(state).fail(ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, "42", 1L), error, true)
+        verify(state).fail(ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, jobId.toString(), 1L), error, true)
         verify(operations).remove()
         verify(operations, never()).reschedule(any(), any())
     }
@@ -82,9 +84,22 @@ class ArkistointiJobFailureHandlerTest {
         verifyNoInteractions(operations)
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["42", "not-a-uuid", "1-1-1-1-1"])
+    fun `malformed scheduler identity is removed without modifying a domain job`(id: String) {
+        val now = Instant.now()
+        val execution = Execution(now, ARKISTOINTI_JOB_TASK.instance(id).build())
+
+        handler.onFailure(ExecutionComplete.failure(execution, now, now, IllegalArgumentException()), operations)
+
+        verifyNoInteractions(state)
+        verify(operations).remove()
+        verify(operations, never()).reschedule(any(), any())
+    }
+
     private fun failure(previousFailures: Int, cause: ArkistointiProcessingException = ArkistointiProcessingException(unexpectedArchiveError())): ExecutionComplete {
         val now = Instant.parse("2026-01-01T00:00:00Z")
-        val execution = Execution(now, ARKISTOINTI_JOB_TASK.instance("42").build())
+        val execution = Execution(now, ARKISTOINTI_JOB_TASK.instance(jobId.toString()).build())
         execution.consecutiveFailures = previousFailures
         return ExecutionComplete.failure(execution, now, now, cause)
     }

@@ -1,5 +1,33 @@
 # ELSA-palvelun backend
 
+## Asynkronisen arkistoinnin avaimet
+
+`ArkistointiJob.key` (`job_key`) on paikallinen liiketoiminta-avain: sen avulla
+creator löytää saman operaation aiemmin luodun jobin. Sitä ei käytetä ulkoisen
+arkiston idempotenssiavaimena, koska liiketoimintatunnisteet voivat toistua
+eri ympäristöissä tai tietokannan uudelleenluonnin jälkeen.
+
+`ArkistointiJob.id` on UUID, joka syntyy jobin ensimmäisessä tallennuksessa ja
+tunnistaa sekä jobin että sen toimituksen. Erillistä toimitusavainsaraketta ei ole.
+Pääavain ja asiakirjaviitteiden `job_id` määritellään UUID-tyyppisiksi alkuperäisessä
+luontimigraatiossa. Jobin ID on muuttumaton myös tietokannassa. PostgreSQL:n
+oletusarvo luo UUID:n myös SQL-lisäyksille, joissa ID:tä ei anneta erikseen.
+
+Processor välittää tallennetun jobin ID:n arvona `ArkistointiSubmission.jobId`.
+`ArkistointiSubmission.key` palauttaa saman UUID:n ilman erillistä avainkenttää.
+Scheduler-rajapinta käyttää UUID:tä; db-schedulerin `task_instance` on sen kanoninen
+merkkijono. Processor saa `ArkistointiJobExecution`-olion, joka sisältää UUID:n
+sekä kyseisen scheduler-suorituksen version vanhentuneiden tulosten torjumiseksi.
+Adapteri lähettää UUID:n kanonisena merkkijonona.
+Kaikki automaattiset ja manuaaliset uusinnat käyttävät samaa tallennettua avainta.
+Vastaanottajan on deduplikoitava myös rinnakkaiset ja epävarman onnistumisen
+jälkeiset toimitukset atomisesti. Toimitussemantiikka on at-least-once.
+
+Creator ja processor käyttävät tätä samaa pysyvää toimitusavainta.
+UUID ei estä tuotantotietokannan kopion lähettämistä:
+kopiossa avaimet säilyvät samoina, joten ympäristöt on eristettävä ja kopion
+workerin käynnistäminen estettävä erikseen.
+
 ### Justfile-komennot 
 
 Projektissa on valmiita kehityskomentoja `Justfile`-tiedostossa.

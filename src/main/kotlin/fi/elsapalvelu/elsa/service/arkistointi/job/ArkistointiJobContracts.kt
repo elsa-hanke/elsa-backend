@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import java.time.Instant
+import java.util.UUID
 
 data class ArkistointiAsiakirjaReference(
     val asiakirja: Asiakirja,
@@ -26,6 +27,7 @@ data class CreateArkistointiJobRequest(
     val university: YliopistoEnum,
     val caseType: CaseType,
     val payload: String,
+    /** Local business key for finding the existing job, not the external delivery identity. */
     val key: String,
     val asiakirjat: List<ArkistointiAsiakirjaReference>
 ) {
@@ -40,7 +42,7 @@ interface ArkistointiJobCreator {
 }
 
 interface ArkistointiJobScheduler {
-    fun schedule(jobId: Long, executionTime: Instant = Instant.now()): Boolean
+    fun schedule(jobId: UUID, executionTime: Instant = Instant.now()): Boolean
 }
 
 interface ArkistointiJobProcessor {
@@ -49,7 +51,13 @@ interface ArkistointiJobProcessor {
 
 /** Captured once when db-scheduler claims a task; never replace it with a newer database version. */
 data class ArkistointiJobExecution(val taskName: String, val taskInstanceId: String, val version: Long) {
-    val jobId: Long = requireNotNull(taskInstanceId.toLongOrNull()) { "Arkistointi-jobin tunniste ei ole numero" }
+    val jobId: UUID = try {
+        UUID.fromString(taskInstanceId).also {
+            require(it.toString().equals(taskInstanceId, ignoreCase = true))
+        }
+    } catch (_: IllegalArgumentException) {
+        throw IllegalArgumentException("Arkistointi-jobin tunniste ei ole UUID")
+    }
 }
 
 /** Control flow: another execution owns this task, or it has already been acknowledged. */
@@ -72,13 +80,15 @@ interface ArkistointiAsiakirjaLoader {
 }
 
 data class ArkistointiSubmission(
-    val jobId: Long,
-    val key: String,
+    val jobId: UUID,
     val university: YliopistoEnum,
     val caseType: CaseType,
     val payload: String,
     val asiakirjat: List<LoadedArkistointiAsiakirja>
 ) {
+    /** The saved job ID is the delivery key, reused for every automatic and manual attempt. */
+    val key: UUID get() = jobId
+
     override fun toString() = "ArkistointiSubmission(" +
         "jobId=$jobId, " +
         "university=$university, " +

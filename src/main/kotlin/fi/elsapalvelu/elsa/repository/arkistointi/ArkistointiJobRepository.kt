@@ -8,13 +8,14 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import jakarta.persistence.LockModeType
 import org.springframework.stereotype.Repository
+import java.util.UUID
 
 @Repository
-interface ArkistointiJobRepository : JpaRepository<ArkistointiJob, Long> {
+interface ArkistointiJobRepository : JpaRepository<ArkistointiJob, UUID> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select job from ArkistointiJob job where job.id = :id")
-    fun findByIdForStateChange(@Param("id") id: Long): ArkistointiJob?
+    fun findByIdForStateChange(@Param("id") id: UUID): ArkistointiJob?
 
     fun findByKey(key: String): ArkistointiJob?
 

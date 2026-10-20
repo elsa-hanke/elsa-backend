@@ -12,7 +12,9 @@ class ArkistointiJobFailureHandler(
 ) : FailureHandler<Unit> {
     override fun onFailure(completed: ExecutionComplete, operations: ExecutionOperations<Unit>) {
         val execution = completed.execution
-        if (execution.taskInstance.id.toLongOrNull() == null) {
+        val identity = try {
+            ArkistointiJobExecution(execution.taskInstance.taskName, execution.taskInstance.id, execution.version)
+        } catch (_: IllegalArgumentException) {
             operations.remove()
             return
         }
@@ -31,7 +33,7 @@ class ArkistointiJobFailureHandler(
         // If this commit fails, do not acknowledge the scheduler row. Dead-execution recovery retries it.
         val retry = try {
             state.fail(
-                ArkistointiJobExecution(execution.taskInstance.taskName, execution.taskInstance.id, execution.version), error,
+                identity, error,
                 terminal = terminal
             )
         } catch (_: StaleArkistointiExecutionException) {

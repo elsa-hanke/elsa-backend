@@ -52,7 +52,7 @@
 
     <changeSet id="20260905090000-2" author="elsa">
         <createTable tableName="arkistointi_job">
-            <column name="id" type="bigint">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="university" type="varchar(50)">
@@ -82,18 +82,25 @@
             <column name="completed_at" type="timestamp"/>
         </createTable>
 
-        <addAutoIncrement
-            tableName="arkistointi_job"
-            columnName="id"
-            columnDataType="bigint"
-            generationType="ALWAYS"
-            incrementBy="1"
-            startWith="1"/>
-
         <addUniqueConstraint
             tableName="arkistointi_job"
             columnNames="job_key"
             constraintName="ux_arkistointi_job__job_key"/>
+
+        <sql splitStatements="false"><![CDATA[
+            CREATE FUNCTION prevent_arkistointi_job_id_change() RETURNS trigger AS $$
+            BEGIN
+                IF NEW.id IS DISTINCT FROM OLD.id THEN
+                    RAISE EXCEPTION 'Archive job ID cannot be changed' USING ERRCODE = '23514';
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER arkistointi_job_id_immutable
+                BEFORE UPDATE OF id ON arkistointi_job
+                FOR EACH ROW EXECUTE FUNCTION prevent_arkistointi_job_id_change();
+        ]]></sql>
 
         <createIndex tableName="arkistointi_job" indexName="idx_arkistointi_job__status">
             <column name="status"/>
@@ -105,7 +112,7 @@
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="job_id" type="bigint">
+            <column name="job_id" type="uuid">
                 <constraints nullable="false"/>
             </column>
             <column name="asiakirja_id" type="bigint">

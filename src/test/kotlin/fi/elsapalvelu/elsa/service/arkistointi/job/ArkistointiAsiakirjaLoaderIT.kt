@@ -128,7 +128,7 @@ class ArkistointiAsiakirjaLoaderIT {
         }
     }
 
-    private fun fixture(): Long = transactions.execute {
+    private fun fixture(): UUID = transactions.execute {
         YliopistoHelper.createReferenceData(em, YliopistoEnum.TURUN_YLIOPISTO)
         val source = AsiakirjaHelper.createEntity(em)
         val bytes = ByteArrayOutputStream()
@@ -165,11 +165,11 @@ class ArkistointiAsiakirjaLoaderIT {
         }
     }
 
-    private fun taskCount(jobId: Long) = jdbc.queryForObject(
+    private fun taskCount(jobId: UUID) = jdbc.queryForObject(
         "select count(*) from scheduled_tasks where task_instance = ?", Long::class.javaObjectType, jobId.toString()
     )!!
 
-    private fun failures(jobId: Long) = jdbc.queryForObject(
+    private fun failures(jobId: UUID) = jdbc.queryForObject(
         "select coalesce(consecutive_failures, 0) from scheduled_tasks where task_instance = ?",
         Int::class.javaObjectType, jobId.toString()
     )!!

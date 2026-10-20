@@ -67,6 +67,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.time.LocalDate
+import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -539,7 +540,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                     "Test did not release the first approval in time"
                 }
             }
-            ArkistointiJob(id = 42L)
+            ArkistointiJob(id = UUID.randomUUID())
         }
 
         val executor = Executors.newSingleThreadExecutor()
@@ -745,7 +746,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                     "Test did not release the held approval in time"
                 }
             }
-            ArkistointiJob(id = 42L)
+            ArkistointiJob(id = UUID.randomUUID())
         }
         return gate
     }

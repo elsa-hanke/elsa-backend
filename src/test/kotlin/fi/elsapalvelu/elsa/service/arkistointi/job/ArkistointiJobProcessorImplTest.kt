@@ -15,6 +15,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.util.UUID
 
 class ArkistointiJobProcessorImplTest {
     private val state = mock<ArkistointiJobStateService>()
@@ -22,8 +23,9 @@ class ArkistointiJobProcessorImplTest {
         whenever(university).thenReturn(YliopistoEnum.TURUN_YLIOPISTO)
     }
     private val processor = ArkistointiJobProcessorImpl(state, listOf(adapter))
-    private val execution = ArkistointiJobExecution("arkistointi-job", "42", 1L)
-    private val submission = ArkistointiSubmission(42, "unchanged-key", YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}", emptyList())
+    private val jobId = UUID.randomUUID()
+    private val execution = ArkistointiJobExecution("arkistointi-job", jobId.toString(), 1L)
+    private val submission = ArkistointiSubmission(jobId, YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}", emptyList())
 
     @BeforeEach
     fun prepareSubmission() {

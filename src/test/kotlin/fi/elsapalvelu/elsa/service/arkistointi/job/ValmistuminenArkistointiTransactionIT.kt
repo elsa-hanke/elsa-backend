@@ -76,6 +76,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 import java.util.zip.ZipFile
 import java.util.zip.CRC32
 import javax.cache.Caching
@@ -123,6 +124,7 @@ class ValmistuminenArkistointiTransactionIT {
         val fixture = fixture(kind, attachment = PdfTestData.cmykJpeg(), contentType = MediaType.IMAGE_JPEG_VALUE)
         approve(fixture)
         val key = key(fixture)
+        val jobId = requireNotNull(transactions.execute { jobs.findByKey(key)?.id })
         val expectedTypes = mutableListOf(RecordType.YHTEENVETO, RecordType.LIITE)
         if (kind != "YEK") expectedTypes.add(RecordType.LAILLISTAMISTODISTUS)
         val archivedBytes = mutableMapOf<Long, ByteArray>()
@@ -171,7 +173,7 @@ class ValmistuminenArkistointiTransactionIT {
                 assertThat(loader.load(asiakirja).sisalto).containsExactly(*archivedBytes.getValue(asiakirja.id!!))
             }
         }
-        assertThrows<BadRequestAlertException> { approve(fixture) }
+        assertRepeatedApprovalKeepsJob(fixture, jobId)
         assertThat(jdbc.queryForObject("select count(*) from arkistointi_job where job_key = ?", Long::class.javaObjectType, key))
             .isEqualTo(1)
         verify(mail).sendEmailFromTemplate(any<User>(), any(), any(), any(), any(), any())
@@ -527,6 +529,12 @@ class ValmistuminenArkistointiTransactionIT {
         document.id!! to bytes
     }
 
+    private fun assertRepeatedApprovalKeepsJob(fixture: ApprovalFixture, jobId: UUID) {
+        assertThrows<BadRequestAlertException> { approve(fixture) }
+        assertThat(transactions.execute { jobs.findByKey(key(fixture))?.id }).isEqualTo(jobId)
+        assertThat(taskCount(jobId)).isEqualTo(1)
+    }
+
     private fun assertRolledBack(fixture: ApprovalFixture) {
         transactions.executeWithoutResult {
             val request = em.find(Valmistumispyynto::class.java, fixture.id)
@@ -549,7 +557,7 @@ class ValmistuminenArkistointiTransactionIT {
 
     private fun key(fixture: ApprovalFixture) = "valmistuminen:TAMPEREEN_YLIOPISTO:${fixture.id}"
 
-    private fun taskCount(jobId: Long) = jdbc.queryForObject(
+    private fun taskCount(jobId: UUID) = jdbc.queryForObject(
         "select count(*) from scheduled_tasks where task_name = 'arkistointi-job' and task_instance = ?",
         Long::class.javaObjectType, jobId.toString()
     )!!

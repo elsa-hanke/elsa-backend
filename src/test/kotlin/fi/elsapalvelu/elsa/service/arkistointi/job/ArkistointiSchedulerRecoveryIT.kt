@@ -165,6 +165,53 @@ class ArkistointiSchedulerRecoveryIT {
         verify(loader, times(1)).load(any())
     }
 
+    @Test
+    fun `independent operations with identical payloads deliver distinct persisted UUIDs`() {
+        val firstId = fixture()
+        val secondId = fixture()
+        val scheduler = scheduler()
+
+        runUntil(scheduler) {
+            assertThat(taskCount(firstId)).isZero()
+            assertThat(taskCount(secondId)).isZero()
+        }
+
+        assertThat(adapter.submissions.map { it.key }).containsExactlyInAnyOrder(firstId, secondId)
+        assertThat(adapter.submissions.map { it.jobId }).containsExactlyInAnyOrder(firstId, secondId)
+        assertThat(adapter.submissions.map { it.payload }.distinct()).hasSize(1)
+        assertThat(jobs.findById(firstId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+        assertThat(jobs.findById(secondId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+    }
+
+    @Test
+    fun `two scheduler instances do not deliver the same active task concurrently`() {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        adapter.behavior = {
+            entered.countDown()
+            check(release.await(10, TimeUnit.SECONDS))
+            ArkistointiResult.Success(null)
+        }
+        val jobId = fixture()
+        val first = scheduler()
+        val second = scheduler()
+        try {
+            first.triggerCheckForDueExecutions()
+            second.triggerCheckForDueExecutions()
+            assertThat(entered.await(10, TimeUnit.SECONDS)).isTrue()
+            await().during(Duration.ofMillis(500)).atMost(Duration.ofSeconds(3)).untilAsserted {
+                second.triggerCheckForDueExecutions()
+                assertThat(adapter.submissions).hasSize(1)
+            }
+        } finally {
+            release.countDown()
+        }
+        runUntil(first) { assertThat(taskCount(jobId)).isZero() }
+        assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+        assertThat(adapter.submissions).hasSize(1)
+        assertThat(adapter.submissions.single().key).isEqualTo(jobId)
+    }
+
     private fun blockRemoval() = transactions.executeWithoutResult {
         jdbc.execute("""
             CREATE FUNCTION fail_archive_remove() RETURNS trigger LANGUAGE plpgsql AS ${'$'}${'$'}
@@ -174,12 +221,12 @@ class ArkistointiSchedulerRecoveryIT {
             "FOR EACH ROW EXECUTE FUNCTION fail_archive_remove()")
     }
 
-    private fun markDead(jobId: Long) = transactions.executeWithoutResult {
+    private fun markDead(jobId: UUID) = transactions.executeWithoutResult {
         jdbc.update("update scheduled_tasks set picked = true, picked_by = 'dead-process', last_heartbeat = ? " +
             "where task_instance = ?", Timestamp.from(Instant.now().minusSeconds(60)), jobId.toString())
     }
 
-    private fun fixture(): Long = transactions.execute {
+    private fun fixture(): UUID = transactions.execute {
         YliopistoHelper.createReferenceData(em, YliopistoEnum.TURUN_YLIOPISTO)
         val source = AsiakirjaHelper.createEntity(em)
         val bytes = ByteArrayOutputStream()
@@ -211,16 +258,16 @@ class ArkistointiSchedulerRecoveryIT {
         }
     }
 
-    private fun taskCount(jobId: Long) = jdbc.queryForObject(
+    private fun taskCount(jobId: UUID) = jdbc.queryForObject(
         "select count(*) from scheduled_tasks where task_instance = ?", Long::class.javaObjectType, jobId.toString()
     )!!
 
-    private fun schedulerState(jobId: Long) = jdbc.queryForMap(
+    private fun schedulerState(jobId: UUID) = jdbc.queryForMap(
         "select version, picked, execution_time, consecutive_failures from scheduled_tasks where task_instance = ?",
         jobId.toString()
     )
 
-    private fun jobState(jobId: Long) = jobs.findById(jobId).orElseThrow().let {
+    private fun jobState(jobId: UUID) = jobs.findById(jobId).orElseThrow().let {
         listOf(it.status, it.externalId, it.completedAt, it.errorCode, it.lastError)
     }
 

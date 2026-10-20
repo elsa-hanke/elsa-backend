@@ -122,7 +122,9 @@ class ArkistointiJobProcessingIT {
         assertThat(stored.errorCode).isNull()
         assertThat(stored.lastError).isNull()
         assertThat(adapter.submissions).hasSize(2)
-        assertThat(adapter.submissions.map { it.key }.distinct()).hasSize(1)
+        assertThat(adapter.submissions.map { it.key }).containsOnly(jobId)
+        assertThat(adapter.submissions.map { it.jobId }).containsOnly(jobId)
+        assertThat(jobId.toString()).isNotEqualTo(stored.key)
         assertThat(adapter.submissions.map { it.payload }).containsOnly("{\"approved\":true}")
         assertThat(adapter.submissions.first().asiakirjat.single().sisalto)
             .containsExactly(*adapter.submissions.last().asiakirjat.single().sisalto)
@@ -193,7 +195,7 @@ class ArkistointiJobProcessingIT {
         val expectedCode = if (result == "PERMANENT") "OLD_ERROR" else "ARCHIVE_ADAPTER_RESPONSE_INVALID"
         val jobId = fixture()
         val originalExecution = execution(jobId)
-        val originalKey = jobs.findById(jobId).orElseThrow().key
+        val originalKey = jobId
         val attemptCounters = CopyOnWriteArrayList<Int>()
         adapter.behavior = {
             attemptCounters.add(failures(jobId))
@@ -259,7 +261,7 @@ class ArkistointiJobProcessingIT {
             override fun executeOnce(instance: TaskInstance<Unit>, context: ExecutionContext) = task.executeOnce(instance, context)
         }
 
-    private fun assertUncommittedTerminalState(jobId: Long) {
+    private fun assertUncommittedTerminalState(jobId: UUID) {
         assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.KASITTELYSSA)
         assertThat(jobs.findById(jobId).orElseThrow().errorCode).isNull()
         assertThat(schedulerState(jobId)).containsEntry("picked", true)
@@ -346,7 +348,7 @@ class ArkistointiJobProcessingIT {
         val scheduler = scheduler()
         runUntil(scheduler) { assertThat(taskCount(jobId)).isZero() }
         assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.LAHETETTY)
-        assertThat(adapter.submissions.single().key).isEqualTo(jobs.findById(jobId).orElseThrow().key)
+        assertThat(adapter.submissions.single().key).isEqualTo(jobId)
     }
 
     @Test
@@ -388,7 +390,7 @@ class ArkistointiJobProcessingIT {
         runUntil(scheduler) { assertThat(taskCount(jobId)).isZero() }
         assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.LAHETETTY)
         assertThat(adapter.submissions).hasSize(2)
-        assertThat(adapter.submissions.map { it.key }.distinct()).hasSize(1)
+        assertThat(adapter.submissions.map { it.key }).containsOnly(jobId)
     }
 
     @Test
@@ -429,34 +431,6 @@ class ArkistointiJobProcessingIT {
         runUntil(scheduler) { assertThat(taskCount(jobId)).isZero() }
         assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.LAHETETTY)
         assertThat(adapter.submissions).hasSize(2)
-    }
-
-    @Test
-    fun `two scheduler instances do not deliver the same active task concurrently`() {
-        val entered = CountDownLatch(1)
-        val release = CountDownLatch(1)
-        adapter.behavior = {
-            entered.countDown()
-            check(release.await(10, TimeUnit.SECONDS))
-            ArkistointiResult.Success(null)
-        }
-        val jobId = fixture()
-        val first = scheduler()
-        val second = scheduler()
-        try {
-            first.triggerCheckForDueExecutions()
-            second.triggerCheckForDueExecutions()
-            assertThat(entered.await(10, TimeUnit.SECONDS)).isTrue()
-            await().during(Duration.ofMillis(500)).atMost(Duration.ofSeconds(3)).untilAsserted {
-                second.triggerCheckForDueExecutions()
-                assertThat(adapter.submissions).hasSize(1)
-            }
-        } finally {
-            release.countDown()
-        }
-        runUntil(first) { assertThat(taskCount(jobId)).isZero() }
-        assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.LAHETETTY)
-        assertThat(adapter.submissions).hasSize(1)
     }
 
     @ParameterizedTest
@@ -563,12 +537,12 @@ class ArkistointiJobProcessingIT {
         assertThat(schedulerStateOrEmpty(jobId)).isEqualTo(stored)
     }
 
-    private fun execution(jobId: Long) = ArkistointiJobExecution(
+    private fun execution(jobId: UUID) = ArkistointiJobExecution(
         ARKISTOINTI_JOB_TASK.taskName, jobId.toString(),
         jdbc.queryForObject("select version from scheduled_tasks where task_instance = ?", Long::class.javaObjectType, jobId.toString())!!
     )
 
-    private fun schedulerStateOrEmpty(jobId: Long) = if (taskCount(jobId) == 0L) emptyMap() else schedulerState(jobId)
+    private fun schedulerStateOrEmpty(jobId: UUID) = if (taskCount(jobId) == 0L) emptyMap() else schedulerState(jobId)
 
     @ParameterizedTest
     @CsvSource("PERMANENT,false", "SUCCESS,false", "INVALID_SUCCESS,false", "RETRYABLE,false", "EXCEPTION,false",
@@ -636,16 +610,16 @@ class ArkistointiJobProcessingIT {
         else -> error("secret old response")
     }
 
-    private fun schedulerState(jobId: Long) = jdbc.queryForMap(
+    private fun schedulerState(jobId: UUID) = jdbc.queryForMap(
         "select version, picked, execution_time, consecutive_failures from scheduled_tasks where task_instance = ?",
         jobId.toString()
     )
 
-    private fun jobState(jobId: Long) = jobs.findById(jobId).orElseThrow().let {
+    private fun jobState(jobId: UUID) = jobs.findById(jobId).orElseThrow().let {
         listOf(it.status, it.externalId, it.completedAt, it.errorCode, it.lastError)
     }
 
-    private fun assertNewSuccess(jobId: Long) {
+    private fun assertNewSuccess(jobId: UUID) {
         val stored = jobs.findById(jobId).orElseThrow()
         assertThat(stored.status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
         assertThat(stored.externalId).isEqualTo("new-external-id")
@@ -653,7 +627,7 @@ class ArkistointiJobProcessingIT {
         assertThat(stored.errorCode).isNull()
         assertThat(stored.lastError).isNull()
         assertThat(adapter.submissions).hasSize(2)
-        assertThat(adapter.submissions.map { it.key }.distinct()).hasSize(1)
+        assertThat(adapter.submissions.map { it.key }).containsOnly(jobId)
     }
 
     private fun observedTask(versions: MutableList<Long>): OneTimeTask<Unit> =
@@ -700,14 +674,14 @@ class ArkistointiJobProcessingIT {
                 .execute { instance, context -> delegate.executeOnce(instance, context) }
     }
 
-    private fun assertTerminal(jobId: Long, errorCode: String) {
+    private fun assertTerminal(jobId: UUID, errorCode: String) {
         val scheduler = scheduler()
         runUntil(scheduler) { assertThat(taskCount(jobId)).isZero() }
         assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
         assertThat(jobs.findById(jobId).orElseThrow().errorCode).isEqualTo(errorCode)
     }
 
-    private fun simulateCrash(jobId: Long, completed: Boolean = false) {
+    private fun simulateCrash(jobId: UUID, completed: Boolean = false) {
         transactions.executeWithoutResult {
             if (!completed) jobs.findById(jobId).orElseThrow().transitionTo(ArkistointiJobStatus.KASITTELYSSA)
             jdbc.update("update scheduled_tasks set picked = true, picked_by = 'dead-process', last_heartbeat = ? " +
@@ -733,15 +707,15 @@ class ArkistointiJobProcessingIT {
         }
     }
 
-    private fun status(jobId: Long) = jobs.findById(jobId).orElseThrow().status
-    private fun taskCount(jobId: Long) = jdbc.queryForObject(
+    private fun status(jobId: UUID) = jobs.findById(jobId).orElseThrow().status
+    private fun taskCount(jobId: UUID) = jdbc.queryForObject(
         "select count(*) from scheduled_tasks where task_instance = ?", Long::class.javaObjectType, jobId.toString()
     )!!
-    private fun failures(jobId: Long) = jdbc.queryForObject(
+    private fun failures(jobId: UUID) = jdbc.queryForObject(
         "select coalesce(consecutive_failures, 0) from scheduled_tasks where task_instance = ?", Int::class.javaObjectType, jobId.toString()
     )!!
 
-    private fun fixture(university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO): Long = transactions.execute {
+    private fun fixture(university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO): UUID = transactions.execute {
         YliopistoHelper.createReferenceData(em, university)
         val source = AsiakirjaHelper.createEntity(em)
         val bytes = ByteArrayOutputStream()

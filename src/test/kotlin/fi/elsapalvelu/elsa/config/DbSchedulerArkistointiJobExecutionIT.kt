@@ -9,25 +9,25 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import org.ehcache.core.config.DefaultConfiguration
+import org.ehcache.jsr107.EhcacheCachingProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer
-import org.ehcache.jsr107.EhcacheCachingProvider
-import org.ehcache.core.config.DefaultConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.transaction.support.TransactionTemplate
+import java.net.URI
 import java.time.Duration
 import java.time.Instant
-import java.net.URI
-import javax.cache.Caching
+import java.util.UUID
 import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
+import javax.cache.Caching
 
 @SpringBootTest(
     classes = [ElsaBackendApp::class],
@@ -58,7 +58,7 @@ class DbSchedulerArkistointiJobExecutionIT {
 
     @Test
     fun `scheduler kutsuu processoria vasta ajastuksen commitoinnin jalkeen`() {
-        val jobId = ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE)
+        val jobId = UUID.randomUUID()
 
         assertThat(backgroundScheduler.schedulerState.isStarted).isTrue
         transactionTemplate.executeWithoutResult {
@@ -99,7 +99,7 @@ class DbSchedulerArkistointiJobExecutionIT {
     }
 
     class RecordingProcessor : ArkistointiJobProcessor {
-        val jobIds = LinkedBlockingQueue<Long>()
+        val jobIds = LinkedBlockingQueue<UUID>()
 
         override fun process(execution: ArkistointiJobExecution) {
             jobIds.add(execution.jobId)

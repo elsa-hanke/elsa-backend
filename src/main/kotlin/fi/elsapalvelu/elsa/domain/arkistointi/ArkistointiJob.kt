@@ -21,15 +21,18 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.io.Serializable
 import java.time.Instant
+import java.util.UUID
 
 @Entity
 @EntityListeners(AuditingEntityListener::class)
 @Table(name = "arkistointi_job")
 data class ArkistointiJob(
 
+    /** The persisted UUID identifies both the job and its delivery across all retry attempts. */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null,
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", nullable = false, updatable = false)
+    var id: UUID? = null,
 
     @get:NotNull
     @Enumerated(EnumType.STRING)

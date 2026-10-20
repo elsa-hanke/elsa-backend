@@ -25,6 +25,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.core.io.ClassPathResource
+import java.util.UUID
 
 class ArkistointiMergedSnapshotTest {
     private val documents = mock<AsiakirjaRepository>()
@@ -50,7 +51,7 @@ class ArkistointiMergedSnapshotTest {
     @Test
     fun `saves only the final snapshot and creator verifies integrity without another PDF-A parse`() {
         whenever(documents.findArchiveSnapshotFlagById(12L)).thenReturn(true)
-        whenever(jobs.saveAndFlush(any<ArkistointiJob>())).thenAnswer { it.getArgument<ArkistointiJob>(0).apply { id = 42L } }
+        whenever(jobs.saveAndFlush(any<ArkistointiJob>())).thenAnswer { it.getArgument<ArkistointiJob>(0).apply { id = UUID.randomUUID() } }
         whenever(scheduler.schedule(any(), any())).thenReturn(true)
 
         val reference = snapshots.createMergedReference(ordinary, listOf(original), RecordType.LIITE, 1)

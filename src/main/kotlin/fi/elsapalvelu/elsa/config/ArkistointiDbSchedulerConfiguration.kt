@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.sql.Connection
 import java.time.Instant
 import java.util.Optional
+import java.util.UUID
 import javax.sql.DataSource
 
 val ARKISTOINTI_JOB_TASK: TaskDescriptor<Unit> =
@@ -93,7 +94,7 @@ class DbSchedulerArkistointiJobScheduler(
     ).build()
 
     @Transactional(propagation = Propagation.MANDATORY)
-    override fun schedule(jobId: Long, executionTime: Instant): Boolean =
+    override fun schedule(jobId: UUID, executionTime: Instant): Boolean =
         schedulerClient.scheduleIfNotExists(
             ARKISTOINTI_JOB_TASK.instance(jobId.toString()).scheduledTo(executionTime)
         )

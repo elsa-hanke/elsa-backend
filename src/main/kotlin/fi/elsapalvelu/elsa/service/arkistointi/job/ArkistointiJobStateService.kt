@@ -46,7 +46,7 @@ class ArkistointiJobStateService(
             )
         }
         return ArkistointiSubmission(
-            jobId, job.key.required(), job.university.required(), job.caseType.required(), payload,
+            jobId, job.university.required(), job.caseType.required(), payload,
             job.asiakirjat.sortedBy { it.jarjestysnumero }.map(loader::load)
         )
     }
