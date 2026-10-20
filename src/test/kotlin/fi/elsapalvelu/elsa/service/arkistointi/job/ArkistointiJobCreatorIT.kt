@@ -243,6 +243,31 @@ class ArkistointiJobCreatorIT {
 
     @Test
     @Transactional
+    fun `repeated creation with the same business key preserves the persisted UUID documents and schedule`() {
+        val request = request(storedSnapshot())
+        val first = creator.create(request)
+        val jobId = requireNotNull(first.id)
+        entityManager.flush()
+        entityManager.clear()
+        val jobsBefore = jobRepository.count()
+        val documentsBefore = asiakirjaRepository.count()
+        val scheduleSql = "select * from scheduled_tasks where task_name = ? and task_instance = ?"
+        val scheduleBefore = jdbcTemplate.queryForMap(scheduleSql, ARKISTOINTI_JOB_TASK.taskName, jobId.toString())
+
+        val repeated = creator.create(request)
+        entityManager.flush()
+        entityManager.clear()
+
+        assertThat(repeated.id).isEqualTo(jobId)
+        assertThat(jobRepository.findByKey(request.key)?.id).isEqualTo(jobId)
+        assertThat(jobRepository.count()).isEqualTo(jobsBefore)
+        assertThat(asiakirjaRepository.count()).isEqualTo(documentsBefore)
+        assertThat(scheduledTaskCount(jobId)).isEqualTo(1)
+        assertThat(jdbcTemplate.queryForMap(scheduleSql, ARKISTOINTI_JOB_TASK.taskName, jobId.toString())).isEqualTo(scheduleBefore)
+    }
+
+    @Test
+    @Transactional
     fun `snapshot references and scheduler row are stored in the approval transaction`() {
         val source = AsiakirjaHelper.createEntity(entityManager)
         entityManager.persist(source)

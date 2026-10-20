@@ -19,6 +19,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import java.util.UUID
 
@@ -68,14 +69,17 @@ class ArkistointiJobCreatorImplTest {
 
     @Test
     fun `returns the existing job for an identical idempotency key`() {
-        val existing = ArkistointiJob(id = 42L, key = request().key)
-        whenever(repository.findByKey(request().key)).thenReturn(existing)
+        val request = request()
+        val jobId = UUID.randomUUID()
+        val existing = ArkistointiJob(id = jobId, key = request.key)
+        whenever(repository.findByKey(request.key)).thenReturn(existing)
 
-        val result = creator.create(request())
+        val result = creator.create(request)
 
         assertThat(result).isSameAs(existing)
+        assertThat(result.id).isEqualTo(jobId)
         verify(repository, never()).saveAndFlush(any())
-        verify(scheduler, never()).schedule(any(), any())
+        verifyNoInteractions(scheduler, snapshotService)
     }
 
     @Test
