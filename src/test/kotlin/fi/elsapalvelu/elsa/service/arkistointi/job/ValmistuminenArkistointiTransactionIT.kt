@@ -414,6 +414,56 @@ class ValmistuminenArkistointiTransactionIT {
         verify(transport).laheta(any(), eq(false))
     }
 
+/**
+     * Reproduces the critical issue: with async enabled, an attachment PDF with non-embedded fonts is not PDF/A,
+     * so the whole merged document is rasterised at 150 DPI and >~22 A4 pages exceed MAX_TOTAL_PIXELS (50 MP).
+     * Approval then fails (rolled back) although the sync path accepts the same attachment.
+     */
+    @ParameterizedTest
+    @ValueSource(ints = [22, 23, 30])
+    fun `async approval accepts long attachment PDFs that are not PDF-A`(pages: Int) {
+        val original = PdfTestData.unembeddedFontPdf(pages)
+        val fixture = fixture("EL", attachment = original, contentType = MediaType.APPLICATION_PDF_VALUE)
+
+        approve(fixture)
+
+        transactions.executeWithoutResult {
+            val job = jobs.findByKey(key(fixture))!!
+            assertThat(taskCount(job.id!!)).isEqualTo(1)
+            val snapshot = job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }
+            val bytes = loader.load(snapshot).sisalto
+            assertThat(pdfA.isPdfA2b(bytes)).isTrue
+            PdfDocument(PdfReader(ByteArrayInputStream(bytes))).use { pdf ->
+                assertThat(pdf.numberOfPages).isEqualTo(pages)
+            }
+            assertThat(em.find(Asiakirja::class.java, fixture.attachmentId).asiakirjaData!!.data)
+                .containsExactly(*original)
+        }
+    }
+
+    /** Even a short non-PDF/A attachment must keep its text layer in the archived copy (no whole-document raster). */
+    @Test
+    fun `async approval keeps the text layer of a short non-PDF-A attachment`() {
+        val pages = 3
+        val fixture = fixture(
+            "EL", attachment = PdfTestData.unembeddedFontPdf(pages),
+            contentType = MediaType.APPLICATION_PDF_VALUE
+        )
+
+        approve(fixture)
+
+        transactions.executeWithoutResult {
+            val snapshot = jobs.findByKey(key(fixture))!!.asiakirjat.single { it.asiakirjatyyppi == RecordType.LIITE }
+            PdfDocument(PdfReader(ByteArrayInputStream(loader.load(snapshot).sisalto))).use { pdf ->
+                assertThat(pdf.numberOfPages).isEqualTo(pages)
+                repeat(pages) { index ->
+                    assertThat(PdfTextExtractor.getTextFromPage(pdf.getPage(index + 1)))
+                        .contains("Attachment page ${index + 1}")
+                }
+            }
+        }
+    }
+
     private fun assertGeneratedSummary(request: Valmistumispyynto) {
         PdfDocument(PdfReader(ByteArrayInputStream(request.yhteenvetoAsiakirja!!.asiakirjaData!!.data!!))).use { pdf ->
             assertThat(PdfTextExtractor.getTextFromPage(pdf.firstPage)).containsIgnoringCase("john")
