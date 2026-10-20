@@ -53,6 +53,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -60,12 +61,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+import org.springframework.test.web.servlet.MockMvc
 import org.springframework.transaction.support.TransactionTemplate
 import org.ehcache.core.config.DefaultConfiguration
 import org.ehcache.jsr107.EhcacheCachingProvider
@@ -96,14 +99,17 @@ import javax.cache.Caching
     "db-scheduler.enabled=false"
 ])
 @Import(ValmistuminenArkistointiTransactionIT.CacheConfig::class)
+@AutoConfigureMockMvc
 class ValmistuminenArkistointiTransactionIT {
+    @Autowired private lateinit var mvc: MockMvc
     @Autowired private lateinit var em: EntityManager
     @Autowired private lateinit var transactions: TransactionTemplate
     @Autowired private lateinit var jdbc: JdbcTemplate
     @Autowired private lateinit var service: ValmistumispyyntoService
     @Autowired private lateinit var jobs: ArkistointiJobRepository
     @Autowired private lateinit var loader: ArkistointiAsiakirjaLoader
-    @Autowired private lateinit var pdfA: PdfA2bService
+    @MockitoSpyBean private lateinit var pdfA: PdfA2bService
+    @MockitoSpyBean private lateinit var snapshots: ArkistointiAsiakirjaSnapshotService
     @Autowired private lateinit var mapper: ObjectMapper
     @Autowired private lateinit var properties: ApplicationProperties
     @MockitoBean private lateinit var mail: MailService
@@ -215,7 +221,8 @@ class ValmistuminenArkistointiTransactionIT {
     fun `missing mandatory certificate rolls back approval and partially created snapshots`(kind: String) {
         val fixture = fixture(kind, certificate = null)
         val tasksBefore = jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)
-        val exception = assertThrows<ArkistointiAsiakirjaException> { approve(fixture) }
+        val exception = assertArchiveDocumentHttpFailure(mvc, fixture.id, fixture.approverUserId,
+            400, "ARCHIVE_DOCUMENT_MISSING")
         assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_MISSING")
         assertRolledBack(fixture)
         assertThat(jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)).isEqualTo(tasksBefore)
@@ -285,10 +292,12 @@ class ValmistuminenArkistointiTransactionIT {
             }
             else -> original
         }
-        val fixture = fixture("EL", certificate = invalid, certificateContentType = contentType)
+        val fixture = fixture("EL", certificate = invalid, certificateContentType = contentType,
+            certificateFilename = "$PRIVATE_CERTIFICATE_NAME.png")
         val tasksBefore = jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)
 
-        val exception = assertThrows<ArkistointiAsiakirjaException> { approve(fixture) }
+        val exception = assertArchiveDocumentHttpFailure(mvc, fixture.id, fixture.approverUserId,
+            400, "ARCHIVE_DOCUMENT_INVALID")
 
         assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_INVALID")
         assertRolledBack(fixture)
@@ -313,6 +322,29 @@ class ValmistuminenArkistointiTransactionIT {
             assertThat(taskCount(job.id!!)).isEqualTo(1)
             assertThat(em.find(Valmistumispyynto::class.java, fixture.id).vastuuhenkiloHyvaksyjaKuittausaika).isEqualTo(LocalDate.now())
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["STORED_DOCUMENT", "PROCESSING_FAILURE"])
+    fun `server document errors return safe 500 and roll back approval`(category: String) {
+        val fixture = fixture("EL", certificateFilename = "$PRIVATE_CERTIFICATE_NAME.pdf")
+        val tasksBefore = jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)
+        if (category == "STORED_DOCUMENT") {
+            doAnswer { invocation ->
+                (invocation.callRealMethod() as ArkistointiAsiakirjaReference).copy(sha256 = "0".repeat(64))
+            }.`when`(snapshots).createLaillistamistodistusReference(any(), any())
+        } else {
+            doThrow(IllegalStateException(PRIVATE_CERTIFICATE_NAME, IllegalArgumentException(PRIVATE_CERTIFICATE_NAME)))
+                .`when`(pdfA).normalize(anyOrNull(), anyOrNull())
+        }
+        val code = if (category == "STORED_DOCUMENT") "ARCHIVE_DOCUMENT_CHECKSUM_MISMATCH" else "ARCHIVE_DOCUMENT_PROCESSING_FAILED"
+
+        val exception = assertArchiveDocumentHttpFailure(mvc, fixture.id, fixture.approverUserId, 500, code)
+
+        assertThat(exception.category).isEqualTo(ArkistointiAsiakirjaErrorCategory.valueOf(category))
+        assertRolledBack(fixture)
+        assertThat(jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)).isEqualTo(tasksBefore)
+        verify(transport, never()).laheta(any(), any())
     }
 
     private fun certificateImage(imageType: String): Pair<String, ByteArray> = when (imageType) {
@@ -573,7 +605,8 @@ class ValmistuminenArkistointiTransactionIT {
         attachment: ByteArray = PdfTestData.certificate(),
         contentType: String = MediaType.APPLICATION_PDF_VALUE,
         certificateContentType: String = MediaType.APPLICATION_PDF_VALUE,
-        extraAttachments: List<Pair<String, ByteArray>> = emptyList()
+        extraAttachments: List<Pair<String, ByteArray>> = emptyList(),
+        certificateFilename: String? = null
     ): ApprovalFixture = transactions.execute {
         val university = YliopistoHelper.createReferenceData(em, YliopistoEnum.TAMPEREEN_YLIOPISTO)
         val specialty = em.findAll(Erikoisala::class).first { erikoisala ->
@@ -588,7 +621,7 @@ class ValmistuminenArkistointiTransactionIT {
         val student = ErikoistuvaLaakariHelper.createEntity(
             em, yliopisto = university, erikoisala = specialty, opintoopas = guide,
             laillistamistodistusData = certificate ?: PdfTestData.certificate(),
-            laillistamistodistusNimi = "laillistamistodistus.${certificateContentType.substringAfter('/')}",
+            laillistamistodistusNimi = certificateFilename ?: "laillistamistodistus.${certificateContentType.substringAfter('/')}",
             laillistamistodistusTyyppi = certificateContentType
         )
         if (certificate == null) student.laillistamistodistus = null

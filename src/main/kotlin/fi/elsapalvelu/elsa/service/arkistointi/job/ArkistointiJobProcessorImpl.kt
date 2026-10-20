@@ -24,10 +24,10 @@ class ArkistointiJobProcessorImpl(
             // The failure handler owns failure persistence, including permanent outcomes.
             throw exception
         } catch (exception: ArkistointiAsiakirjaException) {
-            // Document errors may contain personal filenames: persist only the code and a fixed description.
+            // Keep a fixed description even for malformed adapter/library descriptions. Never retain a cause chain.
             throw ArkistointiProcessingException(
                 ArkistointiError.create(exception.error.code, "Arkistoitavan asiakirjan tarkistus epaonnistui"),
-                retryable = false
+                retryable = exception.category == ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE
             )
         } catch (_: Exception) {
             // No original exception/cause: scheduler logs must not expose payloads or HTTP response bodies.

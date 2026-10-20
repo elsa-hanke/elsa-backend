@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doThrow
@@ -64,14 +65,20 @@ class ArkistointiJobProcessorImplTest {
         verify(state, never()).fail(any(), any(), any())
     }
 
-    @Test
-    fun `document validation error remains permanent and strips the personal filename`() {
-        whenever(state.prepare(execution)).thenThrow(ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing("private-filename.pdf")))
+    @ParameterizedTest
+    @EnumSource(ArkistointiAsiakirjaErrorCategory::class)
+    fun `document category determines retries without retaining personal details`(category: ArkistointiAsiakirjaErrorCategory) {
+        val original = ArkistointiAsiakirjaException(ArkistointiError.create("ARCHIVE_DOCUMENT_MISSING", "private-filename.pdf"), category)
+        original.addSuppressed(IllegalStateException("private-filename.pdf"))
+        whenever(state.prepare(execution)).thenThrow(original)
         val exception = assertThrows<ArkistointiProcessingException> { processor.process(execution) }
-        assertThat(exception.retryable).isFalse()
+        assertThat(exception.retryable).isEqualTo(category == ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE)
         assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_MISSING")
         assertThat(exception.error.description).doesNotContain("private-filename")
         assertThat(exception.cause).isNull()
+        assertThat(exception.suppressed).isEmpty()
+        assertThat(exception.stackTraceToString()).doesNotContain("private-filename")
+        verify(adapter, never()).arkistoi(any())
         verify(state, never()).fail(any(), any(), any())
     }
 

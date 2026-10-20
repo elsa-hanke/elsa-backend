@@ -13,9 +13,8 @@ class ArkistointiAsiakirjaLoaderImpl(
 
     @Transactional(readOnly = true)
     override fun load(viite: ArkistointiJobAsiakirja): LoadedArkistointiAsiakirja {
-        val identifier = viite.filename ?: viite.id?.toString() ?: "tuntematon"
         val asiakirjaId = viite.asiakirja?.id
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
+            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
         // The ResultSet owns this byte array. No managed Asiakirja/AsiakirjaData or shared cache
         // retains it after prepare commits; each retry reads a fresh array from PostgreSQL.
         val data = jdbc.query(
@@ -23,17 +22,17 @@ class ArkistointiAsiakirjaLoaderImpl(
             { rs, _ -> rs.getBytes(1) },
             asiakirjaId
         ).firstOrNull()
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
+            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
         if (data.isEmpty()) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.empty(identifier))
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.empty())
         }
         val expectedChecksum = viite.sha256
             ?: throw ArkistointiAsiakirjaException(
-                ArkistointiAsiakirjaErrors.checksumMismatch(identifier)
+                ArkistointiAsiakirjaErrors.checksumMismatch()
             )
         if (!ArkistointiChecksum.sha256(data).equals(expectedChecksum, ignoreCase = true)) {
             throw ArkistointiAsiakirjaException(
-                ArkistointiAsiakirjaErrors.checksumMismatch(identifier)
+                ArkistointiAsiakirjaErrors.checksumMismatch()
             )
         }
 

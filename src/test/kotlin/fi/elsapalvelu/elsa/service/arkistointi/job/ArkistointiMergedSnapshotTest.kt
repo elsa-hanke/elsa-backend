@@ -15,6 +15,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.clearInvocations
@@ -25,6 +27,9 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.Resource
+import org.springframework.dao.DataAccessResourceFailureException
+import java.io.IOException
 import java.util.UUID
 
 class ArkistointiMergedSnapshotTest {
@@ -94,9 +99,47 @@ class ArkistointiMergedSnapshotTest {
     @Test
     fun `rejects attachments of another study right without saving a snapshot`() {
         original.opintooikeus = Opintooikeus(id = 2L)
-        assertThrows<ArkistointiAsiakirjaException> {
+        val exception = assertThrows<ArkistointiAsiakirjaException> {
             snapshots.createMergedReference(ordinary, listOf(original), RecordType.LIITE, 0)
         }
+        assertThat(exception.category).isEqualTo(ArkistointiAsiakirjaErrorCategory.STORED_DOCUMENT)
+        assertThat(exception.suppressed).isEmpty()
+        verify(documents, never()).save(any<Asiakirja>())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["corrupt", "profile", "database", "stored"])
+    fun `merged snapshot failures have safe classified errors without filenames or causes`(kind: String) {
+        val secret = "private-merged-source.pdf"
+        ordinary.nimi = secret
+        original.nimi = secret
+        var target = snapshots
+        when (kind) {
+            "corrupt" -> original.asiakirjaData!!.data = secret.toByteArray()
+            "database" -> whenever(documents.findOneWithDataById(10L)).thenThrow(DataAccessResourceFailureException(secret))
+            "stored" -> whenever(documents.findOneWithDataById(10L)).thenThrow(
+                ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing()).also { it.addSuppressed(IOException(secret)) }
+            )
+            else -> {
+                val profile = mock<Resource>()
+                whenever(profile.inputStream).thenThrow(IOException(secret))
+                target = ArkistointiAsiakirjaSnapshotService(documents, PdfA2bService(profile))
+            }
+        }
+
+        val exception = assertThrows<ArkistointiAsiakirjaException> {
+            target.createMergedReference(ordinary, listOf(original), RecordType.LIITE, 0)
+        }
+
+        assertThat(exception.category).isEqualTo(when (kind) {
+            "corrupt" -> ArkistointiAsiakirjaErrorCategory.INPUT_DOCUMENT
+            "stored" -> ArkistointiAsiakirjaErrorCategory.STORED_DOCUMENT
+            else -> ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE
+        })
+        assertThat(exception.error.description).doesNotContain(secret)
+        assertThat(exception.cause).isNull()
+        assertThat(exception.suppressed).isEmpty()
+        assertThat(exception.stackTraceToString()).doesNotContain(secret)
         verify(documents, never()).save(any<Asiakirja>())
     }
 }

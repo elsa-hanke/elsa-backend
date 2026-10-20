@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.spy
@@ -34,6 +35,7 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.dao.DataAccessResourceFailureException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DelegatingDataSource
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
@@ -210,6 +212,49 @@ class ArkistointiSchedulerRecoveryIT {
         assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
         assertThat(adapter.submissions).hasSize(1)
         assertThat(adapter.submissions.single().key).isEqualTo(jobId)
+    }
+
+    @ParameterizedTest
+    @CsvSource("DOCUMENT,true", "DATABASE,true", "DOCUMENT,false", "DATABASE,false")
+    fun `document processing and database failures retry safely and respect the scheduler limit`(kind: String, recover: Boolean) {
+        val jobId = fixture()
+        val attempts = AtomicInteger()
+        val secret = "private-background-filename-and-document-contents"
+        doAnswer { invocation ->
+            val attempt = attempts.incrementAndGet()
+            if (recover && attempt > 1) invocation.callRealMethod() else {
+                if (kind == "DATABASE") throw DataAccessResourceFailureException(secret, IllegalStateException(secret))
+                throw ArkistointiAsiakirjaException(ArkistointiError.create("ARCHIVE_DOCUMENT_PROCESSING_FAILED", secret),
+                    ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE).also { it.addSuppressed(IllegalStateException(secret)) }
+            }
+        }.`when`(loader).load(any())
+        ArkistointiSafeLogCapture().use { logs ->
+            val worker = scheduler()
+            runUntil(worker) {
+                assertThat(jdbc.queryForObject("select consecutive_failures from scheduled_tasks where task_instance = ?",
+                    Int::class.javaObjectType, jobId.toString())).isEqualTo(1)
+            }
+            val waiting = jobs.findById(jobId).orElseThrow()
+            assertThat(waiting.status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
+            assertThat(waiting.lastError).doesNotContain(secret)
+            assertThat(adapter.submissions).isEmpty()
+            runUntil(worker) { assertThat(taskCount(jobId)).isZero() }
+            val result = jobs.findById(jobId).orElseThrow()
+            if (recover) {
+                assertThat(result.status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+                assertThat(result.errorCode).isNull()
+                assertThat(result.lastError).isNull()
+                assertThat(adapter.submissions.map { it.key }).containsExactly(jobId)
+                assertThat(attempts.get()).isEqualTo(2)
+            } else {
+                assertThat(result.status).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
+                assertThat(result.errorCode).isEqualTo("ARCHIVE_RETRIES_EXHAUSTED")
+                assertThat(result.lastError).doesNotContain(secret)
+                assertThat(adapter.submissions).isEmpty()
+                assertThat(attempts.get()).isEqualTo(3)
+            }
+            logs.assertDoesNotContain(secret)
+        }
     }
 
     private fun blockRemoval() = transactions.executeWithoutResult {

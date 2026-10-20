@@ -25,7 +25,7 @@ class ArkistointiAsiakirjaSnapshotService(
         jarjestysnumero: Int
     ): ArkistointiAsiakirjaReference {
         documentData(asiakirja, jarjestysnumero)
-        val stored = loadDocument(asiakirja.id, asiakirja.nimi ?: "tuntematon")
+        val stored = loadDocument(asiakirja.id)
         return prepareReference(stored, asiakirjatyyppi, jarjestysnumero)
     }
 
@@ -38,17 +38,24 @@ class ArkistointiAsiakirjaSnapshotService(
         jarjestysnumero: Int
     ): ArkistointiAsiakirjaReference {
         documentData(asiakirja, jarjestysnumero)
-        val stored = loadDocument(asiakirja.id, requireNotNull(asiakirja.nimi))
+        val stored = loadDocument(asiakirja.id)
         val normalizedData = try {
             pdfA2bService.normalizeAndMerge(sources.asSequence().map { source ->
-                val original = loadDocument(source.id, source.nimi ?: "tuntematon")
-                require(original.opintooikeus?.id == stored.opintooikeus?.id) { "Archive attachment belongs to another study right" }
+                val original = loadDocument(source.id)
+                if (original.opintooikeus?.id != stored.opintooikeus?.id) {
+                    throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid())
+                }
                 PdfA2bSource(documentData(original, jarjestysnumero), original.tyyppi)
             })
         } catch (exception: ArkistointiAsiakirjaException) {
-            throw exception
-        } catch (exception: RuntimeException) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid(requireNotNull(stored.nimi)), exception)
+            // Closing the partially assembled PDF can append library failures as suppressed exceptions.
+            throw ArkistointiAsiakirjaException(exception.error, exception.category)
+        } catch (_: IllegalArgumentException) {
+            throw inputError(ArkistointiAsiakirjaErrors.invalid())
+        } catch (_: Exception) {
+            throw ArkistointiAsiakirjaException(
+                ArkistointiAsiakirjaErrors.processingFailed(), ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE
+            )
         }
         return saveSnapshot(requireNotNull(stored.opintooikeus), stored.nimi, normalizedData, asiakirjatyyppi, jarjestysnumero)
     }
@@ -56,43 +63,42 @@ class ArkistointiAsiakirjaSnapshotService(
     /** Resolve caller-supplied references against persisted contents; a DTO or flag alone is not proof. */
     @Transactional
     fun resolveReference(reference: ArkistointiAsiakirjaReference): ArkistointiAsiakirjaReference {
-        val stored = loadDocument(reference.asiakirja.id, reference.filename)
+        val stored = loadDocument(reference.asiakirja.id)
         val data = documentData(stored, reference.jarjestysnumero)
         val checksum = ArkistointiChecksum.sha256(data)
         if (!checksum.equals(reference.sha256, ignoreCase = true)) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.checksumMismatch(reference.filename))
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.checksumMismatch())
         }
         if (reference.filename != stored.nimi || reference.contentType != stored.tyyppi) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid(reference.filename))
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid())
         }
         val proof = reference.validation as? ValidatedSnapshot
         if (proof != null) {
             val id = requireNotNull(stored.id)
             if (proof != ValidatedSnapshot(id, checksum, reference.filename, reference.contentType) ||
                 asiakirjaRepository.findArchiveSnapshotFlagById(id) != true) {
-                throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid(reference.filename))
+                throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid())
             }
             return verifiedReference(stored, reference.asiakirjatyyppi, reference.jarjestysnumero, checksum)
         }
         return prepareReference(stored, reference.asiakirjatyyppi, reference.jarjestysnumero)
     }
 
-    private fun loadDocument(id: Long?, identifier: String): Asiakirja =
+    private fun loadDocument(id: Long?): Asiakirja =
         id?.let(asiakirjaRepository::findOneWithDataById)
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
+            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
 
     private fun documentData(asiakirja: Asiakirja, jarjestysnumero: Int): ByteArray {
-        val identifier = asiakirja.nimi ?: asiakirja.id?.toString() ?: "tuntematon"
         if (jarjestysnumero < 0 || asiakirja.nimi.isNullOrBlank()) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid(identifier))
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid())
         }
         val data = asiakirja.asiakirjaData?.data
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
+            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
         if (data.isEmpty()) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.empty(identifier))
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.empty())
         }
         if (asiakirja.id == null) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing(identifier))
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
         }
         return data
     }
@@ -103,7 +109,6 @@ class ArkistointiAsiakirjaSnapshotService(
         jarjestysnumero: Int
     ): ArkistointiAsiakirjaReference {
         val data = documentData(asiakirja, jarjestysnumero)
-        val identifier = requireNotNull(asiakirja.nimi)
         // Ordinary merged documents need not be PDF/A. Normalize only their archival copy.
         if (asiakirjaRepository.findArchiveSnapshotFlagById(requireNotNull(asiakirja.id)) != true) {
             return createSnapshot(
@@ -113,7 +118,7 @@ class ArkistointiAsiakirjaSnapshotService(
         }
 
         if (asiakirja.tyyppi != MediaType.APPLICATION_PDF_VALUE || !pdfA2bService.isPdfA2b(data)) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.notPdfA2b(identifier))
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.notPdfA2b())
         }
 
         return verifiedReference(asiakirja, asiakirjatyyppi, jarjestysnumero, ArkistointiChecksum.sha256(data))
@@ -128,22 +133,18 @@ class ArkistointiAsiakirjaSnapshotService(
         asiakirjatyyppi: RecordType,
         jarjestysnumero: Int
     ): ArkistointiAsiakirjaReference {
-        val identifier = filename ?: asiakirjatyyppi.name
         if (jarjestysnumero < 0) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid(identifier))
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid())
         }
+        if (data == null) throw inputError(ArkistointiAsiakirjaErrors.missing())
+        if (data.isEmpty()) throw inputError(ArkistointiAsiakirjaErrors.empty())
         val normalizedData = try {
             pdfA2bService.normalize(data, contentType)
-        } catch (exception: RuntimeException) {
+        } catch (_: IllegalArgumentException) {
+            throw inputError(ArkistointiAsiakirjaErrors.invalid())
+        } catch (_: Exception) {
             throw ArkistointiAsiakirjaException(
-                if (data == null) {
-                    ArkistointiAsiakirjaErrors.missing(identifier)
-                } else if (data.isEmpty()) {
-                    ArkistointiAsiakirjaErrors.empty(identifier)
-                } else {
-                    ArkistointiAsiakirjaErrors.invalid(identifier)
-                },
-                exception
+                ArkistointiAsiakirjaErrors.processingFailed(), ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE
             )
         }
         return saveSnapshot(opintooikeus, filename, normalizedData, asiakirjatyyppi, jarjestysnumero)
@@ -198,7 +199,7 @@ class ArkistointiAsiakirjaSnapshotService(
     ): ArkistointiAsiakirjaReference {
         val erikoistuvaLaakari = opintooikeus.erikoistuvaLaakari
             ?: throw ArkistointiAsiakirjaException(
-                ArkistointiAsiakirjaErrors.missing(RecordType.LAILLISTAMISTODISTUS.name)
+                ArkistointiAsiakirjaErrors.missing()
             )
         return createSnapshot(
             opintooikeus = opintooikeus,
@@ -209,6 +210,9 @@ class ArkistointiAsiakirjaSnapshotService(
             jarjestysnumero = jarjestysnumero
         )
     }
+
+    private fun inputError(error: ArkistointiError) =
+        ArkistointiAsiakirjaException(error, ArkistointiAsiakirjaErrorCategory.INPUT_DOCUMENT)
 
     private fun pdfFilename(filename: String?, asiakirjatyyppi: RecordType): String {
         val basename = filename?.substringBeforeLast('.', filename)?.takeIf { it.isNotBlank() }

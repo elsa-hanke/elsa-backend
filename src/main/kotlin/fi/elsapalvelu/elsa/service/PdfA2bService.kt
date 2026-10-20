@@ -39,18 +39,23 @@ class PdfA2bService(
 ) {
 
     fun createDocument(output: OutputStream): PdfADocument =
-        colorProfile.inputStream.use { profile ->
-            PdfADocument(
-                PdfWriter(output),
-                PdfAConformanceLevel.PDF_A_2B,
-                PdfOutputIntent(
-                    "Custom",
-                    "",
-                    "https://www.color.org",
-                    "sRGB IEC61966-2.1",
-                    profile
+        try {
+            colorProfile.inputStream.use { profile ->
+                PdfADocument(
+                    PdfWriter(output),
+                    PdfAConformanceLevel.PDF_A_2B,
+                    PdfOutputIntent(
+                        "Custom",
+                        "",
+                        "https://www.color.org",
+                        "sRGB IEC61966-2.1",
+                        profile
+                    )
                 )
-            )
+            }
+        } catch (_: Exception) {
+            // A missing/broken server-side color profile is not a rejected user document.
+            throw PdfA2bInfrastructureException()
         }
 
     fun isPdfA2b(data: ByteArray?): Boolean {
@@ -123,9 +128,13 @@ class PdfA2bService(
         }
         return try {
             copyPdfToPdfA(prepared).also { check(isPdfA2b(it)) }
+        } catch (exception: PdfA2bInfrastructureException) {
+            throw exception
         } catch (_: Exception) {
             try {
                 rasterizePdfToPdfA(prepared, budget).also { check(isPdfA2b(it)) }
+            } catch (exception: PdfA2bInfrastructureException) {
+                throw exception
             } catch (exception: Exception) {
                 throw IllegalArgumentException("Arkistoitavaa PDF-tiedostoa ei voida kasitella", exception)
             }
@@ -235,6 +244,9 @@ class PdfA2bService(
         const val MAX_PAGE_SIZE = 14_400F
     }
 }
+
+/** Safe marker for server configuration failures; do not retain resource paths or library causes. */
+class PdfA2bInfrastructureException : RuntimeException("PDF-A infrastructure unavailable", null)
 
 /** Check existing streams and fonts too; iText's stamping defaults assume a conforming source. */
 private class StrictPdfA2Checker : PdfA2Checker(PdfAConformanceLevel.PDF_A_2B) {

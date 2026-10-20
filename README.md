@@ -103,6 +103,21 @@ Tavallinen PDF-yhdistäminen ei käytä tätä kuvien normalisointia tai sen raj
 Pakollisen laillistamistodistuksen puuttuminen tai virheellinen sisältö estää
 snapshotin luonnin hallitulla virheellä; puutteellista aineistoa ei hyväksytä.
 
+`ArkistointiAsiakirjaException.category` erottaa hylätyn lähdeaineiston
+(`INPUT_DOCUMENT`), tallennetun aineiston eheysvirheen (`STORED_DOCUMENT`) ja
+odottamattoman käsittelyvirheen (`PROCESSING_FAILURE`). Hyväksynnän HTTP-rajapinta
+palauttaa ensimmäisestä luokasta 400 ja kahdesta muusta 500. ProblemDetail-vastaus
+sisältää vakaan `ARCHIVE_DOCUMENT_*`-arvon kentässä `errorKey`, kentän
+`message: error.<errorKey>` sekä `params: valmistumispyynto`. Vastaus ei sisällä
+tiedostonimeä, dokumentin sisältöä tai alkuperäistä virhekuvausta.
+Dokumenttivirheestä lokitetaan vain koodi ja tarvittaessa luokka, ei poikkeusta.
+Virhe peruuttaa hyväksymistransaktion; osittaisia snapshoteja tai jonorivejä ei jää.
+Frontendin käännökset ja virheen näyttäminen toteutetaan erillisessä tehtävässä.
+Dokumenttivirheen viesti ja kuvaus eivät sisällä tiedostonimeä tai sisältöä,
+eikä poikkeus säilytä kirjaston alkuperäistä cause-ketjua. Esimerkiksi palvelimen
+ICC-profiilin puuttuminen on käsittelyvirhe, ei virheellinen käyttäjän tiedosto.
+Tietokantapoikkeuksia ei muuteta lähdeaineiston virheiksi.
+
 Normalisointi validoi lopulliset PDF/A-tavut. Snapshot-palvelu liittää viitteeseen
 sisäisen todisteen, joka sitoo tarkistuksen dokumentin ID:hen, metatietoihin ja
 SHA-256-tiivisteeseen. Creator tarkistaa tallennetun sisällön ja tiivisteen,
@@ -183,6 +198,14 @@ käyttöön production-datan kopiolla: jo jonossa olevat jobit voivat edetä, va
 uusien jobien luonti on estetty `async-enabled`- tai `kaytossa`-asetuksilla.
 
 Taustakäsittelijä lataa tallennetun payloadin ja tarkistussummalla varmistetut asiakirjakopiot. Job siirtyy tilaan `KASITTELYSSA` lyhyessä transaktiossa; adapterin verkkokutsu suoritetaan transaktion ulkopuolella. Onnistuminen tallentaa tilan `LAHETETTY`, ulkoisen tunnisteen ja valmistumisajan ennen db-scheduler-suorituksen poistamista. Pysyvä virhe, puuttuva adapteri tai virheellinen aineisto johtaa tilaan `VAATII_TOIMENPITEITA` ilman automaattista uusintaa.
+
+Tausta-ajossa dokumentin `INPUT_DOCUMENT`- ja `STORED_DOCUMENT`-virheet ovat
+pysyviä: tallennettua aineistoa ei generoida tai korjata uusintayrityksellä.
+`PROCESSING_FAILURE` sekä tietokantayhteyden häiriöt käyttävät db-schedulerin
+rajattuja uusintayrityksiä. Processor säilyttää vain virhekoodin ja kiinteän
+turvallisen kuvauksen; alkuperäistä kuvausta, tiedostonimeä tai cause-ketjua
+ei välitetä schedulerin lokiin tai jobin virhetietoihin. Sama luokittelu koskee
+myös alkuperäisistä liitteistä yhdistetyn snapshotin luontivirheitä.
 
 Käsittelijä lukee asiakirjan tavut suoraan tietokannasta ja siirtää adapterille vain tallennetut metatiedot sekä tarkistetun tavutaulukon. Adapterin tulee käsitellä tavutaulukkoa vain luettavana; uusintayritys lukee alkuperäiset tavut uudelleen tietokannasta.
 
