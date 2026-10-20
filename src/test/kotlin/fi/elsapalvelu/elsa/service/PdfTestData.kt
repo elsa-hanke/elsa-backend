@@ -34,6 +34,28 @@ object PdfTestData {
         return output.toByteArray()
     }
 
+    /** A PDF/A-copyable attachment: every page uses an embedded TrueType font and carries "$label N" as text. */
+    fun embeddedFontPdf(pageCount: Int, label: String = "Embedded page"): ByteArray =
+        ByteArrayOutputStream().use { output ->
+            PDDocument().use { document ->
+                val font = requireNotNull(javaClass.getResourceAsStream("/fonts/LiberationSerif-Regular.ttf"))
+                    .use { PDType0Font.load(document, it) }
+                repeat(pageCount) { index ->
+                    val page = PDPage(org.apache.pdfbox.pdmodel.common.PDRectangle.A4)
+                    document.addPage(page)
+                    PDPageContentStream(document, page).use { content ->
+                        content.beginText()
+                        content.setFont(font, 12f)
+                        content.newLineAtOffset(50f, 700f)
+                        content.showText("$label ${index + 1}")
+                        content.endText()
+                    }
+                }
+                document.save(output)
+            }
+            output.toByteArray()
+        }
+
     /** Four unprofiled components reproduce a DeviceCMYK JPEG from an uploaded attachment. */
     fun cmykJpeg(): ByteArray {
         val raster = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, 8, 8, 4, null)
