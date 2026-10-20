@@ -101,20 +101,32 @@ class ArkistointiJobCreatorIT {
             source.nimi!!, source.tyyppi!!, ArkistointiChecksum.sha256(source.asiakirjaData!!.data!!))
         val exception = assertThrows<ArkistointiAsiakirjaException> { creator.create(request(reference)) }
         assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_NOT_PDFA_2B")
+        assertThat(exception.category).isEqualTo(ArkistointiAsiakirjaErrorCategory.STORED_DOCUMENT)
     }
 
-    @Test
-    fun `validation failure rolls back new snapshots job and schedule`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["input", "checksum"])
+    fun `validation failure rolls back new snapshots job and schedule`(kind: String) {
         val documentsBefore = asiakirjaRepository.count()
         val jobsBefore = jobRepository.count()
         val tasksBefore = jdbcTemplate.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)
-        assertThrows<ArkistointiAsiakirjaException> {
+        val exception = assertThrows<ArkistointiAsiakirjaException> {
             transactions.executeWithoutResult {
                 val first = storedSnapshot()
-                val second = storedSnapshot().copy(jarjestysnumero = 1, sha256 = "a".repeat(64))
-                creator.create(request(first).copy(asiakirjat = listOf(first, second)))
+                if (kind == "input") {
+                    creator.create(request(first))
+                    snapshotService.createSnapshot(requireNotNull(first.asiakirja.opintooikeus),
+                        "private-patient.pdf", "application/pdf", null, RecordType.LIITE, 1)
+                } else {
+                    val second = storedSnapshot().copy(jarjestysnumero = 1, sha256 = "a".repeat(64))
+                    creator.create(request(first).copy(asiakirjat = listOf(first, second)))
+                }
             }
         }
+        assertThat(exception.category).isEqualTo(if (kind == "input")
+            ArkistointiAsiakirjaErrorCategory.INPUT_DOCUMENT else ArkistointiAsiakirjaErrorCategory.STORED_DOCUMENT)
+        assertThat(exception.cause).isNull()
+        assertThat(exception.stackTraceToString()).doesNotContain("private-patient.pdf")
         assertThat(asiakirjaRepository.count()).isEqualTo(documentsBefore)
         assertThat(jobRepository.count()).isEqualTo(jobsBefore)
         assertThat(jdbcTemplate.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)).isEqualTo(tasksBefore)

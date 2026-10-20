@@ -72,7 +72,7 @@ class ArkistointiJobCreatorImplTest {
             asiakirjat = listOf(request().asiakirjat.single().copy(sha256 = "a".repeat(64)))
         )
         whenever(snapshotService.resolveReference(any())).thenThrow(
-            ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.checksumMismatch("archive.pdf"))
+            ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.checksumMismatch())
         )
 
         val exception = assertThrows<ArkistointiAsiakirjaException> {
@@ -88,7 +88,7 @@ class ArkistointiJobCreatorImplTest {
     fun `non PDF-A document prevents job creation`() {
         val request = request()
         whenever(snapshotService.resolveReference(any())).thenThrow(
-            ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.notPdfA2b("archive.pdf"))
+            ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.notPdfA2b())
         )
 
         val exception = assertThrows<ArkistointiAsiakirjaException> {

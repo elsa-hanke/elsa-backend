@@ -101,6 +101,16 @@ Tavallinen PDF-yhdistäminen ei käytä tätä kuvien normalisointia tai sen raj
 Pakollisen laillistamistodistuksen puuttuminen tai virheellinen sisältö estää
 snapshotin luonnin hallitulla virheellä; puutteellista aineistoa ei hyväksytä.
 
+`ArkistointiAsiakirjaException.category` erottaa hylätyn lähdeaineiston
+(`INPUT_DOCUMENT`), tallennetun aineiston eheysvirheen (`STORED_DOCUMENT`) ja
+odottamattoman käsittelyvirheen (`PROCESSING_FAILURE`). Vain ensimmäinen luokka
+soveltuu käyttäjän korjattavaksi 4xx-virheeksi; HTTP-muunnos toteutetaan hyväksynnän
+rajapinnassa erikseen. `errorKey` on vakaa `ARCHIVE_DOCUMENT_*`-koodi.
+Dokumenttivirheen viesti ja kuvaus eivät sisällä tiedostonimeä tai sisältöä,
+eikä poikkeus säilytä kirjaston alkuperäistä cause-ketjua. Esimerkiksi palvelimen
+ICC-profiilin puuttuminen on käsittelyvirhe, ei virheellinen käyttäjän tiedosto.
+Tietokantapoikkeuksia ei muuteta lähdeaineiston virheiksi.
+
 Normalisointi validoi lopulliset PDF/A-tavut. Snapshot-palvelu liittää viitteeseen
 sisäisen todisteen, joka sitoo tarkistuksen dokumentin ID:hen, metatietoihin ja
 SHA-256-tiivisteeseen. Creator tarkistaa tallennetun sisällön ja tiivisteen,
