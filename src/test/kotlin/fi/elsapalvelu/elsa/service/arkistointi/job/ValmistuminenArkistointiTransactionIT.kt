@@ -5,7 +5,6 @@ import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfName
 import com.itextpdf.kernel.pdf.PdfReader
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor
-import com.itextpdf.kernel.pdf.xobject.PdfImageXObject
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -22,7 +21,6 @@ import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
-import fi.elsapalvelu.elsa.service.PdfA2bService
 import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
@@ -45,7 +43,6 @@ import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -74,14 +71,12 @@ import org.ehcache.core.config.DefaultConfiguration
 import org.ehcache.jsr107.EhcacheCachingProvider
 import java.io.ByteArrayInputStream
 import java.net.URI
-import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 import java.util.zip.ZipFile
-import java.util.zip.CRC32
 import javax.cache.Caching
 
 /** Real PDFs, SAHKE packages, approval and queue persistence; only email and remote SFTP are mocked. */
@@ -108,7 +103,6 @@ class ValmistuminenArkistointiTransactionIT {
     @Autowired private lateinit var service: ValmistumispyyntoService
     @Autowired private lateinit var jobs: ArkistointiJobRepository
     @Autowired private lateinit var loader: ArkistointiAsiakirjaLoader
-    @MockitoSpyBean private lateinit var pdfA: PdfA2bService
     @MockitoSpyBean private lateinit var snapshots: ArkistointiAsiakirjaSnapshotService
     @Autowired private lateinit var mapper: ObjectMapper
     @Autowired private lateinit var properties: ApplicationProperties
@@ -144,7 +138,7 @@ class ValmistuminenArkistointiTransactionIT {
             assertThat(taskCount(job.id!!)).isEqualTo(1)
             val stored = job.payload!!
             val request = em.find(Valmistumispyynto::class.java, fixture.id)
-            assertThat(pdfA.isPdfA2b(request.liitteetAsiakirja!!.asiakirjaData!!.data)).isFalse
+            assertQueuedDocumentsMatchSources(job, request)
             assertThat(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }.asiakirja!!.id)
                 .isNotEqualTo(request.liitteetAsiakirja!!.id)
             assertGeneratedSummary(request)
@@ -230,7 +224,7 @@ class ValmistuminenArkistointiTransactionIT {
 
     @ParameterizedTest
     @ValueSource(strings = ["JPG_ALIAS", "LARGE_JPEG", "LARGE_PNG", "CMYK_JPEG", "SIXTEEN_BIT_PNG", "ORIENTED_JPEG"])
-    fun `approval archives the stored image certificate as an immutable PDF-A copy`(imageType: String) {
+    fun `approval archives the image certificate without changing bytes format or metadata`(imageType: String) {
         val (contentType, original) = certificateImage(imageType)
         val fixture = fixture("EL", certificate = original, certificateContentType = contentType)
         val sourceId = transactions.execute {
@@ -254,11 +248,11 @@ class ValmistuminenArkistointiTransactionIT {
             assertSnapshots(job)
             assertThat(taskCount(job.id!!)).isEqualTo(1)
             val certificate = job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LAILLISTAMISTODISTUS }
-            assertThat(certificate.filename).isEqualTo("laillistamistodistus.pdf")
-            assertThat(certificate.contentType).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+            assertThat(certificate.filename).isEqualTo(student.laillistamispaivanLiitetiedostonNimi)
+            assertThat(certificate.contentType).isEqualTo(contentType)
             assertThat(certificate.asiakirja!!.asiakirjaData!!.id).isNotEqualTo(sourceId)
             val bytes = loader.load(certificate).sisalto
-            assertCertificateRaster(bytes, imageType)
+            assertThat(bytes).containsExactly(*original)
             certificate.id!! to bytes
         }
         // A later upload must not replace the certificate already approved and queued.
@@ -271,35 +265,27 @@ class ValmistuminenArkistointiTransactionIT {
         transactions.executeWithoutResult {
             val stored = jobs.findByKey(key(fixture))!!.asiakirjat.single { document -> document.id == archived.first }
             assertThat(loader.load(stored).sisalto).containsExactly(*archived.second)
-            assertThat(stored.filename).isEqualTo("laillistamistodistus.pdf")
+            assertThat(stored.filename).isEqualTo("laillistamistodistus.${contentType.substringAfter('/')}")
+            assertThat(stored.contentType).isEqualTo(contentType)
             assertThat(stored.sha256).isEqualTo(ArkistointiChecksum.sha256(archived.second))
         }
         verify(transport, never()).laheta(any(), any())
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["TRUNCATED", "TYPE_MISMATCH", "OVERSIZED"])
-    fun `invalid certificate image rolls back approval documents and queue`(imageType: String) {
+    @ValueSource(strings = ["EMPTY", "MISSING_FILENAME", "MISSING_CONTENT_TYPE"])
+    fun `incomplete certificate rolls back approval documents and queue with a safe HTTP error`(kind: String) {
         val original = ArchiveImageTestData.image("png")
-        val contentType = if (imageType == "TYPE_MISMATCH") "image/jpeg" else "image/png"
-        val invalid = when (imageType) {
-            "TRUNCATED" -> original.copyOf(original.size / 2)
-            "OVERSIZED" -> original.copyOf().apply {
-                // A valid IHDR CRC with dimensions exceeding the admission limit; no huge test raster.
-                ByteBuffer.wrap(this).putInt(16, 30_000).putInt(20, 30_000)
-                val crc = CRC32().also { it.update(this, 12, 17) }
-                ByteBuffer.wrap(this).putInt(29, crc.value.toInt())
-            }
-            else -> original
-        }
+        val contentType = if (kind == "MISSING_CONTENT_TYPE") "" else "image/png"
+        val invalid = if (kind == "EMPTY") byteArrayOf() else original
         val fixture = fixture("EL", certificate = invalid, certificateContentType = contentType,
-            certificateFilename = "$PRIVATE_CERTIFICATE_NAME.png")
+            certificateFilename = if (kind == "MISSING_FILENAME") "" else "$PRIVATE_CERTIFICATE_NAME.png")
         val tasksBefore = jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)
 
-        val exception = assertArchiveDocumentHttpFailure(mvc, fixture.id, fixture.approverUserId,
-            400, "ARCHIVE_DOCUMENT_INVALID")
+        val code = if (kind == "EMPTY") "ARCHIVE_DOCUMENT_EMPTY" else "ARCHIVE_DOCUMENT_INVALID"
+        val exception = assertArchiveDocumentHttpFailure(mvc, fixture.id, fixture.approverUserId, 400, code)
 
-        assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_INVALID")
+        assertThat(exception.error.code).isEqualTo(code)
         assertRolledBack(fixture)
         assertThat(jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)).isEqualTo(tasksBefore)
         transactions.executeWithoutResult {
@@ -334,8 +320,11 @@ class ValmistuminenArkistointiTransactionIT {
                 (invocation.callRealMethod() as ArkistointiAsiakirjaReference).copy(sha256 = "0".repeat(64))
             }.`when`(snapshots).createLaillistamistodistusReference(any(), any())
         } else {
-            doThrow(IllegalStateException(PRIVATE_CERTIFICATE_NAME, IllegalArgumentException(PRIVATE_CERTIFICATE_NAME)))
-                .`when`(pdfA).normalize(anyOrNull(), anyOrNull())
+            doThrow(ArkistointiAsiakirjaException(
+                ArkistointiError.create("ARCHIVE_DOCUMENT_PROCESSING_FAILED", PRIVATE_CERTIFICATE_NAME),
+                ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE
+            ).apply { addSuppressed(IllegalStateException(PRIVATE_CERTIFICATE_NAME)) })
+                .`when`(snapshots).createLaillistamistodistusReference(any(), any())
         }
         val code = if (category == "STORED_DOCUMENT") "ARCHIVE_DOCUMENT_CHECKSUM_MISMATCH" else "ARCHIVE_DOCUMENT_PROCESSING_FAILED"
 
@@ -357,24 +346,6 @@ class ValmistuminenArkistointiTransactionIT {
         else -> error("Unknown test certificate type")
     }
 
-    private fun assertCertificateRaster(bytes: ByteArray, imageType: String) {
-        PdfDocument(PdfReader(ByteArrayInputStream(bytes))).use { pdf ->
-            assertThat(pdf.numberOfPages).isEqualTo(1)
-            val images = pdf.firstPage.resources.getResource(PdfName.XObject)
-            val image = PdfImageXObject(images.getAsStream(images.keySet().single()))
-            when (imageType) {
-                "LARGE_JPEG", "LARGE_PNG" -> {
-                    assertThat(image.width).isEqualTo(2000F)
-                    assertThat(image.height).isEqualTo(1500F)
-                }
-                "ORIENTED_JPEG" -> {
-                    assertThat(image.width).isEqualTo(40F)
-                    assertThat(image.height).isEqualTo(80F)
-                }
-            }
-        }
-    }
-
     @Test
     fun `disabled integration approves without job or snapshots`() {
         val fixture = fixture("EL", certificate = null)
@@ -389,10 +360,11 @@ class ValmistuminenArkistointiTransactionIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["LONG_PDF", "CMYK_JPEG"])
+    @ValueSource(strings = ["PDF_30", "PDF_100", "PDF_201", "CMYK_JPEG"])
     fun `async disabled approves real PDFs and synchronously delivers the actual package`(attachmentType: String) {
         val jpeg = attachmentType == "CMYK_JPEG"
-        val original = if (jpeg) PdfTestData.cmykJpeg() else PdfTestData.unembeddedFontPdf(30)
+        val pages = if (jpeg) 1 else attachmentType.substringAfter('_').toInt()
+        val original = if (jpeg) PdfTestData.cmykJpeg() else PdfTestData.unembeddedFontPdf(pages)
         val fixture = fixture(
             "EL", certificate = null, attachment = original,
             contentType = if (jpeg) MediaType.IMAGE_JPEG_VALUE else MediaType.APPLICATION_PDF_VALUE
@@ -427,8 +399,8 @@ class ValmistuminenArkistointiTransactionIT {
                 val attachments = request.liitteetAsiakirja!!
                 val bytes = attachments.asiakirjaData!!.data!!
                 PdfDocument(PdfReader(ByteArrayInputStream(bytes))).use { pdf ->
-                    assertThat(pdf.numberOfPages).isEqualTo(if (jpeg) 1 else 30)
-                    if (!jpeg) repeat(30) { index ->
+                    assertThat(pdf.numberOfPages).isEqualTo(pages)
+                    if (!jpeg) repeat(pages) { index ->
                         assertThat(PdfTextExtractor.getTextFromPage(pdf.getPage(index + 1)))
                             .isEqualTo("Attachment page ${index + 1}")
                     }
@@ -449,103 +421,87 @@ class ValmistuminenArkistointiTransactionIT {
         verify(transport).laheta(any(), eq(false))
     }
 
-    /*
-     * Async archive normalisation of the merged attachments ("liitteet") document.
-     *
-     * Issue: PdfA2bService.normalizePdf decides PDF/A copy vs. raster for the WHOLE merged document. One non-conforming
-     * attachment (unembedded standard font, DeviceCMYK JPEG, ...) forces every page to be rasterised at 150 DPI, so
-     *  - the text layer of perfectly valid attachments is lost, and
-     *  - more than ~22 A4 pages exceed MAX_TOTAL_PIXELS (50 MP) and the whole approval rolls back.
-     * Expected after the fix: each source attachment is normalised separately (copy, raster only on failure) and the
-     * PDF/A parts are merged, so only the bad attachment loses its text layer.
-     */
-
-    /** Control (passes today): a long, fully conforming attachment set is copied, not rasterised. */
-    @Test
-    fun `async approval copies a long PDF-A compatible attachment with its text layer`() {
-        val good = 30
-        val fixture = fixture("EL", attachment = PdfTestData.embeddedFontPdf(good), contentType = MediaType.APPLICATION_PDF_VALUE)
+    @ParameterizedTest
+    @ValueSource(ints = [30, 100, 201])
+    fun `async approval freezes long PDF attachments without losing pages or text`(pages: Int) {
+        val original = PdfTestData.unembeddedFontPdf(pages)
+        val fixture = fixture("EL", attachment = original)
 
         approve(fixture)
 
-        val texts = archivedAttachmentPageTexts(fixture)
-        assertThat(texts).hasSize(good)
-        assertThat(texts.joinToString("\n")).contains((1..good).map { "Embedded page $it" })
+        transactions.executeWithoutResult {
+            val request = em.find(Valmistumispyynto::class.java, fixture.id)
+            val job = jobs.findByKey(key(fixture))!!
+            assertThat(request.vastuuhenkiloHyvaksyjaKuittausaika).isEqualTo(LocalDate.now())
+            assertQueuedDocumentsMatchSources(job, request)
+            assertSnapshots(job)
+            assertThat(taskCount(job.id!!)).isEqualTo(1)
+            val archived = loader.load(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }).sisalto
+            assertAttachmentPdf(archived, pages)
+            assertThat(em.find(Asiakirja::class.java, fixture.attachmentId).asiakirjaData!!.data).containsExactly(*original)
+        }
+        verify(transport, never()).laheta(any(), any())
+        verify(legacyArchive, never()).muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
     }
 
-    /** Fails before the fix: one 1-page unembedded-font PDF pushes 30 valid pages into a 31-page raster (> 50 MP). */
-    @Test
-    fun `async approval accepts a long valid attachment mixed with a short unembedded-font PDF`() {
-        val good = 30
-        val fixture = fixture(
-            "EL", attachment = PdfTestData.embeddedFontPdf(good), contentType = MediaType.APPLICATION_PDF_VALUE,
-            extraAttachments = listOf(MediaType.APPLICATION_PDF_VALUE to PdfTestData.unembeddedFontPdf(1))
-        )
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `async approval freezes the ordinary merge of a long PDF and CMYK image`(embeddedFont: Boolean) {
+        val pages = 100
+        val original = if (embeddedFont) PdfTestData.embeddedFontPdf(pages) else PdfTestData.unembeddedFontPdf(pages)
+        val jpeg = PdfTestData.cmykJpeg()
+        val fixture = fixture("EL", attachment = original,
+            extraAttachments = listOf(MediaType.IMAGE_JPEG_VALUE to jpeg))
 
         approve(fixture)
 
-        val texts = archivedAttachmentPageTexts(fixture)
-        assertThat(texts).hasSize(good + 1)
-        assertThat(texts.joinToString("\n")).contains((1..good).map { "Embedded page $it" })
+        transactions.executeWithoutResult {
+            val request = em.find(Valmistumispyynto::class.java, fixture.id)
+            val job = jobs.findByKey(key(fixture))!!
+            assertQueuedDocumentsMatchSources(job, request)
+            assertThat(taskCount(job.id!!)).isEqualTo(1)
+            val archived = loader.load(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }).sisalto
+            assertAttachmentPdf(archived, pages, totalPages = pages + 1,
+                prefix = if (embeddedFont) "Embedded page" else "Attachment page")
+            PdfDocument(PdfReader(ByteArrayInputStream(archived))).use { pdf ->
+                val images = pdf.getPage(pages + 1).resources.getResource(PdfName.XObject)
+                val image = images.getAsStream(images.keySet().single())
+                assertThat(image.getAsName(PdfName.ColorSpace)).isEqualTo(PdfName.DeviceCMYK)
+            }
+        }
+        verify(transport, never()).laheta(any(), any())
     }
 
-    /** Fails before the fix: a DeviceCMYK JPEG upload makes the merged document non-PDF/A and forces a 31-page raster. */
-    @Test
-    fun `async approval accepts a long valid attachment mixed with a CMYK JPEG`() {
-        val good = 30
-        val fixture = fixture(
-            "EL", attachment = PdfTestData.embeddedFontPdf(good), contentType = MediaType.APPLICATION_PDF_VALUE,
-            extraAttachments = listOf(MediaType.IMAGE_JPEG_VALUE to PdfTestData.cmykJpeg())
-        )
-
-        approve(fixture)
-
-        val texts = archivedAttachmentPageTexts(fixture)
-        assertThat(texts).hasSize(good + 1)
-        assertThat(texts.joinToString("\n")).contains((1..good).map { "Embedded page $it" })
-    }
-
-    /** Fails before the fix: approval succeeds, but the valid attachment's text is rasterised away by its bad neighbour. */
-    @Test
-    fun `async approval keeps the text layer of valid attachments next to a non-PDF-A attachment`() {
-        val good = 3
-        val fixture = fixture(
-            "EL", attachment = PdfTestData.embeddedFontPdf(good), contentType = MediaType.APPLICATION_PDF_VALUE,
-            extraAttachments = listOf(MediaType.APPLICATION_PDF_VALUE to PdfTestData.unembeddedFontPdf(1))
-        )
-
-        approve(fixture)
-
-        val texts = archivedAttachmentPageTexts(fixture)
-        assertThat(texts).hasSize(good + 1)
-        assertThat(texts.joinToString("\n")).contains((1..good).map { "Embedded page $it" })
-    }
-
-    /**
-     * Known limit, NOT addressed by per-attachment normalisation: a single long attachment that cannot be copied to
-     * PDF/A is still rasterised as a whole and exceeds MAX_TOTAL_PIXELS. Expected behaviour (lower DPI, page-wise
-     * limit, manual handling, or a controlled user-facing error instead of HTTP 500) is a separate product decision.
-     */
-    @Disabled("Separate decision: limit for a single long non-PDF/A attachment")
-    @Test
-    fun `async approval of a single long unembedded-font attachment`() {
-        val fixture = fixture("EL", attachment = PdfTestData.unembeddedFontPdf(30), contentType = MediaType.APPLICATION_PDF_VALUE)
-        approve(fixture)
-        assertThat(archivedAttachmentPageTexts(fixture)).hasSize(30)
-    }
-
-    /** Approval must have committed a PDF/A-2b LIITE snapshot; returns the extracted text of each archived page. */
-    private fun archivedAttachmentPageTexts(fixture: ApprovalFixture): List<String> = transactions.execute {
-        val job = jobs.findByKey(key(fixture))!!
-        assertThat(taskCount(job.id!!)).isEqualTo(1)
-        val snapshot = job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }
-        val bytes = loader.load(snapshot).sisalto
-        assertThat(pdfA.isPdfA2b(bytes)).isTrue
-        PdfDocument(PdfReader(ByteArrayInputStream(bytes))).use { pdf ->
-            (1..pdf.numberOfPages).map { page -> PdfTextExtractor.getTextFromPage(pdf.getPage(page)) }
+    /** The async path freezes the very same generated output that the sync path packages. */
+    private fun assertQueuedDocumentsMatchSources(job: ArkistointiJob, request: Valmistumispyynto) {
+        job.asiakirjat.forEach { document ->
+            val student = request.opintooikeus!!.erikoistuvaLaakari!!
+            val source = when (document.asiakirjatyyppi) {
+                RecordType.YHTEENVETO -> request.yhteenvetoAsiakirja
+                RecordType.LIITE -> request.liitteetAsiakirja
+                RecordType.LAILLISTAMISTODISTUS -> null
+                else -> error("Unexpected archive document type")
+            }
+            if (document.asiakirjatyyppi != RecordType.LAILLISTAMISTODISTUS) assertThat(source).isNotNull
+            val bytes = if (source == null) student.laillistamistodistus!!.data!! else source.asiakirjaData!!.data!!
+            val filename = source?.nimi ?: student.laillistamispaivanLiitetiedostonNimi
+            val contentType = source?.tyyppi ?: student.laillistamispaivanLiitetiedostonTyyppi
+            assertThat(loader.load(document).sisalto).containsExactly(*bytes)
+            assertThat(document.filename).isEqualTo(filename)
+            assertThat(document.contentType).isEqualTo(contentType)
+            assertThat(document.sha256).isEqualTo(ArkistointiChecksum.sha256(bytes))
+            if (source != null) assertThat(document.asiakirja!!.id).isNotEqualTo(source.id)
         }
     }
 
+    private fun assertAttachmentPdf(bytes: ByteArray, textPages: Int, totalPages: Int = textPages, prefix: String = "Attachment page") {
+        PdfDocument(PdfReader(ByteArrayInputStream(bytes))).use { pdf ->
+            assertThat(pdf.numberOfPages).isEqualTo(totalPages)
+            repeat(textPages) { index ->
+                assertThat(PdfTextExtractor.getTextFromPage(pdf.getPage(index + 1))).isEqualTo("$prefix ${index + 1}")
+            }
+        }
+    }
 
     private fun assertGeneratedSummary(request: Valmistumispyynto) {
         PdfDocument(PdfReader(ByteArrayInputStream(request.yhteenvetoAsiakirja!!.asiakirjaData!!.data!!))).use { pdf ->
@@ -556,7 +512,9 @@ class ValmistuminenArkistointiTransactionIT {
     private fun assertSnapshots(job: ArkistointiJob): Map<Long, ByteArray> = job.asiakirjat.associate { document ->
         assertThat(document.asiakirja!!.archiveSnapshot).isTrue
         val bytes = loader.load(document).sisalto
-        assertThat(pdfA.isPdfA2b(bytes)).isTrue
+        assertThat(bytes).isNotEmpty
+        assertThat(document.filename).isEqualTo(document.asiakirja!!.nimi)
+        assertThat(document.contentType).isEqualTo(document.asiakirja!!.tyyppi)
         assertThat(document.sha256).isEqualTo(ArkistointiChecksum.sha256(bytes))
         document.id!! to bytes
     }
@@ -638,11 +596,11 @@ class ValmistuminenArkistointiTransactionIT {
         )
         em.persist(uploaded)
         period.asiakirjat.add(uploaded)
-        extraAttachments.forEachIndexed { index, (extraType, extraData) ->
+        extraAttachments.forEachIndexed { index, (type, bytes) ->
             val extra = Asiakirja(
-                nimi = "approval-attachment-${index + 2}", tyyppi = extraType, lisattypvm = LocalDateTime.now(),
+                nimi = "approval-extra-$index", tyyppi = type, lisattypvm = LocalDateTime.now(),
                 opintooikeus = period.opintooikeus, tyoskentelyjakso = period,
-                asiakirjaData = AsiakirjaData(data = extraData)
+                asiakirjaData = AsiakirjaData(data = bytes)
             )
             em.persist(extra)
             period.asiakirjat.add(extra)

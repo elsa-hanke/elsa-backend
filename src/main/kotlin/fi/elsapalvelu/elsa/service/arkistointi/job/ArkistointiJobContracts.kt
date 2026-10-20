@@ -16,12 +16,7 @@ data class ArkistointiAsiakirjaReference(
     val filename: String,
     val contentType: String,
     val sha256: String
-) {
-    // Deliberately excluded from data-class copy(): only the snapshot service can issue a trusted proof.
-    internal var validation: ArkistointiSnapshotValidation? = null
-}
-
-internal interface ArkistointiSnapshotValidation
+)
 
 data class CreateArkistointiJobRequest(
     val university: YliopistoEnum,

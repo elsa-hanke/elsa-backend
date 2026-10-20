@@ -27,9 +27,9 @@ class PdfTextGenerationTest {
         PdfGenerationMetricsService(SimpleMeterRegistry()),
         PdfContentValidator(),
         PdfTextTestSupport.fieldValidator(),
-        PdfCachingResourceRetriever(),
-        PdfA2bService(ClassPathResource("sRGB_CS_profile.icm"))
+        PdfCachingResourceRetriever()
     ).apply {
+        colorProfile = ClassPathResource("sRGB_CS_profile.icm")
         liberationSerifFont = ClassPathResource("fonts/LiberationSerif-Regular.ttf")
         liberationSerifFontBold = ClassPathResource("fonts/LiberationSerif-Bold.ttf")
         notoSansFont = ClassPathResource("fonts/NotoSans-Regular.ttf")

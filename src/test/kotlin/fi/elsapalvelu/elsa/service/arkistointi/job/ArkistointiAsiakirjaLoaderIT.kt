@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
-import fi.elsapalvelu.elsa.service.PdfA2bService
+import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
@@ -20,6 +20,8 @@ import org.hibernate.SessionFactory
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -27,7 +29,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DelegatingDataSource
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.transaction.support.TransactionTemplate
-import java.io.ByteArrayOutputStream
 import java.sql.Connection
 import java.time.Duration
 import java.util.UUID
@@ -49,7 +50,6 @@ class ArkistointiAsiakirjaLoaderIT {
     @Autowired private lateinit var em: EntityManager
     @Autowired private lateinit var transactions: TransactionTemplate
     @Autowired private lateinit var jdbc: JdbcTemplate
-    @Autowired private lateinit var pdfA: PdfA2bService
     @Autowired private lateinit var adapter: ArkistointiJobProcessingIT.TestAdapter
     @Autowired private lateinit var task: OneTimeTask<Unit>
     @Autowired private lateinit var dataSource: DataSource
@@ -70,9 +70,10 @@ class ArkistointiAsiakirjaLoaderIT {
         }
     }
 
-    @Test
-    fun `adapter receives scalar metadata and retry reloads unchanged database bytes`() {
-        val jobId = fixture()
+    @ParameterizedTest
+    @ValueSource(strings = ["PDF_100", "CMYK_JPEG"])
+    fun `adapter receives scalar metadata and retry reloads unchanged database bytes`(kind: String) {
+        val jobId = fixture(kind)
         val snapshotId = transactions.execute {
             jobs.findById(jobId).orElseThrow().asiakirjat.single().asiakirja!!.id!!
         }
@@ -83,8 +84,8 @@ class ArkistointiAsiakirjaLoaderIT {
             assertThat(document.asiakirjaId).isEqualTo(snapshotId)
             assertThat(document.asiakirjatyyppi).isEqualTo(RecordType.YHTEENVETO)
             assertThat(document.jarjestysnumero).isZero()
-            assertThat(document.filename).endsWith(".pdf")
-            assertThat(document.contentType).isEqualTo("application/pdf")
+            assertThat(document.filename).isEqualTo(if (kind == "CMYK_JPEG") "certificate.jpg" else "attachment.pdf")
+            assertThat(document.contentType).isEqualTo(if (kind == "CMYK_JPEG") "image/jpg" else "application/pdf")
             assertThat(document.sha256).isEqualTo(expectedChecksum)
             assertThat(ArkistointiChecksum.sha256(document.sisalto)).isEqualTo(expectedChecksum)
             if (adapter.submissions.size == 1) {
@@ -128,12 +129,12 @@ class ArkistointiAsiakirjaLoaderIT {
         }
     }
 
-    private fun fixture(): UUID = transactions.execute {
+    private fun fixture(kind: String = "PDF_100"): UUID = transactions.execute {
         YliopistoHelper.createReferenceData(em, YliopistoEnum.TURUN_YLIOPISTO)
         val source = AsiakirjaHelper.createEntity(em)
-        val bytes = ByteArrayOutputStream()
-        pdfA.createDocument(bytes).use { document -> document.addNewPage() }
-        source.asiakirjaData!!.data = bytes.toByteArray()
+        source.asiakirjaData!!.data = if (kind == "CMYK_JPEG") PdfTestData.cmykJpeg() else PdfTestData.unembeddedFontPdf(100)
+        source.nimi = if (kind == "CMYK_JPEG") "certificate.jpg" else "attachment.pdf"
+        source.tyyppi = if (kind == "CMYK_JPEG") "image/jpg" else "application/pdf"
         em.persist(source)
         val reference = snapshots.createReference(source, RecordType.YHTEENVETO, 0)
         creator.create(CreateArkistointiJobRequest(

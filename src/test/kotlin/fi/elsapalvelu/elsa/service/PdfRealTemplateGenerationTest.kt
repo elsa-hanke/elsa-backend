@@ -29,9 +29,9 @@ class PdfRealTemplateGenerationTest {
     private val validator = PdfTextTestSupport.fieldValidator()
     private val service = PdfServiceImpl(
         engine, PdfGenerationMetricsService(SimpleMeterRegistry()), PdfContentValidator(), validator,
-        PdfCachingResourceRetriever(),
-        PdfA2bService(ClassPathResource("sRGB_CS_profile.icm"))
+        PdfCachingResourceRetriever()
     ).apply {
+        colorProfile = ClassPathResource("sRGB_CS_profile.icm")
         liberationSerifFont = ClassPathResource("fonts/LiberationSerif-Regular.ttf")
         liberationSerifFontBold = ClassPathResource("fonts/LiberationSerif-Bold.ttf")
         notoSansFont = ClassPathResource("fonts/NotoSans-Regular.ttf")

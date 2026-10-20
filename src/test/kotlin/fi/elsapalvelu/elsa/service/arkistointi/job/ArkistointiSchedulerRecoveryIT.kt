@@ -12,7 +12,7 @@ import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
-import fi.elsapalvelu.elsa.service.PdfA2bService
+import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
@@ -40,7 +40,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DelegatingDataSource
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.transaction.support.TransactionTemplate
-import java.io.ByteArrayOutputStream
 import java.sql.Connection
 import java.sql.Timestamp
 import java.time.Duration
@@ -69,7 +68,6 @@ class ArkistointiSchedulerRecoveryIT {
     @Autowired private lateinit var em: EntityManager
     @Autowired private lateinit var transactions: TransactionTemplate
     @Autowired private lateinit var jdbc: JdbcTemplate
-    @Autowired private lateinit var pdfA: PdfA2bService
     @Autowired private lateinit var adapter: ArkistointiJobProcessingIT.TestAdapter
     @Autowired private lateinit var task: OneTimeTask<Unit>
     @Autowired private lateinit var failureHandler: ArkistointiJobFailureHandler
@@ -274,9 +272,7 @@ class ArkistointiSchedulerRecoveryIT {
     private fun fixture(): UUID = transactions.execute {
         YliopistoHelper.createReferenceData(em, YliopistoEnum.TURUN_YLIOPISTO)
         val source = AsiakirjaHelper.createEntity(em)
-        val bytes = ByteArrayOutputStream()
-        pdfA.createDocument(bytes).use { document -> document.addNewPage() }
-        source.asiakirjaData!!.data = bytes.toByteArray()
+        source.asiakirjaData!!.data = PdfTestData.certificate()
         em.persist(source)
         val reference = snapshots.createReference(source, RecordType.YHTEENVETO, 0)
         creator.create(CreateArkistointiJobRequest(

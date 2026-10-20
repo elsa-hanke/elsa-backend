@@ -14,7 +14,7 @@ import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
-import fi.elsapalvelu.elsa.service.PdfA2bService
+import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
@@ -43,7 +43,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.mockito.kotlin.verifyNoInteractions
 import org.ehcache.core.config.DefaultConfiguration
 import org.ehcache.jsr107.EhcacheCachingProvider
-import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.sql.Connection
 import java.time.Duration
@@ -76,7 +75,6 @@ class ArkistointiJobProcessingIT {
     @Autowired private lateinit var em: EntityManager
     @Autowired private lateinit var transactions: TransactionTemplate
     @Autowired private lateinit var jdbc: JdbcTemplate
-    @Autowired private lateinit var pdfA: PdfA2bService
     @Autowired private lateinit var adapter: TestAdapter
     @Autowired private lateinit var task: OneTimeTask<Unit>
     @Autowired private lateinit var dataSource: DataSource
@@ -718,9 +716,7 @@ class ArkistointiJobProcessingIT {
     private fun fixture(university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO): UUID = transactions.execute {
         YliopistoHelper.createReferenceData(em, university)
         val source = AsiakirjaHelper.createEntity(em)
-        val bytes = ByteArrayOutputStream()
-        pdfA.createDocument(bytes).use { document -> document.addNewPage() }
-        source.asiakirjaData!!.data = bytes.toByteArray()
+        source.asiakirjaData!!.data = PdfTestData.certificate()
         em.persist(source)
         val reference = snapshots.createReference(source, RecordType.YHTEENVETO, 0)
         creator.create(CreateArkistointiJobRequest(

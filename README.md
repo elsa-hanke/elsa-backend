@@ -94,14 +94,17 @@ skeemamuutoksia. Testien `test-master.xml` suorittaa lisäksi kahden
 sarakekohtaisen sekvenssin kohdistuksen ladatun viitedatan suurimpaan ID-arvoon.
 Envers käyttää samoja audit-taulujen ja revision-sarakkeiden nimiä kuin tuotannossa.
 
-### Arkistoinnin kuvasnapshotit
+### Arkistoinnin muuttumattomat snapshotit
 
-Arkistosnapshot tukee PDF-, JPEG- ja PNG-tiedostoja; `image/jpg` käsitellään
-JPEG-aliasmuotona kuten tiedostojen latauksessa. Vain arkistokopio normalisoidaan
-PDF/A-2b-muotoon. Alkuperäisen tiedoston tavut, nimi ja MIME-tyyppi eivät muutu.
-Tavallinen PDF-yhdistäminen ei käytä tätä kuvien normalisointia tai sen rajoja.
-Pakollisen laillistamistodistuksen puuttuminen tai virheellinen sisältö estää
-snapshotin luonnin hallitulla virheellä; puutteellista aineistoa ei hyväksytä.
+Arkistosnapshot tallentaa olemassa olevan asiakirjan tavut, nimen ja MIME-tyypin
+sellaisinaan. PDF:t luodaan ja liitteet yhdistetään olemassa olevalla PDF-palvelulla;
+snapshot ei normalisoi, rasteroi tai pienennä sisältöä eikä edellytä PDF/A-muotoa.
+Oma HTML-pohjainen PDF-tuotanto säilyttää aiemman PDF/A-2b-luontitapansa.
+Erillinen laillistamistodistus säilyttää alkuperäisen tiedostomuotonsa, myös kuvat
+ja `image/jpg`-MIME-tyypin. Snapshotin tallennus ei ole uusi tiedostovalidaattori:
+sisällön hyväksyttävyys tarkistetaan olemassa olevassa lataus- ja PDF-käsittelyssä.
+Pakollinen puuttuva tai tyhjä aineisto sekä puuttuvat metatiedot estävät snapshotin
+luonnin hallitulla virheellä. Nimen ja MIME-tyypin tulee mahtua 255 merkin sarakkeisiin.
 
 `ArkistointiAsiakirjaException.category` erottaa hylätyn lähdeaineiston
 (`INPUT_DOCUMENT`), tallennetun aineiston eheysvirheen (`STORED_DOCUMENT`) ja
@@ -114,34 +117,26 @@ Dokumenttivirheestä lokitetaan vain koodi ja tarvittaessa luokka, ei poikkeusta
 Virhe peruuttaa hyväksymistransaktion; osittaisia snapshoteja tai jonorivejä ei jää.
 Frontendin käännökset ja virheen näyttäminen toteutetaan erillisessä tehtävässä.
 Dokumenttivirheen viesti ja kuvaus eivät sisällä tiedostonimeä tai sisältöä,
-eikä poikkeus säilytä kirjaston alkuperäistä cause-ketjua. Esimerkiksi palvelimen
-ICC-profiilin puuttuminen on käsittelyvirhe, ei virheellinen käyttäjän tiedosto.
+eikä poikkeus säilytä kirjaston alkuperäistä cause-ketjua.
 Tietokantapoikkeuksia ei muuteta lähdeaineiston virheiksi.
 
-Normalisointi validoi lopulliset PDF/A-tavut. Snapshot-palvelu liittää viitteeseen
-sisäisen todisteen, joka sitoo tarkistuksen dokumentin ID:hen, metatietoihin ja
-SHA-256-tiivisteeseen. Creator tarkistaa tallennetun sisällön ja tiivisteen,
-mutta ei validoi samaa hyväksyttyä PDF/A-tulosta uudelleen. Viitteen `copy()`
-ei kopioi todistetta; ilman sitä olemassa oleva snapshot validoidaan uudelleen.
-Pelkkä `archiveSnapshot=true` ei riitä: palvelu tarkistaa tietokannan lipun ja
+Creator tarkistaa tallennetun sisällön, metatiedot ja SHA-256-tiivisteen aina
+tietokannan asiakirjasta. Pelkkä DTO tai `archiveSnapshot=true` ei riitä:
+palvelu tarkistaa tietokannan lipun ja
 käsittelee muuttuvan lähdedokumentin aina erillisenä arkistokopiona.
 Jobin nimi, MIME-tyyppi ja tiiviste otetaan lopullisesta snapshotista.
-Loader tarkistaa edelleen tiivisteen ennen lähetystä. Snapshotin luonnin transaktiorajat
-ja normalisoinnin fallback säilyvät.
+Loader tarkistaa tiivisteen ennen lähetystä. Snapshotilla on oma tavutaulukko ja
+tietokannan suojaukset estävät sen sisällön ja metatietojen muuttamisen tai poistamisen.
+Job, snapshotit ja ajastus tallentuvat samassa transaktiossa; rollback ei jätä
+osittaista arkistointia. PDF/A-konvertoinnin sivu- tai pikselirajoja ei ole.
 
-`ArchiveImageNormalizer` tarkistaa ennen rasterin lukemista enintään 20 MiB:n
-tiedostokoon, 16 384 pikselin sivun ja 40 megapikselin lähdekuvan rajat. Lisäksi
-256 MiB:n laskennallinen työmuistibudjetti varaa 8 tavua/lähdepikseli,
-kaksi kopiota pakatusta aineistosta ja 32 tavua/dekoodattu pikseli.
-Tämä on konservatiivinen hyväksymisarvio, ei takuu JVM:n kokonaismuistinkulutuksesta;
-myös näitä kokorajoja pienempi kuva voidaan hylätä muistibudjetin perusteella.
-Dekooderi pienentää kuvaa tasaisesti jo lukuvaiheessa enintään 10 megapikseliin
-ja 4096 pikselin sivuun sekä jäljellä olevaan muistibudjettiin. Esimerkiksi
-4000 × 3000 pikselin kuva luetaan 2000 × 1500 pikselin rasteriksi. Jos rajoihin
-mahtuminen vaatisi yli nelinkertaisen pienennyksen kummallakin akselilla,
-kuva hylätään hallitusti liian voimakkaan laadun heikentämisen sijaan.
-Värimalli muunnetaan sRGB:ksi, läpinäkyvyys valkoista taustaa vasten ja EXIF-suunta
-huomioidaan. PDF-tiedostojen aiemmat rasterointirajat säilyvät ennallaan.
+Valmistumisen hyväksyntä luo PDF:t samalla palvelulla sekä synkronisessa että
+asynkronisessa tilassa. Asynkroninen haara jäädyttää valmiin yhteenvedon ja
+liitekoosteen sellaisinaan sekä laillistamistodistuksen alkuperäisessä muodossa;
+se ei kokoa liitteitä uudelleen eikä käytä erillistä konvertteria. Integraatiotestit
+tarkistavat snapshotin tavujen, nimen ja MIME-tyypin yhtäsuuruuden valmistuneen
+asiakirjan kanssa, 30/100/201-sivuiset PDF:t ilman upotettuja fontteja, CMYK-kuvat,
+sekä hyväksynnän rollbackin ja synkronisen ZIP-lähetyksen ilman jonorivejä.
 
 ### Ulkoiset integraatiotestit
 
@@ -171,23 +166,16 @@ Valmistumisen hyväksyntä käyttää oletuksena nykyistä arkistointitoimitusta
 
 Pidä `async-enabled=false`, kunnes kyseisen yliopiston job-adapteri on toteutettu ja otettu käyttöön. `ArkistointiJobProcessor` on toteutettu, mutta konkreettiset toimitusadapterit ovat erillisiä tehtäviä. Pelkkä tämän muutoksen käyttöönotto ei kytke nykyisiä Siilo/Louhi-toimituksia pois. Jonopolku tallentaa hyväksynnän, asiakirjakopiot, hyväksymishetken metatiedot ja db-scheduler-ajastuksen samaan transaktioon.
 
-Asetuksen palauttaminen arvoon `false` koskee uusia hyväksyntöjä. Jo jonossa olevat jobit säilyvät ja tarvitsevat edelleen taustakäsittelyn; niitä ei toimiteta automaattisesti vanhan synkronisen polun kautta. Nykyinen opiskelijan tiedosto säilyy muuttumattomana myös laillistamistodistuksen normalisoinnissa.
+Asetuksen palauttaminen arvoon `false` koskee uusia hyväksyntöjä. Jo jonossa olevat jobit säilyvät ja tarvitsevat edelleen taustakäsittelyn; niitä ei toimiteta automaattisesti vanhan synkronisen polun kautta.
 
-Async-hyväksynnän arkistoitava liitekooste muodostetaan alkuperäisistä liitteistä:
-jokainen liite normalisoidaan erikseen PDF/A-2b-muotoon ja osat yhdistetään yhdeksi
-tarkistetuksi, muuttumattomaksi snapshotiksi. Tavallinen liitekooste ja synkroninen
-arkistointipolku käyttävät edelleen tavallista PDF-yhdistelyä. Arkistokopiossa
-PDF-liitteet ovat ensin ja kuvat niiden jälkeen kuten tavallisessa koosteessa.
-Vain liite, jonka PDF/A-muunnos ei onnistu sivut kopioimalla, rasteroidaan;
-muiden liitteiden tekstikerros säilyy. Yhdistämisen virhe ei käynnistä koko
-koosteen rasterointia. Väliaikaisia PDF/A-osia ei tallenneta tietokantaan.
-
-Rasterointi käyttää 150 DPI:tä, enintään 200 sivua lähtö-PDF:ää kohti ja
-10 megapikseliä rasteroitavaa sivua kohti. Koko liitekoosteen yhteinen budjetti
-on 50 megapikseliä rasterointiin ja normalisoituihin kuviin; tekstinä kopioidut
-PDF-sivut eivät kuluta tätä budjettia. Osat käsitellään peräkkäin. Kuvien
-nykyiset koko-, dekoodaus- ja muistibudjettirajat säilyvät. Yksittäinen pitkä
-PDF, joka vaatii kokonaan rasteroinnin, voi edelleen ylittää budjetin.
+Async-hyväksyntä tallentaa muuttumattoman kopion samasta valmiista yhteenvedosta
+ja liitekoosteesta, jota synkroninen toimitus käyttää. Alkuperäisiä liitteitä ei
+kysellä tai yhdistetä uudelleen arkistokopiota varten. Laillistamistodistus
+säilyttää alkuperäiset tavunsa, nimensä ja MIME-tyyppinsä. Taustakäsittelijä
+lataa snapshotin JDBC:llä, tarkistaa tiivisteen ja välittää sisällön adapterille
+sellaisenaan. Muunnoksia tai PDF/A-vaatimusta ei lisätä lähetyksen tai uusintojen
+yhteydessä. Testit kattavat myös tavallisen pitkän PDF:n ja CMYK-JPEG:n täsmällisen
+sisällön säilymisen uudelleenyrityksessä, vaikka adapteri muuttaisi saamansa puskurin.
 
 `replica`-profiili poistaa db-scheduler-workerin käytöstä erikseen
 (`db-scheduler.enabled=false`); pelkkä `application.scheduling.enabled=false`

@@ -30,11 +30,6 @@ internal object ArkistointiAsiakirjaErrors {
         "Arkistoitavaa asiakirjaa ei voida kasitella"
     )
 
-    fun notPdfA2b() = ArkistointiError.create(
-        "ARCHIVE_DOCUMENT_NOT_PDFA_2B",
-        "Arkistoitava asiakirja ei ole PDF/A-2b-muodossa"
-    )
-
     fun checksumMismatch() = ArkistointiError.create(
         "ARCHIVE_DOCUMENT_CHECKSUM_MISMATCH",
         "Arkistoitavan asiakirjan tarkistussumma ei vastaa tallennettua arvoa"

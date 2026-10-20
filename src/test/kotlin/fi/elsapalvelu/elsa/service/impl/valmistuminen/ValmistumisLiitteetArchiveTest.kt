@@ -7,8 +7,6 @@ import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaReference
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaSnapshotService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusDTO
 import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.ValmistumispyynnonErikoistujanTiedotPdfService
@@ -28,11 +26,10 @@ import org.mockito.kotlin.whenever
 class ValmistumisLiitteetArchiveTest {
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
-    fun `ordinary and archive PDFs use one attachment selection with the same PDF-first order`(yek: Boolean) {
+    fun `generation merges selected attachments once and returns the ready archive documents`(yek: Boolean) {
         val periods = mock<TyoskentelyjaksoRepository>()
         val pdf = mock<PdfService>()
         val storage = mock<ValmistumispyynnonAsiakirjanTallennusService>()
-        val snapshots = mock<ArkistointiAsiakirjaSnapshotService>()
         val summary = mock<ValmistumispyynnonYhteenvetoPdfService>()
         val sources = listOf(
             Asiakirja(id = 1L, tyyppi = "image/png"),
@@ -42,7 +39,7 @@ class ValmistumisLiitteetArchiveTest {
         val ordinary = Asiakirja(id = 4L)
         val studyRight = Opintooikeus(id = 10L, erikoisala = Erikoisala(id = if (yek) YEK_ERIKOISALA_ID else -1L))
         val request = Valmistumispyynto(opintooikeus = studyRight)
-        val attachments = ValmistumispyynnonLiitteetPdfService(pdf, storage, periods, snapshots)
+        val attachments = ValmistumispyynnonLiitteetPdfService(pdf, storage, periods)
         val creator = ValmistumispyynnonAsiakirjojenLuontiService(summary, attachments, mock<ValmistumispyynnonErikoistujanTiedotPdfService>())
         whenever(periods.findAllByOpintooikeusId(10L)).thenReturn(
             listOf(Tyoskentelyjakso(asiakirjat = sources.toMutableSet())), emptyList()
@@ -53,19 +50,11 @@ class ValmistumisLiitteetArchiveTest {
         } else {
             whenever(summary.luo(any(), any())).thenReturn(Asiakirja(id = 5L))
         }
-        val reference = ArkistointiAsiakirjaReference(Asiakirja(id = 6L), RecordType.LIITE, 1, "liitteet.pdf", "application/pdf", "hash")
-        whenever(snapshots.createMergedReference(any(), any(), any(), any())).thenReturn(reference)
-
         val created = creator.luo(ValmistumispyynnonTarkistusDTO(), request)
-        val actual = attachments.createArchiveReference(
-            created.records.single { it.type == RecordType.LIITE }.asiakirja, created.attachmentSources, 1
-        )
-
-        assertThat(actual).isSameAs(reference)
-        assertThat(created.attachmentSources).containsExactlyElementsOf(sources)
+        assertThat(created.map { it.type }).containsExactly(RecordType.YHTEENVETO, RecordType.LIITE)
+        assertThat(created.single { it.type == RecordType.LIITE }.asiakirja).isSameAs(ordinary)
         verify(pdf).yhdistaAsiakirjat(eq(sources), any())
-        verify(snapshots).createMergedReference(ordinary, listOf(sources[1], sources[0], sources[2]), RecordType.LIITE, 1)
-        // A later query would see a different set; archive assembly must use the originally selected sources.
+        // There is no second archive assembly that could observe a different source selection.
         verify(periods, times(1)).findAllByOpintooikeusId(10L)
     }
 }

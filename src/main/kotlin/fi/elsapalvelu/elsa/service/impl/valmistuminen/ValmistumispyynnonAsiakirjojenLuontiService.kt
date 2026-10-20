@@ -24,23 +24,22 @@ class ValmistumispyynnonAsiakirjojenLuontiService(
     fun luo(
         tarkistus: ValmistumispyynnonTarkistusDTO,
         valmistumispyynto: Valmistumispyynto
-    ): CreatedValmistumisAsiakirjat {
+    ): List<RecordProperties> {
         val yek = valmistumispyynto.isYek()
-        val attachmentSources = liitteetPdfService.loadSourceDocuments(valmistumispyynto)
         if (yek) {
             val yhteenveto = mittaa("yhteenveto (YEK)") {
                 yhteenvetoPdfService.luoYek(tarkistus, valmistumispyynto)
             }
-            val liitteet = mittaa("liitteet") { liitteetPdfService.luo(valmistumispyynto, attachmentSources) }
-            return CreatedValmistumisAsiakirjat(luoArkistointitiedot(yhteenveto, liitteet), attachmentSources)
+            val liitteet = mittaa("liitteet") { liitteetPdfService.luo(valmistumispyynto) }
+            return luoArkistointitiedot(yhteenveto, liitteet)
         }
 
-        val liitteet = mittaa("liitteet") { liitteetPdfService.luo(valmistumispyynto, attachmentSources) }
+        val liitteet = mittaa("liitteet") { liitteetPdfService.luo(valmistumispyynto) }
         mittaa("erikoistujan tiedot") { erikoistujanTiedotPdfService.luo(valmistumispyynto) }
         val yhteenveto = mittaa("yhteenveto") {
             yhteenvetoPdfService.luo(tarkistus, valmistumispyynto)
         }
-        return CreatedValmistumisAsiakirjat(luoArkistointitiedot(yhteenveto, liitteet), attachmentSources)
+        return luoArkistointitiedot(yhteenveto, liitteet)
     }
 
     private fun <T> mittaa(vaihe: String, block: () -> T): T {

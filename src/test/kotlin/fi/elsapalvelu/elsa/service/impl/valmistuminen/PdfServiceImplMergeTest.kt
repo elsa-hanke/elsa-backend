@@ -9,7 +9,6 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
-import fi.elsapalvelu.elsa.service.PdfA2bService
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.PdfTestData
@@ -23,34 +22,34 @@ import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
-import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.thymeleaf.spring6.SpringTemplateEngine
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
 class PdfServiceImplMergeTest {
-    private val pdfA2bService = PdfA2bService(ClassPathResource("sRGB_CS_profile.icm"))
     private val service = PdfServiceImpl(
         templateEngine = mock<SpringTemplateEngine>(),
         pdfMetrics = PdfGenerationMetricsService(SimpleMeterRegistry()),
         pdfContentValidator = PdfContentValidator(),
         pdfTextFieldValidator = mock<PdfTextFieldValidator>(),
-        resourceRetriever = PdfCachingResourceRetriever(),
-        pdfA2bService = pdfA2bService
+        resourceRetriever = PdfCachingResourceRetriever()
     )
 
-    @Test
-    fun `merging a long unembedded font attachment preserves every page and its text`() {
-        val original = PdfTestData.unembeddedFontPdf(30)
+    @ParameterizedTest
+    @ValueSource(ints = [30, 100, 201])
+    fun `merging a long unembedded font attachment preserves every page and its text`(pages: Int) {
+        val original = PdfTestData.unembeddedFontPdf(pages)
         val output = ByteArrayOutputStream()
 
         service.yhdistaAsiakirjat(listOf(attachment(original, MediaType.APPLICATION_PDF_VALUE)), output)
 
-        assertPagesAndText(output.toByteArray(), 30)
+        assertPagesAndText(output.toByteArray(), pages)
     }
 
     @Test
@@ -100,12 +99,13 @@ class PdfServiceImplMergeTest {
         }
     }
 
-    @Test
-    fun `ordinary merged attachments can be normalized separately for an archive snapshot`() {
+    @ParameterizedTest
+    @ValueSource(ints = [30, 100, 201])
+    fun `archive snapshot is identical to ordinary merge including long PDF text and CMYK image`(pages: Int) {
         val output = ByteArrayOutputStream()
         service.yhdistaAsiakirjat(
             listOf(
-                attachment(PdfTestData.unembeddedFontPdf(1), MediaType.APPLICATION_PDF_VALUE),
+                attachment(PdfTestData.unembeddedFontPdf(pages), MediaType.APPLICATION_PDF_VALUE),
                 attachment(PdfTestData.cmykJpeg(), MediaType.IMAGE_JPEG_VALUE)
             ), output
         )
@@ -118,16 +118,22 @@ class PdfServiceImplMergeTest {
             opintooikeus = Opintooikeus(id = 10L)
         }
         whenever(repository.findOneWithDataById(1L)).thenReturn(source)
-        val reference = ArkistointiAsiakirjaSnapshotService(repository, pdfA2bService)
+        val reference = ArkistointiAsiakirjaSnapshotService(repository)
             .createReference(source, RecordType.LIITE, 0)
         val snapshot = reference.asiakirja.asiakirjaData!!.data!!
 
-        assertThat(pdfA2bService.isPdfA2b(snapshot)).isTrue
+        assertThat(snapshot).containsExactly(*output.toByteArray())
+        assertThat(snapshot).isNotSameAs(source.asiakirjaData!!.data)
         assertThat(reference.asiakirja.archiveSnapshot).isTrue
         assertThat(reference.sha256).isEqualTo(ArkistointiChecksum.sha256(snapshot))
         assertThat(source.asiakirjaData!!.data).containsExactly(*output.toByteArray())
         PdfDocument(PdfReader(ByteArrayInputStream(snapshot))).use {
-            assertThat(it.numberOfPages).isEqualTo(2)
+            assertThat(it.numberOfPages).isEqualTo(pages + 1)
+            repeat(pages) { index ->
+                assertThat(PdfTextExtractor.getTextFromPage(it.getPage(index + 1))).isEqualTo("Attachment page ${index + 1}")
+            }
+            val images = it.getPage(pages + 1).resources.getResource(PdfName.XObject)
+            assertThat(images.getAsStream(images.keySet().single()).getAsName(PdfName.ColorSpace)).isEqualTo(PdfName.DeviceCMYK)
         }
     }
 
