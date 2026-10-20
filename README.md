@@ -130,6 +130,22 @@ Pidä `async-enabled=false`, kunnes kyseisen yliopiston job-adapteri on toteutet
 
 Asetuksen palauttaminen arvoon `false` koskee uusia hyväksyntöjä. Jo jonossa olevat jobit säilyvät ja tarvitsevat edelleen taustakäsittelyn; niitä ei toimiteta automaattisesti vanhan synkronisen polun kautta. Nykyinen opiskelijan tiedosto säilyy muuttumattomana myös laillistamistodistuksen normalisoinnissa.
 
+Async-hyväksynnän arkistoitava liitekooste muodostetaan alkuperäisistä liitteistä:
+jokainen liite normalisoidaan erikseen PDF/A-2b-muotoon ja osat yhdistetään yhdeksi
+tarkistetuksi, muuttumattomaksi snapshotiksi. Tavallinen liitekooste ja synkroninen
+arkistointipolku käyttävät edelleen tavallista PDF-yhdistelyä. Arkistokopiossa
+PDF-liitteet ovat ensin ja kuvat niiden jälkeen kuten tavallisessa koosteessa.
+Vain liite, jonka PDF/A-muunnos ei onnistu sivut kopioimalla, rasteroidaan;
+muiden liitteiden tekstikerros säilyy. Yhdistämisen virhe ei käynnistä koko
+koosteen rasterointia. Väliaikaisia PDF/A-osia ei tallenneta tietokantaan.
+
+Rasterointi käyttää 150 DPI:tä, enintään 200 sivua lähtö-PDF:ää kohti ja
+10 megapikseliä rasteroitavaa sivua kohti. Koko liitekoosteen yhteinen budjetti
+on 50 megapikseliä rasterointiin ja normalisoituihin kuviin; tekstinä kopioidut
+PDF-sivut eivät kuluta tätä budjettia. Osat käsitellään peräkkäin. Kuvien
+nykyiset koko-, dekoodaus- ja muistibudjettirajat säilyvät. Yksittäinen pitkä
+PDF, joka vaatii kokonaan rasteroinnin, voi edelleen ylittää budjetin.
+
 Taustakäsittelijä lataa tallennetun payloadin ja tarkistussummalla varmistetut asiakirjakopiot. Job siirtyy tilaan `KASITTELYSSA` lyhyessä transaktiossa; adapterin verkkokutsu suoritetaan transaktion ulkopuolella. Onnistuminen tallentaa tilan `LAHETETTY`, ulkoisen tunnisteen ja valmistumisajan ennen db-scheduler-suorituksen poistamista. Pysyvä virhe, puuttuva adapteri tai virheellinen aineisto johtaa tilaan `VAATII_TOIMENPITEITA` ilman automaattista uusintaa.
 
 Käsittelijä lukee asiakirjan tavut suoraan tietokannasta ja siirtää adapterille vain tallennetut metatiedot sekä tarkistetun tavutaulukon. Adapterin tulee käsitellä tavutaulukkoa vain luettavana; uusintayritys lukee alkuperäiset tavut uudelleen tietokannasta.

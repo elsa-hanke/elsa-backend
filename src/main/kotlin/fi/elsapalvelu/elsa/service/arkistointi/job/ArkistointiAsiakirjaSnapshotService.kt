@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.PdfA2bService
+import fi.elsapalvelu.elsa.service.PdfA2bSource
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -26,6 +27,30 @@ class ArkistointiAsiakirjaSnapshotService(
         documentData(asiakirja, jarjestysnumero)
         val stored = loadDocument(asiakirja.id, asiakirja.nimi ?: "tuntematon")
         return prepareReference(stored, asiakirjatyyppi, jarjestysnumero)
+    }
+
+    /** Build a single archive snapshot from persisted originals, not the ordinary merged PDF. */
+    @Transactional
+    fun createMergedReference(
+        asiakirja: Asiakirja,
+        sources: List<Asiakirja>,
+        asiakirjatyyppi: RecordType,
+        jarjestysnumero: Int
+    ): ArkistointiAsiakirjaReference {
+        documentData(asiakirja, jarjestysnumero)
+        val stored = loadDocument(asiakirja.id, requireNotNull(asiakirja.nimi))
+        val normalizedData = try {
+            pdfA2bService.normalizeAndMerge(sources.asSequence().map { source ->
+                val original = loadDocument(source.id, source.nimi ?: "tuntematon")
+                require(original.opintooikeus?.id == stored.opintooikeus?.id) { "Archive attachment belongs to another study right" }
+                PdfA2bSource(documentData(original, jarjestysnumero), original.tyyppi)
+            })
+        } catch (exception: ArkistointiAsiakirjaException) {
+            throw exception
+        } catch (exception: RuntimeException) {
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid(requireNotNull(stored.nimi)), exception)
+        }
+        return saveSnapshot(requireNotNull(stored.opintooikeus), stored.nimi, normalizedData, asiakirjatyyppi, jarjestysnumero)
     }
 
     /** Resolve caller-supplied references against persisted contents; a DTO or flag alone is not proof. */
@@ -121,6 +146,17 @@ class ArkistointiAsiakirjaSnapshotService(
                 exception
             )
         }
+        return saveSnapshot(opintooikeus, filename, normalizedData, asiakirjatyyppi, jarjestysnumero)
+    }
+
+    /** Only bytes validated by normalization/assembly reach this private persistence boundary. */
+    private fun saveSnapshot(
+        opintooikeus: Opintooikeus,
+        filename: String?,
+        normalizedData: ByteArray,
+        asiakirjatyyppi: RecordType,
+        jarjestysnumero: Int
+    ): ArkistointiAsiakirjaReference {
         val snapshot = asiakirjaRepository.save(
             Asiakirja(
                 opintooikeus = opintooikeus,

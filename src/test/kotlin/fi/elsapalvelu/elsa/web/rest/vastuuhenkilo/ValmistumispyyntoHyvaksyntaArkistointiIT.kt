@@ -201,6 +201,9 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         whenever(asiakirjaSnapshotService.createReference(any(), any(), any())).thenAnswer { invocation ->
             archiveReference(invocation.getArgument(1), invocation.getArgument(2))
         }
+        whenever(asiakirjaSnapshotService.createMergedReference(any(), any(), any(), any())).thenAnswer { invocation ->
+            archiveReference(invocation.getArgument(2), invocation.getArgument(3))
+        }
         whenever(asiakirjaSnapshotService.createLaillistamistodistusReference(any(), any())).thenAnswer { invocation ->
             archiveReference(RecordType.LAILLISTAMISTODISTUS, invocation.getArgument(1))
         }

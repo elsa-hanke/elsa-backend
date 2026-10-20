@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.valmistuminen.ValmistumispyynnonTarkistus
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.required
@@ -13,6 +14,8 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.ValmistumispyynnonLiitteetPdfService
 import fi.elsapalvelu.elsa.service.mapper.valmistuminen.ValmistumispyynnonTarkistusMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -28,7 +31,8 @@ class ValmistumispyynnonViimeistelyService(
     private val arkistointiJobCreator: ArkistointiJobCreator,
     private val asiakirjaSnapshotService: ArkistointiAsiakirjaSnapshotService,
     private val configurationProvider: ArkistointiConfigurationProvider,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val liitteetPdfService: ValmistumispyynnonLiitteetPdfService
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -40,7 +44,8 @@ class ValmistumispyynnonViimeistelyService(
     ) {
         log.info("Luodaan PDF:t [valmistumispyyntoId=$valmistumispyyntoId]")
         val tarkistusDTO = tarkistusService.taydenna(tarkistusMapper.toDto(tarkistus))
-        val asiakirjat = asiakirjojenLuontiService.luo(tarkistusDTO, valmistumispyynto)
+        val created = asiakirjojenLuontiService.luo(tarkistusDTO, valmistumispyynto)
+        val asiakirjat = created.records
         log.info("PDF:t luotu [valmistumispyyntoId=$valmistumispyyntoId]")
         ilmoitusService.lahetaIlmoitusHyvaksynnasta(valmistumispyynto)
         log.info("Hyvaksynta-sahkoposti lahetetty [valmistumispyyntoId=$valmistumispyyntoId]")
@@ -59,7 +64,7 @@ class ValmistumispyynnonViimeistelyService(
             archiveSynchronously(valmistumispyynto, yliopisto.required(), asiakirjat, yek)
             return
         }
-        val references = createDocumentReferences(asiakirjat, valmistumispyynto, yek)
+        val references = createDocumentReferences(asiakirjat, created.attachmentSources, valmistumispyynto, yek)
         arkistointiJobCreator.create(
             CreateArkistointiJobRequest(
                 university = yliopisto.required(),
@@ -99,11 +104,18 @@ class ValmistumispyynnonViimeistelyService(
 
     private fun createDocumentReferences(
         asiakirjat: List<RecordProperties>,
+        attachmentSources: List<Asiakirja>,
         valmistumispyynto: Valmistumispyynto,
         yek: Boolean
     ) = buildList {
         asiakirjat.forEachIndexed { index, record ->
-            add(asiakirjaSnapshotService.createReference(record.asiakirja, record.type, index))
+            add(
+                if (record.type == RecordType.LIITE) {
+                    liitteetPdfService.createArchiveReference(record.asiakirja, attachmentSources, index)
+                } else {
+                    asiakirjaSnapshotService.createReference(record.asiakirja, record.type, index)
+                }
+            )
         }
         if (!yek) {
             add(

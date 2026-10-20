@@ -74,21 +74,42 @@ class PdfA2bService(
     }
 
     /** Every returned byte array has passed full PDF/A validation; callers must preserve its integrity. */
-    fun normalize(data: ByteArray?, contentType: String?): ByteArray {
+    fun normalize(data: ByteArray?, contentType: String?): ByteArray = normalize(data, contentType, RasterBudget())
+
+    /** Normalize originals separately: one bad attachment must not rasterize its conforming neighbours. */
+    internal fun normalizeAndMerge(sources: Sequence<PdfA2bSource>): ByteArray {
+        val output = ByteArrayOutputStream()
+        val budget = RasterBudget()
+        createDocument(output).use { target ->
+            sources.forEach { attachment ->
+                val normalized = normalize(attachment.data, attachment.contentType, budget)
+                PdfDocument(PdfReader(ByteArrayInputStream(normalized))).use { source ->
+                    source.copyPagesTo(1, source.numberOfPages, target)
+                    // No more copying from this source: release its copied-object cache before the next attachment.
+                    target.flushCopiedObjects(source)
+                }
+            }
+            require(target.numberOfPages > 0) { "Archive attachments must contain at least one page" }
+        }
+        // Validate the closed, assembled document once. Never rasterize the whole merge on failure.
+        return output.toByteArray().also { check(isPdfA2b(it)) { "Merged archive document is not PDF/A-2b" } }
+    }
+
+    private fun normalize(data: ByteArray?, contentType: String?, budget: RasterBudget): ByteArray {
         require(data != null && data.isNotEmpty()) { "Arkistoitava asiakirja on tyhja" }
         val canonicalType = DocumentContentTypes.canonical(contentType)
         return when (canonicalType) {
             // The PDF fast path must copy before checking: the caller cannot change bytes between validation and return.
-            MediaType.APPLICATION_PDF_VALUE -> normalizePdf(data.copyOf())
+            MediaType.APPLICATION_PDF_VALUE -> normalizePdf(data.copyOf(), budget)
             // Image output is newly generated and validated; enforce encoded-size limits before making any extra copies.
-            MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE -> imageToPdfA(data, canonicalType)
+            MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE -> imageToPdfA(data, canonicalType, budget)
             else -> throw IllegalArgumentException(
                 "Arkistoitavan asiakirjan sisaltotyyppia '$contentType' ei tueta"
             )
         }
     }
 
-    private fun normalizePdf(data: ByteArray): ByteArray {
+    private fun normalizePdf(data: ByteArray, budget: RasterBudget): ByteArray {
         if (isPdfA2b(data)) {
             // normalize already owns this copy; returning it avoids retaining another full PDF array.
             return data
@@ -104,7 +125,7 @@ class PdfA2bService(
             copyPdfToPdfA(prepared).also { check(isPdfA2b(it)) }
         } catch (_: Exception) {
             try {
-                rasterizePdfToPdfA(prepared).also { check(isPdfA2b(it)) }
+                rasterizePdfToPdfA(prepared, budget).also { check(isPdfA2b(it)) }
             } catch (exception: Exception) {
                 throw IllegalArgumentException("Arkistoitavaa PDF-tiedostoa ei voida kasitella", exception)
             }
@@ -124,22 +145,20 @@ class PdfA2bService(
         return output.toByteArray()
     }
 
-    private fun rasterizePdfToPdfA(data: ByteArray): ByteArray {
+    private fun rasterizePdfToPdfA(data: ByteArray, budget: RasterBudget): ByteArray {
         val output = ByteArrayOutputStream()
         Loader.loadPDF(data).use { source ->
             require(!source.isEncrypted && source.numberOfPages > 0) {
                 "Arkistoitava PDF on salattu tai sivuton"
             }
             require(source.numberOfPages <= MAX_RASTER_PAGES) { "PDF contains too many pages to rasterize" }
-            var totalPixels = 0.0
             source.pages.forEach { page ->
                 val width = page.cropBox.width.toDouble() * RASTER_DPI / POINTS_PER_INCH
                 val height = page.cropBox.height.toDouble() * RASTER_DPI / POINTS_PER_INCH
                 val pixels = kotlin.math.ceil(width) * kotlin.math.ceil(height)
                 require(width.isFinite() && height.isFinite() && width > 0 && height > 0 &&
                     pixels <= MAX_PAGE_PIXELS) { "PDF page is too large to rasterize" }
-                totalPixels += pixels
-                require(totalPixels <= MAX_TOTAL_PIXELS) { "PDF is too large to rasterize" }
+                budget.reserve(pixels)
             }
             val renderer = PDFRenderer(source)
             createDocument(output).use { target ->
@@ -150,18 +169,22 @@ class PdfA2bService(
                             RASTER_DPI,
                             ImageType.RGB
                         )
-                        val imageOutput = ByteArrayOutputStream()
-                        check(ImageIO.write(rendered, "png", imageOutput))
-                        val pageSize = pageSize(
-                            rendered.width * POINTS_PER_INCH / RASTER_DPI,
-                            rendered.height * POINTS_PER_INCH / RASTER_DPI
-                        )
-                        target.addNewPage(pageSize)
-                        document.add(
-                            Image(ImageDataFactory.create(imageOutput.toByteArray()))
-                                .scaleAbsolute(pageSize.width, pageSize.height)
-                                .setFixedPosition(target.numberOfPages, 0F, 0F)
-                        )
+                        try {
+                            val imageOutput = ByteArrayOutputStream()
+                            check(ImageIO.write(rendered, "png", imageOutput))
+                            val pageSize = pageSize(
+                                rendered.width * POINTS_PER_INCH / RASTER_DPI,
+                                rendered.height * POINTS_PER_INCH / RASTER_DPI
+                            )
+                            target.addNewPage(pageSize)
+                            document.add(
+                                Image(ImageDataFactory.create(imageOutput.toByteArray()))
+                                    .scaleAbsolute(pageSize.width, pageSize.height)
+                                    .setFixedPosition(target.numberOfPages, 0F, 0F)
+                            )
+                        } finally {
+                            rendered.flush()
+                        }
                     }
                 }
             }
@@ -169,9 +192,10 @@ class PdfA2bService(
         return output.toByteArray()
     }
 
-    private fun imageToPdfA(data: ByteArray, contentType: String): ByteArray {
+    private fun imageToPdfA(data: ByteArray, contentType: String, budget: RasterBudget): ByteArray {
         val output = ByteArrayOutputStream()
         val imageData = ImageDataFactory.create(ArchiveImageNormalizer().normalize(data, contentType))
+        budget.reserve(imageData.width.toDouble() * imageData.height)
         val pageSize = pageSize(imageData.width, imageData.height)
         createDocument(output).use { target ->
             Document(target).use { document ->
@@ -190,6 +214,16 @@ class PdfA2bService(
         width.coerceIn(MIN_PAGE_SIZE, MAX_PAGE_SIZE),
         height.coerceIn(MIN_PAGE_SIZE, MAX_PAGE_SIZE)
     )
+
+    /** Shared across original attachments; splitting a PDF must not reset the raster-work limit. */
+    private class RasterBudget {
+        private var totalPixels = 0.0
+
+        fun reserve(pixels: Double) {
+            totalPixels += pixels
+            require(totalPixels <= MAX_TOTAL_PIXELS) { "PDF is too large to rasterize" }
+        }
+    }
 
     private companion object {
         const val MAX_RASTER_PAGES = 200
