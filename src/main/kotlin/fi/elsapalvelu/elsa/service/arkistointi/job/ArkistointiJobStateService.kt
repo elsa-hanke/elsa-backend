@@ -17,13 +17,12 @@ import java.time.Instant
 @Transactional(propagation = Propagation.REQUIRES_NEW)
 class ArkistointiJobStateService(
     private val jobs: ArkistointiJobRepository,
-    private val loader: ArkistointiAsiakirjaLoader,
     private val mapper: ObjectMapper,
     private val jdbc: JdbcTemplate
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun prepare(execution: ArkistointiJobExecution): ArkistointiSubmission? {
+    fun prepare(execution: ArkistointiJobExecution): PreparedArkistointiJob? {
         lockExecution(execution)
         val jobId = execution.jobId
         val job = jobs.findByIdForStateChange(jobId)
@@ -45,10 +44,21 @@ class ArkistointiJobStateService(
                 retryable = false
             )
         }
-        return ArkistointiSubmission(
+        return PreparedArkistointiJob(
             jobId, job.university.required(), job.caseType.required(), payload,
-            job.asiakirjat.sortedBy { it.jarjestysnumero }.map(loader::load)
+            job.asiakirjat.sortedBy { it.jarjestysnumero }.map { it.toDescriptor() }
         )
+    }
+
+    /** Recheck the original execution after loading; release both locks before the network call. */
+    fun checkBeforeSend(execution: ArkistointiJobExecution): Boolean {
+        lockExecution(execution)
+        val job = jobs.findByIdForStateChange(execution.jobId) ?: return false
+        if (job.isTerminal()) return false
+        // A recovery handler may have committed ODOTTAA before rescheduling this same version.
+        // Do not acknowledge that execution while its retry is still being arranged.
+        if (job.status != ArkistointiJobStatus.KASITTELYSSA) throw StaleArkistointiExecutionException()
+        return true
     }
 
     fun succeed(execution: ArkistointiJobExecution, externalId: String?) {

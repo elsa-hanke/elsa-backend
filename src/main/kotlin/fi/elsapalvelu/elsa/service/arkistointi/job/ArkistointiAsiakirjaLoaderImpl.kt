@@ -1,7 +1,5 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
-import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
-import fi.elsapalvelu.elsa.required
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -12,11 +10,9 @@ class ArkistointiAsiakirjaLoaderImpl(
 ) : ArkistointiAsiakirjaLoader {
 
     @Transactional(readOnly = true)
-    override fun load(viite: ArkistointiJobAsiakirja): LoadedArkistointiAsiakirja {
-        val asiakirjaId = viite.asiakirja?.id
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
-        // The ResultSet owns this byte array. No managed Asiakirja/AsiakirjaData or shared cache
-        // retains it after prepare commits; each retry reads a fresh array from PostgreSQL.
+    override fun load(viite: ArkistointiDocumentDescriptor): LoadedArkistointiAsiakirja {
+        val asiakirjaId = viite.asiakirjaId
+        // Each retry reads a fresh array without a managed entity graph or scheduler/job locks.
         val data = jdbc.query(
             "select d.data from asiakirja a join asiakirja_data d on d.id = a.asiakirja_data_id where a.id = ?",
             { rs, _ -> rs.getBytes(1) },
@@ -27,9 +23,6 @@ class ArkistointiAsiakirjaLoaderImpl(
             throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.empty())
         }
         val expectedChecksum = viite.sha256
-            ?: throw ArkistointiAsiakirjaException(
-                ArkistointiAsiakirjaErrors.checksumMismatch()
-            )
         if (!ArkistointiChecksum.sha256(data).equals(expectedChecksum, ignoreCase = true)) {
             throw ArkistointiAsiakirjaException(
                 ArkistointiAsiakirjaErrors.checksumMismatch()
@@ -39,10 +32,10 @@ class ArkistointiAsiakirjaLoaderImpl(
         // Only saved job metadata crosses the transaction boundary. The adapter must not mutate sisalto.
         return LoadedArkistointiAsiakirja(
             asiakirjaId,
-            viite.asiakirjatyyppi.required(),
-            viite.jarjestysnumero.required(),
-            viite.filename.required(),
-            viite.contentType.required(),
+            viite.asiakirjatyyppi,
+            viite.jarjestysnumero,
+            viite.filename,
+            viite.contentType,
             expectedChecksum,
             data
         )

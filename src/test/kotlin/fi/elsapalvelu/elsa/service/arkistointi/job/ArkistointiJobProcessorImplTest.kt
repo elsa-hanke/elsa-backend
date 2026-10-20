@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.arkistointi.job
 
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,17 +21,25 @@ import java.util.UUID
 
 class ArkistointiJobProcessorImplTest {
     private val state = mock<ArkistointiJobStateService>()
+    private val loader = mock<ArkistointiAsiakirjaLoader>()
     private val adapter = mock<ArkistointiAdapter>().apply {
         whenever(university).thenReturn(YliopistoEnum.TURUN_YLIOPISTO)
     }
-    private val processor = ArkistointiJobProcessorImpl(state, listOf(adapter))
+    private val processor = ArkistointiJobProcessorImpl(state, loader, listOf(adapter))
     private val jobId = UUID.randomUUID()
     private val execution = ArkistointiJobExecution("arkistointi-job", jobId.toString(), 1L)
-    private val submission = ArkistointiSubmission(jobId, YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}", emptyList())
+    private val descriptor = ArkistointiDocumentDescriptor(1L, RecordType.LIITE, 0, "private.pdf", "application/pdf", "a".repeat(64))
+    private val document = LoadedArkistointiAsiakirja(1L, RecordType.LIITE, 0, descriptor.filename,
+        descriptor.contentType, descriptor.sha256, byteArrayOf(1))
+    private val submission = ArkistointiSubmission(jobId, YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}", listOf(document))
 
     @BeforeEach
     fun prepareSubmission() {
-        whenever(state.prepare(execution)).thenReturn(submission)
+        whenever(state.prepare(execution)).thenReturn(
+            PreparedArkistointiJob(jobId, submission.university, submission.caseType, submission.payload, listOf(descriptor))
+        )
+        whenever(loader.load(descriptor)).thenReturn(document)
+        whenever(state.checkBeforeSend(execution)).thenReturn(true)
     }
 
     @ParameterizedTest
@@ -70,7 +79,7 @@ class ArkistointiJobProcessorImplTest {
     fun `document category determines retries without retaining personal details`(category: ArkistointiAsiakirjaErrorCategory) {
         val original = ArkistointiAsiakirjaException(ArkistointiError.create("ARCHIVE_DOCUMENT_MISSING", "private-filename.pdf"), category)
         original.addSuppressed(IllegalStateException("private-filename.pdf"))
-        whenever(state.prepare(execution)).thenThrow(original)
+        whenever(loader.load(descriptor)).thenThrow(original)
         val exception = assertThrows<ArkistointiProcessingException> { processor.process(execution) }
         assertThat(exception.retryable).isEqualTo(category == ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE)
         assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_MISSING")
@@ -80,6 +89,25 @@ class ArkistointiJobProcessorImplTest {
         assertThat(exception.stackTraceToString()).doesNotContain("private-filename")
         verify(adapter, never()).arkistoi(any())
         verify(state, never()).fail(any(), any(), any())
+    }
+
+    @Test
+    fun `execution replaced during loading is rejected before delivery`() {
+        whenever(state.checkBeforeSend(execution)).thenThrow(StaleArkistointiExecutionException())
+        assertThrows<StaleArkistointiExecutionException> { processor.process(execution) }
+        verify(loader).load(descriptor)
+        verify(adapter, never()).arkistoi(any())
+        verify(state, never()).succeed(any(), anyOrNull())
+        verify(state, never()).fail(any(), any(), any())
+    }
+
+    @Test
+    fun `terminal job detected after loading is not delivered`() {
+        whenever(state.checkBeforeSend(execution)).thenReturn(false)
+        processor.process(execution)
+        verify(loader).load(descriptor)
+        verify(adapter, never()).arkistoi(any())
+        verify(state, never()).succeed(any(), anyOrNull())
     }
 
     @Test

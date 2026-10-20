@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class ArkistointiJobProcessorImpl(
     private val state: ArkistointiJobStateService,
+    private val loader: ArkistointiAsiakirjaLoader,
     adapters: List<ArkistointiAdapter>
 ) : ArkistointiJobProcessor {
     private val adaptersByUniversity = adapters.associateBy { it.university }.also {
@@ -36,12 +37,18 @@ class ArkistointiJobProcessorImpl(
     }
 
     private fun processSubmission(execution: ArkistointiJobExecution) {
-        val submission = state.prepare(execution) ?: return
-        val adapter = adaptersByUniversity[submission.university]
+        val prepared = state.prepare(execution) ?: return
+        val adapter = adaptersByUniversity[prepared.university]
             ?: throw ArkistointiProcessingException(
                 ArkistointiError.create("ARCHIVE_ADAPTER_MISSING", "Yliopiston arkistointiadapteria ei ole maaritelty"),
                 retryable = false
             )
+        val submission = ArkistointiSubmission(
+            prepared.jobId, prepared.university, prepared.caseType, prepared.payload,
+            prepared.asiakirjat.map(loader::load)
+        )
+        // This narrows the stale-send window; adapters must still deduplicate concurrent deliveries.
+        if (!state.checkBeforeSend(execution)) return
         when (val result = adapter.arkistoi(submission)) {
             is ArkistointiResult.Success -> {
                 ArkistointiExternalId.validate(result.externalId)

@@ -82,9 +82,8 @@ class ArkistointiAsiakirjaLoaderImplTest {
             .thenReturn(if (data == null) emptyList() else listOf(data))
     }
 
-    private fun reference(asiakirja: Asiakirja, checksum: String) = ArkistointiJobAsiakirja(
-        id = 1L,
-        asiakirja = asiakirja,
+    private fun reference(asiakirja: Asiakirja, checksum: String) = ArkistointiDocumentDescriptor(
+        asiakirjaId = asiakirja.id!!,
         asiakirjatyyppi = RecordType.YHTEENVETO,
         jarjestysnumero = 0,
         filename = "archive.pdf",

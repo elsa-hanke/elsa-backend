@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.kotlin.verifyNoInteractions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -53,6 +54,7 @@ class ArkistointiAsiakirjaLoaderIT {
     @Autowired private lateinit var adapter: ArkistointiJobProcessingIT.TestAdapter
     @Autowired private lateinit var task: OneTimeTask<Unit>
     @Autowired private lateinit var dataSource: DataSource
+    @Autowired private lateinit var state: ArkistointiJobStateService
     @MockitoSpyBean private lateinit var loader: ArkistointiAsiakirjaLoader
     private val schedulers = mutableListOf<Scheduler>()
 
@@ -106,6 +108,35 @@ class ArkistointiAsiakirjaLoaderIT {
     }
 
     @Test
+    fun `preparation commits only scalar references without loading document entities or bytes`() {
+        val jobId = fixture()
+        transactions.executeWithoutResult {
+            jdbc.update("update scheduled_tasks set picked = true where task_instance = ?", jobId.toString())
+        }
+        val execution = ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, jobId.toString(),
+            jdbc.queryForObject("select version from scheduled_tasks where task_instance = ?", Long::class.javaObjectType, jobId.toString())!!)
+        val statistics = em.entityManagerFactory.unwrap(SessionFactory::class.java).statistics
+        val previouslyEnabled = statistics.isStatisticsEnabled
+        try {
+            statistics.isStatisticsEnabled = true
+            statistics.clear()
+            val prepared = requireNotNull(state.prepare(execution))
+            verifyNoInteractions(loader)
+            assertThat(statistics.getEntityStatistics("fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja").loadCount).isZero()
+            assertThat(statistics.getEntityStatistics("fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData").loadCount).isZero()
+            assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.KASITTELYSSA)
+            assertThat(prepared.payload).isEqualTo("{\"approved\":true}")
+            assertThat(prepared.toString()).doesNotContain(prepared.payload)
+            val descriptor = prepared.asiakirjat.single()
+            assertThat(descriptor.toString()).doesNotContain(descriptor.filename)
+            // The persistence context used by prepare is closed; loading must need no proxies.
+            assertThat(loader.load(descriptor).sisalto).containsExactly(*storedDocumentBytes(descriptor.asiakirjaId))
+        } finally {
+            statistics.isStatisticsEnabled = previouslyEnabled
+        }
+    }
+
+    @Test
     fun `loading archived bytes does not materialize document entities`() {
         val jobId = fixture()
         val statistics = em.entityManagerFactory.unwrap(SessionFactory::class.java).statistics
@@ -117,7 +148,7 @@ class ArkistointiAsiakirjaLoaderIT {
                 em.flush()
                 em.clear()
                 statistics.clear()
-                val loaded = loader.load(reference)
+                val loaded = loader.load(reference.toDescriptor())
                 assertThat(loaded.sisalto).isNotEmpty()
                 assertThat(statistics.getEntityStatistics("fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja").loadCount)
                     .isZero()

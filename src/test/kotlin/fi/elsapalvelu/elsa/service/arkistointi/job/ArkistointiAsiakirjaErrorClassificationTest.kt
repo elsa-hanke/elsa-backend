@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
-import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
@@ -71,7 +70,7 @@ class ArkistointiAsiakirjaErrorClassificationTest {
             asiakirjaData = AsiakirjaData(data = if (kind == "empty") byteArrayOf() else byteArrayOf(1)))
         whenever(jdbc.query(any<String>(), any<RowMapper<ByteArray?>>(), eq(1L)))
             .thenReturn(if (kind == "missing") emptyList() else listOf(stored.asiakirjaData!!.data))
-        val reference = ArkistointiJobAsiakirja(asiakirja = stored, filename = privateValue, sha256 = "0".repeat(64))
+        val reference = ArkistointiDocumentDescriptor(1L, RecordType.LIITE, 0, privateValue, "application/pdf", "0".repeat(64))
         val exception = assertThrows<ArkistointiAsiakirjaException> { ArkistointiAsiakirjaLoaderImpl(jdbc).load(reference) }
         val code = when (kind) {
             "missing" -> "ARCHIVE_DOCUMENT_MISSING"
@@ -86,7 +85,9 @@ class ArkistointiAsiakirjaErrorClassificationTest {
         val failure = DataAccessResourceFailureException("database unavailable")
         whenever(jdbc.query(any<String>(), any<RowMapper<ByteArray?>>(), eq(1L))).thenThrow(failure)
         val exception = assertThrows<DataAccessResourceFailureException> {
-            ArkistointiAsiakirjaLoaderImpl(jdbc).load(ArkistointiJobAsiakirja(asiakirja = Asiakirja(id = 1L)))
+            ArkistointiAsiakirjaLoaderImpl(jdbc).load(
+                ArkistointiDocumentDescriptor(1L, RecordType.LIITE, 0, privateValue, "application/pdf", "0".repeat(64))
+            )
         }
         assertThat(exception).isSameAs(failure)
     }

@@ -170,7 +170,7 @@ class ValmistuminenArkistointiTransactionIT {
             val stored = jobs.findByKey(key)!!
             assertThat(stored.payload).isEqualTo(payload)
             stored.asiakirjat.forEach { asiakirja ->
-                assertThat(loader.load(asiakirja).sisalto).containsExactly(*archivedBytes.getValue(asiakirja.id!!))
+                assertThat(loader.load(asiakirja.toDescriptor()).sisalto).containsExactly(*archivedBytes.getValue(asiakirja.id!!))
             }
         }
         assertRepeatedApprovalKeepsJob(fixture, jobId)
@@ -251,7 +251,7 @@ class ValmistuminenArkistointiTransactionIT {
             assertThat(certificate.filename).isEqualTo(student.laillistamispaivanLiitetiedostonNimi)
             assertThat(certificate.contentType).isEqualTo(contentType)
             assertThat(certificate.asiakirja!!.asiakirjaData!!.id).isNotEqualTo(sourceId)
-            val bytes = loader.load(certificate).sisalto
+            val bytes = loader.load(certificate.toDescriptor()).sisalto
             assertThat(bytes).containsExactly(*original)
             certificate.id!! to bytes
         }
@@ -264,7 +264,7 @@ class ValmistuminenArkistointiTransactionIT {
         }
         transactions.executeWithoutResult {
             val stored = jobs.findByKey(key(fixture))!!.asiakirjat.single { document -> document.id == archived.first }
-            assertThat(loader.load(stored).sisalto).containsExactly(*archived.second)
+            assertThat(loader.load(stored.toDescriptor()).sisalto).containsExactly(*archived.second)
             assertThat(stored.filename).isEqualTo("laillistamistodistus.${contentType.substringAfter('/')}")
             assertThat(stored.contentType).isEqualTo(contentType)
             assertThat(stored.sha256).isEqualTo(ArkistointiChecksum.sha256(archived.second))
@@ -436,7 +436,7 @@ class ValmistuminenArkistointiTransactionIT {
             assertQueuedDocumentsMatchSources(job, request)
             assertSnapshots(job)
             assertThat(taskCount(job.id!!)).isEqualTo(1)
-            val archived = loader.load(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }).sisalto
+            val archived = loader.load(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }.toDescriptor()).sisalto
             assertAttachmentPdf(archived, pages)
             assertThat(em.find(Asiakirja::class.java, fixture.attachmentId).asiakirjaData!!.data).containsExactly(*original)
         }
@@ -460,7 +460,7 @@ class ValmistuminenArkistointiTransactionIT {
             val job = jobs.findByKey(key(fixture))!!
             assertQueuedDocumentsMatchSources(job, request)
             assertThat(taskCount(job.id!!)).isEqualTo(1)
-            val archived = loader.load(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }).sisalto
+            val archived = loader.load(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }.toDescriptor()).sisalto
             assertAttachmentPdf(archived, pages, totalPages = pages + 1,
                 prefix = if (embeddedFont) "Embedded page" else "Attachment page")
             PdfDocument(PdfReader(ByteArrayInputStream(archived))).use { pdf ->
@@ -486,7 +486,7 @@ class ValmistuminenArkistointiTransactionIT {
             val bytes = if (source == null) student.laillistamistodistus!!.data!! else source.asiakirjaData!!.data!!
             val filename = source?.nimi ?: student.laillistamispaivanLiitetiedostonNimi
             val contentType = source?.tyyppi ?: student.laillistamispaivanLiitetiedostonTyyppi
-            assertThat(loader.load(document).sisalto).containsExactly(*bytes)
+            assertThat(loader.load(document.toDescriptor()).sisalto).containsExactly(*bytes)
             assertThat(document.filename).isEqualTo(filename)
             assertThat(document.contentType).isEqualTo(contentType)
             assertThat(document.sha256).isEqualTo(ArkistointiChecksum.sha256(bytes))
@@ -511,7 +511,7 @@ class ValmistuminenArkistointiTransactionIT {
 
     private fun assertSnapshots(job: ArkistointiJob): Map<Long, ByteArray> = job.asiakirjat.associate { document ->
         assertThat(document.asiakirja!!.archiveSnapshot).isTrue
-        val bytes = loader.load(document).sisalto
+        val bytes = loader.load(document.toDescriptor()).sisalto
         assertThat(bytes).isNotEmpty
         assertThat(document.filename).isEqualTo(document.asiakirja!!.nimi)
         assertThat(document.contentType).isEqualTo(document.asiakirja!!.tyyppi)

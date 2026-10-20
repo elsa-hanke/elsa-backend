@@ -177,6 +177,16 @@ sellaisenaan. Muunnoksia tai PDF/A-vaatimusta ei lisätä lähetyksen tai uusint
 yhteydessä. Testit kattavat myös tavallisen pitkän PDF:n ja CMYK-JPEG:n täsmällisen
 sisällön säilymisen uudelleenyrityksessä, vaikka adapteri muuttaisi saamansa puskurin.
 
+Worker varmistaa execution-version ja siirtää jobin `KASITTELYSSA`-tilaan lyhyessä
+transaktiossa, josta palautetaan vain tallennettu payload ja asiakirjojen skalaariset
+viitteet. Snapshotien tavut ladataan ja SHA-256 tarkistetaan vasta commitin jälkeen,
+ilman scheduler- tai job-rivien lukkoja. Ennen adapterikutsua alkuperäinen execution
+ja jobin tila tarkistetaan uudelleen lyhyessä transaktiossa. Myös tuloksen tallennus
+säilyttää execution-version tarkistuksen. Tarkistuksen ja ulkoisen kutsun väliin jää
+silti kilpailuikkuna: adapterin on deduplikoitava myös samanaikaiset toimitukset
+samalla job-UUID:lla. Testit kattavat vanhan latauksen jatkumisen uuden executionin
+käynnistyttyä tai valmistuttua sekä vanhan latauksen virheen.
+
 `replica`-profiili poistaa db-scheduler-workerin käytöstä erikseen
 (`db-scheduler.enabled=false`); pelkkä `application.scheduling.enabled=false`
 ei pysäytä sitä. Myös `dev`-profiilissa worker on oletuksena pois käytöstä.

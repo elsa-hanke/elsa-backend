@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import java.time.Instant
@@ -58,6 +59,35 @@ data class ArkistointiJobExecution(val taskName: String, val taskInstanceId: Str
 /** Control flow: another execution owns this task, or it has already been acknowledged. */
 internal class StaleArkistointiExecutionException : RuntimeException("Archive execution is no longer current")
 
+/** Detached scalar metadata only: preparation never loads document bytes. */
+data class PreparedArkistointiJob(
+    val jobId: UUID,
+    val university: YliopistoEnum,
+    val caseType: CaseType,
+    val payload: String,
+    val asiakirjat: List<ArkistointiDocumentDescriptor>
+) {
+    override fun toString() = "PreparedArkistointiJob(jobId=$jobId, asiakirjoja=${asiakirjat.size})"
+}
+
+data class ArkistointiDocumentDescriptor(
+    val asiakirjaId: Long,
+    val asiakirjatyyppi: RecordType,
+    val jarjestysnumero: Int,
+    val filename: String,
+    val contentType: String,
+    val sha256: String
+) {
+    override fun toString() = "ArkistointiDocumentDescriptor(asiakirjaId=$asiakirjaId)"
+}
+
+/** Must be called while the job reference is attached; no entity escapes the transaction. */
+internal fun ArkistointiJobAsiakirja.toDescriptor() = ArkistointiDocumentDescriptor(
+    asiakirja?.id ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing()),
+    asiakirjatyyppi.required(), jarjestysnumero.required(), filename.required(), contentType.required(),
+    sha256 ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.checksumMismatch())
+)
+
 data class LoadedArkistointiAsiakirja(
     val asiakirjaId: Long,
     val asiakirjatyyppi: RecordType,
@@ -71,7 +101,7 @@ data class LoadedArkistointiAsiakirja(
 }
 
 interface ArkistointiAsiakirjaLoader {
-    fun load(viite: ArkistointiJobAsiakirja): LoadedArkistointiAsiakirja
+    fun load(viite: ArkistointiDocumentDescriptor): LoadedArkistointiAsiakirja
 }
 
 data class ArkistointiSubmission(

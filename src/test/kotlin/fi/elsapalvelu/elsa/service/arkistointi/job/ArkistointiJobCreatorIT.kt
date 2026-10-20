@@ -78,7 +78,7 @@ class ArkistointiJobCreatorIT {
         entityManager.flush()
         entityManager.clear()
         val attached = jobRepository.findById(job.id!!).orElseThrow().asiakirjat.single()
-        val bytes = loader.load(attached).sisalto
+        val bytes = loader.load(attached.toDescriptor()).sisalto
         assertThat(attached.asiakirja!!.id).isNotEqualTo(source.id)
         assertThat(attached.filename).isEqualTo(source.nimi)
         assertThat(attached.contentType).isEqualTo(source.tyyppi)
@@ -100,7 +100,7 @@ class ArkistointiJobCreatorIT {
         val job = creator.create(request(reference))
         val attached = job.asiakirjat.single()
         assertThat(attached.asiakirja!!.id).isEqualTo(source.id)
-        assertThat(loader.load(attached).sisalto).containsExactly(*source.asiakirjaData!!.data!!)
+        assertThat(loader.load(attached.toDescriptor()).sisalto).containsExactly(*source.asiakirjaData!!.data!!)
         assertThat(scheduledTaskCount(job.id!!)).isEqualTo(1)
     }
 
@@ -159,7 +159,7 @@ class ArkistointiJobCreatorIT {
         entityManager.flush()
         entityManager.clear()
         val stored = jobRepository.findById(job.id!!).orElseThrow()
-        assertThat(loader.load(stored.asiakirjat.single()).sisalto).containsExactly(*original)
+        assertThat(loader.load(stored.asiakirjat.single().toDescriptor()).sisalto).containsExactly(*original)
         assertThat(stored.payload).isEqualTo("{\"approved\":true}")
         assertThat(stored.asiakirjat.single().filename).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(asiakirjaRepository.findAllByOpintooikeusId(source.opintooikeus!!.id!!).map { it.id })
@@ -214,7 +214,7 @@ class ArkistointiJobCreatorIT {
         assertThat(storedStudent.laillistamispaivanLiitetiedostonTyyppi).isEqualTo(contentType)
         val storedJob = jobRepository.findById(job.id!!).orElseThrow()
         val storedReference = storedJob.asiakirjat.single()
-        val snapshotBytes = loader.load(storedReference).sisalto
+        val snapshotBytes = loader.load(storedReference.toDescriptor()).sisalto
         assertThat(snapshotBytes).containsExactly(*original)
         assertThat(storedReference.sha256).isEqualTo(ArkistointiChecksum.sha256(snapshotBytes))
         assertThat(storedReference.filename).isEqualTo(filename)
@@ -311,7 +311,7 @@ class ArkistointiJobCreatorIT {
         assertThat(scheduledTaskCount(job.id!!)).isEqualTo(1)
         val submission = ArkistointiSubmission(
             requireNotNull(stored.id), requireNotNull(stored.university), requireNotNull(stored.caseType),
-            requireNotNull(stored.payload), stored.asiakirjat.map(loader::load)
+            requireNotNull(stored.payload), stored.asiakirjat.map { loader.load(it.toDescriptor()) }
         )
         assertThat(submission.key).isEqualTo(job.id)
         assertThat(submission.key.toString()).isNotEqualTo(stored.key)
