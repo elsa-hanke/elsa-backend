@@ -92,14 +92,17 @@ skeemamuutoksia. Testien `test-master.xml` suorittaa lisäksi kahden
 sarakekohtaisen sekvenssin kohdistuksen ladatun viitedatan suurimpaan ID-arvoon.
 Envers käyttää samoja audit-taulujen ja revision-sarakkeiden nimiä kuin tuotannossa.
 
-### Arkistoinnin kuvasnapshotit
+### Arkistoinnin muuttumattomat snapshotit
 
-Arkistosnapshot tukee PDF-, JPEG- ja PNG-tiedostoja; `image/jpg` käsitellään
-JPEG-aliasmuotona kuten tiedostojen latauksessa. Vain arkistokopio normalisoidaan
-PDF/A-2b-muotoon. Alkuperäisen tiedoston tavut, nimi ja MIME-tyyppi eivät muutu.
-Tavallinen PDF-yhdistäminen ei käytä tätä kuvien normalisointia tai sen rajoja.
-Pakollisen laillistamistodistuksen puuttuminen tai virheellinen sisältö estää
-snapshotin luonnin hallitulla virheellä; puutteellista aineistoa ei hyväksytä.
+Arkistosnapshot tallentaa olemassa olevan asiakirjan tavut, nimen ja MIME-tyypin
+sellaisinaan. PDF:t luodaan ja liitteet yhdistetään olemassa olevalla PDF-palvelulla;
+snapshot ei normalisoi, rasteroi tai pienennä sisältöä eikä edellytä PDF/A-muotoa.
+Oma HTML-pohjainen PDF-tuotanto säilyttää aiemman PDF/A-2b-luontitapansa.
+Erillinen laillistamistodistus säilyttää alkuperäisen tiedostomuotonsa, myös kuvat
+ja `image/jpg`-MIME-tyypin. Snapshotin tallennus ei ole uusi tiedostovalidaattori:
+sisällön hyväksyttävyys tarkistetaan olemassa olevassa lataus- ja PDF-käsittelyssä.
+Pakollinen puuttuva tai tyhjä aineisto sekä puuttuvat metatiedot estävät snapshotin
+luonnin hallitulla virheellä. Nimen ja MIME-tyypin tulee mahtua 255 merkin sarakkeisiin.
 
 `ArkistointiAsiakirjaException.category` erottaa hylätyn lähdeaineiston
 (`INPUT_DOCUMENT`), tallennetun aineiston eheysvirheen (`STORED_DOCUMENT`) ja
@@ -112,34 +115,18 @@ Dokumenttivirheestä lokitetaan vain koodi ja tarvittaessa luokka, ei poikkeusta
 Virhe peruuttaa hyväksymistransaktion; osittaisia snapshoteja tai jonorivejä ei jää.
 Frontendin käännökset ja virheen näyttäminen toteutetaan erillisessä tehtävässä.
 Dokumenttivirheen viesti ja kuvaus eivät sisällä tiedostonimeä tai sisältöä,
-eikä poikkeus säilytä kirjaston alkuperäistä cause-ketjua. Esimerkiksi palvelimen
-ICC-profiilin puuttuminen on käsittelyvirhe, ei virheellinen käyttäjän tiedosto.
+eikä poikkeus säilytä kirjaston alkuperäistä cause-ketjua.
 Tietokantapoikkeuksia ei muuteta lähdeaineiston virheiksi.
 
-Normalisointi validoi lopulliset PDF/A-tavut. Snapshot-palvelu liittää viitteeseen
-sisäisen todisteen, joka sitoo tarkistuksen dokumentin ID:hen, metatietoihin ja
-SHA-256-tiivisteeseen. Creator tarkistaa tallennetun sisällön ja tiivisteen,
-mutta ei validoi samaa hyväksyttyä PDF/A-tulosta uudelleen. Viitteen `copy()`
-ei kopioi todistetta; ilman sitä olemassa oleva snapshot validoidaan uudelleen.
-Pelkkä `archiveSnapshot=true` ei riitä: palvelu tarkistaa tietokannan lipun ja
+Creator tarkistaa tallennetun sisällön, metatiedot ja SHA-256-tiivisteen aina
+tietokannan asiakirjasta. Pelkkä DTO tai `archiveSnapshot=true` ei riitä:
+palvelu tarkistaa tietokannan lipun ja
 käsittelee muuttuvan lähdedokumentin aina erillisenä arkistokopiona.
 Jobin nimi, MIME-tyyppi ja tiiviste otetaan lopullisesta snapshotista.
-Loader tarkistaa edelleen tiivisteen ennen lähetystä. Snapshotin luonnin transaktiorajat
-ja normalisoinnin fallback säilyvät.
-
-`ArchiveImageNormalizer` tarkistaa ennen rasterin lukemista enintään 20 MiB:n
-tiedostokoon, 16 384 pikselin sivun ja 40 megapikselin lähdekuvan rajat. Lisäksi
-256 MiB:n laskennallinen työmuistibudjetti varaa 8 tavua/lähdepikseli,
-kaksi kopiota pakatusta aineistosta ja 32 tavua/dekoodattu pikseli.
-Tämä on konservatiivinen hyväksymisarvio, ei takuu JVM:n kokonaismuistinkulutuksesta;
-myös näitä kokorajoja pienempi kuva voidaan hylätä muistibudjetin perusteella.
-Dekooderi pienentää kuvaa tasaisesti jo lukuvaiheessa enintään 10 megapikseliin
-ja 4096 pikselin sivuun sekä jäljellä olevaan muistibudjettiin. Esimerkiksi
-4000 × 3000 pikselin kuva luetaan 2000 × 1500 pikselin rasteriksi. Jos rajoihin
-mahtuminen vaatisi yli nelinkertaisen pienennyksen kummallakin akselilla,
-kuva hylätään hallitusti liian voimakkaan laadun heikentämisen sijaan.
-Värimalli muunnetaan sRGB:ksi, läpinäkyvyys valkoista taustaa vasten ja EXIF-suunta
-huomioidaan. PDF-tiedostojen aiemmat rasterointirajat säilyvät ennallaan.
+Loader tarkistaa tiivisteen ennen lähetystä. Snapshotilla on oma tavutaulukko ja
+tietokannan suojaukset estävät sen sisällön ja metatietojen muuttamisen tai poistamisen.
+Job, snapshotit ja ajastus tallentuvat samassa transaktiossa; rollback ei jätä
+osittaista arkistointia. PDF/A-konvertoinnin sivu- tai pikselirajoja ei ole.
 
 ### Ulkoiset integraatiotestit
 

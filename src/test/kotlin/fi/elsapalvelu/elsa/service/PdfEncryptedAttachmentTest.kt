@@ -14,7 +14,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
-import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.thymeleaf.spring6.SpringTemplateEngine
 import java.io.ByteArrayInputStream
@@ -27,8 +26,7 @@ class PdfEncryptedAttachmentTest {
         PdfGenerationMetricsService(SimpleMeterRegistry()),
         PdfContentValidator(),
         mock(PdfTextFieldValidator::class.java),
-        mock(PdfCachingResourceRetriever::class.java),
-        PdfA2bService(ClassPathResource("sRGB_CS_profile.icm"))
+        mock(PdfCachingResourceRetriever::class.java)
     )
 
     @Test
