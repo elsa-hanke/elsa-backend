@@ -128,6 +128,14 @@ tietokannan suojaukset estävät sen sisällön ja metatietojen muuttamisen tai 
 Job, snapshotit ja ajastus tallentuvat samassa transaktiossa; rollback ei jätä
 osittaista arkistointia. PDF/A-konvertoinnin sivu- tai pikselirajoja ei ole.
 
+Valmistumisen hyväksyntä luo PDF:t samalla palvelulla sekä synkronisessa että
+asynkronisessa tilassa. Asynkroninen haara jäädyttää valmiin yhteenvedon ja
+liitekoosteen sellaisinaan sekä laillistamistodistuksen alkuperäisessä muodossa;
+se ei kokoa liitteitä uudelleen eikä käytä erillistä konvertteria. Integraatiotestit
+tarkistavat snapshotin tavujen, nimen ja MIME-tyypin yhtäsuuruuden valmistuneen
+asiakirjan kanssa, 30/100/201-sivuiset PDF:t ilman upotettuja fontteja, CMYK-kuvat,
+sekä hyväksynnän rollbackin ja synkronisen ZIP-lähetyksen ilman jonorivejä.
+
 ### Ulkoiset integraatiotestit
 
 Ulkoiset integraatiotestit testaavat etäpalveluita eivätkä käytä paikallista

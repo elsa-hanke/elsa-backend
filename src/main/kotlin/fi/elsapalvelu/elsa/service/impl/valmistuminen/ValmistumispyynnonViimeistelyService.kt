@@ -103,6 +103,7 @@ class ValmistumispyynnonViimeistelyService(
         yek: Boolean
     ) = buildList {
         asiakirjat.forEachIndexed { index, record ->
+            // Freeze exactly the documents produced for the synchronous path; do not regenerate or convert them.
             add(asiakirjaSnapshotService.createReference(record.asiakirja, record.type, index))
         }
         if (!yek) {
