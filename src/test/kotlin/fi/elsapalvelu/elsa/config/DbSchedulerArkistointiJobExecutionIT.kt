@@ -22,8 +22,8 @@ import org.springframework.transaction.support.TransactionTemplate
 import java.net.URI
 import java.time.Duration
 import java.time.Instant
+import java.util.UUID
 import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
 import javax.cache.Caching
 
@@ -56,7 +56,7 @@ class DbSchedulerArkistointiJobExecutionIT {
 
     @Test
     fun `scheduler kutsuu processoria vasta ajastuksen commitoinnin jalkeen`() {
-        val jobId = ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE)
+        val jobId = UUID.randomUUID()
 
         assertThat(backgroundScheduler.schedulerState.isStarted).isTrue
         transactionTemplate.executeWithoutResult {
@@ -96,9 +96,9 @@ class DbSchedulerArkistointiJobExecutionIT {
     }
 
     class RecordingProcessor : ArkistointiJobProcessor {
-        val jobIds = LinkedBlockingQueue<Long>()
+        val jobIds = LinkedBlockingQueue<UUID>()
 
-        override fun process(jobId: Long) {
+        override fun process(jobId: UUID) {
             jobIds.add(jobId)
         }
     }

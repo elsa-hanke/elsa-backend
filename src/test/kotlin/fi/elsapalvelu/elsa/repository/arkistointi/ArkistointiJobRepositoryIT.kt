@@ -15,8 +15,10 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.util.UUID
 
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
@@ -30,6 +32,9 @@ class ArkistointiJobRepositoryIT {
 
     @Autowired
     private lateinit var entityManager: EntityManager
+
+    @Autowired
+    private lateinit var jdbcTemplate: JdbcTemplate
 
     @Test
     fun `job ja asiakirjaviite tallennetaan ja haetaan`() {
@@ -59,6 +64,7 @@ class ArkistointiJobRepositoryIT {
         assertThat(loydetty).isNotNull
         assertThat(loydetty?.createdAt).isNotNull
         assertThat(loydetty?.updatedAt).isNotNull
+        assertThat(loydetty?.id).isEqualTo(tallennettu.id)
         assertThat(asiakirjat).hasSize(1)
         assertThat(asiakirjat.single().asiakirja?.id).isEqualTo(asiakirja.id)
         assertThat(asiakirjat.single().job?.id).isEqualTo(tallennettu.id)
@@ -70,6 +76,89 @@ class ArkistointiJobRepositoryIT {
 
         assertThrows<DataIntegrityViolationException> {
             jobRepository.saveAndFlush(uusiJob("sama-avain"))
+        }
+    }
+
+    @Test
+    fun `different business operations cannot share a delivery UUID`() {
+        val first = jobRepository.saveAndFlush(uusiJob("first-delivery"))
+
+        assertThrows<DataIntegrityViolationException> {
+            jdbcTemplate.update(
+                "insert into arkistointi_job (id, university, case_type, payload, job_key) values (?, ?, ?, ?, ?)",
+                first.id, "TURUN_YLIOPISTO", "VALMISTUMINEN", "{}", "different-business-key"
+            )
+        }
+    }
+
+    @Test
+    fun `JPA generates independent UUID job IDs when first persisted`() {
+        val first = uusiJob("generated-first")
+        val second = uusiJob("generated-second")
+        assertThat(first.id).isNull()
+        assertThat(second.id).isNull()
+
+        jobRepository.saveAndFlush(first)
+        jobRepository.saveAndFlush(second)
+
+        val firstId = requireNotNull(first.id)
+        assertThat(firstId.version()).isEqualTo(4)
+        assertThat(firstId.variant()).isEqualTo(2)
+        assertThat(second.id).isNotNull().isNotEqualTo(firstId)
+    }
+
+    @Test
+    fun `persisted delivery UUID survives reloads automatic retries and manual retry transitions`() {
+        val saved = jobRepository.saveAndFlush(uusiJob("retry-delivery"))
+        val id = requireNotNull(saved.id)
+        entityManager.clear()
+
+        listOf(
+            ArkistointiJobStatus.KASITTELYSSA,
+            ArkistointiJobStatus.ODOTTAA,
+            ArkistointiJobStatus.KASITTELYSSA,
+            ArkistointiJobStatus.VAATII_TOIMENPITEITA,
+            ArkistointiJobStatus.ODOTTAA,
+            ArkistointiJobStatus.KASITTELYSSA,
+            ArkistointiJobStatus.LAHETETTY
+        ).forEach { status ->
+            val current = jobRepository.findById(id).orElseThrow()
+            assertThat(current.id).isEqualTo(id)
+            current.transitionTo(status)
+            jobRepository.saveAndFlush(current)
+            entityManager.clear()
+        }
+        assertThat(jobRepository.findByKey("retry-delivery")?.id).isEqualTo(id)
+    }
+
+    @Test
+    fun `database rejects changing the delivery UUID`() {
+        val job = jobRepository.saveAndFlush(uusiJob("immutable-delivery"))
+
+        val exception = assertThrows<DataIntegrityViolationException> {
+            jdbcTemplate.update("update arkistointi_job set id = ? where id = ?", UUID.randomUUID(), job.id)
+        }
+        assertThat(exception).hasStackTraceContaining("Archive job ID cannot be changed")
+    }
+
+    @Test
+    fun `database generates distinct delivery UUIDs for inserts without an explicit key`() {
+        val sql = "insert into arkistointi_job (university, case_type, payload, job_key) values (?, ?, ?, ?) returning id"
+        val first = jdbcTemplate.queryForObject(sql, UUID::class.java, "TURUN_YLIOPISTO", "VALMISTUMINEN", "{}", "sql-first")
+        val second = jdbcTemplate.queryForObject(sql, UUID::class.java, "TURUN_YLIOPISTO", "VALMISTUMINEN", "{}", "sql-second")
+
+        assertThat(first).isNotNull()
+        assertThat(second).isNotNull().isNotEqualTo(first)
+        assertThat(jobRepository.findByKey("sql-first")?.id).isEqualTo(first)
+    }
+
+    @Test
+    fun `database rejects a missing delivery UUID`() {
+        assertThrows<DataIntegrityViolationException> {
+            jdbcTemplate.update(
+                "insert into arkistointi_job (university, case_type, payload, job_key, id) values (?, ?, ?, ?, null)",
+                "TURUN_YLIOPISTO", "VALMISTUMINEN", "{}", "null-delivery"
+            )
         }
     }
 

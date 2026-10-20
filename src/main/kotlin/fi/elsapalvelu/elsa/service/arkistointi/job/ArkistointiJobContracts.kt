@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import java.time.Instant
+import java.util.UUID
 
 data class ArkistointiAsiakirjaReference(
     val asiakirja: Asiakirja,
@@ -21,6 +22,7 @@ data class CreateArkistointiJobRequest(
     val university: YliopistoEnum,
     val caseType: CaseType,
     val payload: String,
+    /** Local business key for finding the existing job, not the external delivery identity. */
     val key: String,
     val asiakirjat: List<ArkistointiAsiakirjaReference>
 ) {
@@ -35,11 +37,11 @@ interface ArkistointiJobCreator {
 }
 
 interface ArkistointiJobScheduler {
-    fun schedule(jobId: Long, executionTime: Instant = Instant.now()): Boolean
+    fun schedule(jobId: UUID, executionTime: Instant = Instant.now()): Boolean
 }
 
 interface ArkistointiJobProcessor {
-    fun process(jobId: Long)
+    fun process(jobId: UUID)
 }
 
 data class LoadedArkistointiAsiakirja(
@@ -52,13 +54,15 @@ interface ArkistointiAsiakirjaLoader {
 }
 
 data class ArkistointiSubmission(
-    val jobId: Long,
-    val key: String,
+    val jobId: UUID,
     val university: YliopistoEnum,
     val caseType: CaseType,
     val payload: String,
     val asiakirjat: List<LoadedArkistointiAsiakirja>
 ) {
+    /** The saved job ID is the delivery key, reused for every automatic and manual attempt. */
+    val key: UUID get() = jobId
+
     override fun toString() = "ArkistointiSubmission(" +
         "jobId=$jobId, " +
         "university=$university, " +
