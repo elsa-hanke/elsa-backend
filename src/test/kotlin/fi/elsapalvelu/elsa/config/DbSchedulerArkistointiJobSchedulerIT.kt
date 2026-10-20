@@ -19,7 +19,7 @@ import org.springframework.transaction.IllegalTransactionStateException
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.Duration
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicLong
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Supplier
 import javax.sql.DataSource
@@ -83,7 +83,7 @@ class DbSchedulerArkistointiJobSchedulerIT {
 
     @Test
     fun `puuttuva processor ei paata suoritusta onnistuneena`() {
-        val jobId = seuraavaJobId()
+        val jobId = UUID.randomUUID()
         try {
             transactionTemplate.executeWithoutResult {
                 scheduler.schedule(jobId, Instant.now().minusSeconds(1))
@@ -114,7 +114,7 @@ class DbSchedulerArkistointiJobSchedulerIT {
 
     @Test
     fun `job ajastetaan db scheduleriin vain kerran`() {
-        val jobId = seuraavaJobId()
+        val jobId = UUID.randomUUID()
         val suoritusAika = Instant.parse("2099-01-01T00:00:00Z")
 
         transactionTemplate.executeWithoutResult {
@@ -139,7 +139,7 @@ class DbSchedulerArkistointiJobSchedulerIT {
 
     @Test
     fun `ajastus peruuntuu ymparoivan transaktion mukana`() {
-        val jobId = seuraavaJobId()
+        val jobId = UUID.randomUUID()
 
         transactionTemplate.executeWithoutResult {
             scheduler.schedule(jobId, Instant.parse("2099-01-01T00:00:00Z"))
@@ -152,7 +152,7 @@ class DbSchedulerArkistointiJobSchedulerIT {
     @Test
     fun `jobia ei voi ajastaa ilman transaktiota`() {
         assertThrows<IllegalTransactionStateException> {
-            scheduler.schedule(seuraavaJobId())
+            scheduler.schedule(UUID.randomUUID())
         }
     }
 
@@ -163,7 +163,7 @@ class DbSchedulerArkistointiJobSchedulerIT {
         }
     }
 
-    private fun scheduledTaskCount(jobId: Long): Long =
+    private fun scheduledTaskCount(jobId: UUID): Long =
         jdbcTemplate.queryForObject(
             """
             select count(*)
@@ -175,9 +175,4 @@ class DbSchedulerArkistointiJobSchedulerIT {
             jobId.toString()
         ) ?: 0
 
-    companion object {
-        private val jobIds = AtomicLong(System.currentTimeMillis())
-
-        private fun seuraavaJobId() = jobIds.incrementAndGet()
-    }
 }
