@@ -142,11 +142,15 @@ luonnin hallitulla virheellä. Nimen ja MIME-tyypin tulee mahtua 255 merkin sara
 odottamattoman käsittelyvirheen (`PROCESSING_FAILURE`). Hyväksynnän HTTP-rajapinta
 palauttaa ensimmäisestä luokasta 400 ja kahdesta muusta 500. ProblemDetail-vastaus
 sisältää vakaan `ARCHIVE_DOCUMENT_*`-arvon kentässä `errorKey`, kentän
-`message: error.<errorKey>` sekä `params: valmistumispyynto`. Vastaus ei sisällä
+`message: error.<errorKey>`. Dokumenttivirhe ei sisällä operaatiokohtaista
+`params`-kenttää, joten sama sopimus ei sido virhettä valmistumispyyntöön. Vastaus ei sisällä
 tiedostonimeä, dokumentin sisältöä tai alkuperäistä virhekuvausta.
 Dokumenttivirheestä lokitetaan vain koodi ja tarvittaessa luokka, ei poikkeusta.
 Virhe peruuttaa hyväksymistransaktion; osittaisia snapshoteja tai jonorivejä ei jää.
-Frontendin käännökset ja virheen näyttäminen toteutetaan erillisessä tehtävässä.
+Valmistumisen ja YEK-valmistumisen hyväksyntälomakkeet näyttävät dokumenttivirheen
+suomenkielisen syyn. Lähdevirheelle (400) annetaan asiakirjan täydentämis- tai
+tarkistusohje. Palvelinvirheelle (500) näytetään käsittelyvirheen yleinen ohje,
+ei kehotusta korvata käyttäjän liitettä. Käännökset eivät sisällä henkilötietoja.
 Dokumenttivirheen viesti ja kuvaus eivät sisällä tiedostonimeä tai sisältöä,
 eikä poikkeus säilytä kirjaston alkuperäistä cause-ketjua.
 Tietokantapoikkeuksia ei muuteta lähdeaineiston virheiksi.

@@ -266,6 +266,11 @@
   "erittain-vaativa": "Erittäin vaativa",
   "erittain-vaativa-kuvaus": "Erikoisalan tehtävänä erittäin vaativa, josta suoriutuminen on haastavaa myös valmiille erikoislääkärille. Vaatii erityistä ponnistelua ja tarvittaessa hankkimaan uusia tietoja ja taitoja.",
   "error": {
+    "ARCHIVE_DOCUMENT_MISSING": "Hyväksyntää ei tallennettu, koska pakollinen arkistoitava asiakirja puuttuu. Pyydä täydentämään puuttuva asiakirja ja yritä hyväksyntää uudelleen.",
+    "ARCHIVE_DOCUMENT_EMPTY": "Hyväksyntää ei tallennettu, koska arkistoitava asiakirja on tyhjä. Pyydä toimittamaan asiakirja, jossa on sisältöä, ja yritä hyväksyntää uudelleen.",
+    "ARCHIVE_DOCUMENT_INVALID": "Hyväksyntää ei tallennettu, koska arkistoitavaa asiakirjaa ei voitu käsitellä. Pyydä tarkistamaan asiakirja ja sen tiedot ja yritä hyväksyntää uudelleen.",
+    "ARCHIVE_DOCUMENT_CHECKSUM_MISMATCH": "Hyväksyntää ei tallennettu, koska tallennetun arkistointiaineiston eheyttä ei voitu varmistaa. Ota yhteyttä ELSA-palvelun tukeen.",
+    "ARCHIVE_DOCUMENT_PROCESSING_FAILED": "Hyväksyntää ei tallennettu asiakirjojen käsittelyssä tapahtuneen virheen vuoksi. Yritä myöhemmin uudelleen. Jos virhe toistuu, ota yhteyttä ELSA-palvelun tukeen.",
     "dataillegal": {
       "samanniminen-tiedosto-on-jo-olemassa": "Samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos toinen samanniminen tiedosto on jo lisätty ELSA-palveluun, anna tiedostolle toinen nimi, ja lataa se sitten uudelleen.",
       "pdf-tiedostoa-ei-voitu-kasitella": "Liitetiedostoa ei voitu käsitellä. Tarkista, että saat tiedoston aukeamaan normaalisti ennen lataamista ELSA-palveluun. Jos PDF-tiedosto avautuu normaalisti, tallenna se uudelleen PDF-muodossa ja yritä uudelleen.",
