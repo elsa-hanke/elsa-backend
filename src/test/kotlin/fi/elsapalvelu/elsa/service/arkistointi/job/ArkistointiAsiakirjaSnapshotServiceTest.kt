@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
@@ -8,14 +9,17 @@ import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
 import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
+import org.apache.commons.codec.digest.DigestUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -108,5 +112,31 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
         assertThat(reference.asiakirja).isSameAs(snapshot)
         assertThat(reference.sha256).isEqualTo(ArkistointiChecksum.sha256(snapshot.asiakirjaData!!.data!!))
         verify(repository, never()).save(any<Asiakirja>())
+    }
+
+    @Test
+    fun `resolved snapshot is hashed once and loader independently verifies its bytes`() {
+        val data = PdfTestData.unembeddedFontPdf(1)
+        val snapshot = Asiakirja(id = 4L, nimi = "snapshot.pdf", tyyppi = "application/pdf",
+            asiakirjaData = AsiakirjaData(data = data), archiveSnapshot = true)
+        whenever(repository.findOneWithDataById(4L)).thenReturn(snapshot)
+        whenever(repository.findArchiveSnapshotFlagById(4L)).thenReturn(true)
+        val original = service.createReference(snapshot, RecordType.LIITE, 0)
+
+        Mockito.mockStatic(DigestUtils::class.java, Mockito.CALLS_REAL_METHODS).use { digests ->
+            val resolved = service.resolveReference(original.copy(sha256 = original.sha256.uppercase()))
+            assertThat(resolved.sha256).isEqualTo(original.sha256)
+            digests.verify({ DigestUtils.sha256Hex(data) }, times(1))
+
+            val reference = ArkistointiJobAsiakirja(asiakirja = resolved.asiakirja, sha256 = resolved.sha256)
+            val loader = ArkistointiAsiakirjaLoaderImpl(repository)
+            assertThat(loader.load(reference).sisalto).containsExactly(*data)
+            digests.verify({ DigestUtils.sha256Hex(data) }, times(2))
+
+            data[0] = (data[0].toInt() xor 1).toByte()
+            val exception = assertThrows<ArkistointiAsiakirjaException> { loader.load(reference) }
+            assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_CHECKSUM_MISMATCH")
+            digests.verify({ DigestUtils.sha256Hex(data) }, times(3))
+        }
     }
 }
