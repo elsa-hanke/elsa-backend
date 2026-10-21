@@ -12,6 +12,8 @@ import com.github.kagkarlsson.scheduler.task.FailureHandler
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.PdfTestData
@@ -70,6 +72,7 @@ import javax.sql.DataSource
 @Import(ArkistointiJobProcessingIT.TestConfig::class)
 class ArkistointiJobProcessingIT {
     @Autowired private lateinit var creator: ArkistointiJobCreator
+    @Autowired private lateinit var jobScheduler: ArkistointiJobScheduler
     @Autowired private lateinit var snapshots: ArkistointiAsiakirjaSnapshotService
     @Autowired private lateinit var jobs: ArkistointiJobRepository
     @Autowired private lateinit var em: EntityManager
@@ -327,14 +330,9 @@ class ArkistointiJobProcessingIT {
 
     @Test
     fun `checksum mismatch and invalid payload terminate without invoking adapter`() {
-        val corruptJob = fixture()
-        transactions.executeWithoutResult {
-            val job = jobs.findById(corruptJob).orElseThrow()
-            job.asiakirjat.single().sha256 = "0".repeat(64)
-        }
+        val corruptJob = fixture(checksum = "0".repeat(64))
         assertTerminal(corruptJob, "ARCHIVE_DOCUMENT_CHECKSUM_MISMATCH")
-        val invalidJob = fixture()
-        transactions.executeWithoutResult { jobs.findById(invalidJob).orElseThrow().payload = "not-json" }
+        val invalidJob = fixture(payload = "not-json")
         assertTerminal(invalidJob, "ARCHIVE_JOB_INVALID")
         assertThat(adapter.submissions).isEmpty()
     }
@@ -713,15 +711,33 @@ class ArkistointiJobProcessingIT {
         "select coalesce(consecutive_failures, 0) from scheduled_tasks where task_instance = ?", Int::class.javaObjectType, jobId.toString()
     )!!
 
-    private fun fixture(university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO): UUID = transactions.execute {
+    private fun fixture(
+        university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO,
+        payload: String = "{\"approved\":true}",
+        checksum: String? = null
+    ): UUID = transactions.execute {
         YliopistoHelper.createReferenceData(em, university)
         val source = AsiakirjaHelper.createEntity(em)
         source.asiakirjaData!!.data = PdfTestData.certificate()
         em.persist(source)
         val reference = snapshots.createReference(source, RecordType.YHTEENVETO, 0)
-        creator.create(CreateArkistointiJobRequest(
-            university, CaseType.VALMISTUMINEN, "{\"approved\":true}", "processing-${UUID.randomUUID()}", listOf(reference)
-        )).id!!
+        val request = CreateArkistointiJobRequest(
+            university, CaseType.VALMISTUMINEN, payload, "processing-${UUID.randomUUID()}", listOf(reference)
+        )
+        if (checksum == null) {
+            creator.create(request).id!!
+        } else {
+            // Seed a malformed historical manifest at INSERT time. Never disable immutability
+            // triggers or mutate a committed delivery merely to exercise corruption recovery.
+            val job = ArkistointiJob(university = university, caseType = request.caseType, payload = payload,
+                key = request.key, expectedDocumentCount = 1)
+            job.lisaaAsiakirja(ArkistointiJobAsiakirja(asiakirja = reference.asiakirja,
+                asiakirjatyyppi = reference.asiakirjatyyppi, jarjestysnumero = reference.jarjestysnumero,
+                filename = reference.filename, contentType = reference.contentType, sha256 = checksum))
+            val id = requireNotNull(jobs.saveAndFlush(job).id)
+            check(jobScheduler.schedule(id))
+            id
+        }
     }
 
     private fun retryable() = ArkistointiResult.RetryableFailure(ArkistointiError.create("UNAVAILABLE", "Palvelu ei vastaa"))

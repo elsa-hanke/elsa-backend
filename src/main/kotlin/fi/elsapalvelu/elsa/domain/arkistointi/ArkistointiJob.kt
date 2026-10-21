@@ -15,6 +15,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.OrderBy
 import jakarta.persistence.Table
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Size
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
@@ -57,6 +58,12 @@ data class ArkistointiJob(
     @get:Size(max = 255)
     @Column(name = "job_key", nullable = false, unique = true, length = 255)
     var key: String? = null,
+
+    /** Immutable manifest size, fixed before the first persist; checked against references at commit. */
+    @get:NotNull
+    @get:Min(1)
+    @Column(name = "expected_document_count", nullable = false)
+    var expectedDocumentCount: Int? = null,
 
     @get:Size(max = MAX_EXTERNAL_ID_LENGTH)
     @Column(name = "external_id", length = MAX_EXTERNAL_ID_LENGTH)

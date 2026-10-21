@@ -70,6 +70,9 @@
             <column name="job_key" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="expected_document_count" type="integer">
+                <constraints nullable="false"/>
+            </column>
             <column name="external_id" type="varchar(255)"/>
             <column name="error_code" type="varchar(100)"/>
             <column name="last_error" type="varchar(1000)"/>
@@ -88,17 +91,29 @@
             constraintName="ux_arkistointi_job__job_key"/>
 
         <sql splitStatements="false"><![CDATA[
+            ALTER TABLE arkistointi_job ADD CONSTRAINT ck_arkistointi_job_document_count
+                CHECK (expected_document_count > 0);
+
             CREATE FUNCTION prevent_arkistointi_job_id_change() RETURNS trigger AS $$
             BEGIN
+                IF TG_OP = 'DELETE' THEN
+                    RAISE EXCEPTION 'Archive jobs cannot be deleted' USING ERRCODE = '23514';
+                END IF;
                 IF NEW.id IS DISTINCT FROM OLD.id THEN
                     RAISE EXCEPTION 'Archive job ID cannot be changed' USING ERRCODE = '23514';
+                END IF;
+                IF ROW(NEW.university, NEW.case_type, NEW.payload, NEW.job_key,
+                       NEW.created_at, NEW.expected_document_count) IS DISTINCT FROM
+                   ROW(OLD.university, OLD.case_type, OLD.payload, OLD.job_key,
+                       OLD.created_at, OLD.expected_document_count) THEN
+                    RAISE EXCEPTION 'Archive job delivery metadata cannot be changed' USING ERRCODE = '23514';
                 END IF;
                 RETURN NEW;
             END;
             $$ LANGUAGE plpgsql;
 
             CREATE TRIGGER arkistointi_job_id_immutable
-                BEFORE UPDATE OF id ON arkistointi_job
+                BEFORE UPDATE OR DELETE ON arkistointi_job
                 FOR EACH ROW EXECUTE FUNCTION prevent_arkistointi_job_id_change();
         ]]></sql>
 
@@ -166,5 +181,60 @@
             tableName="arkistointi_job_asiakirja"
             columnNames="job_id, jarjestys"
             constraintName="ux_arkistointi_job_asiakirja__job_jarjestys"/>
+
+        <sql splitStatements="false"><![CDATA[
+            CREATE FUNCTION protect_arkistointi_job_document() RETURNS trigger AS $$
+            BEGIN
+                IF TG_OP = 'DELETE' THEN
+                    RAISE EXCEPTION 'Archive job documents cannot be deleted' USING ERRCODE = '23514';
+                ELSIF TG_OP = 'UPDATE' THEN
+                    IF NEW IS DISTINCT FROM OLD THEN
+                        RAISE EXCEPTION 'Archive job document metadata cannot be changed' USING ERRCODE = '23514';
+                    END IF;
+                ELSE
+                    -- Serialize inserts for one manifest, without consulting scheduler state.
+                    PERFORM 1 FROM arkistointi_job WHERE id = NEW.job_id FOR UPDATE;
+                    IF NOT FOUND THEN
+                        RAISE EXCEPTION 'Archive job not found' USING ERRCODE = '23503';
+                    END IF;
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER immutable_arkistointi_job_document
+                BEFORE INSERT OR UPDATE OR DELETE ON arkistointi_job_asiakirja
+                FOR EACH ROW EXECUTE FUNCTION protect_arkistointi_job_document();
+
+            CREATE FUNCTION check_arkistointi_job_document_count() RETURNS trigger AS $$
+            DECLARE
+                checked_job_id uuid;
+                expected_count integer;
+                actual_count bigint;
+            BEGIN
+                IF TG_TABLE_NAME = 'arkistointi_job' THEN
+                    checked_job_id := NEW.id;
+                ELSE
+                    checked_job_id := NEW.job_id;
+                END IF;
+                SELECT expected_document_count INTO expected_count
+                    FROM arkistointi_job WHERE id = checked_job_id;
+                SELECT count(*) INTO actual_count
+                    FROM arkistointi_job_asiakirja WHERE job_id = checked_job_id;
+                IF expected_count IS NULL OR actual_count <> expected_count THEN
+                    RAISE EXCEPTION 'Archive job document count does not match the manifest' USING ERRCODE = '23514';
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+            CREATE CONSTRAINT TRIGGER arkistointi_job_complete_manifest
+                AFTER INSERT ON arkistointi_job DEFERRABLE INITIALLY DEFERRED
+                FOR EACH ROW EXECUTE FUNCTION check_arkistointi_job_document_count();
+
+            CREATE CONSTRAINT TRIGGER arkistointi_job_document_complete_manifest
+                AFTER INSERT ON arkistointi_job_asiakirja DEFERRABLE INITIALLY DEFERRED
+                FOR EACH ROW EXECUTE FUNCTION check_arkistointi_job_document_count();
+        ]]></sql>
     </changeSet>
 </databaseChangeLog>

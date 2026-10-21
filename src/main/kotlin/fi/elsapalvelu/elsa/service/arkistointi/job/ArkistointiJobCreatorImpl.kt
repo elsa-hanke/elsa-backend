@@ -27,7 +27,8 @@ class ArkistointiJobCreatorImpl(
             university = pyynto.university,
             caseType = pyynto.caseType,
             payload = pyynto.payload,
-            key = pyynto.key
+            key = pyynto.key,
+            expectedDocumentCount = pyynto.asiakirjat.size
         )
         pyynto.asiakirjat.sortedBy { it.jarjestysnumero }.forEach { reference ->
             val snapshot = snapshotService.resolveReference(reference)
