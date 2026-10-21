@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.config
+package fi.elsapalvelu.elsa.config.arkistointi
 
 import com.github.kagkarlsson.scheduler.SchedulerClient
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer
@@ -7,6 +7,7 @@ import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
 import com.github.kagkarlsson.scheduler.task.CompletionHandler
 import com.github.kagkarlsson.scheduler.task.ExecutionContext
 import com.github.kagkarlsson.scheduler.task.TaskInstance
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.StaleArkistointiExecutionException
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor

@@ -14,8 +14,8 @@ class ArkistointiAdapterRegistry(adapters: List<ArkistointiAdapter>) {
     fun find(university: YliopistoEnum): ArkistointiAdapter? = adaptersByUniversity[university]
 
     fun validateWorkerConfiguration(configuration: ArkistointiConfigurationProvider) {
-        YliopistoEnum.values().forEach { university ->
-            CaseType.values().forEach { caseType ->
+        YliopistoEnum.entries.forEach { university ->
+            CaseType.entries.forEach { caseType ->
                 require(!configuration.isAsyncEnabled(university, caseType) || find(university) != null) {
                     "Async archiving is enabled for ${university.name} / ${caseType.value}, " +
                         "but no asynchronous ArkistointiAdapter is registered"

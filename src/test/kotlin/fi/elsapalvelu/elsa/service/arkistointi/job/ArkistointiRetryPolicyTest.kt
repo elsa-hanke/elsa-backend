@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.config.ArkistointiDbSchedulerConfiguration
-import fi.elsapalvelu.elsa.config.ArkistointiRetryProperties
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiDbSchedulerConfiguration
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiRetryProperties
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

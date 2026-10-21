@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
+import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository

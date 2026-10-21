@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.config
+package fi.elsapalvelu.elsa.config.arkistointi
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob

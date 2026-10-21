@@ -8,7 +8,7 @@ import com.github.kagkarlsson.scheduler.task.ExecutionOperations
 import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
 import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
+import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository

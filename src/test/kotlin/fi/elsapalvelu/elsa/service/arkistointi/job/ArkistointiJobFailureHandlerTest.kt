@@ -3,8 +3,8 @@ package fi.elsapalvelu.elsa.service.arkistointi.job
 import com.github.kagkarlsson.scheduler.task.Execution
 import com.github.kagkarlsson.scheduler.task.ExecutionComplete
 import com.github.kagkarlsson.scheduler.task.ExecutionOperations
-import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
-import fi.elsapalvelu.elsa.config.ArkistointiRetryProperties
+import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiRetryProperties
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest

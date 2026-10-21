@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.config
+package fi.elsapalvelu.elsa.config.arkistointi
 
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.boot.autoconfigure.DbSchedulerAutoConfiguration

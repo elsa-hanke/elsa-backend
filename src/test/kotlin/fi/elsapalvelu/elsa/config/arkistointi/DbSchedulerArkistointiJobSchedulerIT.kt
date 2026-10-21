@@ -1,9 +1,10 @@
-package fi.elsapalvelu.elsa.config
+package fi.elsapalvelu.elsa.config.arkistointi
 
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.boot.autoconfigure.DbSchedulerAutoConfiguration
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer
 import fi.elsapalvelu.elsa.ElsaBackendApp
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobScheduler

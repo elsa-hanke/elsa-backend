@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.config
+package fi.elsapalvelu.elsa.config.arkistointi
 
 import com.github.kagkarlsson.scheduler.Scheduler
 import fi.elsapalvelu.elsa.ElsaBackendApp
@@ -27,6 +27,7 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
+import javax.cache.CacheManager
 import javax.cache.Caching
 
 @SpringBootTest(
@@ -92,7 +93,7 @@ class DbSchedulerArkistointiJobExecutionIT {
         // Closing this @DirtiesContext must not close the provider's default manager
         // still used by other cached Spring test contexts.
         @Bean
-        fun isolatedJCacheManager(customizer: JCacheManagerCustomizer): javax.cache.CacheManager =
+        fun isolatedJCacheManager(customizer: JCacheManagerCustomizer): CacheManager =
             (Caching.getCachingProvider() as EhcacheCachingProvider).getCacheManager(
                 URI("urn:elsa:db-scheduler-execution-it"), DefaultConfiguration(javaClass.classLoader)
             ).also(customizer::customize)

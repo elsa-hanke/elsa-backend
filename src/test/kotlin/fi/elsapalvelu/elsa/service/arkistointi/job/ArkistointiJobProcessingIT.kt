@@ -10,7 +10,7 @@ import com.github.kagkarlsson.scheduler.task.TaskInstance
 import com.github.kagkarlsson.scheduler.task.ExecutionComplete
 import com.github.kagkarlsson.scheduler.task.FailureHandler
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
+import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja

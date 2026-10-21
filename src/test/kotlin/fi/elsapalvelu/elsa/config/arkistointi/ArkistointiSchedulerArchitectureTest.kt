@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.config
+package fi.elsapalvelu.elsa.config.arkistointi
 
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.SchedulerClient
@@ -16,7 +16,7 @@ class ArkistointiSchedulerArchitectureTest {
     // Exact infrastructure owners, including their Kotlin-generated nested classes, not the whole config package.
     private val infrastructure = listOf(
         ArkistointiDbSchedulerConfiguration::class.java.name,
-        "fi.elsapalvelu.elsa.config.ArkistointiDbSchedulerConfigurationKt",
+        "fi.elsapalvelu.elsa.config.arkistointi.ArkistointiDbSchedulerConfigurationKt",
         DbSchedulerArkistointiJobScheduler::class.java.name
     )
     private val schedulerTypes = listOf(Scheduler::class.java.name, SchedulerClient::class.java.name)

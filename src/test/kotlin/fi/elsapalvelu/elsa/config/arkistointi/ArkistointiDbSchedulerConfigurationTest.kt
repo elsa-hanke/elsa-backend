@@ -1,9 +1,10 @@
-package fi.elsapalvelu.elsa.config
+package fi.elsapalvelu.elsa.config.arkistointi
 
 import com.github.kagkarlsson.scheduler.task.Execution
 import com.github.kagkarlsson.scheduler.task.ExecutionComplete
 import com.github.kagkarlsson.scheduler.task.ExecutionContext
 import com.github.kagkarlsson.scheduler.task.ExecutionOperations
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor

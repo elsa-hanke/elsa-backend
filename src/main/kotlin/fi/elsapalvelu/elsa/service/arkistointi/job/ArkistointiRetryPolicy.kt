@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
-import fi.elsapalvelu.elsa.config.ArkistointiRetryProperties
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiRetryProperties
 import java.time.Duration
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.ceil
