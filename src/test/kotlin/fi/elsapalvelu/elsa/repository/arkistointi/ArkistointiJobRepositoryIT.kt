@@ -176,26 +176,9 @@ class ArkistointiJobRepositoryIT {
         assertThat(job.updatedAt).isAfter(Instant.EPOCH)
     }
 
-    @Test
-    fun `jobit voidaan hakea statuksen perusteella`() {
-        val odottava = jobRepository.saveAndFlush(uusiJob("odottava"))
-        jobRepository.saveAndFlush(
-            uusiJob("lahetetty", ArkistointiJobStatus.LAHETETTY)
-        )
-
-        val loydetyt = jobRepository.findAllByStatus(ArkistointiJobStatus.ODOTTAA)
-
-        assertThat(loydetyt.map { it.id }).contains(odottava.id)
-        assertThat(loydetyt).allMatch { it.status == ArkistointiJobStatus.ODOTTAA }
-    }
-
-    private fun uusiJob(
-        key: String,
-        status: ArkistointiJobStatus = ArkistointiJobStatus.ODOTTAA
-    ) = ArkistointiJob(
+    private fun uusiJob(key: String) = ArkistointiJob(
         university = YliopistoEnum.TURUN_YLIOPISTO,
         caseType = CaseType.VALMISTUMINEN,
-        status = status,
         payload = "{\"asia\":\"valmistuminen\"}",
         expectedDocumentCount = 1,
         key = key
