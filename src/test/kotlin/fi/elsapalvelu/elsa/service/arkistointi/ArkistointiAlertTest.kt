@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl
+package fi.elsapalvelu.elsa.service.arkistointi
 
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -7,9 +7,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiDispatcher
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.louhi.TampereLouhiService
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
@@ -29,7 +27,7 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 
 /**
- * Unit tests verifying that synchronous delivery through [ArkistointiServiceImpl.laheta]
+ * Unit tests verifying that synchronous delivery through [SynchronousArkistointiServiceImpl.laheta]
  * publishes an alert via [AlertPublisherService] whenever Helsinki (HY Siilo) or Tampere
  * (Louhi SFTP) archiving fails, and that no alert is published on success.
  */
@@ -45,7 +43,7 @@ class ArkistointiAlertTest {
     @Mock
     private lateinit var helsinkiSiiloService: HelsinkiSiiloService
 
-    private lateinit var arkistointiService: ArkistointiServiceImpl
+    private lateinit var arkistointiService: SynchronousArkistointiServiceImpl
 
     @BeforeEach
     fun setUp() {
@@ -55,7 +53,7 @@ class ArkistointiAlertTest {
         applicationProperties.getArkistointi().getTre().user = "test-user"
 
         val configurationProvider = ArkistointiConfigurationProvider(applicationProperties)
-        val dispatcher = ArkistointiDispatcher(
+        val dispatcher = SynchronousArkistointiDispatcher(
             adapters = listOf(
                 LouhiArkistointiAdapter(tampereLouhiService),
                 SiiloArkistointiAdapter(helsinkiSiiloService)
@@ -64,7 +62,7 @@ class ArkistointiAlertTest {
             alertPublisherService = alertPublisherService,
             arkistointiMetrics = ArkistointiMetricsService(SimpleMeterRegistry())
         )
-        arkistointiService = ArkistointiServiceImpl(
+        arkistointiService = SynchronousArkistointiServiceImpl(
             configurationProvider = configurationProvider,
             metadataBuilder = SahkeMetadataBuilder(),
             pakettiBuilder = SahkePakettiBuilder(),

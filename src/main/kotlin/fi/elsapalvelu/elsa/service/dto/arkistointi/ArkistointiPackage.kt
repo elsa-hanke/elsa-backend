@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.dto.arkistointi
 
-data class ArkistointiResult(
+data class ArkistointiPackage(
     val zipFilePath: String,
     val metadataBytes: ByteArray?
 ) {
@@ -8,7 +8,7 @@ data class ArkistointiResult(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as ArkistointiResult
+        other as ArkistointiPackage
 
         if (zipFilePath != other.zipFilePath) return false
         if (!metadataBytes.contentEquals(other.metadataBytes)) return false
