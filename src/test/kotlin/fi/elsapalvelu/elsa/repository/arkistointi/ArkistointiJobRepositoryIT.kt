@@ -85,7 +85,8 @@ class ArkistointiJobRepositoryIT {
 
         assertThrows<DataIntegrityViolationException> {
             jdbcTemplate.update(
-                "insert into arkistointi_job (id, university, case_type, payload, job_key) values (?, ?, ?, ?, ?)",
+                "insert into arkistointi_job (id, university, case_type, payload, job_key, expected_document_count) " +
+                    "values (?, ?, ?, ?, ?, 1)",
                 first.id, "TURUN_YLIOPISTO", "VALMISTUMINEN", "{}", "different-business-key"
             )
         }
@@ -143,7 +144,8 @@ class ArkistointiJobRepositoryIT {
 
     @Test
     fun `database generates distinct delivery UUIDs for inserts without an explicit key`() {
-        val sql = "insert into arkistointi_job (university, case_type, payload, job_key) values (?, ?, ?, ?) returning id"
+        val sql = "insert into arkistointi_job (university, case_type, payload, job_key, expected_document_count) " +
+            "values (?, ?, ?, ?, 1) returning id"
         val first = jdbcTemplate.queryForObject(sql, UUID::class.java, "TURUN_YLIOPISTO", "VALMISTUMINEN", "{}", "sql-first")
         val second = jdbcTemplate.queryForObject(sql, UUID::class.java, "TURUN_YLIOPISTO", "VALMISTUMINEN", "{}", "sql-second")
 
@@ -156,7 +158,8 @@ class ArkistointiJobRepositoryIT {
     fun `database rejects a missing delivery UUID`() {
         assertThrows<DataIntegrityViolationException> {
             jdbcTemplate.update(
-                "insert into arkistointi_job (university, case_type, payload, job_key, id) values (?, ?, ?, ?, null)",
+                "insert into arkistointi_job (university, case_type, payload, job_key, id, expected_document_count) " +
+                    "values (?, ?, ?, ?, null, 1)",
                 "TURUN_YLIOPISTO", "VALMISTUMINEN", "{}", "null-delivery"
             )
         }
@@ -194,6 +197,7 @@ class ArkistointiJobRepositoryIT {
         caseType = CaseType.VALMISTUMINEN,
         status = status,
         payload = "{\"asia\":\"valmistuminen\"}",
+        expectedDocumentCount = 1,
         key = key
     )
 }

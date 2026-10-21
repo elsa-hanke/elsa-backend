@@ -26,6 +26,34 @@ niiden omissa tehtävissä. UUID ei estä tuotantotietokannan kopion lähettämi
 kopiossa avaimet säilyvät samoina, joten ympäristöt on eristettävä ja kopion
 workerin käynnistäminen estettävä erikseen.
 
+## Arkistointitoimituksen muuttumaton sisältö
+
+Tietokanta estää jobin UUID:n, yliopiston, case-tyypin, payloadin,
+liiketoiminta-avaimen, luontiajan ja `expected_document_count`-arvon muuttamisen.
+Tilaa, virheitä, ulkoista tunnistetta ja käsittelyn aikaleimoja voidaan edelleen
+päivittää. Asiakirjaviitteen kaikkien kenttien muuttaminen ja viitteen tai jobin
+poistaminen on estetty; samojen arvojen uudelleenkirjoitus on sallittu.
+
+`ArkistointiJob.expectedDocumentCount` on alkuperäisen toimituksen asiakirjamäärä,
+ei schedulerin laskuri. Creatorin on asetettava se pyyntöön kuuluvien viitteiden
+määräksi ennen ensimmäistä tallennusta. Arvon on oltava positiivinen, eikä sillä
+ole oletusta. Job, kaikki viitteet ja ajastus tallennetaan samaan transaktioon.
+PostgreSQL:n `DEFERRABLE INITIALLY DEFERRED` -constraint-triggerit tarkistavat
+viitteiden lopullisen määrän commitissa: tyhjä, vajaa tai ylimääräinen joukko ei
+commitoidu. Tämä sallii JPA:n lisätä ensin jobin ja vasta sitten sen viitteet.
+Lisäykset lukitsevat saman job-rivin, joten rinnakkaiset viitelisäykset
+sarjallistuvat. Valmiiseen toimitukseen ei voi lisätä uusia viitteitä.
+Tarkistusten pakottaminen välittömiksi `SET CONSTRAINTS` -komennolla edellyttää,
+että koko manifesti on jo muodostettu.
+
+Rollback ei tarvitse DELETE-oikeutta: se peruu myös jo lisätyt jobit, viitteet ja
+ajastukset. Retentionin hallittu poistopolku toteutetaan erikseen. Suojaus koskee
+tavallista SQL/JPA-DML:ää, ei tietokannan omistajaa, triggerien poistamista tai
+`TRUNCATE`-komentoa; sovelluksen ajonaikaisen roolin ei tule sallia näitä ohituksia.
+Vaiheen 1 viitesuojaus ei vielä takaa itse lähdeasiakirjan tavujen
+muuttumattomuutta: snapshotien suojaus ja SHA-256-tarkistus kuuluvat seuraavaan
+asiakirjatehtävään.
+
 ### Justfile-komennot 
 
 Projektissa on valmiita kehityskomentoja `Justfile`-tiedostossa.
