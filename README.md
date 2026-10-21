@@ -157,12 +157,14 @@ Dokumenttivirheen viesti ja kuvaus eivät sisällä tiedostonimeä tai sisältö
 eikä poikkeus säilytä kirjaston alkuperäistä cause-ketjua.
 Tietokantapoikkeuksia ei muuteta lähdeaineiston virheiksi.
 
-Creator tarkistaa tallennetun sisällön, metatiedot ja SHA-256-tiivisteen aina
-tietokannan asiakirjasta. Pelkkä DTO tai `archiveSnapshot=true` ei riitä:
-palvelu tarkistaa tietokannan lipun ja
+Creator tarkistaa sisällön, metatiedot ja SHA-256-tiivisteen repositoryn palauttamasta
+asiakirjasta. JPA voi palauttaa nykyisen transaktion persistence contextissa jo olevan
+entiteetin, joten tämä ei takaa tavujen uutta lukua tietokannasta. Pelkkä DTO tai
+`archiveSnapshot=true` ei riitä: palvelu tarkistaa tietokannan lipun ja
 käsittelee muuttuvan lähdedokumentin aina erillisenä arkistokopiona.
 Jobin nimi, MIME-tyyppi ja tiiviste otetaan lopullisesta snapshotista.
-Loader tarkistaa tiivisteen ennen lähetystä. Snapshotilla on oma tavutaulukko ja
+Loader lukee tavut erikseen tietokannasta JDBC:llä ja tarkistaa tiivisteen ennen
+lähetystä. Snapshotilla on oma tavutaulukko ja
 tietokannan suojaukset estävät sen sisällön ja metatietojen muuttamisen tai poistamisen.
 Job, snapshotit ja ajastus tallentuvat samassa transaktiossa; rollback ei jätä
 osittaista arkistointia. PDF/A-konvertoinnin sivu- tai pikselirajoja ei ole.
