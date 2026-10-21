@@ -25,7 +25,7 @@ class ArkistointiAsiakirjaSnapshotService(
         return prepareReference(stored, asiakirjatyyppi, jarjestysnumero)
     }
 
-    /** Always resolve metadata, checksum and immutability against the persisted document. */
+    /** Resolve repository state and the persisted snapshot flag; the entity may already be managed in this transaction. */
     @Transactional
     fun resolveReference(reference: ArkistointiAsiakirjaReference): ArkistointiAsiakirjaReference {
         val stored = loadDocument(reference.asiakirja.id)
@@ -37,7 +37,7 @@ class ArkistointiAsiakirjaSnapshotService(
         if (reference.filename != stored.nimi || reference.contentType != stored.tyyppi) {
             throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid())
         }
-        return prepareReference(stored, reference.asiakirjatyyppi, reference.jarjestysnumero)
+        return prepareReference(stored, reference.asiakirjatyyppi, reference.jarjestysnumero, checksum)
     }
 
     private fun loadDocument(id: Long?): Asiakirja =
@@ -62,7 +62,8 @@ class ArkistointiAsiakirjaSnapshotService(
     private fun prepareReference(
         asiakirja: Asiakirja,
         asiakirjatyyppi: RecordType,
-        jarjestysnumero: Int
+        jarjestysnumero: Int,
+        verifiedChecksum: String? = null
     ): ArkistointiAsiakirjaReference {
         val data = documentData(asiakirja, jarjestysnumero)
         // Snapshot the existing output without introducing another conversion or format policy.
@@ -73,7 +74,8 @@ class ArkistointiAsiakirjaSnapshotService(
             )
         }
 
-        return verifiedReference(asiakirja, asiakirjatyyppi, jarjestysnumero, ArkistointiChecksum.sha256(data))
+        // Only resolveReference supplies this private argument, after hashing and validating the loaded bytes.
+        return verifiedReference(asiakirja, asiakirjatyyppi, jarjestysnumero, verifiedChecksum ?: ArkistointiChecksum.sha256(data))
     }
 
     @Transactional
