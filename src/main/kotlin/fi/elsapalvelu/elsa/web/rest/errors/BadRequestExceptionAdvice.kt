@@ -37,7 +37,6 @@ class BadRequestExceptionAdvice {
         )
         body.setProperty("message", "error.${e.errorKey}")
         body.setProperty("errorKey", e.errorKey)
-        body.setProperty("params", VALMISTUMISPYYNTO_ENTITY_NAME)
         return body
     }
 

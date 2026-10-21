@@ -6,7 +6,6 @@ import ch.qos.logback.classic.spi.ThrowableProxyUtil
 import ch.qos.logback.core.read.ListAppender
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.security.testSamlPrincipal
-import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestExceptionAdvice
 import fi.elsapalvelu.elsa.web.rest.vastuuhenkilo.VastuuhenkiloValmistumispyyntoResource
 import org.assertj.core.api.Assertions.assertThat
@@ -40,7 +39,7 @@ internal fun assertArchiveDocumentHttpFailure(
             .andExpect(jsonPath("$.status").value(expectedStatus))
             .andExpect(jsonPath("$.message").value("error.$errorKey"))
             .andExpect(jsonPath("$.errorKey").value(errorKey))
-            .andExpect(jsonPath("$.params").value(VALMISTUMISPYYNTO_ENTITY_NAME))
+            .andExpect(jsonPath("$.params").doesNotExist())
             .andReturn()
         assertThat(response.response.contentAsString).doesNotContain(PRIVATE_CERTIFICATE_NAME)
         val events = appender.list.toList()
