@@ -27,7 +27,7 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 
 /**
- * Unit tests verifying that synchronous delivery through [ArkistointiServiceImpl.laheta]
+ * Unit tests verifying that synchronous delivery through [SynchronousArkistointiServiceImpl.laheta]
  * publishes an alert via [AlertPublisherService] whenever Helsinki (HY Siilo) or Tampere
  * (Louhi SFTP) archiving fails, and that no alert is published on success.
  */
@@ -43,7 +43,7 @@ class ArkistointiAlertTest {
     @Mock
     private lateinit var helsinkiSiiloService: HelsinkiSiiloService
 
-    private lateinit var arkistointiService: ArkistointiServiceImpl
+    private lateinit var arkistointiService: SynchronousArkistointiServiceImpl
 
     @BeforeEach
     fun setUp() {
@@ -53,7 +53,7 @@ class ArkistointiAlertTest {
         applicationProperties.getArkistointi().getTre().user = "test-user"
 
         val configurationProvider = ArkistointiConfigurationProvider(applicationProperties)
-        val dispatcher = ArkistointiDispatcher(
+        val dispatcher = SynchronousArkistointiDispatcher(
             adapters = listOf(
                 LouhiArkistointiAdapter(tampereLouhiService),
                 SiiloArkistointiAdapter(helsinkiSiiloService)
@@ -62,7 +62,7 @@ class ArkistointiAlertTest {
             alertPublisherService = alertPublisherService,
             arkistointiMetrics = ArkistointiMetricsService(SimpleMeterRegistry())
         )
-        arkistointiService = ArkistointiServiceImpl(
+        arkistointiService = SynchronousArkistointiServiceImpl(
             configurationProvider = configurationProvider,
             metadataBuilder = SahkeMetadataBuilder(),
             pakettiBuilder = SahkePakettiBuilder(),

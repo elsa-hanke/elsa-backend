@@ -7,7 +7,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiPackage
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 
-interface ArkistointiService {
+interface SynchronousArkistointiService {
 
     fun muodostaSahke(
         opintooikeus: Opintooikeus?,

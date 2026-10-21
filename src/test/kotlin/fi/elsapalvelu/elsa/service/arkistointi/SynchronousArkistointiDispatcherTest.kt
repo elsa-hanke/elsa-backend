@@ -20,7 +20,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @ExtendWith(MockitoExtension::class)
-class ArkistointiDispatcherTest {
+class SynchronousArkistointiDispatcherTest {
 
     @Mock
     private lateinit var configurationProvider: ArkistointiConfigurationProvider
@@ -110,14 +110,14 @@ class ArkistointiDispatcherTest {
         assertThat(arkistointiMetrics.activeArkistointiOperations.get()).isZero()
     }
 
-    private fun createDispatcher(adapters: List<SynchronousArkistointiAdapter>) = ArkistointiDispatcher(
+    private fun createDispatcher(adapters: List<SynchronousArkistointiAdapter>) = SynchronousArkistointiDispatcher(
         adapters = adapters,
         configurationProvider = configurationProvider,
         alertPublisherService = alertPublisherService,
         arkistointiMetrics = arkistointiMetrics
     )
 
-    private fun createRequest(yliopisto: YliopistoEnum) = ArkistointiDeliveryRequest(
+    private fun createRequest(yliopisto: YliopistoEnum) = SynchronousArkistointiDeliveryRequest(
         yliopisto = yliopisto,
         filePath = "/tmp/archive.zip",
         caseType = CaseType.VALMISTUMINEN,
@@ -126,24 +126,24 @@ class ArkistointiDispatcherTest {
         erikoistujanNimi = "Testi Erikoistuja"
     )
 
-    private fun successCount(request: ArkistointiDeliveryRequest): Double =
+    private fun successCount(request: SynchronousArkistointiDeliveryRequest): Double =
         meterRegistry.find("arkistointi.requests.total")
             .tags("yliopisto", request.yliopisto.name, "caseType", request.caseType.value)
             .counter()?.count() ?: 0.0
 
-    private fun errorCount(request: ArkistointiDeliveryRequest): Double =
+    private fun errorCount(request: SynchronousArkistointiDeliveryRequest): Double =
         meterRegistry.find("arkistointi.errors.total")
             .tags("yliopisto", request.yliopisto.name, "caseType", request.caseType.value)
             .counter()?.count() ?: 0.0
 
     private class TestAdapter(
         override val yliopisto: YliopistoEnum,
-        private val onSend: (ArkistointiDeliveryRequest) -> Unit = {}
+        private val onSend: (SynchronousArkistointiDeliveryRequest) -> Unit = {}
     ) : SynchronousArkistointiAdapter {
-        var receivedRequest: ArkistointiDeliveryRequest? = null
+        var receivedRequest: SynchronousArkistointiDeliveryRequest? = null
             private set
 
-        override fun laheta(request: ArkistointiDeliveryRequest) {
+        override fun laheta(request: SynchronousArkistointiDeliveryRequest) {
             receivedRequest = request
             onSend(request)
         }

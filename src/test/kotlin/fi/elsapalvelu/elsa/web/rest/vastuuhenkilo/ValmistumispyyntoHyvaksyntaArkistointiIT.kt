@@ -28,7 +28,7 @@ import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -86,7 +86,7 @@ private const val ARKISTOINTI_HYVAKSYNTA_ENDPOINT = "/api/vastuuhenkilo/valmistu
  *    - Error must be logged at ERROR level with the exception message
  *    - Spring @Transactional must roll back the kuittausaika save
  *
- * Uses @MockBean to override [ArkistointiService], which creates a separate Spring
+ * Uses @MockBean to override [SynchronousArkistointiService], which creates a separate Spring
  * application context from the base IT suite.
  */
 @AutoConfigureMockMvc
@@ -109,11 +109,11 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private lateinit var valmistumispyyntoService: ValmistumispyyntoService
 
     /**
-     * Overrides the real [ArkistointiService] bean for the whole test class.
+     * Overrides the real [SynchronousArkistointiService] bean for the whole test class.
      * Each test configures its own stubbing via [whenever].
      */
     @MockitoBean
-    private lateinit var arkistointiService: ArkistointiService
+    private lateinit var arkistointiService: SynchronousArkistointiService
 
     @MockitoBean
     private lateinit var configurationProvider: ArkistointiConfigurationProvider

@@ -23,7 +23,7 @@ import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.service.arkistointi.louhi.TampereLouhiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -108,7 +108,7 @@ class ValmistuminenArkistointiTransactionIT {
     @Autowired private lateinit var properties: ApplicationProperties
     @MockitoBean private lateinit var mail: MailService
     @MockitoBean private lateinit var transport: TampereLouhiService
-    @MockitoSpyBean private lateinit var legacyArchive: ArkistointiService
+    @MockitoSpyBean private lateinit var legacyArchive: SynchronousArkistointiService
 
     @BeforeEach
     fun cleanUpDeliveredPackages() {

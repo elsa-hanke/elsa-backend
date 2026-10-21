@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.arkistointi
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 
-data class ArkistointiDeliveryRequest(
+data class SynchronousArkistointiDeliveryRequest(
     val yliopisto: YliopistoEnum,
     val filePath: String,
     val caseType: CaseType,

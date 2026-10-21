@@ -8,19 +8,19 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class ArkistointiDispatcher(
+class SynchronousArkistointiDispatcher(
     adapters: List<SynchronousArkistointiAdapter>,
     private val configurationProvider: ArkistointiConfigurationProvider,
     private val alertPublisherService: AlertPublisherService,
     private val arkistointiMetrics: ArkistointiMetricsService
 ) {
-    private val log = LoggerFactory.getLogger(ArkistointiDispatcher::class.java)
+    private val log = LoggerFactory.getLogger(SynchronousArkistointiDispatcher::class.java)
     private val adaptersByYliopisto = adapters
         .groupBy(SynchronousArkistointiAdapter::yliopisto)
         .also(::requireUniqueAdapters)
         .mapValues { (_, yliopistonAdapters) -> yliopistonAdapters.single() }
 
-    fun laheta(request: ArkistointiDeliveryRequest) {
+    fun laheta(request: SynchronousArkistointiDeliveryRequest) {
         arkistointiMetrics.activeArkistointiOperations.incrementAndGet()
         try {
             val adapter = resolveAdapter(request) ?: return
@@ -35,7 +35,7 @@ class ArkistointiDispatcher(
         }
     }
 
-    private fun resolveAdapter(request: ArkistointiDeliveryRequest): SynchronousArkistointiAdapter? {
+    private fun resolveAdapter(request: SynchronousArkistointiDeliveryRequest): SynchronousArkistointiAdapter? {
         return adaptersByYliopisto[request.yliopisto] ?: if (
             configurationProvider.onKaytossa(request.yliopisto, request.caseType)
         ) {
@@ -57,7 +57,7 @@ class ArkistointiDispatcher(
         }
     }
 
-    private fun publishFailureAlert(request: ArkistointiDeliveryRequest, exception: Exception) {
+    private fun publishFailureAlert(request: SynchronousArkistointiDeliveryRequest, exception: Exception) {
         when (request.yliopisto) {
             YliopistoEnum.TAMPEREEN_YLIOPISTO -> alertPublisherService.publishAlert(
                 subject = "Tampere arkistointi epäonnistui",
@@ -86,7 +86,7 @@ class ArkistointiDispatcher(
     private fun buildAlertMessage(
         intro: String,
         extra: String?,
-        request: ArkistointiDeliveryRequest,
+        request: SynchronousArkistointiDeliveryRequest,
         error: String?
     ): String = buildString {
         append(intro)

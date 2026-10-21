@@ -46,7 +46,7 @@ import java.time.LocalDate
 import java.util.zip.ZipInputStream
 
 @ExtendWith(MockitoExtension::class)
-class ArkistointiServiceImplTest {
+class SynchronousArkistointiServiceImplTest {
 
     @Mock
     private lateinit var tampereLouhiService: TampereLouhiService
@@ -59,7 +59,7 @@ class ArkistointiServiceImplTest {
 
     private lateinit var metricsRegistry: SimpleMeterRegistry
     private lateinit var arkistointiMetrics: ArkistointiMetricsService
-    private lateinit var lahetaService: ArkistointiServiceImpl
+    private lateinit var lahetaService: SynchronousArkistointiServiceImpl
 
     @BeforeEach
     fun setUp() {
@@ -237,7 +237,7 @@ class ArkistointiServiceImplTest {
             .tags("yliopisto", yliopisto.name, "caseType", caseType.value)
             .counter()?.count() ?: 0.0
 
-    private fun createService(zipMetadata: Boolean): ArkistointiServiceImpl {
+    private fun createService(zipMetadata: Boolean): SynchronousArkistointiServiceImpl {
         val applicationProperties = ApplicationProperties()
 
         applicationProperties.getArkistointi().getTre().host = "localhost"
@@ -260,16 +260,16 @@ class ArkistointiServiceImplTest {
         adapters: List<SynchronousArkistointiAdapter>,
         alertPublisherService: AlertPublisherService,
         arkistointiMetrics: ArkistointiMetricsService
-    ): ArkistointiServiceImpl {
+    ): SynchronousArkistointiServiceImpl {
         val configurationProvider = ArkistointiConfigurationProvider(applicationProperties)
-        val dispatcher = ArkistointiDispatcher(
+        val dispatcher = SynchronousArkistointiDispatcher(
             adapters = adapters,
             configurationProvider = configurationProvider,
             alertPublisherService = alertPublisherService,
             arkistointiMetrics = arkistointiMetrics
         )
 
-        return ArkistointiServiceImpl(
+        return SynchronousArkistointiServiceImpl(
             configurationProvider = configurationProvider,
             metadataBuilder = SahkeMetadataBuilder(),
             pakettiBuilder = SahkePakettiBuilder(),

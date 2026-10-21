@@ -13,12 +13,12 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 @Service
-class ArkistointiServiceImpl(
+class SynchronousArkistointiServiceImpl(
     private val configurationProvider: ArkistointiConfigurationProvider,
     private val metadataBuilder: SahkeMetadataBuilder,
     private val pakettiBuilder: SahkePakettiBuilder,
-    private val dispatcher: ArkistointiDispatcher
-) : ArkistointiService {
+    private val dispatcher: SynchronousArkistointiDispatcher
+) : SynchronousArkistointiService {
     override fun muodostaSahke(
         opintooikeus: Opintooikeus?,
         asiakirjat: List<RecordProperties>,
@@ -61,7 +61,7 @@ class ArkistointiServiceImpl(
         erikoistujanNimi: String?
     ) {
         dispatcher.laheta(
-            ArkistointiDeliveryRequest(
+            SynchronousArkistointiDeliveryRequest(
                 yliopisto = yliopisto,
                 filePath = filePath,
                 caseType = caseType,

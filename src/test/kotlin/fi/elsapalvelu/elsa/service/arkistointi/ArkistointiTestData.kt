@@ -129,7 +129,7 @@ object ArkistointiTestData {
     }
 
     fun createPackage(
-        arkistointiService: ArkistointiServiceImpl,
+        arkistointiService: SynchronousArkistointiServiceImpl,
         input: ArkistointiTestInput
     ): ArkistointiPackage = arkistointiService.muodostaSahke(
         opintooikeus = input.opintooikeus,
