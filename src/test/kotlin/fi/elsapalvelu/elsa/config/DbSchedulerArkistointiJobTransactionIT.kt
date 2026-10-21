@@ -60,6 +60,7 @@ class DbSchedulerArkistointiJobTransactionIT {
                 university = YliopistoEnum.TURUN_YLIOPISTO,
                 caseType = CaseType.VALMISTUMINEN,
                 payload = "{\"caseId\":123}",
+                expectedDocumentCount = 1,
                 key = "transaction-${UUID.randomUUID()}"
             )
             job.lisaaAsiakirja(
