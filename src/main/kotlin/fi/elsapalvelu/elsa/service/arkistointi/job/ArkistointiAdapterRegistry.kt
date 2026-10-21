@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import org.springframework.stereotype.Component
 

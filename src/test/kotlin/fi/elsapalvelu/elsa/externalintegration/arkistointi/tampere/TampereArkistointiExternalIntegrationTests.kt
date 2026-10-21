@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.externalintegration.arkistointi.tampere
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.ExternalIntegrationTestSupport
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiDispatcher
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiTestData

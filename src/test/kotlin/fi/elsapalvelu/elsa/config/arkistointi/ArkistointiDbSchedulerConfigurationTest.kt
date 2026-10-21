@@ -9,7 +9,6 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapterRegistry
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
 import org.springframework.mock.env.MockEnvironment
 import fi.elsapalvelu.elsa.service.arkistointi.job.StaleArkistointiExecutionException
 import org.assertj.core.api.Assertions.assertThat

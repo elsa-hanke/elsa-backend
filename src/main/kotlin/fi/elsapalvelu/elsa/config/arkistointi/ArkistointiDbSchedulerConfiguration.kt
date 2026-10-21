@@ -15,7 +15,6 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobScheduler
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiRetryPolicy
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapterRegistry
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

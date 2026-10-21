@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi
 
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePakettiBuilder
 import org.assertj.core.api.Assertions.assertThat

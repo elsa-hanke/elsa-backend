@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi
 
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import fi.elsapalvelu.elsa.service.metrics.ArkistointiMetricsService

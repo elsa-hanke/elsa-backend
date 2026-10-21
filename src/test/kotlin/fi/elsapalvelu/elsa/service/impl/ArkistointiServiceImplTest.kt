@@ -15,7 +15,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiAdapter
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiDispatcher
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
 import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiArkistointiAdapter
