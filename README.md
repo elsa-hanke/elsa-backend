@@ -41,6 +41,11 @@ ole oletusta. Job, kaikki viitteet ja ajastus tallennetaan samaan transaktioon.
 PostgreSQL:n `DEFERRABLE INITIALLY DEFERRED` -constraint-triggerit tarkistavat
 viitteiden lopullisen määrän commitissa: tyhjä, vajaa tai ylimääräinen joukko ei
 commitoidu. Tämä sallii JPA:n lisätä ensin jobin ja vasta sitten sen viitteet.
+`ArkistointiJobCreatorImpl` asettaa määrän koko pyyntölistasta ennen tallennusta.
+Saman liiketoiminta-avaimen toistuva luontikutsu palauttaa aiemman jobin ennen
+viitteiden käsittelyä: payloadia, asiakirjamäärää tai snapshot-viitteitä ei vaihdeta,
+eikä creator luo uusia snapshoteja tai ajastusta. Tämä ei poista kutsujan ennen
+creator-kutsua mahdollisesti luomia erillisiä snapshoteja.
 Lisäykset lukitsevat saman job-rivin, joten rinnakkaiset viitelisäykset
 sarjallistuvat. Valmiiseen toimitukseen ei voi lisätä uusia viitteitä.
 Tarkistusten pakottaminen välittömiksi `SET CONSTRAINTS` -komennolla edellyttää,

@@ -22,11 +22,13 @@ class ArkistointiJobCreatorImpl(
             "Arkistointi-jobin asiakirjojen jarjestysnumeroiden on oltava yksilollisia"
         }
 
+        jobRepository.findByKey(pyynto.key)?.let { return it }
         val job = ArkistointiJob(
             university = pyynto.university,
             caseType = pyynto.caseType,
             payload = pyynto.payload,
-            key = pyynto.key
+            key = pyynto.key,
+            expectedDocumentCount = pyynto.asiakirjat.size
         )
         pyynto.asiakirjat.sortedBy { it.jarjestysnumero }.forEach { reference ->
             val snapshot = snapshotService.resolveReference(reference)

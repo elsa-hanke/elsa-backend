@@ -19,6 +19,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import java.util.UUID
 
@@ -58,12 +59,46 @@ class ArkistointiJobCreatorImplTest {
         val jobCaptor = argumentCaptor<ArkistointiJob>()
         verify(repository).saveAndFlush(jobCaptor.capture())
         assertThat(jobCaptor.firstValue.asiakirjat).hasSize(1)
+        assertThat(jobCaptor.firstValue.expectedDocumentCount).isEqualTo(1)
         assertThat(jobCaptor.firstValue.asiakirjat.single().sha256)
             .isEqualTo(snapshot.sha256)
         assertThat(jobCaptor.firstValue.asiakirjat.single().filename).isEqualTo(snapshot.filename)
         assertThat(saved.key).isEqualTo(request.key)
         assertThat(saved.id.toString()).isNotEqualTo(request.key)
         verify(scheduler).schedule(eq(jobId), any())
+    }
+
+    @Test
+    fun `manifest count is fixed from the entire request before persist`() {
+        val reference = request().asiakirjat.single()
+        val request = request().copy(asiakirjat = listOf(
+            reference.copy(jarjestysnumero = 5, asiakirjatyyppi = RecordType.LIITE), reference
+        ))
+        whenever(snapshotService.resolveReference(any())).thenAnswer { it.getArgument<ArkistointiAsiakirjaReference>(0) }
+        whenever(repository.saveAndFlush(any<ArkistointiJob>())).thenAnswer {
+            it.getArgument<ArkistointiJob>(0).apply {
+                assertThat(expectedDocumentCount).isEqualTo(2)
+                assertThat(asiakirjat.map { document -> document.jarjestysnumero }).containsExactly(0, 5)
+                id = UUID.randomUUID()
+            }
+        }
+        whenever(scheduler.schedule(any(), any())).thenReturn(true)
+
+        assertThat(creator.create(request).expectedDocumentCount).isEqualTo(2)
+    }
+
+    @Test
+    fun `existing business key returns the original manifest without snapshots or scheduling`() {
+        val request = request()
+        val existing = ArkistointiJob(id = UUID.randomUUID(), key = request.key,
+            payload = "{\"original\":true}", expectedDocumentCount = 2)
+        whenever(repository.findByKey(request.key)).thenReturn(existing)
+
+        assertThat(creator.create(request)).isSameAs(existing)
+        assertThat(existing.payload).isEqualTo("{\"original\":true}")
+        assertThat(existing.expectedDocumentCount).isEqualTo(2)
+        verify(repository, never()).saveAndFlush(any())
+        verifyNoInteractions(snapshotService, scheduler)
     }
 
     @Test
