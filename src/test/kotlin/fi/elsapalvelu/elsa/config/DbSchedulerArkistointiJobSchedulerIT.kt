@@ -4,6 +4,8 @@ import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.boot.autoconfigure.DbSchedulerAutoConfiguration
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer
 import fi.elsapalvelu.elsa.ElsaBackendApp
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobScheduler
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
 import org.assertj.core.api.Assertions.assertThat
@@ -69,7 +71,11 @@ class DbSchedulerArkistointiJobSchedulerIT {
         val runningScheduler = AtomicReference<Scheduler>()
         ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(DbSchedulerAutoConfiguration::class.java))
-            .withUserConfiguration(ArkistointiDbSchedulerConfiguration::class.java)
+            .withUserConfiguration(
+                ArkistointiDbSchedulerConfiguration::class.java,
+                ArkistointiAdapterRegistry::class.java,
+                ArkistointiConfigurationProvider::class.java
+            )
             .withBean(ApplicationProperties::class.java, Supplier { properties })
             .withBean(ArkistointiJobFailureHandler::class.java, Supplier { failureHandler })
             // The wrapper prevents closing the parent context's shared connection pool.
