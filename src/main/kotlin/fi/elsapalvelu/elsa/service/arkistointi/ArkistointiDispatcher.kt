@@ -9,14 +9,14 @@ import org.springframework.stereotype.Component
 
 @Component
 class ArkistointiDispatcher(
-    adapters: List<ArkistointiAdapter>,
+    adapters: List<SynchronousArkistointiAdapter>,
     private val configurationProvider: ArkistointiConfigurationProvider,
     private val alertPublisherService: AlertPublisherService,
     private val arkistointiMetrics: ArkistointiMetricsService
 ) {
     private val log = LoggerFactory.getLogger(ArkistointiDispatcher::class.java)
     private val adaptersByYliopisto = adapters
-        .groupBy(ArkistointiAdapter::yliopisto)
+        .groupBy(SynchronousArkistointiAdapter::yliopisto)
         .also(::requireUniqueAdapters)
         .mapValues { (_, yliopistonAdapters) -> yliopistonAdapters.single() }
 
@@ -35,7 +35,7 @@ class ArkistointiDispatcher(
         }
     }
 
-    private fun resolveAdapter(request: ArkistointiDeliveryRequest): ArkistointiAdapter? {
+    private fun resolveAdapter(request: ArkistointiDeliveryRequest): SynchronousArkistointiAdapter? {
         return adaptersByYliopisto[request.yliopisto] ?: if (
             configurationProvider.onKaytossa(request.yliopisto, request.caseType)
         ) {
@@ -49,7 +49,7 @@ class ArkistointiDispatcher(
         }
     }
 
-    private fun requireUniqueAdapters(adapters: Map<YliopistoEnum, List<ArkistointiAdapter>>) {
+    private fun requireUniqueAdapters(adapters: Map<YliopistoEnum, List<SynchronousArkistointiAdapter>>) {
         val duplicateYliopistot = adapters.filterValues { it.size > 1 }.keys
         require(duplicateYliopistot.isEmpty()) {
             "Yliopistolle saa olla vain yksi arkistointiadapteri. Useita adaptereita: " +

@@ -110,7 +110,7 @@ class ArkistointiDispatcherTest {
         assertThat(arkistointiMetrics.activeArkistointiOperations.get()).isZero()
     }
 
-    private fun createDispatcher(adapters: List<ArkistointiAdapter>) = ArkistointiDispatcher(
+    private fun createDispatcher(adapters: List<SynchronousArkistointiAdapter>) = ArkistointiDispatcher(
         adapters = adapters,
         configurationProvider = configurationProvider,
         alertPublisherService = alertPublisherService,
@@ -139,7 +139,7 @@ class ArkistointiDispatcherTest {
     private class TestAdapter(
         override val yliopisto: YliopistoEnum,
         private val onSend: (ArkistointiDeliveryRequest) -> Unit = {}
-    ) : ArkistointiAdapter {
+    ) : SynchronousArkistointiAdapter {
         var receivedRequest: ArkistointiDeliveryRequest? = null
             private set
 

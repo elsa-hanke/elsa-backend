@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl
+package fi.elsapalvelu.elsa.service.arkistointi
 
 import org.mockito.kotlin.any
 import org.mockito.kotlin.never
@@ -14,10 +14,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiAdapter
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiDispatcher
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
 import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.louhi.TampereLouhiService
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
@@ -260,7 +257,7 @@ class ArkistointiServiceImplTest {
 
     private fun createService(
         applicationProperties: ApplicationProperties,
-        adapters: List<ArkistointiAdapter>,
+        adapters: List<SynchronousArkistointiAdapter>,
         alertPublisherService: AlertPublisherService,
         arkistointiMetrics: ArkistointiMetricsService
     ): ArkistointiServiceImpl {

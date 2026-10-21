@@ -11,9 +11,3 @@ data class ArkistointiDeliveryRequest(
     val caseId: String?,
     val erikoistujanNimi: String?
 )
-
-interface ArkistointiAdapter {
-    val yliopisto: YliopistoEnum
-
-    fun laheta(request: ArkistointiDeliveryRequest)
-}

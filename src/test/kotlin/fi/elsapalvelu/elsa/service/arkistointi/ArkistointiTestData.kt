@@ -10,7 +10,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
+import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiPackage
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -131,7 +131,7 @@ object ArkistointiTestData {
     fun createPackage(
         arkistointiService: ArkistointiServiceImpl,
         input: ArkistointiTestInput
-    ): ArkistointiResult = arkistointiService.muodostaSahke(
+    ): ArkistointiPackage = arkistointiService.muodostaSahke(
         opintooikeus = input.opintooikeus,
         asiakirjat = input.asiakirjat,
         caseId = input.caseId,

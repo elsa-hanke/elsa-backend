@@ -57,11 +57,5 @@ class ArkistointiJobProcessorImpl(
     }
 }
 
-/** Only safe, adapter-sanitized descriptions are allowed here. Never attach the original cause. */
-class ArkistointiProcessingException(
-    val error: ArkistointiError,
-    val retryable: Boolean = true
-) : RuntimeException(error.code)
-
 internal fun unexpectedArchiveError() =
     ArkistointiError.create("ARCHIVE_PROCESSING_FAILED", "Arkistoinnin kasittely epaonnistui")
