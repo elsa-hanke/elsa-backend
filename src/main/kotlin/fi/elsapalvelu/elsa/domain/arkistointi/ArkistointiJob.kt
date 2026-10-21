@@ -14,15 +14,15 @@ import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OrderBy
 import jakarta.persistence.Table
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
-import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.io.Serializable
 import java.time.Instant
 import java.util.UUID
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
 @EntityListeners(AuditingEntityListener::class)

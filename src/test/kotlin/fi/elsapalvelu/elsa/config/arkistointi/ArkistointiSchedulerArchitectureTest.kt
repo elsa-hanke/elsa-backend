@@ -7,7 +7,7 @@ import com.tngtech.archunit.core.domain.JavaClass
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.core.importer.ImportOption
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobScheduler
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobScheduler
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

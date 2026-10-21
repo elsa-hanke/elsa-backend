@@ -5,12 +5,13 @@ import com.github.kagkarlsson.scheduler.task.ExecutionComplete
 import com.github.kagkarlsson.scheduler.task.ExecutionContext
 import com.github.kagkarlsson.scheduler.task.ExecutionOperations
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobExecution
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapterRegistry
-import org.springframework.mock.env.MockEnvironment
-import fi.elsapalvelu.elsa.service.arkistointi.job.StaleArkistointiExecutionException
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessor
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.StaleArkistointiExecutionException
+import java.time.Instant
+import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -22,8 +23,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.ObjectProvider
-import java.time.Instant
-import java.util.UUID
+import org.springframework.mock.env.MockEnvironment
 
 class ArkistointiDbSchedulerConfigurationTest {
     private val processor = mock<ArkistointiJobProcessor>()

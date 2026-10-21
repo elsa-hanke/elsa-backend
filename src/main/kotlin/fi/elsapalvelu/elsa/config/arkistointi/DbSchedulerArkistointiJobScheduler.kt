@@ -2,14 +2,14 @@ package fi.elsapalvelu.elsa.config.arkistointi
 
 import com.github.kagkarlsson.scheduler.SchedulerClient
 import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobScheduler
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobScheduler
+import java.time.Instant
+import java.util.UUID
+import javax.sql.DataSource
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
-import java.util.UUID
-import javax.sql.DataSource
 
 @Component
 class DbSchedulerArkistointiJobScheduler(

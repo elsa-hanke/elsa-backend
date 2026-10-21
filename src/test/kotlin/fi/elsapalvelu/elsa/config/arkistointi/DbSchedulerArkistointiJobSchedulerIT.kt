@@ -5,9 +5,15 @@ import com.github.kagkarlsson.scheduler.boot.autoconfigure.DbSchedulerAutoConfig
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapterRegistry
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobScheduler
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobScheduler
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
+import java.time.Duration
+import java.time.Instant
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Supplier
+import javax.sql.DataSource
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Test
@@ -20,12 +26,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DelegatingDataSource
 import org.springframework.transaction.IllegalTransactionStateException
 import org.springframework.transaction.support.TransactionTemplate
-import java.time.Duration
-import java.time.Instant
-import java.util.UUID
-import java.util.concurrent.atomic.AtomicReference
-import java.util.function.Supplier
-import javax.sql.DataSource
 
 @SpringBootTest(
     classes = [ElsaBackendApp::class],

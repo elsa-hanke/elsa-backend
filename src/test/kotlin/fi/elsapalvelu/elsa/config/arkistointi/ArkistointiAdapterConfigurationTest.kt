@@ -4,9 +4,11 @@ import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.boot.autoconfigure.DbSchedulerAutoConfiguration
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapter
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapterRegistry
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
+import java.util.function.Supplier
+import javax.sql.DataSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -21,8 +23,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.context.annotation.Configuration
-import java.util.function.Supplier
-import javax.sql.DataSource
 
 class ArkistointiAdapterConfigurationTest {
     private val worker = mock<Scheduler>().also { whenever(it.schedulerState).thenReturn(mock()) }

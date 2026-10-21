@@ -1,26 +1,26 @@
 package fi.elsapalvelu.elsa.config.arkistointi
 
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer
-import com.github.kagkarlsson.scheduler.task.TaskDescriptor
-import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
 import com.github.kagkarlsson.scheduler.task.CompletionHandler
 import com.github.kagkarlsson.scheduler.task.ExecutionContext
+import com.github.kagkarlsson.scheduler.task.TaskDescriptor
 import com.github.kagkarlsson.scheduler.task.TaskInstance
+import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobExecution
-import fi.elsapalvelu.elsa.service.arkistointi.job.StaleArkistointiExecutionException
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiRetryPolicy
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapterRegistry
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessor
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiRetryPolicy
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.StaleArkistointiExecutionException
+import java.sql.Connection
+import java.util.Optional
+import javax.sql.DataSource
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 import org.springframework.jdbc.datasource.DelegatingDataSource
-import java.sql.Connection
-import java.util.Optional
-import javax.sql.DataSource
 
 val ARKISTOINTI_JOB_TASK: TaskDescriptor<Unit> =
     TaskDescriptor.of("arkistointi-job", Unit::class.java)

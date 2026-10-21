@@ -127,6 +127,20 @@ skeemamuutoksia. Testien `test-master.xml` suorittaa lisäksi kahden
 sarakekohtaisen sekvenssin kohdistuksen ladatun viitedatan suurimpaan ID-arvoon.
 Envers käyttää samoja audit-taulujen ja revision-sarakkeiden nimiä kuin tuotannossa.
 
+### Asynkronisen arkistoinnin koodirakenne
+
+Paketti `service.arkistointi.job` on jaettu vastuiden mukaan:
+
+- `creation`: jobin luonti ja transaktionaalisen jonotuksen rajapinta.
+- `document`: muuttumattomat snapshotit, asiakirjaviitteet, tavujen lataus ja eheystarkistukset.
+- `delivery`: adapterin rajapinta, adapterirekisteri sekä toimituspyyntö ja tulos.
+- `processing`: yrityksen suoritus, tilamuutokset, vanhentuneiden suoritusten suojaus ja uudelleenyritykset.
+
+Yhteinen `ArkistointiError` säilyy job-paketin juuressa. db-schedulerin Spring-kytkentä
+ja jonotuksen toteutus ovat paketissa `config.arkistointi`. Valmistumisen payload
+muodostetaan paketissa `service.arkistointi.valmistuminen`.
+Testit seuraavat vastaavaa pakettijakoa.
+
 ### Arkistoinnin muuttumattomat snapshotit
 
 Arkistosnapshot tallentaa olemassa olevan asiakirjan tavut, nimen ja MIME-tyypin
@@ -238,7 +252,7 @@ Taustakäsittelijä lataa tallennetun payloadin ja tarkistussummalla varmistetut
 
 Kun db-scheduler-worker on käytössä (myös ilman erillistä `enabled`-asetusta),
 jokainen `kaytossa=true` ja tapauskohtainen `async-enabled=true` -yhdistelmä
-vaatii yliopiston asynkronisen `service.arkistointi.job.ArkistointiAdapter`-beanin.
+vaatii yliopiston asynkronisen `service.arkistointi.job.delivery.ArkistointiAdapter`-beanin.
 Puuttuva adapteri estää käynnistyksen ennen workerin aloitusta; ulkoiseen arkistoon
 ei tehdä käynnistystarkistuksessa verkkokutsua. Saman yliopiston adapterit eivät
 saa olla päällekkäisiä. Workerista erillinen jonoon kirjoittava solmu voi käyttää
