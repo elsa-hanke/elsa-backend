@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiRetryPolicy
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 /**
@@ -169,7 +168,7 @@ class ApplicationProperties {
 
     class Arkistointi {
 
-        val retry = ArkistointiRetryPolicy()
+        val retry = ArkistointiRetryProperties()
 
         private val oulu = Oulu()
         private val hki = Hki()

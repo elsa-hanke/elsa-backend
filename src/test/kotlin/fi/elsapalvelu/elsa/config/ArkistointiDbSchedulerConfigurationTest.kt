@@ -7,7 +7,6 @@ import com.github.kagkarlsson.scheduler.task.ExecutionOperations
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobFailureHandler
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiRetryPolicy
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
 import org.springframework.mock.env.MockEnvironment
@@ -32,7 +31,7 @@ class ArkistointiDbSchedulerConfigurationTest {
         whenever(it.getIfAvailable()).thenReturn(processor)
     }
     private val task = ArkistointiDbSchedulerConfiguration().arkistointiJobTask(
-        provider, mock<ArkistointiJobFailureHandler>(), ArkistointiRetryPolicy(),
+        provider, mock<ArkistointiJobFailureHandler>(),
         ArkistointiAdapterRegistry(emptyList()), ArkistointiConfigurationProvider(ApplicationProperties()), MockEnvironment()
     )
     private val jobId = UUID.randomUUID()

@@ -4,6 +4,7 @@ import com.github.kagkarlsson.scheduler.task.Execution
 import com.github.kagkarlsson.scheduler.task.ExecutionComplete
 import com.github.kagkarlsson.scheduler.task.ExecutionOperations
 import fi.elsapalvelu.elsa.config.ARKISTOINTI_JOB_TASK
+import fi.elsapalvelu.elsa.config.ArkistointiRetryProperties
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -24,10 +25,10 @@ class ArkistointiJobFailureHandlerTest {
     private val jobId = UUID.randomUUID()
     private val state = mock<ArkistointiJobStateService>()
     private val operations = mock<ExecutionOperations<Unit>>()
-    private val policy = ArkistointiRetryPolicy().apply {
+    private val policy = ArkistointiRetryPolicy(ArkistointiRetryProperties().apply {
         maxAttempts = 3
         jitterFactor = 0.0
-    }
+    })
     private val handler = ArkistointiJobFailureHandler(state, policy)
 
     @Test

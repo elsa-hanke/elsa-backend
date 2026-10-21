@@ -1,28 +1,25 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
+import fi.elsapalvelu.elsa.config.ArkistointiRetryProperties
 import java.time.Duration
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.ceil
 import kotlin.math.pow
 
-class ArkistointiRetryPolicy(private val randomSample: () -> Double = { ThreadLocalRandom.current().nextDouble() }) {
-    /** Total attempts, including the first execution and interrupted executions. */
-    var maxAttempts: Int = 25
-    var initialDelay: Duration = Duration.ofMinutes(1)
-    var maxDelay: Duration = Duration.ofHours(4)
-    var multiplier: Double = 2.0
-    /** Downward-only jitter: 0.1 chooses 90-100% of the capped exponential delay; 0 disables it. */
-    var jitterFactor: Double = 0.1
-
-    fun validate() {
-        require(maxAttempts > 0) { "Archiving max-attempts must be positive" }
-        require(initialDelay >= Duration.ofMillis(1)) { "Archiving initial-delay must be at least 1ms" }
-        require(maxDelay >= initialDelay) { "Archiving max-delay must be at least initial-delay" }
-        require(multiplier.isFinite() && multiplier >= 1.0) { "Archiving multiplier must be finite and at least 1" }
-        require(jitterFactor.isFinite() && jitterFactor >= 0.0 && jitterFactor < 1.0) {
-            "Archiving jitter-factor must be finite, at least 0 and less than 1"
-        }
+class ArkistointiRetryPolicy(
+    properties: ArkistointiRetryProperties = ArkistointiRetryProperties(),
+    private val randomSample: () -> Double = { ThreadLocalRandom.current().nextDouble() }
+) {
+    // Capture validated settings once; configuration binding must not mutate a running policy.
+    init {
+        properties.validate()
     }
+
+    val maxAttempts: Int = properties.maxAttempts
+    private val initialDelay = properties.initialDelay
+    private val maxDelay = properties.maxDelay
+    private val multiplier = properties.multiplier
+    private val jitterFactor = properties.jitterFactor
 
     fun delay(previousFailures: Int): Duration {
         val millis = initialDelay.toMillis().toDouble() * multiplier.pow(previousFailures.coerceAtLeast(0))

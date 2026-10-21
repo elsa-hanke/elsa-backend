@@ -38,18 +38,16 @@ class ArkistointiDbSchedulerConfiguration {
 
     @Bean
     fun arkistointiRetryPolicy(properties: ApplicationProperties): ArkistointiRetryPolicy =
-        properties.getArkistointi().retry
+        ArkistointiRetryPolicy(properties.getArkistointi().retry)
 
     @Bean
     fun arkistointiJobTask(
         processorProvider: ObjectProvider<ArkistointiJobProcessor>,
         failureHandler: ArkistointiJobFailureHandler,
-        retryPolicy: ArkistointiRetryPolicy,
         adapters: ArkistointiAdapterRegistry,
         configuration: ArkistointiConfigurationProvider,
         environment: Environment
     ): OneTimeTask<Unit> {
-        retryPolicy.validate()
         // Auto-configuration collects Task beans before constructing/starting the worker,
         // including when delay-startup-until-context-ready=false. Producers may have no worker.
         if (environment.getProperty("db-scheduler.enabled", Boolean::class.java, true)) {
