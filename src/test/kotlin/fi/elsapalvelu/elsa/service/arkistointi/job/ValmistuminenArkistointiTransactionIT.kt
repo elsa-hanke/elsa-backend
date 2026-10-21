@@ -182,14 +182,27 @@ class ValmistuminenArkistointiTransactionIT {
         verify(legacyArchive, never()).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
     }
 
-    @Test
-    fun `scheduler failure rolls back approval documents job and actual scheduled row`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["scheduler", "manifest"])
+    fun `scheduler or deferred manifest failure rolls back the entire approval`(failure: String) {
         val fixture = fixture("EL")
+        val triggerBody = if (failure == "scheduler") {
+            "RAISE EXCEPTION 'Simulated scheduler insertion failure' USING ERRCODE = '23514';"
+        } else {
+            """
+                INSERT INTO arkistointi_job_asiakirja
+                    (job_id, asiakirja_id, asiakirjatyyppi, jarjestys, tiedostonimi, sisaltotyyppi, sha256)
+                SELECT job_id, asiakirja_id, asiakirjatyyppi, 99, tiedostonimi, sisaltotyyppi, sha256
+                FROM arkistointi_job_asiakirja WHERE job_id = NEW.task_instance::uuid
+                ORDER BY id LIMIT 1;
+                RETURN NEW;
+            """.trimIndent()
+        }
         transactions.executeWithoutResult {
             jdbc.execute("""
                 CREATE FUNCTION fail_graduation_schedule() RETURNS trigger LANGUAGE plpgsql AS ${'$'}${'$'}
                 BEGIN
-                    RAISE EXCEPTION 'Simulated scheduler insertion failure' USING ERRCODE = '23514';
+                    $triggerBody
                 END; ${'$'}${'$'}
             """.trimIndent())
             jdbc.execute("CREATE TRIGGER fail_graduation_schedule BEFORE INSERT ON scheduled_tasks " +
@@ -198,7 +211,8 @@ class ValmistuminenArkistointiTransactionIT {
         val taskCountBefore = jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)
         try {
             val exception = assertThrows<RuntimeException> { approve(fixture) }
-            assertThat(exception).hasStackTraceContaining("Simulated scheduler insertion failure")
+            assertThat(exception).hasStackTraceContaining(if (failure == "scheduler")
+                "Simulated scheduler insertion failure" else "Archive job document count does not match the manifest")
             assertRolledBack(fixture)
             assertThat(jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType))
                 .isEqualTo(taskCountBefore)
@@ -507,19 +521,32 @@ class ValmistuminenArkistointiTransactionIT {
         }
     }
 
-    private fun assertSnapshots(job: ArkistointiJob): Map<Long, ByteArray> = job.asiakirjat.associate { document ->
-        assertThat(document.asiakirja!!.archiveSnapshot).isTrue
-        val bytes = loader.load(document).sisalto
-        assertThat(bytes).isNotEmpty
-        assertThat(document.filename).isEqualTo(document.asiakirja!!.nimi)
-        assertThat(document.contentType).isEqualTo(document.asiakirja!!.tyyppi)
-        assertThat(document.sha256).isEqualTo(ArkistointiChecksum.sha256(bytes))
-        document.id!! to bytes
+    private fun assertSnapshots(job: ArkistointiJob): Map<Long, ByteArray> {
+        assertThat(job.expectedDocumentCount).isEqualTo(job.asiakirjat.size).isPositive()
+        return job.asiakirjat.associate { document ->
+            assertThat(document.asiakirja!!.archiveSnapshot).isTrue
+            val bytes = loader.load(document).sisalto
+            assertThat(bytes).isNotEmpty
+            assertThat(document.filename).isEqualTo(document.asiakirja!!.nimi)
+            assertThat(document.contentType).isEqualTo(document.asiakirja!!.tyyppi)
+            assertThat(document.sha256).isEqualTo(ArkistointiChecksum.sha256(bytes))
+            document.id!! to bytes
+        }
     }
 
     private fun assertRepeatedApprovalKeepsJob(fixture: ApprovalFixture, jobId: UUID) {
+        val before = transactions.execute {
+            val job = jobs.findById(jobId).orElseThrow()
+            Triple(job.payload, job.expectedDocumentCount, job.asiakirjat.map { document -> document.id })
+        }
+        val snapshotsBefore = snapshotCount(fixture)
         assertThrows<BadRequestAlertException> { approve(fixture) }
         assertThat(transactions.execute { jobs.findByKey(key(fixture))?.id }).isEqualTo(jobId)
+        assertThat(transactions.execute {
+            val job = jobs.findById(jobId).orElseThrow()
+            Triple(job.payload, job.expectedDocumentCount, job.asiakirjat.map { document -> document.id })
+        }).isEqualTo(before)
+        assertThat(snapshotCount(fixture)).isEqualTo(snapshotsBefore)
         assertThat(taskCount(jobId)).isEqualTo(1)
     }
 

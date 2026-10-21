@@ -59,6 +59,7 @@ class ArkistointiJobCreatorImplTest {
         val jobCaptor = argumentCaptor<ArkistointiJob>()
         verify(repository).saveAndFlush(jobCaptor.capture())
         assertThat(jobCaptor.firstValue.asiakirjat).hasSize(1)
+        assertThat(jobCaptor.firstValue.expectedDocumentCount).isEqualTo(1)
         assertThat(jobCaptor.firstValue.asiakirjat.single().sha256)
             .isEqualTo(snapshot.sha256)
         assertThat(jobCaptor.firstValue.asiakirjat.single().filename).isEqualTo(snapshot.filename)
@@ -68,18 +69,36 @@ class ArkistointiJobCreatorImplTest {
     }
 
     @Test
-    fun `returns the existing job for an identical idempotency key`() {
+    fun `manifest count is fixed from the entire request before persist`() {
+        val reference = request().asiakirjat.single()
+        val request = request().copy(asiakirjat = listOf(
+            reference.copy(jarjestysnumero = 5, asiakirjatyyppi = RecordType.LIITE), reference
+        ))
+        whenever(snapshotService.resolveReference(any())).thenAnswer { it.getArgument<ArkistointiAsiakirjaReference>(0) }
+        whenever(repository.saveAndFlush(any<ArkistointiJob>())).thenAnswer {
+            it.getArgument<ArkistointiJob>(0).apply {
+                assertThat(expectedDocumentCount).isEqualTo(2)
+                assertThat(asiakirjat.map { document -> document.jarjestysnumero }).containsExactly(0, 5)
+                id = UUID.randomUUID()
+            }
+        }
+        whenever(scheduler.schedule(any(), any())).thenReturn(true)
+
+        assertThat(creator.create(request).expectedDocumentCount).isEqualTo(2)
+    }
+
+    @Test
+    fun `existing business key returns the original manifest without snapshots or scheduling`() {
         val request = request()
-        val jobId = UUID.randomUUID()
-        val existing = ArkistointiJob(id = jobId, key = request.key)
+        val existing = ArkistointiJob(id = UUID.randomUUID(), key = request.key,
+            payload = "{\"original\":true}", expectedDocumentCount = 2)
         whenever(repository.findByKey(request.key)).thenReturn(existing)
 
-        val result = creator.create(request)
-
-        assertThat(result).isSameAs(existing)
-        assertThat(result.id).isEqualTo(jobId)
+        assertThat(creator.create(request)).isSameAs(existing)
+        assertThat(existing.payload).isEqualTo("{\"original\":true}")
+        assertThat(existing.expectedDocumentCount).isEqualTo(2)
         verify(repository, never()).saveAndFlush(any())
-        verifyNoInteractions(scheduler, snapshotService)
+        verifyNoInteractions(snapshotService, scheduler)
     }
 
     @Test
