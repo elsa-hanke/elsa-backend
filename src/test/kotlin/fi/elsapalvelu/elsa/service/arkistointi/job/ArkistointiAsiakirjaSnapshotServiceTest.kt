@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
-import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
@@ -17,12 +16,15 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.Mockito
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.RowMapper
 
 class ArkistointiAsiakirjaSnapshotServiceTest {
     private val repository = mock<AsiakirjaRepository>()
@@ -122,14 +124,19 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
         whenever(repository.findOneWithDataById(4L)).thenReturn(snapshot)
         whenever(repository.findArchiveSnapshotFlagById(4L)).thenReturn(true)
         val original = service.createReference(snapshot, RecordType.LIITE, 0)
+        val jdbc = mock<JdbcTemplate>()
+        whenever(jdbc.query(any<String>(), any<RowMapper<ByteArray?>>(), eq(4L))).thenReturn(listOf(data))
 
         Mockito.mockStatic(DigestUtils::class.java, Mockito.CALLS_REAL_METHODS).use { digests ->
             val resolved = service.resolveReference(original.copy(sha256 = original.sha256.uppercase()))
             assertThat(resolved.sha256).isEqualTo(original.sha256)
             digests.verify({ DigestUtils.sha256Hex(data) }, times(1))
 
-            val reference = ArkistointiJobAsiakirja(asiakirja = resolved.asiakirja, sha256 = resolved.sha256)
-            val loader = ArkistointiAsiakirjaLoaderImpl(repository)
+            val reference = ArkistointiDocumentDescriptor(
+                resolved.asiakirja.id!!, resolved.asiakirjatyyppi, resolved.jarjestysnumero,
+                resolved.filename, resolved.contentType, resolved.sha256
+            )
+            val loader = ArkistointiAsiakirjaLoaderImpl(jdbc)
             assertThat(loader.load(reference).sisalto).containsExactly(*data)
             digests.verify({ DigestUtils.sha256Hex(data) }, times(2))
 
