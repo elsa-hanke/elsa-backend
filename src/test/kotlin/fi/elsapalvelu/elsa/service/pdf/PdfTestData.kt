@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service
+package fi.elsapalvelu.elsa.service.pdf
 
 import com.itextpdf.io.font.constants.StandardFonts
 import com.itextpdf.kernel.font.PdfFontFactory
@@ -9,6 +9,7 @@ import com.itextpdf.kernel.pdf.canvas.PdfCanvas
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
+import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy
 import org.apache.pdfbox.pdmodel.font.PDType0Font
@@ -41,7 +42,7 @@ object PdfTestData {
                 val font = requireNotNull(javaClass.getResourceAsStream("/fonts/LiberationSerif-Regular.ttf"))
                     .use { PDType0Font.load(document, it) }
                 repeat(pageCount) { index ->
-                    val page = PDPage(org.apache.pdfbox.pdmodel.common.PDRectangle.A4)
+                    val page = PDPage(PDRectangle.A4)
                     document.addPage(page)
                     PDPageContentStream(document, page).use { content ->
                         content.beginText()

@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.service
+package fi.elsapalvelu.elsa.service.pdf
 
+import fi.elsapalvelu.elsa.service.PdfTextSanitizer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
