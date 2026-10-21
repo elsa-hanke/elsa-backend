@@ -21,8 +21,7 @@
               <b-col>
                 <div class="d-flex justify-content-center border rounded pt-1 pb-1 mb-4">
                   <div class="container-fluid">
-                    <!-- eslint-disable-next-line vue/no-v-html -->
-                    <p class="mb-2" v-html="ilmoitus.teksti"></p>
+                    <ilmoitus-content class="mb-2" :html="ilmoitus.teksti" />
                     <div class="d-flex flex-row-reverse flex-wrap">
                       <elsa-button
                         variant="primary"
@@ -60,7 +59,7 @@
   import { getIlmoitukset } from '@/api/julkinen'
   import { deleteIlmoitus } from '@/api/tekninen-paakayttaja'
   import ElsaButton from '@/components/button/button.vue'
-  import ElsaTextEditor from '@/components/text-editor/text-editor.vue'
+  import IlmoitusContent from '@/components/ilmoitus-content/ilmoitus-content.vue'
   import { Ilmoitus } from '@/types'
   import { confirmDelete } from '@/utils/confirm'
   import { toastFail, toastSuccess } from '@/utils/toast'
@@ -68,7 +67,7 @@
   @Component({
     components: {
       ElsaButton,
-      ElsaTextEditor
+      IlmoitusContent
     }
   })
   export default class MuokkaaIlmoituksia extends Vue {
