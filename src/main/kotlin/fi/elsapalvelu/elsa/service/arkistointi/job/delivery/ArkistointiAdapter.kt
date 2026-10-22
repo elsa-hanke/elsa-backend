@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.arkistointi.job
+package fi.elsapalvelu.elsa.service.arkistointi.job.delivery
 
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 

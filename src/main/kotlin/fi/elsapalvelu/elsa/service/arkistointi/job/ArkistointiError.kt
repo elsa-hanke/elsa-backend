@@ -1,20 +1,5 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job
 
-sealed interface ArkistointiResult {
-
-    data class Success(
-        val externalId: String?
-    ) : ArkistointiResult
-
-    data class RetryableFailure(
-        val error: ArkistointiError
-    ) : ArkistointiResult
-
-    data class PermanentFailure(
-        val error: ArkistointiError
-    ) : ArkistointiResult
-}
-
 class ArkistointiError private constructor(
     val code: String,
     val description: String

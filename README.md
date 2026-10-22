@@ -1,5 +1,22 @@
 # ELSA-palvelun backend
 
+## Asynkronisen arkistoinnin koodirakenne
+
+Vaiheen 1 rajapinnat ja tietotyypit on jaettu vastuiden mukaan paketin
+`service.arkistointi.job` alle:
+
+- `creation`: jobin luontipyyntö sekä luonnin ja transaktionaalisen jonotuksen rajapinnat.
+- `document`: asiakirjaviite, ladatun asiakirjan tietotyyppi ja latauksen rajapinta.
+- `delivery`: adapterin rajapinta, toimituspyyntö ja toimituksen tulos.
+- `processing`: jobin käsittelijän rajapinta.
+
+Yhteinen `ArkistointiError` on job-paketin juuressa. Spring-konfiguraatio
+`ArkistointiDbSchedulerConfiguration` ja jonotuksen toteutus
+`DbSchedulerArkistointiJobScheduler` ovat erillisissä tiedostoissa paketissa
+`config.arkistointi`. Testit seuraavat vastaavaa pakettijakoa.
+Tämä vaihe määrittelee sopimukset; snapshotien ja käsittelijän toteutukset
+kuuluvat myöhempiin tehtäviin.
+
 ## Asynkronisen arkistoinnin avaimet
 
 `ArkistointiJob.key` (`job_key`) on paikallinen liiketoiminta-avain: sen avulla
