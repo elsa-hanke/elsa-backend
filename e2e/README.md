@@ -45,6 +45,45 @@ yarn cy:run --spec cypress/e2e/auth/suomifi-logout.cy.ts
 
 The setup cleans the E2E user through database tasks; use the E2E database.
 
+## Stored rich-text XSS regressions
+
+`cypress/e2e/security/rich-text-*.cy.ts` adds six browser scenarios:
+
+- `rich-text-public.cy.ts`: raw historical announcement in the E2E database → real
+  public API → anonymous login page; the stored original must remain unchanged.
+  A separate intercepted, dirty response checks frontend protection independently.
+- `rich-text-admin.cy.ts`: real administrator POST/PUT bypass TinyMCE; inspect the
+  saved database value so read-time sanitization cannot hide unsafe persistence.
+  Load dirty historical HTML into the actual TinyMCE iframe, assert that opening
+  sends no writes, then edit, save through the real API and reopen. Headings,
+  lists, tables, links and Finnish/Swedish characters must survive.
+- `rich-text-assessments.cy.ts`: dirty intercepted assessment descriptions in FI/SV
+  and assessment-tool instructions render safely on real trainer pages. The pilot
+  hides the language selector, so this test changes the mounted Vue i18n locale.
+
+The small browser payload set reuses the JVM/Jest corpus in
+`../src/test/resources/security/rich-text-cases.json`. GHA mounts that directory
+read-only into the Cypress container. Custom Docker invocations that mount only
+`e2e/` also need this corpus at `/src/test/resources/security`.
+
+Assertions inspect browser DOM and an execution spy installed before application
+loading (including execution inside the TinyMCE iframe). They do not compute
+expected results with the production sanitizer or suppress browser exceptions.
+
+Run only against the disposable E2E stack. DB tasks own announcement IDs/run
+markers and separate `e2e-rich-text-*` users; they never delete ordinary content
+or the other specs' users. Authenticated scenarios reuse the known test-IdP
+identities through real invitation/SAML login. If an identity is already linked
+to another test account, its encrypted HETU is temporarily detached and restored
+by the cleanup hook, preventing automatic account merging or role grants to that
+account. The original encrypted value stays in Node memory, outside Cypress logs.
+Specs must run serially within each database, as in the existing GHA shard setup.
+After forcibly killing Cypress before cleanup, recreate the disposable database
+before another run; in-memory restoration state is lost on process termination.
+
+The existing shard discovery includes the new specs automatically; no explicit
+spec list or additional GHA job is required.
+
 ## Parallel GitHub Actions runs
 
 `.github/workflows/e2e.yml` runs three shards on separate runners. Each shard
