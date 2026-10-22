@@ -21,8 +21,7 @@
               <b-col>
                 <div class="d-flex justify-content-center border rounded pt-1 pb-1 mb-4">
                   <div class="container-fluid">
-                    <!-- eslint-disable-next-line vue/no-v-html -->
-                    <p class="mb-2" v-html="ilmoitus.teksti"></p>
+                    <p v-safe-html="ilmoitus.teksti" class="mb-2"></p>
                     <div class="d-flex flex-row-reverse flex-wrap">
                       <elsa-button
                         variant="primary"

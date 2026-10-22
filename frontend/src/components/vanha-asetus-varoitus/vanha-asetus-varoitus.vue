@@ -1,8 +1,7 @@
 <template>
   <p v-if="vanhanAsetuksenMukainen" class="d-flex">
     <font-awesome-icon icon="info-circle" class="text-muted mr-2 mt-1" />
-    <!-- eslint-disable-next-line vue/no-v-html -->
-    <span v-html="$t('vanhan-asetuksen-mukaisesti', { opintooppaastasiLinkki })" />
+    <span v-safe-html="$t('vanhan-asetuksen-mukaisesti', { opintooppaastasiLinkki })" />
   </p>
 </template>
 

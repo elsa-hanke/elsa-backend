@@ -41,8 +41,7 @@
                       {{ $t('ei-liitetiedostoa') }}
                     </span>
                   </b-alert>
-                  <!-- eslint-disable-next-line vue/no-v-html -->
-                  <div v-html="at.ohjeteksti"></div>
+                  <div v-safe-html="at.ohjeteksti"></div>
                   <div
                     v-for="(kysymys, kIndex) in at.kysymykset"
                     :key="kysymys.jarjestysnumero"
