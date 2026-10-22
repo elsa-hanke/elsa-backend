@@ -9,8 +9,8 @@ import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonKoulutussopimusRepositor
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
-import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiPackage
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -71,7 +71,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
     private lateinit var vastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
 
     @MockitoBean
-    private lateinit var arkistointiService: ArkistointiService
+    private lateinit var arkistointiService: SynchronousArkistointiService
 
     @Suppress("UnusedPrivateProperty")
     @MockitoBean
@@ -385,7 +385,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
                 anyOrNull(), any(), anyOrNull(), anyOrNull(), anyOrNull(),
                 anyOrNull(), anyOrNull(), anyOrNull(), any()
             )
-        ).thenReturn(ArkistointiResult(TEST_ZIP_PATH, null))
+        ).thenReturn(ArkistointiPackage(TEST_ZIP_PATH, null))
     }
 
     private fun assertGeneratedDocumentWasArchived(

@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaException
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
 import java.security.Principal
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
 import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService

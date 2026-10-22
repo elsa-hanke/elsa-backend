@@ -13,8 +13,8 @@ import fi.elsapalvelu.elsa.service.ArchiveImageTestData
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.PdfTestData
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaSnapshotService
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiChecksum
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfCachingResourceRetriever
 import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfServiceImpl
@@ -24,8 +24,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.mockito.kotlin.mock
 import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.http.MediaType
 import org.thymeleaf.spring6.SpringTemplateEngine

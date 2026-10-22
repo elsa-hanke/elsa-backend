@@ -1,22 +1,22 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.ValmistumispyynnonTarkistus
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.required
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
-import fi.elsapalvelu.elsa.service.arkistointi.job.ValmistuminenArkistointiPayload
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaSnapshotService
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobCreator
-import fi.elsapalvelu.elsa.service.arkistointi.job.CreateArkistointiJobRequest
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
+import fi.elsapalvelu.elsa.service.arkistointi.valmistuminen.ValmistuminenArkistointiPayload
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.mapper.valmistuminen.ValmistumispyynnonTarkistusMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import com.fasterxml.jackson.databind.ObjectMapper
 
 @Service
 class ValmistumispyynnonViimeistelyService(
@@ -24,7 +24,7 @@ class ValmistumispyynnonViimeistelyService(
     private val tarkistusService: ValmistumispyynnonTarkistusService,
     private val tarkistusMapper: ValmistumispyynnonTarkistusMapper,
     private val ilmoitusService: ValmistumispyynnonIlmoitusService,
-    private val arkistointiService: ArkistointiService,
+    private val arkistointiService: SynchronousArkistointiService,
     private val arkistointiJobCreator: ArkistointiJobCreator,
     private val asiakirjaSnapshotService: ArkistointiAsiakirjaSnapshotService,
     private val configurationProvider: ArkistointiConfigurationProvider,

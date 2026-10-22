@@ -4,9 +4,9 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaErrorCategory
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaException
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaErrorCategory
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource

@@ -5,6 +5,43 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
+import fi.elsapalvelu.elsa.ElsaBackendApp
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
+import fi.elsapalvelu.elsa.domain.kayttaja.*
+import fi.elsapalvelu.elsa.domain.perustiedot.*
+import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
+import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
+import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksyntaFormDTO
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.ItextPdfAssembler
+import fi.elsapalvelu.elsa.service.kayttaja.MailService
+import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
+import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
+import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
+import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
+import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import fi.elsapalvelu.elsa.web.rest.findAll
+import fi.elsapalvelu.elsa.web.rest.helpers.*
+import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
+import jakarta.persistence.EntityManager
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
@@ -12,58 +49,22 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.kayttaja.*
-import fi.elsapalvelu.elsa.domain.perustiedot.*
-import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
-import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
-import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
-import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
-import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
-import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
-import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.ItextPdfAssembler
-import fi.elsapalvelu.elsa.service.kayttaja.MailService
-import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
-import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
-import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
-import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
-import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaReference
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaSnapshotService
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiChecksum
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobCreator
-import fi.elsapalvelu.elsa.service.arkistointi.job.CreateArkistointiJobRequest
-import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksyntaFormDTO
-import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
-import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
-import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
-import fi.elsapalvelu.elsa.web.rest.findAll
-import fi.elsapalvelu.elsa.web.rest.helpers.*
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
-import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication as withAuthentication
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.transaction.support.TransactionTemplate
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.time.LocalDate
@@ -72,7 +73,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import jakarta.persistence.EntityManager
 
 private const val ARKISTOINTI_HYVAKSYNTA_ENDPOINT = "/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta"
 
@@ -86,7 +86,7 @@ private const val ARKISTOINTI_HYVAKSYNTA_ENDPOINT = "/api/vastuuhenkilo/valmistu
  *    - Error must be logged at ERROR level with the exception message
  *    - Spring @Transactional must roll back the kuittausaika save
  *
- * Uses @MockBean to override [ArkistointiService], which creates a separate Spring
+ * Uses @MockBean to override [SynchronousArkistointiService], which creates a separate Spring
  * application context from the base IT suite.
  */
 @AutoConfigureMockMvc
@@ -109,11 +109,11 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private lateinit var valmistumispyyntoService: ValmistumispyyntoService
 
     /**
-     * Overrides the real [ArkistointiService] bean for the whole test class.
+     * Overrides the real [SynchronousArkistointiService] bean for the whole test class.
      * Each test configures its own stubbing via [whenever].
      */
     @MockitoBean
-    private lateinit var arkistointiService: ArkistointiService
+    private lateinit var arkistointiService: SynchronousArkistointiService
 
     @MockitoBean
     private lateinit var configurationProvider: ArkistointiConfigurationProvider

@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.errors
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaErrorCategory
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaException
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiAsiakirjaErrorCategory
 import jakarta.servlet.ServletException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
