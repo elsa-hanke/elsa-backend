@@ -84,12 +84,12 @@
                   <b-input-group-text class="input-group-fi">{{ 'FI' }}</b-input-group-text>
                 </b-input-group-prepend>
                 <b-col class="pl-0 pr-0">
-                  <elsa-text-editor v-model="form.kuvaus" />
+                  <elsa-text-editor v-model="form.kuvaus" restricted-rich-text />
                 </b-col>
               </b-input-group>
               <b-input-group prepend="SV">
                 <b-col class="pl-0 pr-0">
-                  <elsa-text-editor v-model="form.kuvausSv" />
+                  <elsa-text-editor v-model="form.kuvausSv" restricted-rich-text />
                 </b-col>
               </b-input-group>
             </template>
@@ -125,8 +125,7 @@
             {{ kokonaisuus.voimassaoloLoppuu != null ? $date(kokonaisuus.voimassaoloLoppuu) : '' }}
           </p>
           <h5>{{ $t('kuvaus') }}</h5>
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <p v-html="kokonaisuus.kuvaus"></p>
+          <rich-text-content :html="kokonaisuus.kuvaus" />
           <hr />
         </div>
       </b-col>
@@ -144,12 +143,14 @@
   import ElsaFormError from '@/components/form-error/form-error.vue'
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import ElsaFormMultiselect from '@/components/multiselect/multiselect.vue'
+  import RichTextContent from '@/components/rich-text-content/rich-text-content.vue'
   import ElsaTextEditor from '@/components/text-editor/text-editor.vue'
   import { ArvioitavaKokonaisuus, ArvioitavanKokonaisuudenKategoria } from '@/types'
   import { sortByAsc } from '@/utils/sort'
 
   @Component({
     components: {
+      RichTextContent,
       ElsaButton,
       ElsaFormGroup,
       ElsaFormError,

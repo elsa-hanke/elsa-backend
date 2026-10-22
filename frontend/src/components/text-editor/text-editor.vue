@@ -1,6 +1,6 @@
 <template>
   <div>
-    <editor v-bind="$attrs" :init="init" v-on="$listeners" />
+    <editor v-bind="editorAttrs" :init="init" v-on="$listeners" />
   </div>
 </template>
 
@@ -18,6 +18,9 @@
   import Editor from '@tinymce/tinymce-vue'
   import Vue from 'vue'
   import Component from 'vue-class-component'
+  import { Prop } from 'vue-property-decorator'
+
+  import { restrictedRichTextEditorOptions, sanitizeRichText } from '@/utils/richText'
 
   @Component({
     components: {
@@ -25,6 +28,15 @@
     }
   })
   export default class ElsaTextEditor extends Vue {
+    @Prop({ type: Boolean, default: false })
+    restrictedRichText!: boolean
+
+    get editorAttrs() {
+      return this.restrictedRichText
+        ? { ...this.$attrs, value: sanitizeRichText(this.$attrs.value as string | null) }
+        : this.$attrs
+    }
+
     get init() {
       return {
         statusbar: false,
@@ -34,7 +46,8 @@
         skin: false,
         plugins: ['lists', 'link', 'table', 'code'],
         block_formats: 'Paragraph=p;Header 2=h2;Header 3=h3;Header 4=h4',
-        toolbar: 'undo redo | bold | blocks | numlist bullist | link | table | code'
+        toolbar: 'undo redo | bold | blocks | numlist bullist | link | table | code',
+        ...(this.restrictedRichText ? restrictedRichTextEditorOptions : {})
       }
     }
   }

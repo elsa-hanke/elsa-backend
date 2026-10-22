@@ -62,7 +62,7 @@
                 class="text-muted text-size-md mr-2"
               />
             </em>
-            <ilmoitus-content :html="ilmoitus.teksti" />
+            <rich-text-content :html="ilmoitus.teksti" />
           </div>
         </b-alert>
       </b-col>
@@ -117,13 +117,13 @@
     LoginNameMismatch
   } from '@/api/julkinen'
   import ElsaButton from '@/components/button/button.vue'
-  import IlmoitusContent from '@/components/ilmoitus-content/ilmoitus-content.vue'
+  import RichTextContent from '@/components/rich-text-content/rich-text-content.vue'
   import { Ilmoitus } from '@/types'
 
   @Component({
     components: {
       ElsaButton,
-      IlmoitusContent
+      RichTextContent
     }
   })
   export default class Login extends Vue {

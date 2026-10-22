@@ -9,6 +9,10 @@ import fi.elsapalvelu.elsa.web.rest.tekninenpaakayttaja.TekninenPaakayttajaIlmoi
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.kotlin.never
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestExceptionAdvice
 import org.mapstruct.factory.Mappers
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -82,8 +86,29 @@ class IlmoitusServiceTest {
         assertSavedSafe()
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["", "<script>alert(1)</script>", "<img src=x>", "<p><br></p>", "<p>&nbsp; &#160;</p>"])
+    fun `empty sanitized announcements are rejected for create and update`(html: String) {
+        val json = com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(IlmoitusDTO(id = 42, teksti = html))
+        mvc().perform(post("/api/tekninen-paakayttaja/ilmoitukset")
+            .contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isBadRequest)
+        mvc().perform(put("/api/tekninen-paakayttaja/ilmoitukset")
+            .contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isBadRequest)
+        verify(repository, never()).save(any<Ilmoitus>())
+        assertThat(existing.teksti).isEqualTo(malicious)
+    }
+
+    @Test
+    fun `unknown identifiers return no result and do not save`() {
+        whenever(repository.findById(99)).thenReturn(Optional.empty())
+        assertThat(service.findOne(99)).isNull()
+        assertThat(service.update(IlmoitusDTO(id = 99, teksti = malicious))).isNull()
+        verify(repository, never()).save(any<Ilmoitus>())
+    }
+
     // Standalone MVC deliberately exercises deserialization/controller/service, not the security filter chain.
-    private fun mvc() = MockMvcBuilders.standaloneSetup(TekninenPaakayttajaIlmoituksetResource(service)).build()
+    private fun mvc() = MockMvcBuilders.standaloneSetup(TekninenPaakayttajaIlmoituksetResource(service))
+        .setControllerAdvice(BadRequestExceptionAdvice()).build()
 
     private fun assertSavedSafe() {
         val captured = argumentCaptor<Ilmoitus>()

@@ -3,7 +3,7 @@ import { BootstrapVue } from 'bootstrap-vue'
 import { VueConstructor } from 'vue'
 
 import { getIlmoitukset, getSeuraavaPaivitys } from '@/api/julkinen'
-import IlmoitusContent from '@/components/ilmoitus-content/ilmoitus-content.vue'
+import RichTextContent from '@/components/rich-text-content/rich-text-content.vue'
 import Ilmoitukset from '@/views/ilmoitukset/ilmoitukset.vue'
 import Login from '@/views/login/login.vue'
 
@@ -44,7 +44,7 @@ describe.each<[string, VueConstructor]>([
     await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(getIlmoitukset).toHaveBeenCalled()
-    const content = wrapper.findComponent(IlmoitusContent)
+    const content = wrapper.findComponent(RichTextContent)
     expect(content.exists()).toBe(true)
     expect(content.find('h2').text()).toBe('Hyvää & tärkeää')
     expect(content.find('strong').text()).toBe('Uutinen')
@@ -68,7 +68,7 @@ describe.each<[string, VueConstructor]>([
 
 describe('Announcement content updates', () => {
   it('sanitizes each new HTML value', async () => {
-    const wrapper = mount(IlmoitusContent, { propsData: { html: historicalHtml } })
+    const wrapper = mount(RichTextContent, { propsData: { html: historicalHtml } })
     expect(wrapper.findAll('[onclick], script, svg')).toHaveLength(0)
     await wrapper.setProps({ html: '<p><strong>Updated</strong></p>' })
     expect(wrapper.find('strong').text()).toBe('Updated')
