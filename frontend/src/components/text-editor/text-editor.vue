@@ -1,6 +1,6 @@
 <template>
   <div>
-    <editor v-bind="editorAttrs" :init="init" v-on="$listeners" />
+    <editor v-bind="editorAttrs" :init="init" v-on="editorListeners" />
   </div>
 </template>
 
@@ -18,7 +18,7 @@
   import Editor from '@tinymce/tinymce-vue'
   import Vue from 'vue'
   import Component from 'vue-class-component'
-  import { Prop } from 'vue-property-decorator'
+  import { Prop, Watch } from 'vue-property-decorator'
 
   import { restrictedRichTextEditorOptions, sanitizeRichText } from '@/utils/richText'
 
@@ -31,10 +31,39 @@
     @Prop({ type: Boolean, default: false })
     restrictedRichText!: boolean
 
+    editorValue: string | null | undefined = undefined
+    pendingEditorValue: { value: string } | null = null
+
+    @Watch('$attrs.value', { immediate: true })
+    onValueChanged(value: string | null | undefined) {
+      const echo = this.pendingEditorValue !== null && this.pendingEditorValue.value === value
+      this.pendingEditorValue = null
+      // Preserve TinyMCE's exact serialization on the v-model round trip. Otherwise
+      // named entities become literal characters and its watcher calls setContent
+      // during typing, replacing the selection. External values still get cleaned.
+      this.editorValue = this.restrictedRichText && !echo ? sanitizeRichText(value) : value
+    }
+
+    @Watch('restrictedRichText')
+    onRestrictedModeChanged() {
+      this.pendingEditorValue = null
+      this.onValueChanged(this.$attrs.value as string | undefined)
+    }
+
+    onEditorInput(value: string) {
+      this.pendingEditorValue = { value }
+      this.editorValue = value
+      this.$emit('input', value)
+    }
+
     get editorAttrs() {
+      return this.restrictedRichText ? { ...this.$attrs, value: this.editorValue } : this.$attrs
+    }
+
+    get editorListeners() {
       return this.restrictedRichText
-        ? { ...this.$attrs, value: sanitizeRichText(this.$attrs.value as string | null) }
-        : this.$attrs
+        ? { ...this.$listeners, input: this.onEditorInput }
+        : this.$listeners
     }
 
     get init() {

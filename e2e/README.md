@@ -47,7 +47,7 @@ The setup cleans the E2E user through database tasks; use the E2E database.
 
 ## Stored rich-text XSS regressions
 
-`cypress/e2e/security/rich-text-*.cy.ts` adds six browser scenarios:
+`cypress/e2e/security/rich-text-*.cy.ts` adds seven browser scenarios:
 
 - `rich-text-public.cy.ts`: raw historical announcement in the E2E database → real
   public API → anonymous login page; the stored original must remain unchanged.
@@ -57,6 +57,9 @@ The setup cleans the E2E user through database tasks; use the E2E database.
   Load dirty historical HTML into the actual TinyMCE iframe, assert that opening
   sends no writes, then edit, save through the real API and reopen. Headings,
   lists, tables, links and Finnish/Swedish characters must survive.
+  Another test types into the middle of a Finnish paragraph through the actual
+  contenteditable body and checks the caret, explicit undo checkpoints, redo,
+  saving and reopening, covering the named-entity/v-model feedback regression.
 - `rich-text-assessments.cy.ts`: dirty intercepted assessment descriptions in FI/SV
   and assessment-tool instructions render safely on real trainer pages. The pilot
   hides the language selector, so this test changes the mounted Vue i18n locale.

@@ -99,4 +99,57 @@ describe('Ilmoitusten API ja oikea TinyMCE – XSS-regressio', () => {
       cy.then(() => expect(writes, 'only the explicit save writes to the API').to.eq(1))
     })
   })
+
+  it('säilyttää kohdistimen suomenkielisen tekstin keskellä sekä undo- ja redo-toiminnot', () => {
+    type Editor = {
+      selection: { setCursorLocation: (node: Node, offset: number) => void }
+      undoManager: { clear: () => void; add: () => void; undo: () => void; redo: () => void }
+    }
+    const withEditor = (action: (editor: Editor) => void) => cy.window().then((win) => {
+      action((win as unknown as { tinymce: { activeEditor: Editor } }).tinymce.activeEditor)
+    })
+    const paragraph = () => editorBody().contains('p', /^Alku ä/)
+    const assertCaret = (prefix: string) => paragraph().should(($p) => {
+      const selection = $p[0].ownerDocument.getSelection()!
+      expect(selection.isCollapsed).to.eq(true)
+      expect(selection.rangeCount).to.eq(1)
+      const caret = selection.getRangeAt(0)
+      expect($p[0].contains(caret.startContainer)).to.eq(true)
+      const before = $p[0].ownerDocument.createRange()
+      before.selectNodeContents($p[0])
+      before.setEnd(caret.startContainer, caret.startOffset)
+      expect(before.toString()).to.eq(prefix)
+    })
+
+    cy.task<number>('db:createLegacyRichTextAnnouncement',
+      `${safeHtml}<p>${marker}</p><p>Alku ä loppu</p>`).then((id) => {
+      cy.visit(`/ilmoitukset/${id}/muokkaa`, { onBeforeLoad: observeXss })
+      paragraph().click().then(($p) => {
+        withEditor((editor) => {
+          editor.selection.setCursorLocation($p[0].firstChild!, 'Alku ä'.length)
+          editor.undoManager.clear()
+          editor.undoManager.add()
+        })
+      })
+      // Real contenteditable typing, not Source code or editor.setContent().
+      paragraph().type('ö').should('have.text', 'Alku äö loppu')
+      assertCaret('Alku äö')
+      withEditor((editor) => editor.undoManager.add())
+      // Do not reposition the selection between keystrokes.
+      paragraph().type('å').should('have.text', 'Alku äöå loppu')
+      assertCaret('Alku äöå')
+      withEditor((editor) => { editor.undoManager.add(); editor.undoManager.undo() })
+      paragraph().should('have.text', 'Alku äö loppu')
+      withEditor((editor) => editor.undoManager.redo())
+      paragraph().should('have.text', 'Alku äöå loppu')
+      assertCaret('Alku äöå')
+      cy.intercept('PUT', `**${api}`).as('saveTypedText')
+      cy.get('.muokkaa-ilmotusta button[type="submit"]').click()
+      cy.wait('@saveTypedText').its('response.statusCode').should('eq', 200)
+      cy.location('pathname').should('eq', '/ilmoitukset')
+      cy.visit(`/ilmoitukset/${id}/muokkaa`, { onBeforeLoad: observeXss })
+      paragraph().should('have.text', 'Alku äöå loppu')
+      assertNoExecution()
+    })
+  })
 })

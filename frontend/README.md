@@ -75,3 +75,15 @@ Vanhan sisällön read-only tarkistuskysely on `scripts/security/audit-rich-text
 Sitä ei suoriteta automaattisesti. Osumat vaativat manuaalisen arvioinnin eivätkä
 osoita hyökkäystä; kysely ei löydä kaikkia obfuskoituja hyötykuormia. Mahdollinen
 pysyvä siivous päätetään erikseen alkuperäiset tiedot säilyttäen.
+
+Rajoitettu editori puhdistaa ulkoa ladatun HTML:n, mutta palauttaa TinyMCE:n oman
+`input`-arvon muuttumattomana `v-model`-kierroksella. Näin named-entityjen ja
+Unicode-merkkien erilainen serialisointi ei korvaa editorin sisältöä kesken
+kirjoittamisen. Wrapperin Jest-testit ja Cypressin oikea tekstinsyöttö kattavat
+tämän sekä kohdistimen ja undo/redo-toimintojen säilymisen.
+
+Versioinnin nykyinen tallennuskäytäntö: uuden arviointityökaluversion tai korvaavan
+arvioitavan kokonaisuuden tallennus puhdistaa myös aiemman version HTML-kentät,
+kun vanha versio poistetaan käytöstä. Pelkkä lukeminen ei kirjoita tietokantaan.
+Jos historiallinen HTML pitää säilyttää täsmälleen alkuperäisenä, tämä käytäntö on
+muutettava erikseen; nykyiset regressiotestit edellyttävät puhdistusta tallennettaessa.
