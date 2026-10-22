@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.arkistointi.job
+package fi.elsapalvelu.elsa.service.arkistointi.job.document
 
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
@@ -8,6 +8,9 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreatorImpl
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobScheduler
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.assertj.core.api.Assertions.assertThat

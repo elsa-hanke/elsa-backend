@@ -1,9 +1,10 @@
-package fi.elsapalvelu.elsa.service.arkistointi.job
+package fi.elsapalvelu.elsa.service.arkistointi.job.document
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

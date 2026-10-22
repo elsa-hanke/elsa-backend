@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.service.arkistointi.job
+package fi.elsapalvelu.elsa.service.arkistointi.job.document
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 enum class ArkistointiAsiakirjaErrorCategory {
     INPUT_DOCUMENT,
     STORED_DOCUMENT,

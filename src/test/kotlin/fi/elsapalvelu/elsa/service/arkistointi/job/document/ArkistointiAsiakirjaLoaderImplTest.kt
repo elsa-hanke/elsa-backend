@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.arkistointi.job
+package fi.elsapalvelu.elsa.service.arkistointi.job.document
 
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja

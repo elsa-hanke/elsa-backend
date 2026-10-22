@@ -2,11 +2,11 @@
 
 ## Asynkronisen arkistoinnin koodirakenne
 
-Vaiheen 1 rajapinnat ja tietotyypit on jaettu vastuiden mukaan paketin
+Asynkronisen arkistoinnin rajapinnat ja toteutukset on jaettu vastuiden mukaan paketin
 `service.arkistointi.job` alle:
 
-- `creation`: jobin luontipyyntö sekä luonnin ja transaktionaalisen jonotuksen rajapinnat.
-- `document`: asiakirjaviite, ladatun asiakirjan tietotyyppi ja latauksen rajapinta.
+- `creation`: jobin luontipyyntö, luonnin rajapinta ja toteutus sekä transaktionaalisen jonotuksen rajapinta.
+- `document`: asiakirjaviitteet, muuttumattomien snapshotien luonti, lataus ja eheystarkistus sekä asiakirjavirheet.
 - `delivery`: adapterin rajapinta, toimituspyyntö ja toimituksen tulos.
 - `processing`: jobin käsittelijän rajapinta.
 
@@ -14,8 +14,8 @@ Yhteinen `ArkistointiError` on job-paketin juuressa. Spring-konfiguraatio
 `ArkistointiDbSchedulerConfiguration` ja jonotuksen toteutus
 `DbSchedulerArkistointiJobScheduler` ovat erillisissä tiedostoissa paketissa
 `config.arkistointi`. Testit seuraavat vastaavaa pakettijakoa.
-Tämä vaihe määrittelee sopimukset; snapshotien ja käsittelijän toteutukset
-kuuluvat myöhempiin tehtäviin.
+Snapshotien ja jobin luonnin toteutukset kuuluvat asiakirjatehtävään.
+Taustakäsittelijän toteutus lisätään myöhemmässä tehtävässä.
 
 ## Asynkronisen arkistoinnin avaimet
 
@@ -38,8 +38,8 @@ Kaikki automaattiset ja manuaaliset uusinnat käyttävät samaa tallennettua ava
 Vastaanottajan on deduplikoitava myös rinnakkaiset ja epävarman onnistumisen
 jälkeiset toimitukset atomisesti. Toimitussemantiikka on at-least-once.
 
-Vaihe 1 määrittelee mallin ja sopimuksen; creatorin ja processorin kytkentä tehdään
-niiden omissa tehtävissä. UUID ei estä tuotantotietokannan kopion lähettämistä:
+Vaihe 1 määrittelee mallin ja sopimuksen; tämä asiakirjatehtävä toteuttaa creatorin.
+Processorin kytkentä tehdään myöhemmässä tehtävässä. UUID ei estä tuotantotietokannan kopion lähettämistä:
 kopiossa avaimet säilyvät samoina, joten ympäristöt on eristettävä ja kopion
 workerin käynnistäminen estettävä erikseen.
 
@@ -72,9 +72,8 @@ Rollback ei tarvitse DELETE-oikeutta: se peruu myös jo lisätyt jobit, viitteet
 ajastukset. Retentionin hallittu poistopolku toteutetaan erikseen. Suojaus koskee
 tavallista SQL/JPA-DML:ää, ei tietokannan omistajaa, triggerien poistamista tai
 `TRUNCATE`-komentoa; sovelluksen ajonaikaisen roolin ei tule sallia näitä ohituksia.
-Vaiheen 1 viitesuojaus ei vielä takaa itse lähdeasiakirjan tavujen
-muuttumattomuutta: snapshotien suojaus ja SHA-256-tarkistus kuuluvat seuraavaan
-asiakirjatehtävään.
+Vaiheen 1 viitesuojausta täydentävät tässä asiakirjatehtävässä snapshotien
+muuttumattomuussuojaus ja SHA-256-tarkistus.
 
 ### Justfile-komennot 
 
