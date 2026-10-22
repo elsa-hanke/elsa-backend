@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl
+package fi.elsapalvelu.elsa.service.arkistointi
 
 import org.mockito.kotlin.any
 import org.mockito.kotlin.never
@@ -14,10 +14,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiAdapter
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiDispatcher
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.louhi.TampereLouhiService
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
@@ -49,7 +46,7 @@ import java.time.LocalDate
 import java.util.zip.ZipInputStream
 
 @ExtendWith(MockitoExtension::class)
-class ArkistointiServiceImplTest {
+class SynchronousArkistointiServiceImplTest {
 
     @Mock
     private lateinit var tampereLouhiService: TampereLouhiService
@@ -62,7 +59,7 @@ class ArkistointiServiceImplTest {
 
     private lateinit var metricsRegistry: SimpleMeterRegistry
     private lateinit var arkistointiMetrics: ArkistointiMetricsService
-    private lateinit var lahetaService: ArkistointiServiceImpl
+    private lateinit var lahetaService: SynchronousArkistointiServiceImpl
 
     @BeforeEach
     fun setUp() {
@@ -240,7 +237,7 @@ class ArkistointiServiceImplTest {
             .tags("yliopisto", yliopisto.name, "caseType", caseType.value)
             .counter()?.count() ?: 0.0
 
-    private fun createService(zipMetadata: Boolean): ArkistointiServiceImpl {
+    private fun createService(zipMetadata: Boolean): SynchronousArkistointiServiceImpl {
         val applicationProperties = ApplicationProperties()
 
         applicationProperties.getArkistointi().getTre().host = "localhost"
@@ -260,19 +257,19 @@ class ArkistointiServiceImplTest {
 
     private fun createService(
         applicationProperties: ApplicationProperties,
-        adapters: List<ArkistointiAdapter>,
+        adapters: List<SynchronousArkistointiAdapter>,
         alertPublisherService: AlertPublisherService,
         arkistointiMetrics: ArkistointiMetricsService
-    ): ArkistointiServiceImpl {
+    ): SynchronousArkistointiServiceImpl {
         val configurationProvider = ArkistointiConfigurationProvider(applicationProperties)
-        val dispatcher = ArkistointiDispatcher(
+        val dispatcher = SynchronousArkistointiDispatcher(
             adapters = adapters,
             configurationProvider = configurationProvider,
             alertPublisherService = alertPublisherService,
             arkistointiMetrics = arkistointiMetrics
         )
 
-        return ArkistointiServiceImpl(
+        return SynchronousArkistointiServiceImpl(
             configurationProvider = configurationProvider,
             metadataBuilder = SahkeMetadataBuilder(),
             pakettiBuilder = SahkePakettiBuilder(),
