@@ -28,8 +28,8 @@ import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.service.valmistuminen.PdfService
 import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
-import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiPackage
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksyntaFormDTO
@@ -75,12 +75,12 @@ private const val ARKISTOINTI_HYVAKSYNTA_ENDPOINT = "/api/vastuuhenkilo/valmistu
  * ValmistumispyyntoService.updateValmistumispyyntoByHyvaksyjaUserId:
  *
  * 1. Happy path — archiving disabled (default test config), approval committed to DB.
- * 2. Exception path — archiving enabled (mocked), [ArkistointiService.muodostaSahke] throws:
+ * 2. Exception path — archiving enabled (mocked), [SynchronousArkistointiService.muodostaSahke] throws:
  *    - Controller must respond 5xx
  *    - Error must be logged at ERROR level with the exception message
  *    - Spring @Transactional must roll back the kuittausaika save
  *
- * Uses @MockBean to override [ArkistointiService], which creates a separate Spring
+ * Uses @MockBean to override [SynchronousArkistointiService], which creates a separate Spring
  * application context from the base IT suite.
  */
 @AutoConfigureMockMvc
@@ -103,11 +103,11 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     private lateinit var valmistumispyyntoService: ValmistumispyyntoService
 
     /**
-     * Overrides the real [ArkistointiService] bean for the whole test class.
+     * Overrides the real [SynchronousArkistointiService] bean for the whole test class.
      * Each test configures its own stubbing via [whenever].
      */
     @MockitoBean
-    private lateinit var arkistointiService: ArkistointiService
+    private lateinit var arkistointiService: SynchronousArkistointiService
 
     /**
      * Mocked so that the heavy parts of PDF generation — Thymeleaf rendering, embedded fonts,
@@ -305,7 +305,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         val valmistumispyyntoId = initTestInTransaction()
         whenever(arkistointiService.onKaytossa(any(), any())).thenReturn(true)
         whenever(arkistointiService.muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
-        ).thenReturn(ArkistointiResult("/tmp/valmistumispyynto.zip", null))
+        ).thenReturn(ArkistointiPackage("/tmp/valmistumispyynto.zip", null))
 
         restMockMvc.perform(
             put("$ARKISTOINTI_HYVAKSYNTA_ENDPOINT/{id}", valmistumispyyntoId)
@@ -415,7 +415,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     // -------------------------------------------------------------------------
 
     /**
-     * Verifies that a JVM [Error] thrown from [ArkistointiService.muodostaSahke]
+     * Verifies that a JVM [Error] thrown from [SynchronousArkistointiService.muodostaSahke]
      * (e.g. OutOfMemoryError during ZIP creation) is handled correctly.
      *
      * [Error] is a sibling of [Exception] under [Throwable].
@@ -481,7 +481,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
      * Reproduces the production incident (the same valmistumispyynto approved four times).
      *
      * The first approval is held *inside* its transaction — after it has taken the row lock and
-     * saved the kuittausaika, while archiving ([ArkistointiService.muodostaSahke]) is still
+     * saved the kuittausaika, while archiving ([SynchronousArkistointiService.muodostaSahke]) is still
      * running — by a latch. While it is held, a second approval of the same valmistumispyynto is
      * sent.
      *
@@ -512,7 +512,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                     "Test did not release the first approval in time"
                 }
             }
-            ArkistointiResult("/tmp/valmistumispyynto.zip", null)
+            ArkistointiPackage("/tmp/valmistumispyynto.zip", null)
         }
 
         val executor = Executors.newSingleThreadExecutor()
@@ -719,7 +719,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
                     "Test did not release the held approval in time"
                 }
             }
-            ArkistointiResult("/tmp/valmistumispyynto.zip", null)
+            ArkistointiPackage("/tmp/valmistumispyynto.zip", null)
         }
         return gate
     }

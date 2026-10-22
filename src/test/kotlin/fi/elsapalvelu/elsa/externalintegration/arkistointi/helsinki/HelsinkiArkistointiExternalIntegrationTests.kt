@@ -2,9 +2,9 @@ package fi.elsapalvelu.elsa.externalintegration.arkistointi.helsinki
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.ExternalIntegrationTestSupport
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiDispatcher
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiDispatcher
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiServiceImpl
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiTestData
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiTestScenario
 import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiArkistointiAdapter
@@ -42,7 +42,7 @@ import java.util.stream.Stream
 class HelsinkiArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport() {
 
     @Autowired
-    private lateinit var arkistointiService: ArkistointiServiceImpl
+    private lateinit var arkistointiService: SynchronousArkistointiServiceImpl
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("deliveryScenarios")
@@ -92,8 +92,8 @@ class HelsinkiArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppo
     ArkistointiConfigurationProvider::class,
     SahkeMetadataBuilder::class,
     SahkePakettiBuilder::class,
-    ArkistointiDispatcher::class,
-    ArkistointiServiceImpl::class,
+    SynchronousArkistointiDispatcher::class,
+    SynchronousArkistointiServiceImpl::class,
     ArkistointiMetricsService::class,
     AlertPublisherServiceImpl::class
 )
