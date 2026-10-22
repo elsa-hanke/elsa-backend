@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.service.arkistointi.valmistuminen
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.required
 import java.time.LocalDate
-import com.fasterxml.jackson.annotation.JsonFormat
 
 /** Approval-time metadata; the worker must not reconstruct it from mutable domain entities. */
 data class ValmistuminenArkistointiPayload(

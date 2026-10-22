@@ -1,5 +1,28 @@
 # ELSA-palvelun backend
 
+## Asynkronisen arkistoinnin koodirakenne
+
+Asynkronisen arkistoinnin rajapinnat ja toteutukset on jaettu vastuiden mukaan paketin
+`service.arkistointi.job` alle:
+
+- `creation`: jobin luontipyyntö, luonnin rajapinta ja toteutus sekä transaktionaalisen jonotuksen rajapinta.
+- `document`: asiakirjaviitteet, muuttumattomien snapshotien luonti, lataus ja eheystarkistus sekä asiakirjavirheet.
+- `delivery`: adapterin rajapinta, adapterien valinta, toimituspyyntö ja toimituksen tulos.
+- `processing`: jobin käsittely ja tilapäivitykset, suorituksen ajantasaisuuden tarkistus sekä virheiden ja uudelleenyritysten käsittely.
+
+Yhteinen `ArkistointiError` on job-paketin juuressa. Spring-konfiguraatio
+`ArkistointiDbSchedulerConfiguration` ja jonotuksen toteutus
+`DbSchedulerArkistointiJobScheduler` ovat erillisissä tiedostoissa paketissa
+`config.arkistointi`. Testit seuraavat vastaavaa pakettijakoa.
+`ArkistointiJobProcessorImpl` yhdistää tilapalvelun, asiakirjojen latauksen ja
+adapterille lähettämisen. Snapshotien luonti ja jobin luonti ovat erillään
+taustakäsittelystä. Uudelleenyritysten asetukset ovat `config.arkistointi`-paketissa.
+
+Valmistumisen hyväksymishetken tiedot määrittelee
+`service.arkistointi.valmistuminen.ValmistuminenArkistointiPayload`.
+Hyväksynnän transaktiotestit ja niiden HTTP-apufunktiot ovat vastaavassa
+testipaketissa `service.arkistointi.valmistuminen`.
+
 ## Asynkronisen arkistoinnin avaimet
 
 `ArkistointiJob.key` (`job_key`) on paikallinen liiketoiminta-avain: sen avulla
@@ -57,9 +80,8 @@ Rollback ei tarvitse DELETE-oikeutta: se peruu myös jo lisätyt jobit, viitteet
 ajastukset. Retentionin hallittu poistopolku toteutetaan erikseen. Suojaus koskee
 tavallista SQL/JPA-DML:ää, ei tietokannan omistajaa, triggerien poistamista tai
 `TRUNCATE`-komentoa; sovelluksen ajonaikaisen roolin ei tule sallia näitä ohituksia.
-Vaiheen 1 viitesuojaus ei vielä takaa itse lähdeasiakirjan tavujen
-muuttumattomuutta: snapshotien suojaus ja SHA-256-tarkistus kuuluvat seuraavaan
-asiakirjatehtävään.
+Vaiheen 1 viitesuojausta täydentävät tässä asiakirjatehtävässä snapshotien
+muuttumattomuussuojaus ja SHA-256-tarkistus.
 
 ### Justfile-komennot 
 
@@ -126,20 +148,6 @@ Testiskeema luodaan tuotannon Liquibase-muutoksista ilman Hibernaten automaattis
 skeemamuutoksia. Testien `test-master.xml` suorittaa lisäksi kahden
 sarakekohtaisen sekvenssin kohdistuksen ladatun viitedatan suurimpaan ID-arvoon.
 Envers käyttää samoja audit-taulujen ja revision-sarakkeiden nimiä kuin tuotannossa.
-
-### Asynkronisen arkistoinnin koodirakenne
-
-Paketti `service.arkistointi.job` on jaettu vastuiden mukaan:
-
-- `creation`: jobin luonti ja transaktionaalisen jonotuksen rajapinta.
-- `document`: muuttumattomat snapshotit, asiakirjaviitteet, tavujen lataus ja eheystarkistukset.
-- `delivery`: adapterin rajapinta, adapterirekisteri sekä toimituspyyntö ja tulos.
-- `processing`: yrityksen suoritus, tilamuutokset, vanhentuneiden suoritusten suojaus ja uudelleenyritykset.
-
-Yhteinen `ArkistointiError` säilyy job-paketin juuressa. db-schedulerin Spring-kytkentä
-ja jonotuksen toteutus ovat paketissa `config.arkistointi`. Valmistumisen payload
-muodostetaan paketissa `service.arkistointi.valmistuminen`.
-Testit seuraavat vastaavaa pakettijakoa.
 
 ### Arkistoinnin muuttumattomat snapshotit
 
