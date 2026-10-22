@@ -1,25 +1,18 @@
-package fi.elsapalvelu.elsa.config
+package fi.elsapalvelu.elsa.config.arkistointi
 
-import com.github.kagkarlsson.scheduler.SchedulerClient
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer
 import com.github.kagkarlsson.scheduler.task.TaskDescriptor
 import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
 import com.github.kagkarlsson.scheduler.task.helper.Tasks
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobScheduler
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessor
+import java.sql.Connection
+import java.util.Optional
+import java.util.UUID
+import javax.sql.DataSource
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.jdbc.datasource.DelegatingDataSource
-import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
-import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
-import java.sql.Connection
-import java.time.Instant
-import java.util.Optional
-import java.util.UUID
-import javax.sql.DataSource
 
 val ARKISTOINTI_JOB_TASK: TaskDescriptor<Unit> =
     TaskDescriptor.of("arkistointi-job", Unit::class.java)
@@ -58,22 +51,4 @@ class ArkistointiDbSchedulerConfiguration {
         override fun getConnection(username: String, password: String): Connection =
             super.getConnection(username, password).apply { autoCommit = true }
     }
-}
-
-@Component
-class DbSchedulerArkistointiJobScheduler(
-    dataSource: DataSource,
-    arkistointiJobTask: OneTimeTask<Unit>
-) : ArkistointiJobScheduler {
-
-    private val schedulerClient = SchedulerClient.Builder.create(
-        TransactionAwareDataSourceProxy(dataSource),
-        arkistointiJobTask
-    ).build()
-
-    @Transactional(propagation = Propagation.MANDATORY)
-    override fun schedule(jobId: UUID, executionTime: Instant): Boolean =
-        schedulerClient.scheduleIfNotExists(
-            ARKISTOINTI_JOB_TASK.instance(jobId.toString()).scheduledTo(executionTime)
-        )
 }

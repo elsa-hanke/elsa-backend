@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.service.arkistointi.job
+package fi.elsapalvelu.elsa.service.arkistointi.job.delivery
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

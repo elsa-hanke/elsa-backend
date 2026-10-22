@@ -1,8 +1,9 @@
 package fi.elsapalvelu.elsa.service.arkistointi
 
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
+import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiPackage
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
@@ -12,12 +13,12 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 @Service
-class ArkistointiServiceImpl(
+class SynchronousArkistointiServiceImpl(
     private val configurationProvider: ArkistointiConfigurationProvider,
     private val metadataBuilder: SahkeMetadataBuilder,
     private val pakettiBuilder: SahkePakettiBuilder,
-    private val dispatcher: ArkistointiDispatcher
-) : ArkistointiService {
+    private val dispatcher: SynchronousArkistointiDispatcher
+) : SynchronousArkistointiService {
     override fun muodostaSahke(
         opintooikeus: Opintooikeus?,
         asiakirjat: List<RecordProperties>,
@@ -28,7 +29,7 @@ class ArkistointiServiceImpl(
         hyvaksymisPaiva: LocalDate?,
         yliopisto: YliopistoEnum?,
         caseType: CaseType
-    ): ArkistointiResult {
+    ): ArkistointiPackage {
         val yliopistoValue = requireNotNull(yliopisto)
         val configuration = configurationProvider.getConfiguration(yliopistoValue, caseType)
         val metadataResult = metadataBuilder.build(
@@ -60,7 +61,7 @@ class ArkistointiServiceImpl(
         erikoistujanNimi: String?
     ) {
         dispatcher.laheta(
-            ArkistointiDeliveryRequest(
+            SynchronousArkistointiDeliveryRequest(
                 yliopisto = yliopisto,
                 filePath = filePath,
                 caseType = caseType,

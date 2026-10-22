@@ -1,7 +1,8 @@
-package fi.elsapalvelu.elsa.config
+package fi.elsapalvelu.elsa.config.arkistointi
 
 import com.github.kagkarlsson.scheduler.task.ExecutionContext
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiJobProcessor
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessor
+import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -12,7 +13,6 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.ObjectProvider
-import java.util.UUID
 
 class ArkistointiDbSchedulerConfigurationTest {
     private val processor = mock<ArkistointiJobProcessor>()

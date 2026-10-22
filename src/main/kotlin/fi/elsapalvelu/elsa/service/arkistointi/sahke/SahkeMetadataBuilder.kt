@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.arkistointi.sahke
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.required
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfiguration
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiMetadata
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseFile
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ContactInformation
