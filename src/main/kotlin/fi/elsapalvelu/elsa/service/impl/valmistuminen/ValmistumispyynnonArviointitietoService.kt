@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavanKokonaisuudenKategoria
 import fi.elsapalvelu.elsa.domain.arviointi.SuoritusarvioinninArvioitavaKokonaisuus
 import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.required
+import fi.elsapalvelu.elsa.service.RichTextHtmlSanitizer
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavanKokonaisuudenKategoriaWithArvioinnitDTO
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavaKokonaisuusWithArvioinnitDTO
 import fi.elsapalvelu.elsa.service.dto.arviointi.SuoritusarviointiByKokonaisuusDTO
@@ -80,8 +81,8 @@ class ValmistumispyynnonArviointitietoService(
         id = kokonaisuus?.id,
         nimi = kokonaisuus?.nimi,
         nimiSv = kokonaisuus?.nimiSv,
-        kuvaus = kokonaisuus?.kuvaus,
-        kuvausSv = kokonaisuus?.kuvausSv,
+        kuvaus = RichTextHtmlSanitizer.sanitize(kokonaisuus?.kuvaus),
+        kuvausSv = RichTextHtmlSanitizer.sanitize(kokonaisuus?.kuvausSv),
         voimassaoloAlkaa = kokonaisuus?.voimassaoloAlkaa,
         voimassaoloLoppuu = kokonaisuus?.voimassaoloLoppuu,
         suoritusarvioinnit = if (vainKorkeinArviointi) {

@@ -1,5 +1,9 @@
 package fi.elsapalvelu.elsa.service.mapper.arviointi
 
+import fi.elsapalvelu.elsa.service.RichTextHtmlSanitizer
+import org.mapstruct.AfterMapping
+import org.mapstruct.MappingTarget
+
 import fi.elsapalvelu.elsa.domain.arviointi.Arviointityokalu
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluDTO
 import org.mapstruct.Mapper
@@ -18,5 +22,15 @@ interface ArviointityokaluMapper :
         val arviointityokalu = Arviointityokalu()
         arviointityokalu.id = id
         arviointityokalu
+    }
+
+    @AfterMapping
+    fun sanitizeDto(@MappingTarget dto: ArviointityokaluDTO) {
+        dto.ohjeteksti = RichTextHtmlSanitizer.sanitize(dto.ohjeteksti)
+    }
+
+    @AfterMapping
+    fun sanitizeEntity(source: ArviointityokaluDTO, @MappingTarget entity: Arviointityokalu) {
+        entity.ohjeteksti = RichTextHtmlSanitizer.sanitize(source.ohjeteksti ?: entity.ohjeteksti)
     }
 }

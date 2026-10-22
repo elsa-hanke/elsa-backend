@@ -54,6 +54,7 @@
                   <elsa-text-editor
                     :id="uid"
                     v-model="form.ohjeteksti"
+                    restricted-rich-text
                     @input="$emit('skipRouteExitConfirm', false)"
                   />
                 </template>
