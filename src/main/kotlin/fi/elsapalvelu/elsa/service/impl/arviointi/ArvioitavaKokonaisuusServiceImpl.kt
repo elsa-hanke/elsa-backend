@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.arviointi
 
+import fi.elsapalvelu.elsa.service.RichTextHtmlSanitizer
 import fi.elsapalvelu.elsa.required
 
 import java.time.LocalDate
@@ -37,6 +38,8 @@ class ArvioitavaKokonaisuusServiceImpl(
             arvioitavaKokonaisuusRepository.findById(arvioitavaKokonaisuusDTO.id.required()).orElse(null)
                 ?.let {
                     it.voimassaoloLoppuu = arvioitavaKokonaisuusDTO.voimassaoloAlkaa?.minusDays(1)
+                    it.kuvaus = RichTextHtmlSanitizer.sanitize(it.kuvaus)
+                    it.kuvausSv = RichTextHtmlSanitizer.sanitize(it.kuvausSv)
                     arvioitavaKokonaisuusRepository.save(it)
                 }
         }
@@ -54,8 +57,8 @@ class ArvioitavaKokonaisuusServiceImpl(
                 it.nimiSv = arvioitavaKokonaisuusDTO.nimiSv
                 it.voimassaoloAlkaa = arvioitavaKokonaisuusDTO.voimassaoloAlkaa
                 it.voimassaoloLoppuu = arvioitavaKokonaisuusDTO.voimassaoloLoppuu
-                it.kuvaus = arvioitavaKokonaisuusDTO.kuvaus
-                it.kuvausSv = arvioitavaKokonaisuusDTO.kuvausSv
+                it.kuvaus = RichTextHtmlSanitizer.sanitize(arvioitavaKokonaisuusDTO.kuvaus)
+                it.kuvausSv = RichTextHtmlSanitizer.sanitize(arvioitavaKokonaisuusDTO.kuvausSv)
                 arvioitavaKokonaisuusDTO.kategoria?.let { kategoria ->
                     it.kategoria = arvioitavanKokonaisuudenKategoriaSimpleMapper.toEntity(kategoria)
                 }
