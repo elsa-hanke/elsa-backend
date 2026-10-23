@@ -243,8 +243,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         restOpetussuunnitelmatMockMvc.perform(put("/api/tekninen-paakayttaja/opintoopas").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(opintoopasDTO)).with(csrf())).andExpect(status().isOk)
 
-        val opintoopasList = opintoopasRepository.findAll()
-        val opas = opintoopasList[opintoopasList.size - 1]
+        val opas = opintoopasRepository.findById(opintoopas.id!!).orElseThrow()
         assertThat(opas.nimi).isEqualTo(opintoopasDTO.nimi)
         assertThat(opas.nimiSv).isEqualTo(opintoopasDTO.nimiSv)
         assertThat(opas.voimassaoloAlkaa).isEqualTo(opintoopasDTO.voimassaoloAlkaa)
