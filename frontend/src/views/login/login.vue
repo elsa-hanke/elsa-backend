@@ -62,8 +62,7 @@
                 class="text-muted text-size-md mr-2"
               />
             </em>
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div v-html="ilmoitus.teksti"></div>
+            <rich-text-content :html="ilmoitus.teksti" />
           </div>
         </b-alert>
       </b-col>
@@ -118,11 +117,13 @@
     LoginNameMismatch
   } from '@/api/julkinen'
   import ElsaButton from '@/components/button/button.vue'
+  import RichTextContent from '@/components/rich-text-content/rich-text-content.vue'
   import { Ilmoitus } from '@/types'
 
   @Component({
     components: {
-      ElsaButton
+      ElsaButton,
+      RichTextContent
     }
   })
   export default class Login extends Vue {

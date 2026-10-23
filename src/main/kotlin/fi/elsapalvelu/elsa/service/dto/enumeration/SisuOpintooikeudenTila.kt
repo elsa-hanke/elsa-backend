@@ -8,5 +8,7 @@ enum class SisuOpintooikeudenTila {
     CANCELLED_BY_ADMINISTRATION,
     PASSIVE,
     EXPIRED,
-    NOT_STARTED
+    NOT_STARTED,
+    TERMINATED,
+    PASSIVATED
 }

@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...HEAD)
 
+- ELSAINSI-85 Korjataan tallennetun XSS-hyökkäyksen mahdollistava HTML-sisällön käsittely [`#788`](https://github.com/elsa-hanke/elsa-backend/pull/788)(22 October 2026)
+- Bump follow-redirects from 1.16.0 to 1.16.1 in /frontend [`#787`](https://github.com/elsa-hanke/elsa-backend/pull/787)(22 October 2026)
 - Release v2.4.X merge [`#785`](https://github.com/elsa-hanke/elsa-backend/pull/785)(19 October 2026)
 - Update ECR cleanup script to remove untagged and old branch images [`#730`](https://github.com/elsa-hanke/elsa-backend/pull/730)(18 October 2026)
 - ELSAINSI-82 Nimen oikeellisuuden tarkistus virheviesti [`#781`](https://github.com/elsa-hanke/elsa-backend/pull/781)(17 October 2026)
