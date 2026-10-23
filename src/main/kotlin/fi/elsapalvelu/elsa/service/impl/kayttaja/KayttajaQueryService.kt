@@ -14,6 +14,8 @@ import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.extensions.toNimiPredicate
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.criteria.KayttajahallintaCriteria
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajahallintaYliopistoErikoisalaDTO
@@ -70,7 +72,9 @@ class KayttajaQueryService(
         pageable: Pageable,
         langkey: String?,
         authorities: List<String>,
-        nullAuthority: Boolean?
+        nullAuthority: Boolean?,
+        traineeYliopistoId: Long? = null,
+        allowTrainerWithoutTraineeAccount: Boolean = false
     ): Page<KayttajahallintaErikoistujaJaKouluttajaListItemDTO> {
 
         val specification = if (nullAuthority == true) {
@@ -83,7 +87,43 @@ class KayttajaQueryService(
                     .and(hasErikoisala(criteria?.erikoisalaId))
             }
 
-        return kayttajaRepository.findAll(specification, pageable).map { mapKayttajaErikoistujaKouluttaja(it) }
+        val scopedSpecification = if (traineeYliopistoId != null) {
+            specification.and(hasTraineeYliopisto(traineeYliopistoId, allowTrainerWithoutTraineeAccount))
+        } else specification
+
+        return kayttajaRepository.findAll(scopedSpecification, pageable).map { mapKayttajaErikoistujaKouluttaja(it) }
+    }
+
+    private fun hasTraineeYliopisto(
+        yliopistoId: Long,
+        allowTrainerWithoutTraineeAccount: Boolean
+    ): Specification<Kayttaja> = Specification { root, query, cb ->
+        val studyRights = query.required().subquery(Long::class.java)
+        val studyRight = studyRights.from(Opintooikeus::class.java)
+        val trainee = studyRight.join(Opintooikeus_.erikoistuvaLaakari)
+        studyRights.select(studyRight.get(Opintooikeus_.id)).where(
+            cb.equal(trainee.get(ErikoistuvaLaakari_.kayttaja).get(Kayttaja_.id), root.get(Kayttaja_.id)),
+            cb.equal(studyRight.get(Opintooikeus_.yliopisto).get(Yliopisto_.id), yliopistoId)
+        )
+        val hasStudyRight = cb.exists(studyRights)
+        if (!allowTrainerWithoutTraineeAccount) {
+            hasStudyRight
+        } else {
+            // A trainer who is also a trainee must satisfy the same university restriction.
+            val trainees = query.subquery(Long::class.java)
+            val traineeAccount = trainees.from(ErikoistuvaLaakari::class.java)
+            trainees.select(traineeAccount.get(ErikoistuvaLaakari_.id)).where(
+                cb.equal(traineeAccount.get(ErikoistuvaLaakari_.kayttaja).get(Kayttaja_.id), root.get(Kayttaja_.id))
+            )
+            val traineeRoles = query.subquery(Long::class.java)
+            val account = traineeRoles.from(Kayttaja::class.java)
+            val role = account.join(Kayttaja_.user).join(User_.authorities)
+            traineeRoles.select(account.get(Kayttaja_.id)).where(
+                cb.equal(account.get(Kayttaja_.id), root.get(Kayttaja_.id)),
+                role.get(Authority_.name).`in`(listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA))
+            )
+            cb.or(hasStudyRight, cb.and(cb.not(cb.exists(trainees)), cb.not(cb.exists(traineeRoles))))
+        }
     }
 
     private fun hasYliopisto(authority: String, yliopistoId: Long): Specification<Kayttaja> {
@@ -114,14 +154,16 @@ class KayttajaQueryService(
     }
 
     private fun hasAuthorities(authorities: List<String>): Specification<Kayttaja> {
-        return (Specification<Kayttaja> { root, _, _ ->
+        return (Specification<Kayttaja> { root, query, _ ->
+            query.required().distinct(true)
             val authorityJoin: Join<User, Authority> = root.join(Kayttaja_.user).join(User_.authorities)
             authorityJoin.get(Authority_.name).`in`(authorities)
         })
     }
 
     private fun hasCertainOrNoAuthorities(authorities: List<String>): Specification<Kayttaja> {
-        return (Specification<Kayttaja> { root, _, cb ->
+        return (Specification<Kayttaja> { root, query, cb ->
+            query.required().distinct(true)
             val authorityJoin: Join<User, Authority> = root.join(Kayttaja_.user).join(User_.authorities, JoinType.LEFT)
             val predicate1 = authorityJoin.get(Authority_.name).`in`(authorities)
             val predicate2 = cb.isNull(authorityJoin.get(Authority_.name))
