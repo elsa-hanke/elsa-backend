@@ -1,6 +1,10 @@
 # Local backend against the production-data replica hosted in the dev environment.
 # Secrets belong in .env.replica (see .env.replica.example), never in this file.
 
+# application.scheduling does not control db-scheduler or already queued archive jobs.
+db-scheduler:
+  enabled: false
+
 logging:
   level:
     ROOT: INFO

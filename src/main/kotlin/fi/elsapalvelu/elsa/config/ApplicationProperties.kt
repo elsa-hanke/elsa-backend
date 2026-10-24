@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.config
 
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiRetryProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -168,6 +169,8 @@ class ApplicationProperties {
 
     class Arkistointi {
 
+        val retry = ArkistointiRetryProperties()
+
         private val oulu = Oulu()
         private val hki = Hki()
         private val tre = Tre()
@@ -251,6 +254,8 @@ class ApplicationProperties {
         }
 
         class Case {
+            // Enable only after the asynchronous processor and university adapter are deployed.
+            var asyncEnabled: Boolean = false
             var title: String? = null
             var type: String? = null
             var siiloKoodi: String? = null

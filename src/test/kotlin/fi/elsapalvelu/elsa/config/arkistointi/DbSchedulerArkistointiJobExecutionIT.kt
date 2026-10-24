@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.config.arkistointi
 import com.github.kagkarlsson.scheduler.Scheduler
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobScheduler
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessor
 import java.net.URI
 import java.time.Duration
@@ -10,6 +11,7 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
+import javax.cache.CacheManager
 import javax.cache.Caching
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
@@ -23,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.transaction.support.TransactionTemplate
@@ -84,12 +87,13 @@ class DbSchedulerArkistointiJobExecutionIT {
     @TestConfiguration(proxyBeanMethods = false)
     class ProcessorConfiguration {
         @Bean
+        @Primary
         fun recordingProcessor() = RecordingProcessor()
 
         // Closing this @DirtiesContext must not close the provider's default manager
         // still used by other cached Spring test contexts.
         @Bean
-        fun isolatedJCacheManager(customizer: JCacheManagerCustomizer): javax.cache.CacheManager =
+        fun isolatedJCacheManager(customizer: JCacheManagerCustomizer): CacheManager =
             (Caching.getCachingProvider() as EhcacheCachingProvider).getCacheManager(
                 URI("urn:elsa:db-scheduler-execution-it"), DefaultConfiguration(javaClass.classLoader)
             ).also(customizer::customize)
@@ -98,8 +102,8 @@ class DbSchedulerArkistointiJobExecutionIT {
     class RecordingProcessor : ArkistointiJobProcessor {
         val jobIds = LinkedBlockingQueue<UUID>()
 
-        override fun process(jobId: UUID) {
-            jobIds.add(jobId)
+        override fun process(execution: ArkistointiJobExecution) {
+            jobIds.add(execution.jobId)
         }
     }
 }
