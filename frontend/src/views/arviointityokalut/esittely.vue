@@ -41,8 +41,7 @@
                       {{ $t('ei-liitetiedostoa') }}
                     </span>
                   </b-alert>
-                  <!-- eslint-disable-next-line vue/no-v-html -->
-                  <div v-html="at.ohjeteksti"></div>
+                  <rich-text-content :html="at.ohjeteksti" />
                   <div
                     v-for="(kysymys, kIndex) in at.kysymykset"
                     :key="kysymys.jarjestysnumero"
@@ -76,6 +75,7 @@
   } from '@/api/vastuuhenkilo'
   import ElsaAccordian from '@/components/accordian/accordian.vue'
   import AsiakirjatContent from '@/components/asiakirjat/asiakirjat-content.vue'
+  import RichTextContent from '@/components/rich-text-content/rich-text-content.vue'
   import ArviointityokaluLomakeKysymysForm from '@/forms/arviointityokalu-lomake-kysymys-form.vue'
   import { Arviointityokalu, ArviointityokaluKategoria, Asiakirja } from '@/types'
   import { MUU_ARVIOINTITYOKALU_ID } from '@/utils/constants'
@@ -84,6 +84,7 @@
 
   @Component({
     components: {
+      RichTextContent,
       AsiakirjatContent,
       ArviointityokaluLomakeKysymysForm,
       ElsaAccordian
