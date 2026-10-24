@@ -177,14 +177,17 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusVuodet = 0
         opintoopasDTO.yliopistosairaalanUlkopuolisenTyoskentelynVahimmaispituusKuukaudet = 0
 
-        val databaseSizeBeforeCreate = opintoopasRepository.findAll().size
+        val databaseSizeBeforeCreate = opintoopasRepository.count()
 
-        restOpetussuunnitelmatMockMvc.perform(post("/api/tekninen-paakayttaja/opintoopas").contentType(MediaType.APPLICATION_JSON)
+        val response = restOpetussuunnitelmatMockMvc.perform(post("/api/tekninen-paakayttaja/opintoopas").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(opintoopasDTO)).with(csrf())).andExpect(status().isCreated)
+            .andReturn().response
 
-        val opintoopasList = opintoopasRepository.findAll()
-        assertThat(opintoopasList).hasSize(databaseSizeBeforeCreate + 1)
-        val opas = opintoopasList[opintoopasList.size - 1]
+        val createdId = requireNotNull(response.getHeader("Location")).substringAfterLast('/').toLong()
+        em.flush()
+        em.clear()
+        assertThat(opintoopasRepository.count()).isEqualTo(databaseSizeBeforeCreate + 1)
+        val opas = opintoopasRepository.findById(createdId).orElseThrow()
         assertThat(opas.nimi).isEqualTo(opintoopasDTO.nimi)
         assertThat(opas.nimiSv).isEqualTo(opintoopasDTO.nimiSv)
         assertThat(opas.voimassaoloAlkaa).isEqualTo(opintoopasDTO.voimassaoloAlkaa)
@@ -243,7 +246,9 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         restOpetussuunnitelmatMockMvc.perform(put("/api/tekninen-paakayttaja/opintoopas").contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(opintoopasDTO)).with(csrf())).andExpect(status().isOk)
 
-        val opas = opintoopasRepository.findById(opintoopas.id!!).orElseThrow()
+        em.flush()
+        em.clear()
+        val opas = opintoopasRepository.findById(requireNotNull(opintoopasDTO.id)).orElseThrow()
         assertThat(opas.nimi).isEqualTo(opintoopasDTO.nimi)
         assertThat(opas.nimiSv).isEqualTo(opintoopasDTO.nimiSv)
         assertThat(opas.voimassaoloAlkaa).isEqualTo(opintoopasDTO.voimassaoloAlkaa)

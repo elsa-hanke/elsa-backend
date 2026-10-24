@@ -1,5 +1,76 @@
 # ELSA-palvelun backend
 
+## Asynkronisen arkistoinnin koodirakenne
+
+Vaiheen 1 rajapinnat ja tietotyypit on jaettu vastuiden mukaan paketin
+`service.arkistointi.job` alle:
+
+- `creation`: jobin luontipyyntö sekä luonnin ja transaktionaalisen jonotuksen rajapinnat.
+- `document`: asiakirjaviite, ladatun asiakirjan tietotyyppi ja latauksen rajapinta.
+- `delivery`: adapterin rajapinta, toimituspyyntö ja toimituksen tulos.
+- `processing`: jobin käsittelijän rajapinta.
+
+Yhteinen `ArkistointiError` on job-paketin juuressa. Spring-konfiguraatio
+`ArkistointiDbSchedulerConfiguration` ja jonotuksen toteutus
+`DbSchedulerArkistointiJobScheduler` ovat erillisissä tiedostoissa paketissa
+`config.arkistointi`. Testit seuraavat vastaavaa pakettijakoa.
+Tämä vaihe määrittelee sopimukset; snapshotien ja käsittelijän toteutukset
+kuuluvat myöhempiin tehtäviin.
+
+## Asynkronisen arkistoinnin avaimet
+
+`ArkistointiJob.key` (`job_key`) on paikallinen liiketoiminta-avain: sen avulla
+creator löytää saman operaation aiemmin luodun jobin. Sitä ei käytetä ulkoisen
+arkiston idempotenssiavaimena, koska liiketoimintatunnisteet voivat toistua
+eri ympäristöissä tai tietokannan uudelleenluonnin jälkeen.
+
+`ArkistointiJob.id` on UUID, joka syntyy jobin ensimmäisessä tallennuksessa ja
+tunnistaa sekä jobin että sen toimituksen. Erillistä toimitusavainsaraketta ei ole.
+Pääavain ja asiakirjaviitteiden `job_id` määritellään UUID-tyyppisiksi alkuperäisessä
+luontimigraatiossa. Jobin ID on muuttumaton myös tietokannassa. PostgreSQL:n
+oletusarvo luo UUID:n myös SQL-lisäyksille, joissa ID:tä ei anneta erikseen.
+
+Processorin tulee välittää tallennettu jobin ID arvona `ArkistointiSubmission.jobId`.
+`ArkistointiSubmission.key` palauttaa saman UUID:n ilman erillistä avainkenttää.
+Scheduler- ja processor-rajapinnat käyttävät UUID:tä; db-schedulerin `task_instance`
+on sen kanoninen merkkijono. Adapteri lähettää UUID:n kanonisena merkkijonona.
+Kaikki automaattiset ja manuaaliset uusinnat käyttävät samaa tallennettua avainta.
+Vastaanottajan on deduplikoitava myös rinnakkaiset ja epävarman onnistumisen
+jälkeiset toimitukset atomisesti. Toimitussemantiikka on at-least-once.
+
+Vaihe 1 määrittelee mallin ja sopimuksen; creatorin ja processorin kytkentä tehdään
+niiden omissa tehtävissä. UUID ei estä tuotantotietokannan kopion lähettämistä:
+kopiossa avaimet säilyvät samoina, joten ympäristöt on eristettävä ja kopion
+workerin käynnistäminen estettävä erikseen.
+
+## Arkistointitoimituksen muuttumaton sisältö
+
+Tietokanta estää jobin UUID:n, yliopiston, case-tyypin, payloadin,
+liiketoiminta-avaimen, luontiajan ja `expected_document_count`-arvon muuttamisen.
+Tilaa, virheitä, ulkoista tunnistetta ja käsittelyn aikaleimoja voidaan edelleen
+päivittää. Asiakirjaviitteen kaikkien kenttien muuttaminen ja viitteen tai jobin
+poistaminen on estetty; samojen arvojen uudelleenkirjoitus on sallittu.
+
+`ArkistointiJob.expectedDocumentCount` on alkuperäisen toimituksen asiakirjamäärä,
+ei schedulerin laskuri. Creatorin on asetettava se pyyntöön kuuluvien viitteiden
+määräksi ennen ensimmäistä tallennusta. Arvon on oltava positiivinen, eikä sillä
+ole oletusta. Job, kaikki viitteet ja ajastus tallennetaan samaan transaktioon.
+PostgreSQL:n `DEFERRABLE INITIALLY DEFERRED` -constraint-triggerit tarkistavat
+viitteiden lopullisen määrän commitissa: tyhjä, vajaa tai ylimääräinen joukko ei
+commitoidu. Tämä sallii JPA:n lisätä ensin jobin ja vasta sitten sen viitteet.
+Lisäykset lukitsevat saman job-rivin, joten rinnakkaiset viitelisäykset
+sarjallistuvat. Valmiiseen toimitukseen ei voi lisätä uusia viitteitä.
+Tarkistusten pakottaminen välittömiksi `SET CONSTRAINTS` -komennolla edellyttää,
+että koko manifesti on jo muodostettu.
+
+Rollback ei tarvitse DELETE-oikeutta: se peruu myös jo lisätyt jobit, viitteet ja
+ajastukset. Retentionin hallittu poistopolku toteutetaan erikseen. Suojaus koskee
+tavallista SQL/JPA-DML:ää, ei tietokannan omistajaa, triggerien poistamista tai
+`TRUNCATE`-komentoa; sovelluksen ajonaikaisen roolin ei tule sallia näitä ohituksia.
+Vaiheen 1 viitesuojaus ei vielä takaa itse lähdeasiakirjan tavujen
+muuttumattomuutta: snapshotien suojaus ja SHA-256-tarkistus kuuluvat seuraavaan
+asiakirjatehtävään.
+
 ### Justfile-komennot 
 
 Projektissa on valmiita kehityskomentoja `Justfile`-tiedostossa.
