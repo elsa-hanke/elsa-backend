@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...HEAD)
 
+- SisuOpintooikeudenTila: TERMINATED ja PASSIVATED [`#793`](https://github.com/elsa-hanke/elsa-backend/pull/793)(23 October 2026)
+- Bump launch-editor from 2.14.1 to 2.14.2 in /frontend [`#790`](https://github.com/elsa-hanke/elsa-backend/pull/790)(23 October 2026)
+- Bump dompurify from 3.4.16 to 3.4.17 in /frontend [`#791`](https://github.com/elsa-hanke/elsa-backend/pull/791)(23 October 2026)
 - ELSAINSI-85 Korjataan tallennetun XSS-hyökkäyksen mahdollistava HTML-sisällön käsittely [`#788`](https://github.com/elsa-hanke/elsa-backend/pull/788)(22 October 2026)
 - Bump follow-redirects from 1.16.0 to 1.16.1 in /frontend [`#787`](https://github.com/elsa-hanke/elsa-backend/pull/787)(22 October 2026)
 - Release v2.4.X merge [`#785`](https://github.com/elsa-hanke/elsa-backend/pull/785)(19 October 2026)
