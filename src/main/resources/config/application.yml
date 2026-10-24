@@ -292,6 +292,12 @@ application:
     turku:
     uef:
   arkistointi:
+    retry:
+      max-attempts: 25
+      initial-delay: 1m
+      max-delay: 4h
+      multiplier: 2.0
+      jitter-factor: 0.1
     tre:
       kaytossa: false
       host:
@@ -310,6 +316,8 @@ application:
         retention-reason: "Sisältää henkilötietoja"
         cases:
           valmistuminen:
+            # Keep false until the asynchronous processor and university adapter are deployed.
+            async-enabled: false
             title: "Valmistuminen"
             type: "Valmistuminen"
             function: "04.02.05"
@@ -319,6 +327,7 @@ application:
               liite:
                 retention-period: "10"
           koejakso:
+            async-enabled: false
             title: "Koejakson arviointi"
             type: "Koejakson arviointi"
             function: "04.01.04"
@@ -342,6 +351,7 @@ application:
         use-type: "Säilytys"
         cases:
           valmistuminen:
+            async-enabled: false
             title: "Valmistumisen yhteenveto"
             type: "Raportti"
             siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_VALMISTUMINEN_SIILO_KOODI:0b00000000000008}
@@ -350,6 +360,7 @@ application:
               yhteenveto:
                 retention-period: "20"
           koejakso:
+            async-enabled: false
             title: "Koejakson arviointi"
             siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_KOEJAKSO_SIILO_KOODI:0b00000000000006}
             type: "Muu"
@@ -358,6 +369,7 @@ application:
               arviointi:
                 retention-period: "20"
           sopimus:
+            async-enabled: false
             title: "Koulutuspaikkasopimus"
             siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_SOPIMUS_SIILO_KOODI:0b00000000000007}
             type: "Sopimus"

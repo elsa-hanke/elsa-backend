@@ -92,6 +92,8 @@ test {
 }
 
 tasks.register('integrationTest', Test) {
+    maxHeapSize = '2g'
+    maxParallelForks = 1
     useJUnitPlatform {
         excludeTags 'external-integration'
     }
@@ -192,6 +194,7 @@ dependencies {
     testImplementation "com.squareup.okhttp3:mockwebserver:${okhttpVersion}"
     testImplementation "org.testcontainers:testcontainers-jdbc"
     testImplementation "org.testcontainers:testcontainers-postgresql"
+    testImplementation "com.tngtech.archunit:archunit:${archunitVersion}"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j"
     implementation 'io.awspring.cloud:spring-cloud-aws-starter'

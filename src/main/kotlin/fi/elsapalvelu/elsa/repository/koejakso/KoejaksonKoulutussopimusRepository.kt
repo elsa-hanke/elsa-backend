@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.repository.koejakso
 
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
+import jakarta.persistence.LockModeType
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -10,6 +12,11 @@ import java.util.*
 
 @Repository
 interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutussopimus, Long> {
+
+    /** Call before loading the contract in the write transaction; serializes all updates. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from KoejaksonKoulutussopimus s where s.id = :id")
+    fun findByIdForUpdate(id: Long): KoejaksonKoulutussopimus?
 
     fun findOneByIdAndKouluttajatKouluttajaUserId(
         id: Long,
