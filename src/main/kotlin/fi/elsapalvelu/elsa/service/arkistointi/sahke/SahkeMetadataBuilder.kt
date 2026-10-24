@@ -175,6 +175,7 @@ class SahkeMetadataBuilder {
     private fun getPublicityClass(recordType: RecordType): PublicityClass = when (recordType) {
         RecordType.YHTEENVETO -> PublicityClass.PUBLIC
         RecordType.LIITE -> PublicityClass.PARTIALLY_RESTRICTED
+        RecordType.LAILLISTAMISTODISTUS -> PublicityClass.PARTIALLY_RESTRICTED
         RecordType.ARVIOINTI -> PublicityClass.PUBLIC
         RecordType.SOPIMUS -> PublicityClass.PUBLIC
     }

@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
-import org.springframework.beans.factory.annotation.Value
 import com.itextpdf.html2pdf.ConverterProperties
 import com.itextpdf.html2pdf.HtmlConverter
 import com.itextpdf.io.exceptions.IOException
@@ -14,6 +13,7 @@ import com.itextpdf.layout.properties.ObjectFit
 import com.itextpdf.layout.properties.UnitValue
 import com.itextpdf.pdfa.PdfADocument
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
+import fi.elsapalvelu.elsa.service.DocumentContentTypes
 import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.PdfPreparation
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
@@ -27,6 +27,7 @@ import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService.Companion
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentSource
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -117,6 +118,7 @@ class PdfServiceImpl(
         pdfMetrics.trackOperation(OP_YHDISTA_ASIAKIRJAT) {
             // Tahan ei kayteta smart modea: lahteet ovat kayttajien lataamia, mielivaltaisia
             // PDF-tiedostoja, joissa on vain vahan jaettavaa (mitattu hyoty 1 MiB).
+            // Preserve the existing merged bytes for both synchronous sending and archive snapshots.
             val result = PdfDocument(PdfWriter(outputStream))
             val resultDocument = Document(result)
             asiakirjat.filter { it.tyyppi == MediaType.APPLICATION_PDF_VALUE }.forEach {
@@ -135,7 +137,7 @@ class PdfServiceImpl(
                     throw invalidPdfAttachmentException(it, e)
                 }
             }
-            asiakirjat.filter { it.tyyppi == MediaType.IMAGE_JPEG_VALUE || it.tyyppi == MediaType.IMAGE_PNG_VALUE }
+            asiakirjat.filter { DocumentContentTypes.isImage(it.tyyppi) }
                 .forEach {
                     try {
                         val image = Image(ImageDataFactory.create(it.asiakirjaData?.data))
