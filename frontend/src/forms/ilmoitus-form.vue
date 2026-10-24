@@ -5,7 +5,7 @@
         <template #default="{ uid }">
           <b-input-group :id="uid" class="mb-2">
             <b-col class="pl-0 pr-0">
-              <elsa-text-editor v-model="form.teksti" />
+              <elsa-text-editor v-model="form.teksti" restricted-rich-text />
             </b-col>
           </b-input-group>
           <b-form-invalid-feedback :id="`${uid}-feedback`" :state="validateState('teksti')">
