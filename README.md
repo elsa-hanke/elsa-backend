@@ -221,6 +221,32 @@ Opintotietointegraatioiden testihenkilöt annetaan `EXTERNAL_INTEGRATION_<PALVEL
 
 Arkistoinnin ulkoiset testit luovat oikeita testiaineistoja Helsingin Siiloon ja Tampereen Louheen. Tapaus- ja tiedostonimet sisältävät `CODEBUILD_BUILD_ID`:stä muodostetun korrelaatiotunnisteen, jotta lähetykset voidaan jäljittää.
 
+### Koejakson asynkroninen arkistointi
+
+`service.arkistointi.koejakso.KoejaksoArkistointiService` liittää kaksi nykyistä
+arkistointitapahtumaa yhteiseen jonoon: vastuuhenkilön hyväksymän koulutussopimuksen
+(`SOPIMUS`, asiakirjatyyppi `SOPIMUS`) ja lopullisen vastuuhenkilön arvion
+(`KOEJAKSO`, asiakirjatyyppi `ARVIOINTI`). Myös koejakson hylkäävä lopullinen arvio
+arkistoidaan. Korjattavaksi palauttaminen ja välivaiheiden kuittaukset eivät luo jobia.
+
+Valinta tehdään yliopisto- ja asiatyyppikohtaisella asetuksella
+`application.arkistointi.<yliopisto>.metadata.cases.<sopimus|koejakso>.async-enabled`.
+Oletus on `false`: nykyinen synkroninen lähetys säilyy. Jos koko integraatio tai
+asiatyyppi ei ole käytössä, jonoon ei lisätä tehtävää. Asynkroninen käyttöönotto
+edellyttää kyseistä asiatyyppiä tukevaa yliopiston adapteria.
+
+Hyväksyntä, tavallisen ladattavan PDF:n luonti, sen muuttumaton snapshot, job ja
+`scheduled_tasks` tallentuvat samassa transaktiossa. Payload sisältää hyväksymishetken
+henkilö-, opinto-oikeus-, tarkastaja- ja hyväksyjätiedot sekä arvion lopputuloksen.
+Worker käyttää tallennettua sisältöä eikä muodosta PDF:ää uudelleen.
+Sähköposti-ilmoitukset lähetetään commitin jälkeen.
+
+Päivitykset lukitsevat sopimuksen tai arvion rivin ennen tilan tarkistamista.
+Lopullisesti hyväksyttyä käsittelyä ei voi toistaa tai muokata tämän päivityspolun
+kautta. Paikalliset liiketoiminta-avaimet ovat
+`koejakso-sopimus:<YLIOPISTO>:<sopimusId>` ja
+`koejakso-arvio:<YLIOPISTO>:<arvioId>`; toimitusavaimena säilyy jobin UUID.
+
 ### Valmistumisen asynkroninen arkistointi
 
 Valmistumisen hyväksyntä käyttää oletuksena nykyistä arkistointitoimitusta. Uusi jono otetaan käyttöön yliopistokohtaisesti asetuksella `application.arkistointi.<yliopisto>.metadata.cases.valmistuminen.async-enabled=true`; myös integraation `kaytossa`-asetuksen on oltava päällä. Yliopiston avain on `tre`, `hki`, `oulu`, `turku` tai `uef`.

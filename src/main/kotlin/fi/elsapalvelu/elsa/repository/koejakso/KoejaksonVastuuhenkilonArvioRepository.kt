@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.repository.koejakso
 
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
+import jakarta.persistence.LockModeType
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
@@ -11,6 +13,11 @@ import java.util.*
 interface KoejaksonVastuuhenkilonArvioRepository :
     JpaRepository<KoejaksonVastuuhenkilonArvio, Long>,
     JpaSpecificationExecutor<KoejaksonVastuuhenkilonArvio> {
+
+    /** Call before loading the assessment in the write transaction; serializes all updates. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select a from KoejaksonVastuuhenkilonArvio a where a.id = :id")
+    fun findByIdForUpdate(id: Long): KoejaksonVastuuhenkilonArvio?
 
     fun findOneByIdAndVastuuhenkiloUserId(
         id: Long,
