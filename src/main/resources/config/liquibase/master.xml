@@ -286,6 +286,7 @@
     <include file="config/liquibase/changelog/20251209160500_modify_entity_VastuuhenkilonArviointi_new_column_virkailijanYhteenveto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251215160500_modify_entity_Valmistumispyynnon_tarkistus_new_column_virkailijanYhteenveto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260905090000_added_async_arkistointi_job.xml" relativeToChangelogFile="false"/>
-    
+    <include file="config/liquibase/changelog/20261018090000_archive_document_snapshots.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>
 <!-- @formatter:on -->

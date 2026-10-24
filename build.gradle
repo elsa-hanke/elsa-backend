@@ -92,6 +92,8 @@ test {
 }
 
 tasks.register('integrationTest', Test) {
+    maxHeapSize = '2g'
+    maxParallelForks = 1
     useJUnitPlatform {
         excludeTags 'external-integration'
     }

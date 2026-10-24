@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.errors
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaErrorCategory
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import jakarta.servlet.ServletException
 import org.slf4j.LoggerFactory
@@ -18,6 +20,26 @@ import org.springframework.web.server.ResponseStatusException
 class BadRequestExceptionAdvice {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+    @ExceptionHandler(ArkistointiAsiakirjaException::class)
+    fun handleArkistointiAsiakirjaException(e: ArkistointiAsiakirjaException): ProblemDetail {
+        val inputError = e.category == ArkistointiAsiakirjaErrorCategory.INPUT_DOCUMENT
+        if (inputError) {
+            log.warn("Archive source document rejected [code={}]", e.errorKey)
+        } else {
+            log.error("Archive document processing failed [category={}, code={}]", e.category, e.errorKey)
+        }
+        // Do not expose exception messages, descriptions or causes, even on the 5xx path.
+        val body = ProblemDetail.forStatusAndDetail(
+            if (inputError) HttpStatus.BAD_REQUEST else HttpStatus.INTERNAL_SERVER_ERROR,
+            if (inputError) "Arkistoitava lahdeasiakirja puuttuu tai sita ei voida kasitella."
+            else "Arkistoitavien asiakirjojen kasittely epaonnistui."
+        )
+        body.setProperty("message", "error.${e.errorKey}")
+        body.setProperty("errorKey", e.errorKey)
+        return body
+    }
+
     @ExceptionHandler(BadRequestAlertException::class)
     fun handleBadRequestException(e: BadRequestAlertException): ProblemDetail {
         log.warn(e.message ?: e.defaultMessage, e)
