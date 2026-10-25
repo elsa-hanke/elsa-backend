@@ -12,6 +12,8 @@ import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.security.KOULUTTAJA
+import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
@@ -167,7 +169,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         assertThat(payload.koejaksoHyvaksytty).isFalse()
         val returned = fixture()
         approve(returned, CaseType.KOEJAKSO, correction = "Korjattava").andExpect(status().isOk)
-        assertNoArchive(returned, CaseType.KOEJAKSO)
+        assertNoJob(returned, CaseType.KOEJAKSO)
         assertThat(documentCount(returned)).isZero()
     }
 
@@ -175,15 +177,86 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
     fun `contract return and resubmission can still be approved`() {
         val fixture = fixture()
         approve(fixture, CaseType.SOPIMUS, correction = "Korjattava").andExpect(status().isOk)
-        assertNoArchive(fixture, CaseType.SOPIMUS)
-        transactions.executeWithoutResult {
-            val contract = contracts.findById(fixture.contractId).orElseThrow()
-            contract.lahetetty = true
-            contract.erikoistuvanAllekirjoitusaika = LocalDate.now()
-            contract.kouluttajat!!.forEach { trainer -> trainer.sopimusHyvaksytty = true }
-        }
+        val returned = contractDto(fixture)
+        assertThat(returned.lahetetty).isFalse()
+        assertThat(returned.erikoistuvanAllekirjoitusaika).isNull()
+        assertThat(returned.kouluttajat!!.single().sopimusHyvaksytty).isFalse()
+        assertAwaitingFinalApproval(fixture, CaseType.SOPIMUS)
+
+        setSecurityContext(fixture.traineeId, ERIKOISTUVA_LAAKARI)
+        val resubmitted = contractService.update(returned.apply { lahetetty = true }, fixture.traineeId)
+        assertThat(resubmitted.lahetetty).isTrue()
+        assertThat(resubmitted.erikoistuvanAllekirjoitusaika).isEqualTo(LocalDate.now())
+        assertThat(resubmitted.kouluttajat!!.single().sopimusHyvaksytty).isFalse()
+        assertAwaitingFinalApproval(fixture, CaseType.SOPIMUS)
+
+        setSecurityContext(fixture.trainerId, KOULUTTAJA)
+        val reviewed = contractService.update(contractDto(fixture), fixture.trainerId)
+        assertThat(reviewed.kouluttajat!!.single().sopimusHyvaksytty).isTrue()
+        assertThat(reviewed.vastuuhenkilonKorjausehdotus).isNull()
+        assertAwaitingFinalApproval(fixture, CaseType.SOPIMUS)
+
         approve(fixture, CaseType.SOPIMUS).andExpect(status().isOk)
-        assertThat(job(fixture, CaseType.SOPIMUS).id).isNotNull()
+        assertSingleDelivery(fixture, CaseType.SOPIMUS)
+    }
+
+    @Test
+    fun `assessment return and resubmission can still be approved`() {
+        val fixture = fixture()
+        approve(fixture, CaseType.KOEJAKSO, correction = "Korjattava").andExpect(status().isOk)
+        transactions.executeWithoutResult {
+            val returned = assessments.findById(fixture.assessmentId).orElseThrow()
+            assertThat(returned.erikoistuvanKuittausaika).isNull()
+            assertThat(returned.virkailijaHyvaksynyt).isFalse()
+            assertThat(returned.virkailijanKuittausaika).isNull()
+        }
+        assertAwaitingFinalApproval(fixture, CaseType.KOEJAKSO)
+
+        setSecurityContext(fixture.traineeId, ERIKOISTUVA_LAAKARI)
+        assessmentService.update(assessmentDto(fixture), fixture.traineeId)
+        transactions.executeWithoutResult {
+            val resubmitted = assessments.findById(fixture.assessmentId).orElseThrow()
+            assertThat(resubmitted.erikoistuvanKuittausaika).isEqualTo(LocalDate.now())
+            assertThat(resubmitted.virkailijaHyvaksynyt).isFalse()
+        }
+        assertAwaitingFinalApproval(fixture, CaseType.KOEJAKSO)
+
+        setSecurityContext(fixture.reviewerId, OPINTOHALLINNON_VIRKAILIJA)
+        assessmentService.update(assessmentDto(fixture).apply { virkailijanKorjausehdotus = null }, fixture.reviewerId)
+        transactions.executeWithoutResult {
+            val reviewed = assessments.findById(fixture.assessmentId).orElseThrow()
+            assertThat(reviewed.virkailijaHyvaksynyt).isTrue()
+            assertThat(reviewed.virkailijanKuittausaika).isEqualTo(LocalDate.now())
+            assertThat(reviewed.vastuuhenkilonKorjausehdotus).isNull()
+        }
+        assertAwaitingFinalApproval(fixture, CaseType.KOEJAKSO)
+
+        approve(fixture, CaseType.KOEJAKSO).andExpect(status().isOk)
+        assertSingleDelivery(fixture, CaseType.KOEJAKSO)
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
+    fun `failure after real scheduling rolls back the scheduler row with approval and documents`(type: CaseType) {
+        val fixture = fixture()
+        var scheduledJobId: UUID? = null
+        transactions.executeWithoutResult {
+            doAnswer { invocation ->
+                val jobId = invocation.getArgument<UUID>(0)
+                assertThat(invocation.callRealMethod()).isEqualTo(true)
+                assertThat(taskCount(jobId)).isEqualTo(1)
+                scheduledJobId = jobId
+                error("Failure after inserting the real scheduler row")
+            }.whenever(scheduler).schedule(any(), any())
+        }
+
+        approve(fixture, type).andExpect(status().isInternalServerError)
+
+        assertThat(scheduledJobId).isNotNull()
+        // Query the captured UUID directly: a join with the rolled-back job would hide an orphan task.
+        assertThat(taskCount(requireNotNull(scheduledJobId))).isZero()
+        assertThat(jobs.findById(requireNotNull(scheduledJobId))).isEmpty()
+        assertRolledBack(fixture, type)
     }
 
     @ParameterizedTest
@@ -254,7 +327,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         val fixture = fixture()
         approve(fixture, type).andExpect(status().isOk)
         verify(legacy).laheta(any(), eq("/tmp/koejakso-test.zip"), eq(type), any(), anyOrNull(), anyOrNull())
-        assertNoArchive(fixture, type)
+        assertNoJob(fixture, type)
         assertThat(documentCount(fixture)).isEqualTo(1)
         val otherType = if (type == CaseType.SOPIMUS) CaseType.KOEJAKSO else CaseType.SOPIMUS
         approve(fixture, otherType).andExpect(status().isOk)
@@ -267,7 +340,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         val fixture = fixture()
         properties.getArkistointi().getTre().kaytossa = false
         approve(fixture, type).andExpect(status().isOk)
-        assertNoArchive(fixture, type)
+        assertNoJob(fixture, type)
         assertThat(documentCount(fixture)).isEqualTo(1)
     }
 
@@ -354,7 +427,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
             else assessments.findById(fixture.assessmentId).orElseThrow().vastuuhenkiloHyvaksynyt
             assertThat(approved).isFalse()
         }
-        assertNoArchive(fixture, type)
+        assertNoJob(fixture, type)
         assertThat(documentCount(fixture)).isZero()
         verifyNoInteractions(mail)
     }
@@ -364,12 +437,27 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         val prefix = if (type == CaseType.SOPIMUS) "koejakso-sopimus" else "koejakso-arvio"
         return "$prefix:${YliopistoEnum.TAMPEREEN_YLIOPISTO.name}:${fixture.caseId(type)}"
     }
-    private fun assertNoArchive(fixture: Fixture, type: CaseType) {
+    private fun assertNoJob(fixture: Fixture, type: CaseType) {
         assertThat(jobs.findByKey(key(fixture, type))).isNull()
-        assertThat(jdbc.queryForObject(
-            "select count(*) from scheduled_tasks s join arkistointi_job j on s.task_instance = j.id::text where j.job_key = ?",
-            Int::class.java, key(fixture, type)
-        )).isZero()
+    }
+
+    private fun assertAwaitingFinalApproval(fixture: Fixture, type: CaseType) {
+        assertNoJob(fixture, type)
+        assertThat(documentCount(fixture)).isZero()
+        verifyNoInteractions(snapshots, creator, scheduler)
+    }
+
+    private fun assertSingleDelivery(fixture: Fixture, type: CaseType) {
+        val job = job(fixture, type)
+        assertThat(taskCount(job.id!!)).isEqualTo(1)
+        assertThat(documentCount(fixture)).isEqualTo(2)
+        approve(fixture, type).andExpect(status().isBadRequest)
+        assertThat(taskCount(job.id!!)).isEqualTo(1)
+        assertThat(documentCount(fixture)).isEqualTo(2)
+        verify(creator).create(any())
+        transactions.executeWithoutResult {
+            verify(scheduler).schedule(eq(job.id!!), any())
+        }
     }
     private fun documentCount(fixture: Fixture) = jdbc.queryForObject("select count(*) from asiakirja where opintooikeus_id = ?", Int::class.java, fixture.studyRightId)
     private fun taskCount(id: UUID) = jdbc.queryForObject("select count(*) from scheduled_tasks where task_instance = ?", Int::class.java, id.toString())
@@ -381,6 +469,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
     }
 
     private fun approve(fixture: Fixture, type: CaseType, accepted: Boolean = true, correction: String? = null): org.springframework.test.web.servlet.ResultActions {
+        setSecurityContext(fixture.approverId, VASTUUHENKILO)
         val dto = if (type == CaseType.SOPIMUS) contractDto(fixture).apply { korjausehdotus = correction }
         else assessmentDto(fixture).apply { koejaksoHyvaksytty = accepted; vastuuhenkilonKorjausehdotus = correction }
         val endpoint = if (type == CaseType.SOPIMUS) "koulutussopimus" else "vastuuhenkilonarvio"
@@ -404,9 +493,11 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         em.persist(traineeUser)
         val trainee = ErikoistuvaLaakariHelper.createEntity(em, user = traineeUser, yliopisto = university)
         val approver = createVastuuhenkiloForKoejakso(trainee, user = approverUser)
-        val trainer = KayttajaHelper.createEntity(em).also(em::persist)
+        val trainerUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(KOULUTTAJA)).also(em::persist)
+        val trainer = KayttajaHelper.createEntity(em, trainerUser).also(em::persist)
         val supervisor = KayttajaHelper.createEntity(em).also(em::persist)
-        val reviewer = KayttajaHelper.createEntity(em).also(em::persist)
+        val reviewerUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(OPINTOHALLINNON_VIRKAILIJA)).also(em::persist)
+        val reviewer = KayttajaHelper.createEntity(em, reviewerUser).apply { yliopistot.add(university) }.also(em::persist)
         val phases = KoejaksonVaiheetHelper.persistKoejaksoVaiheet(em, trainee, trainer, supervisor, approver, university)
         phases.koulutussopimus.erikoistuvanAllekirjoitusaika = LocalDate.now()
         val assessment = KoejaksonVaiheetHelper.createVastuuhenkilonArvio(trainee, approver).apply {
@@ -417,10 +508,21 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         }
         em.persist(assessment)
         em.flush()
-        Fixture(phases.koulutussopimus.id!!, assessment.id!!, trainee.getOpintooikeusKaytossa()!!.id!!, approverUser.id!!)
+        Fixture(
+            phases.koulutussopimus.id!!, assessment.id!!, trainee.getOpintooikeusKaytossa()!!.id!!,
+            approverUser.id!!, traineeUser.id!!, trainerUser.id!!, reviewerUser.id!!
+        )
     }
 
-    private data class Fixture(val contractId: Long, val assessmentId: Long, val studyRightId: Long, val approverId: String) {
+    private data class Fixture(
+        val contractId: Long,
+        val assessmentId: Long,
+        val studyRightId: Long,
+        val approverId: String,
+        val traineeId: String,
+        val trainerId: String,
+        val reviewerId: String
+    ) {
         fun caseId(type: CaseType) = if (type == CaseType.SOPIMUS) contractId else assessmentId
     }
 
