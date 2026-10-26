@@ -266,6 +266,7 @@
   "erittain-vaativa": "Erittäin vaativa",
   "erittain-vaativa-kuvaus": "Erikoisalan tehtävänä erittäin vaativa, josta suoriutuminen on haastavaa myös valmiille erikoislääkärille. Vaatii erityistä ponnistelua ja tarvittaessa hankkimaan uusia tietoja ja taitoja.",
   "error": {
+    "invalidauthorities": "Valituilla käyttäjillä on roolit joiden yhdistystä ei tällä hetkellä tueta",
     "empty-text": "Ilmoituksen sisältö ei saa olla tyhjä.",
     "dataillegal": {
       "samanniminen-tiedosto-on-jo-olemassa": "Samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos toinen samanniminen tiedosto on jo lisätty ELSA-palveluun, anna tiedostolle toinen nimi, ja lataa se sitten uudelleen.",
