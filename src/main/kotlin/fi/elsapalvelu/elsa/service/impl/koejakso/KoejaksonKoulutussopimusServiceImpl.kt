@@ -41,6 +41,7 @@ import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.mail.TransactionalMailService
 import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
@@ -69,7 +70,7 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper,
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
-    private val mailService: MailService,
+    private val mailService: TransactionalMailService,
     private val kayttajaRepository: KayttajaRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val userRepository: UserRepository,
@@ -137,6 +138,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         }
     }
 
+    @Transactional(rollbackFor = [Exception::class])
     override fun update(koulutussopimusDTO: KoejaksonKoulutussopimusDTO, userId: String): KoejaksonKoulutussopimusDTO {
         try {
             var koulutussopimus = koejaksonKoulutussopimusRepository.findById(koulutussopimusDTO.id.required())

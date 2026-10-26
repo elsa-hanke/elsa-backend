@@ -75,6 +75,12 @@ import org.springframework.transaction.annotation.Transactional
 private const val TEKNINEN_PAAKAYTTAJA_ROLE_PATH = "tekninen-paakayttaja"
 private const val VIRKAILIJA_ROLE_PATH = "virkailija"
 
+private fun containsExpectedKayttajaIds(rolePath: String, sameYliopistoId: Long?, otherYliopistoId: Long?) =
+    Matchers.containsInAnyOrder(*(
+        if (rolePath == TEKNINEN_PAAKAYTTAJA_ROLE_PATH) listOf(sameYliopistoId, otherYliopistoId)
+        else listOf(sameYliopistoId)
+    ).map { requireNotNull(it).toInt() }.toTypedArray())
+
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
@@ -189,13 +195,17 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
 
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto)
         persistAndFlush(erikoistuvaLaakari)
-        persistAndFlush(ErikoistuvaLaakariHelper.createEntity(em, yliopisto = persistYliopisto(YliopistoEnum.HELSINGIN_YLIOPISTO)))
+        val toisenYliopistonErikoistuva = ErikoistuvaLaakariHelper.createEntity(
+            em, yliopisto = persistYliopisto(YliopistoEnum.HELSINGIN_YLIOPISTO)
+        )
+        persistAndFlush(toisenYliopistonErikoistuva)
 
-        // Virkailijalle listataan vain saman yliopiston erikoistujat.
-        val expectedSize = if (rolePath == TEKNINEN_PAAKAYTTAJA_ROLE_PATH) 2 else 1
+        // Virkailijalle listataan vain saman yliopiston erikoistujat. Ilman sort-parametria järjestystä ei taata.
 
         testMockMvc.perform(get("/api/$rolePath/erikoistuvat-laakarit")).andExpect(status().isOk).andExpect(content().contentType(APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(expectedSize))).andExpect(jsonPath("$.content[0].kayttajaId").value(erikoistuvaLaakari.kayttaja?.id))
+            .andExpect(jsonPath("$.content[*].kayttajaId").value(
+                containsExpectedKayttajaIds(rolePath, erikoistuvaLaakari.kayttaja?.id, toisenYliopistonErikoistuva.kayttaja?.id)
+            ))
     }
 
     @ParameterizedTest
@@ -204,14 +214,17 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
         initTest(getRole(rolePath), true)
 
         val erikoisala = erikoisalaRepository.findById(1).get()
-        val vastuuhenkilo = KayttajahallintaResourceHelper.createKouluttaja(em, yliopisto, erikoisala)
-        KayttajahallintaResourceHelper.createKouluttaja(em, persistYliopisto(YliopistoEnum.ITA_SUOMEN_YLIOPISTO), erikoisala)
+        val kouluttaja = KayttajahallintaResourceHelper.createKouluttaja(em, yliopisto, erikoisala)
+        val toisenYliopistonKouluttaja = KayttajahallintaResourceHelper.createKouluttaja(
+            em, persistYliopisto(YliopistoEnum.ITA_SUOMEN_YLIOPISTO), erikoisala
+        )
 
-        // Virkailijalle listataan vain saman yliopiston kouluttajat.
-        val expectedSize = if (rolePath == TEKNINEN_PAAKAYTTAJA_ROLE_PATH) 2 else 1
+        // Virkailijalle listataan vain saman yliopiston kouluttajat. Ilman sort-parametria järjestystä ei taata.
 
         testMockMvc.perform(get("/api/$rolePath/kouluttajat")).andExpect(status().isOk).andExpect(content().contentType(APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(expectedSize))).andExpect(jsonPath("$.content[0].kayttajaId").value(vastuuhenkilo.id))
+            .andExpect(jsonPath("$.content[*].kayttajaId").value(
+                containsExpectedKayttajaIds(rolePath, kouluttaja.id, toisenYliopistonKouluttaja.id)
+            ))
     }
 
     @ParameterizedTest
@@ -221,13 +234,16 @@ class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
 
         val erikoisala = erikoisalaRepository.findById(1).get()
         val vastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(em, yliopisto, erikoisala)
-        KayttajahallintaResourceHelper.createVastuuhenkilo(em, persistYliopisto(YliopistoEnum.ITA_SUOMEN_YLIOPISTO), erikoisala)
+        val toisenYliopistonVastuuhenkilo = KayttajahallintaResourceHelper.createVastuuhenkilo(
+            em, persistYliopisto(YliopistoEnum.ITA_SUOMEN_YLIOPISTO), erikoisala
+        )
 
-        // Virkailijalle listataan vain saman yliopiston vastuuhenkilöt.
-        val expectedSize = if (rolePath == TEKNINEN_PAAKAYTTAJA_ROLE_PATH) 2 else 1
+        // Virkailijalle listataan vain saman yliopiston vastuuhenkilöt. Ilman sort-parametria järjestystä ei taata.
 
         testMockMvc.perform(get("/api/$rolePath/vastuuhenkilot")).andExpect(status().isOk).andExpect(content().contentType(APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.content").value(Matchers.hasSize<Any>(expectedSize))).andExpect(jsonPath("$.content[0].kayttajaId").value(vastuuhenkilo.id))
+            .andExpect(jsonPath("$.content[*].kayttajaId").value(
+                containsExpectedKayttajaIds(rolePath, vastuuhenkilo.id, toisenYliopistonVastuuhenkilo.id)
+            ))
     }
 
     @ParameterizedTest

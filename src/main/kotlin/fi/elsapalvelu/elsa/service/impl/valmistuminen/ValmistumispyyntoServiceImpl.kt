@@ -229,6 +229,7 @@ class ValmistumispyyntoServiceImpl(
         }
     }
 
+    @Transactional(rollbackFor = [Exception::class])
     override fun updateValmistumispyyntoByHyvaksyjaUserId(id: Long, userId: String, hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO): ValmistumispyynnonTarkistusDTO {
         log.info("Hyvaksynta-operaatio aloitettu [valmistumispyyntoId=$id]")
 
