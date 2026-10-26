@@ -56,6 +56,7 @@
   import VastuuhenkiloForm from '@/forms/uusi-vastuuhenkilo-form.vue'
   import VirkailijaForm from '@/forms/uusi-virkailija-form.vue'
   import { KayttajahallintaRajaimet, YhdistaKayttajatilejaForm } from '@/types'
+  import { formatSaveError } from '@/utils/errorMessage'
   import { toastFail, toastSuccess } from '@/utils/toast'
   import ErikoistujatJaKouluttajat from '@/views/kayttajahallinta/yhdista-kayttajatileja/erikoistujat-ja-kouluttajat.vue'
   import YhteinenSahkoposti from '@/views/kayttajahallinta/yhdista-kayttajatileja/yhteinen-sahkoposti.vue'
@@ -138,7 +139,10 @@
           name: 'kayttajahallinta'
         })
       } catch (e) {
-        toastFail(this, this.$t('kayttajatilien-yhdistaminen-epaonnistui'))
+        toastFail(
+          this,
+          formatSaveError(this, e, this.$t('kayttajatilien-yhdistaminen-epaonnistui'))
+        )
       }
     }
   }
