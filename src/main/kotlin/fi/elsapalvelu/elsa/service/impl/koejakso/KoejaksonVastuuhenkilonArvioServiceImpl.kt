@@ -143,6 +143,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         }
     }
 
+    @Transactional(rollbackFor = [Exception::class])
     override fun update(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
         userId: String,

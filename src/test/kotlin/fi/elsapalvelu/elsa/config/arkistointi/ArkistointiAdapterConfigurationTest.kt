@@ -4,6 +4,7 @@ import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.boot.autoconfigure.DbSchedulerAutoConfiguration
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
@@ -49,6 +50,30 @@ class ArkistointiAdapterConfigurationTest {
             verify(worker).start()
             verifyNoInteractions(dataSource)
         }
+    }
+
+    @Test
+    fun `university adapter must support every enabled case type`() {
+        withAdapter(runner(), YliopistoEnum.HELSINGIN_YLIOPISTO)
+            .withPropertyValues("application.arkistointi.hki.metadata.cases.koejakso.async-enabled=true").run { context ->
+                assertThat(context).hasFailed()
+                assertThat(context.startupFailure).hasRootCauseMessage(
+                    "Async archiving is enabled for HELSINGIN_YLIOPISTO / koejakso, " +
+                        "but the asynchronous ArkistointiAdapter does not support this case type"
+                )
+                verify(worker, never()).start()
+                verifyNoInteractions(dataSource)
+            }
+    }
+
+    @Test
+    fun `adapter with both case types permits worker startup`() {
+        withAdapter(runner(), YliopistoEnum.HELSINGIN_YLIOPISTO,
+            supportedCaseTypes = setOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO))
+            .withPropertyValues("application.arkistointi.hki.metadata.cases.koejakso.async-enabled=true").run { context ->
+                assertThat(context).hasNotFailed()
+                verify(worker).start()
+            }
     }
 
     @Test
@@ -123,9 +148,13 @@ class ArkistointiAdapterConfigurationTest {
     private fun withAdapter(
         runner: ApplicationContextRunner,
         university: YliopistoEnum,
-        name: String = "testAdapter"
+        name: String = "testAdapter",
+        supportedCaseTypes: Set<CaseType> = setOf(CaseType.VALMISTUMINEN)
     ): ApplicationContextRunner = runner.withBean(name, ArkistointiAdapter::class.java, Supplier {
-        mock<ArkistointiAdapter>().also { whenever(it.university).thenReturn(university) }
+        mock<ArkistointiAdapter>().also {
+            whenever(it.university).thenReturn(university)
+            whenever(it.supportedCaseTypes).thenReturn(supportedCaseTypes)
+        }
     })
 
     @Configuration

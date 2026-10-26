@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.koejakso
 
+import com.fasterxml.jackson.databind.JsonMappingException
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfReader
 import fi.elsapalvelu.elsa.ElsaBackendApp
@@ -47,6 +49,7 @@ import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KoejaksonVaiheetHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
 import java.io.ByteArrayInputStream
+import java.io.IOException
 import java.net.URI
 import java.time.LocalDate
 import java.util.UUID
@@ -68,6 +71,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.isA
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.mockito.kotlin.verify
@@ -114,6 +118,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
     @Autowired private lateinit var processor: ArkistointiJobProcessor
     @MockitoSpyBean private lateinit var snapshots: ArkistointiAsiakirjaSnapshotService
     @MockitoSpyBean private lateinit var scheduler: ArkistointiJobScheduler
+    @MockitoSpyBean private lateinit var archiveMapper: ObjectMapper
     @MockitoSpyBean private lateinit var creator: ArkistointiJobCreator
     @MockitoSpyBean private lateinit var legacy: SynchronousArkistointiService
     @MockitoBean private lateinit var mail: MailService
@@ -129,6 +134,19 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
             anyOrNull(), any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any()
         )
         doAnswer { null }.whenever(legacy).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
+    fun `checked payload serialization failure rolls back asynchronous approval and real PDF`(type: CaseType) {
+        val fixture = fixture()
+        doAnswer { throw JsonMappingException.fromUnexpectedIOE(IOException("Simulated serialization failure")) }
+            .whenever(archiveMapper).writeValueAsString(isA<KoejaksoArkistointiPayload>())
+
+        approve(fixture, type).andExpect(status().isInternalServerError)
+
+        assertRolledBack(fixture, type)
+        verifyNoInteractions(snapshots, creator, scheduler)
     }
 
     @ParameterizedTest
@@ -540,6 +558,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
 
     class TestAdapter : ArkistointiAdapter {
         override val university = YliopistoEnum.TAMPEREEN_YLIOPISTO
+        override val supportedCaseTypes = setOf(CaseType.SOPIMUS, CaseType.KOEJAKSO)
         var behavior: (ArkistointiSubmission) -> ArkistointiResult = { ArkistointiResult.Success("external-koejakso") }
         override fun arkistoi(pyynto: ArkistointiSubmission) = behavior(pyynto)
     }

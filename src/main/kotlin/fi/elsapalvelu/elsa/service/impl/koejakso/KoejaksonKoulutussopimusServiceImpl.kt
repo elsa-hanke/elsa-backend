@@ -132,6 +132,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         }
     }
 
+    @Transactional(rollbackFor = [Exception::class])
     override fun update(koulutussopimusDTO: KoejaksonKoulutussopimusDTO, userId: String): KoejaksonKoulutussopimusDTO {
         try {
             var koulutussopimus = loadForUpdate(koulutussopimusDTO.id.required())

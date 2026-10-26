@@ -234,12 +234,18 @@ Valinta tehdään yliopisto- ja asiatyyppikohtaisella asetuksella
 Oletus on `false`: nykyinen synkroninen lähetys säilyy. Jos koko integraatio tai
 asiatyyppi ei ole käytössä, jonoon ei lisätä tehtävää. Asynkroninen käyttöönotto
 edellyttää kyseistä asiatyyppiä tukevaa yliopiston adapteria.
+Adapteri ilmoittaa tuetut asiatyypit `supportedCaseTypes`-joukossa. Worker tarkistaa
+käynnistyessään jokaisen käyttöön otetun yliopisto–asiatyyppiparin. Jo jonossa oleva
+tukematon asiatyyppi päätyy tilaan `VAATII_TOIMENPITEITA` ilman lähetystä tai uusintaa.
+Pelkkä jobien tuottaminen ei edellytä paikallista toimitusadapteria.
 
 Hyväksyntä, tavallisen ladattavan PDF:n luonti, sen muuttumaton snapshot, job ja
 `scheduled_tasks` tallentuvat samassa transaktiossa. Payload sisältää hyväksymishetken
 henkilö-, opinto-oikeus-, tarkastaja- ja hyväksyjätiedot sekä arvion lopputuloksen.
 Worker käyttää tallennettua sisältöä eikä muodosta PDF:ää uudelleen.
 Sähköposti-ilmoitukset lähetetään commitin jälkeen.
+Hyväksymistransaktio peruuntuu myös checked-poikkeuksilla, kuten payloadin
+sarjoitusvirheellä.
 
 Päivitykset lukitsevat sopimuksen tai arvion rivin ennen tilan tarkistamista.
 Lopullisesti hyväksyttyä käsittelyä ei voi toistaa tai muokata tämän päivityspolun
