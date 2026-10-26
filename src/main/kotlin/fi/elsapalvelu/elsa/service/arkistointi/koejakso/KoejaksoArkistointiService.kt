@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.required
+import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
@@ -25,7 +26,8 @@ class KoejaksoArkistointiService(
     private val synchronousArchive: SynchronousArkistointiService,
     private val snapshots: ArkistointiAsiakirjaSnapshotService,
     private val creator: ArkistointiJobCreator,
-    private val mapper: ObjectMapper
+    private val mapper: ObjectMapper,
+    private val jobRepository: ArkistointiJobRepository
 ) {
     fun archive(sopimus: KoejaksonKoulutussopimus, document: Asiakirja) {
         val studyRight = sopimus.opintooikeus.required()
@@ -61,12 +63,15 @@ class KoejaksoArkistointiService(
         if (!synchronousArchive.onKaytossa(payload.university, caseType)) return
         if (configuration.isAsyncEnabled(payload.university, caseType)) {
             val prefix = if (caseType == CaseType.SOPIMUS) "koejakso-sopimus" else "koejakso-arvio"
+            val key = "$prefix:${payload.university.name}:${payload.caseId}"
+            // Approval callers lock the case row. Check before snapshot creation; creator still checks the key too.
+            if (jobRepository.findByKey(key) != null) return
             creator.create(
                 CreateArkistointiJobRequest(
                     university = payload.university,
                     caseType = caseType,
                     payload = mapper.writeValueAsString(payload),
-                    key = "$prefix:${payload.university.name}:${payload.caseId}",
+                    key = key,
                     asiakirjat = listOf(snapshots.createReference(document, recordType, 0))
                 )
             )

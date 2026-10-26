@@ -2,6 +2,8 @@ package fi.elsapalvelu.elsa.service.arkistointi.koejakso
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
@@ -9,6 +11,7 @@ import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
@@ -20,6 +23,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import java.time.LocalDate
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -36,8 +40,9 @@ class KoejaksoArkistointiServiceTest {
     private val synchronous = mock<SynchronousArkistointiService>()
     private val snapshots = mock<ArkistointiAsiakirjaSnapshotService>()
     private val creator = mock<ArkistointiJobCreator>()
+    private val jobs = mock<ArkistointiJobRepository>()
     private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
-    private val service = KoejaksoArkistointiService(configuration, synchronous, snapshots, creator, mapper)
+    private val service = KoejaksoArkistointiService(configuration, synchronous, snapshots, creator, mapper, jobs)
     private val university = YliopistoEnum.HELSINGIN_YLIOPISTO
     private val studyRight = Opintooikeus(id = 12, yliopisto = Yliopisto(nimi = university))
     private val document = Asiakirja(id = 22, nimi = "approval.pdf", tyyppi = "application/pdf")
@@ -46,7 +51,7 @@ class KoejaksoArkistointiServiceTest {
     @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
     fun `disabled integration creates no snapshot or job`(type: CaseType) {
         archive(type)
-        verifyNoInteractions(configuration, snapshots, creator)
+        verifyNoInteractions(configuration, snapshots, creator, jobs)
     }
 
     @ParameterizedTest
@@ -90,7 +95,31 @@ class KoejaksoArkistointiServiceTest {
         archive(type)
 
         verify(synchronous).laheta(eq(university), eq("/tmp/test.zip"), eq(type), eq(false), eq("7"), anyOrNull())
+        verifyNoInteractions(snapshots, creator, jobs)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "SOPIMUS, ODOTTAA", "KOEJAKSO, ODOTTAA",
+        "SOPIMUS, KASITTELYSSA", "KOEJAKSO, KASITTELYSSA",
+        "SOPIMUS, LAHETETTY", "KOEJAKSO, LAHETETTY",
+        "SOPIMUS, VAATII_TOIMENPITEITA", "KOEJAKSO, VAATII_TOIMENPITEITA"
+    )
+    fun `existing job in any status creates no snapshot job or synchronous delivery`(type: CaseType, status: ArkistointiJobStatus) {
+        whenever(synchronous.onKaytossa(university, type)).thenReturn(true)
+        whenever(configuration.isAsyncEnabled(university, type)).thenReturn(true)
+        val prefix = if (type == CaseType.SOPIMUS) "koejakso-sopimus" else "koejakso-arvio"
+        val key = "$prefix:${university.name}:7"
+        whenever(jobs.findByKey(key)).thenReturn(ArkistointiJob(status = status))
+
+        archive(type)
+
+        verify(jobs).findByKey(key)
         verifyNoInteractions(snapshots, creator)
+        verify(synchronous, never()).muodostaSahke(
+            anyOrNull(), any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any()
+        )
+        verify(synchronous, never()).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
     }
 
     private fun archive(type: CaseType) {

@@ -252,6 +252,10 @@ Lopullisesti hyväksyttyä käsittelyä ei voi toistaa tai muokata tämän päiv
 kautta. Paikalliset liiketoiminta-avaimet ovat
 `koejakso-sopimus:<YLIOPISTO>:<sopimusId>` ja
 `koejakso-arvio:<YLIOPISTO>:<arvioId>`; toimitusavaimena säilyy jobin UUID.
+Koejakson jonopolku tarkistaa olemassa olevan jobin liiketoiminta-avaimella ennen
+snapshotin luontia. Toistuva kutsu ei luo irrallista snapshotia eikä muuta olemassa
+olevaa jobia tai sen ajastusta. Tarkistus ei korvaa hyväksynnän rivilukitusta tai
+jobin avaimen yksilöllisyysrajoitetta.
 
 ### Valmistumisen asynkroninen arkistointi
 

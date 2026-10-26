@@ -115,6 +115,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
     @Autowired private lateinit var assessmentMapper: KoejaksonVastuuhenkilonArvioMapper
     @Autowired private lateinit var contractService: KoejaksonKoulutussopimusService
     @Autowired private lateinit var assessmentService: KoejaksonVastuuhenkilonArvioService
+    @Autowired private lateinit var archiveService: KoejaksoArkistointiService
     @Autowired private lateinit var processor: ArkistointiJobProcessor
     @MockitoSpyBean private lateinit var snapshots: ArkistointiAsiakirjaSnapshotService
     @MockitoSpyBean private lateinit var scheduler: ArkistointiJobScheduler
@@ -177,6 +178,44 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         approve(fixture, type).andExpect(status().isBadRequest)
         assertThat(documentCount(fixture)).isEqualTo(2)
         assertThat(taskCount(job.id!!)).isEqualTo(1)
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
+    fun `repeated archive call preserves job snapshots and schedule without orphan documents`(type: CaseType) {
+        val fixture = fixture()
+        approve(fixture, type).andExpect(status().isOk)
+        val first = job(fixture, type)
+        val jobId = requireNotNull(first.id)
+        val jobsBefore = jobs.count()
+        val documentSql = "select id from asiakirja where opintooikeus_id = ? order by id"
+        val documentsBefore = jdbc.queryForList(documentSql, Long::class.java, fixture.studyRightId)
+        val referenceSql = "select * from arkistointi_job_asiakirja where job_id = ?"
+        val referenceBefore = jdbc.queryForMap(referenceSql, jobId)
+        val scheduleSql = "select * from scheduled_tasks where task_name = ? and task_instance = ?"
+        val scheduleBefore = jdbc.queryForMap(scheduleSql, ARKISTOINTI_JOB_TASK.taskName, jobId.toString())
+
+        // Call the archive service directly: the HTTP approval guard would reject this before reaching it.
+        transactions.executeWithoutResult {
+            if (type == CaseType.SOPIMUS) {
+                val contract = requireNotNull(contracts.findByIdForUpdate(fixture.contractId))
+                val source = asiakirjaRepository.findAllByOpintooikeusId(fixture.studyRightId).single()
+                archiveService.archive(contract, source)
+            } else {
+                val assessment = requireNotNull(assessments.findByIdForUpdate(fixture.assessmentId))
+                val source = asiakirjaRepository.findAllByOpintooikeusId(fixture.studyRightId).single()
+                archiveService.archive(assessment, source)
+            }
+        }
+
+        assertThat(jdbc.queryForList(documentSql, Long::class.java, fixture.studyRightId)).isEqualTo(documentsBefore)
+        val repeated = job(fixture, type)
+        assertThat(repeated.id).isEqualTo(jobId)
+        assertThat(repeated.payload).isEqualTo(first.payload)
+        assertThat(repeated.status).isEqualTo(first.status)
+        assertThat(jobs.count()).isEqualTo(jobsBefore)
+        assertThat(jdbc.queryForMap(referenceSql, jobId)).isEqualTo(referenceBefore)
+        assertThat(jdbc.queryForMap(scheduleSql, ARKISTOINTI_JOB_TASK.taskName, jobId.toString())).isEqualTo(scheduleBefore)
     }
 
     @Test
