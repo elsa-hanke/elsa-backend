@@ -266,6 +266,7 @@
   "erittain-vaativa": "Erittäin vaativa",
   "erittain-vaativa-kuvaus": "Erikoisalan tehtävänä erittäin vaativa, josta suoriutuminen on haastavaa myös valmiille erikoislääkärille. Vaatii erityistä ponnistelua ja tarvittaessa hankkimaan uusia tietoja ja taitoja.",
   "error": {
+    "invalidauthorities": "Valituilla käyttäjillä on roolit joiden yhdistystä ei tällä hetkellä tueta",
     "empty-text": "Ilmoituksen sisältö ei saa olla tyhjä.",
     "ARCHIVE_DOCUMENT_MISSING": "Hyväksyntää ei tallennettu, koska pakollinen arkistoitava asiakirja puuttuu. Pyydä täydentämään puuttuva asiakirja ja yritä hyväksyntää uudelleen.",
     "ARCHIVE_DOCUMENT_EMPTY": "Hyväksyntää ei tallennettu, koska arkistoitava asiakirja on tyhjä. Pyydä toimittamaan asiakirja, jossa on sisältöä, ja yritä hyväksyntää uudelleen.",

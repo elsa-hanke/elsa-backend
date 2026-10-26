@@ -50,5 +50,4 @@ class ArkistointiJobCreatorImpl(
         check(jobScheduler.schedule(jobId)) { "Arkistointi-jobin ajastus epaonnistui" }
         return saved
     }
-
 }
