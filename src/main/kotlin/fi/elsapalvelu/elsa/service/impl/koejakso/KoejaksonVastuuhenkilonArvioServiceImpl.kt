@@ -40,6 +40,7 @@ import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.mail.TransactionalMailService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksotTableDTO
@@ -71,7 +72,7 @@ import java.util.*
 class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
     private val koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper,
-    private val mailService: MailService,
+    private val mailService: TransactionalMailService,
     private val kayttajaRepository: KayttajaRepository,
     private val userRepository: UserRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
@@ -141,6 +142,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         }
     }
 
+    @Transactional(rollbackFor = [Exception::class])
     override fun update(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
         userId: String,
