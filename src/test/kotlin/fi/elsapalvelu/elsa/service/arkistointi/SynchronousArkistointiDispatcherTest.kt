@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.service.metrics.ArkistointiMetricsService
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
-import org.assertj.core.api.Assertions.assertThatIllegalStateException
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -43,10 +43,10 @@ class SynchronousArkistointiDispatcherTest {
         whenever(configurationProvider.onKaytossa(request.yliopisto, request.caseType)).thenReturn(true)
         val dispatcher = createDispatcher(emptyList())
 
-        assertThatIllegalStateException()
-            .isThrownBy { dispatcher.laheta(request) }
-            .withMessageContaining(YliopistoEnum.TURUN_YLIOPISTO.name)
-            .withMessageContaining(CaseType.VALMISTUMINEN.value)
+        assertThatThrownBy { dispatcher.laheta(request) }
+            .isInstanceOf(SynchronousArkistointiException::class.java)
+            .hasMessage(SynchronousArkistointiException.SAFE_DESCRIPTION)
+            .hasNoCause()
 
         assertThat(successCount(request)).isZero()
         assertThat(errorCount(request)).isEqualTo(1.0)
@@ -101,9 +101,10 @@ class SynchronousArkistointiDispatcherTest {
         }
         val dispatcher = createDispatcher(listOf(adapter))
 
-        org.assertj.core.api.Assertions.assertThatThrownBy { dispatcher.laheta(request) }
-            .isInstanceOf(RuntimeException::class.java)
-            .hasMessage("Dynasty ei vastaa")
+        assertThatThrownBy { dispatcher.laheta(request) }
+            .isInstanceOf(SynchronousArkistointiException::class.java)
+            .hasMessage(SynchronousArkistointiException.SAFE_DESCRIPTION)
+            .hasNoCause()
 
         assertThat(successCount(request)).isZero()
         assertThat(errorCount(request)).isEqualTo(1.0)

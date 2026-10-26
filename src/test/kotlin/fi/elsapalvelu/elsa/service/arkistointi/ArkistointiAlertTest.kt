@@ -95,16 +95,14 @@ class ArkistointiAlertTest {
         verify(alertPublisherService).publishAlert(subjectCaptor.capture(), messageCaptor.capture())
 
         assertThat(subjectCaptor.firstValue).contains("Helsinki")
-        assertThat(messageCaptor.firstValue).contains("HY Siilo connection refused")
-        assertThat(messageCaptor.firstValue).contains("Id: 42")
-        assertThat(messageCaptor.firstValue).contains("Matti Meikäläinen")
+        assertThat(messageCaptor.firstValue).contains("Id: 42", SynchronousArkistointiException.ERROR_KEY)
+            .doesNotContain("HY Siilo connection refused", "Matti Meikäläinen", "/tmp/test.zip")
     }
 
     @Test
     fun `alert is published when Helsinki archiving fails with non-200 response`() {
         whenever(helsinkiSiiloService.laheta(any(), any()))
-            .thenThrow(RuntimeException("HY arkistointi epäonnistui: HTTP 503 Service Unavailable, " +
-                "URL: http://esb-api.it.helsinki.fi/unisign/elsa/archive/abc123. Palvelimen vastaus: (tyhjä)"))
+            .thenThrow(SynchronousArkistointiException(503))
 
         assertThrows(RuntimeException::class.java) {
             arkistointiService.laheta(
@@ -120,8 +118,8 @@ class ArkistointiAlertTest {
         verify(alertPublisherService).publishAlert(subjectCaptor.capture(), messageCaptor.capture())
 
         assertThat(subjectCaptor.firstValue).contains("Helsinki")
-        assertThat(messageCaptor.firstValue).contains("HTTP 503")
-        assertThat(messageCaptor.firstValue).contains("URL: http://esb-api.it.helsinki.fi")
+        assertThat(messageCaptor.firstValue).contains("HTTP status: 503", SynchronousArkistointiException.ERROR_KEY)
+            .doesNotContain("URL:", "/tmp/hy.zip")
     }
 
     @Test
@@ -163,10 +161,8 @@ class ArkistointiAlertTest {
         verify(alertPublisherService).publishAlert(subjectCaptor.capture(), messageCaptor.capture())
 
         assertThat(subjectCaptor.firstValue).contains("Tampere")
-        assertThat(messageCaptor.firstValue).contains("SFTP connection timed out")
-        assertThat(messageCaptor.firstValue).contains("localhost") // SFTP host must be in the alert
-        assertThat(messageCaptor.firstValue).contains("Id: 17")
-        assertThat(messageCaptor.firstValue).contains("Aino Aaltonen")
+        assertThat(messageCaptor.firstValue).contains("Id: 17", SynchronousArkistointiException.ERROR_KEY)
+            .doesNotContain("SFTP connection timed out", "localhost", "Aino Aaltonen", "/tmp/tre.zip")
     }
 
     @Test

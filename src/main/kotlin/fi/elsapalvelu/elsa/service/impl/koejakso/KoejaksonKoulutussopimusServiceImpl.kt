@@ -189,7 +189,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
                 logger.info("Kasitellaan sopimus hyvaksytty KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
                 val asiakirja = luoPdf(dto, koulutussopimus)
-                logger.info("Luotu koulutussopimuksesta pdf: $asiakirja.id")
+                logger.info("Koulutussopimuksen PDF luotu [asiakirjaId={}]", asiakirja.id)
                 val yliopisto = koulutussopimus.opintooikeus?.yliopisto?.nimi.required()
 
                 if (arkistointiService.onKaytossa(yliopisto, CaseType.SOPIMUS)) {
@@ -242,12 +242,12 @@ class KoejaksonKoulutussopimusServiceImpl(
             yliopisto = yliopisto,
             caseType = CaseType.SOPIMUS
         )
-        logger.info("Koulutussopimuksesta pdf arkistointi onnistui, tuloste: ${result.zipFilePath}")
+        logger.info("Arkistointipaketti muodostettu [sopimusId={}]", koulutussopimus.id)
 
         val erikoisala = opintooikeus?.erikoisala.required()
         val yek = erikoisala.id == YEK_ERIKOISALA_ID
         val erikoistujanNimi = requireNotNull(opintooikeus).erikoistuvaLaakari?.kayttaja?.user?.getName()
-        logger.info("Lahetetaan arkistopyynto: ${result.zipFilePath}")
+        logger.info("Lähetetään arkistointipaketti [sopimusId={}]", koulutussopimus.id)
         arkistointiService.laheta(
             yliopisto = yliopisto,
             filePath = result.zipFilePath,

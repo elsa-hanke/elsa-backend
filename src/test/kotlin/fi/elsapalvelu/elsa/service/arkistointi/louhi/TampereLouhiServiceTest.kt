@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
+import fi.elsapalvelu.elsa.aop.logging.LoggingAspect
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiLogCapture
 import org.apache.sshd.sftp.client.SftpClient
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -15,6 +17,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.integration.file.remote.session.Session
 import org.springframework.integration.file.remote.session.SessionFactory
+import org.springframework.aop.aspectj.annotation.AspectJProxyFactory
+import org.springframework.mock.env.MockEnvironment
 import org.springframework.web.server.ResponseStatusException
 import java.io.InputStream
 import java.nio.file.Files
@@ -49,7 +53,10 @@ class TampereLouhiServiceTest {
         }.whenever(session).write(any(), any())
         val zipFile = createTemporaryZip("louhi-package")
 
-        TampereLouhiService(sessionFactory).laheta(zipFile.toString(), yek)
+        ArkistointiLogCapture().use { logs ->
+            createService().laheta(zipFile.toString(), yek)
+            logs.assertDoesNotContain(zipFile.toString(), zipFile.fileName.toString())
+        }
 
         verify(session).write(any(), org.mockito.kotlin.eq("InProgress/${zipFile.fileName}"))
         verify(session).rename(
@@ -84,11 +91,14 @@ class TampereLouhiServiceTest {
         whenever(session.write(any(), any())).thenThrow(IllegalStateException("SFTP write failed"))
         val zipFile = createTemporaryZip("failed-package")
 
-        assertThatThrownBy {
-            TampereLouhiService(sessionFactory).laheta(zipFile.toString(), false)
+        ArkistointiLogCapture().use { logs ->
+            assertThatThrownBy {
+                createService().laheta(zipFile.toString(), false)
+            }
+                .isInstanceOf(IllegalStateException::class.java)
+                .hasMessageContaining("SFTP write failed")
+            logs.assertDoesNotContain(zipFile.toString(), zipFile.fileName.toString(), "SFTP write failed")
         }
-            .isInstanceOf(IllegalStateException::class.java)
-            .hasMessageContaining("SFTP write failed")
 
         verify(session, never()).rename(any(), any())
         assertThat(zipFile).doesNotExist()
@@ -103,7 +113,7 @@ class TampereLouhiServiceTest {
             TampereLouhiService(sessionFactory).laheta(missingFile.toString(), false)
         }
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("Arkistointitiedostoa ei löydy")
+            .hasMessage("Arkistointitiedostoa ei löydy")
 
         verify(sessionFactory, never()).session
     }
@@ -114,4 +124,8 @@ class TampereLouhiServiceTest {
             Files.writeString(it, content)
         }
     }
+
+    private fun createService(): TampereLouhiService = AspectJProxyFactory(TampereLouhiService(sessionFactory)).apply {
+        addAspect(LoggingAspect(MockEnvironment().apply { setActiveProfiles("dev") }))
+    }.getProxy()
 }

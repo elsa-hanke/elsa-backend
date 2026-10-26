@@ -72,7 +72,7 @@ class TampereLouhiService internal constructor(
     fun laheta(filePath: String, yek: Boolean) {
         val file = File(filePath)
         require(file.exists()) {
-            "Arkistointitiedostoa ei löydy: $filePath"
+            "Arkistointitiedostoa ei löydy"
         }
         try {
             val session = sessionFactory.session
@@ -89,11 +89,11 @@ class TampereLouhiService internal constructor(
 
             session.write(FileInputStream(filePath), targetPath)
             session.rename(targetPath, "$finished/${subFolder}/${file.name}")
-            log.info("Tiedosto $filePath arkistoitu louheen")
+            log.info("Arkistointipaketti toimitettu Louheen")
         } finally {
             val deleted = file.delete()
             if (!deleted) {
-                log.warn("Virhe tiedoston ${file.name} poistamisessa")
+                log.warn("Louhen väliaikaisen arkistointipaketin poistaminen epäonnistui")
             }
         }
     }

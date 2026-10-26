@@ -11,6 +11,9 @@ import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiException
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiLogCapture
+import fi.elsapalvelu.elsa.service.arkistointi.louhi.TampereLouhiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiPackage
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonKoulutussopimusDTO
@@ -41,6 +44,9 @@ import org.mockito.Mockito.mockingDetails
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doCallRealMethod
+import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,8 +61,10 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.transaction.support.TransactionTemplate
 
 /** Real committed PostgreSQL transactions and PDF generation; only external delivery and mail are mocked. */
@@ -70,14 +78,39 @@ class KoejaksoApprovalTransactionIT : ResourceIntegrationTestBase() {
     @Autowired private lateinit var contractMapper: KoejaksonKoulutussopimusMapper
     @Autowired private lateinit var assessmentMapper: KoejaksonVastuuhenkilonArvioMapper
     @Autowired private lateinit var transactions: TransactionTemplate
-    @MockitoBean private lateinit var legacy: SynchronousArkistointiService
+    @MockitoSpyBean private lateinit var legacy: SynchronousArkistointiService
+    @MockitoBean private lateinit var transport: TampereLouhiService
     @MockitoBean private lateinit var mail: MailService
 
     @BeforeEach
     fun configureDelivery() {
-        whenever(legacy.onKaytossa(any(), any())).thenReturn(true)
-        whenever(legacy.muodostaSahke(anyOrNull(), any(), any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any(), any()))
-            .thenReturn(ArkistointiPackage("/tmp/approval-transaction-test.zip", null))
+        doReturn(true).whenever(legacy).onKaytossa(any(), any())
+        doReturn(ArkistointiPackage("/tmp/approval-transaction-test.zip", null)).whenever(legacy)
+            .muodostaSahke(anyOrNull(), any(), any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any(), any())
+        doNothing().whenever(legacy).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
+    fun `real dispatcher returns safe delivery error and rolls back approval and PDF`(type: CaseType) {
+        val fixture = fixture()
+        val initialDocuments = documentCount(fixture)
+        val secret = "private-transport-message-with-credentials"
+        doCallRealMethod().whenever(legacy).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
+        doAnswer { throw IOException(secret) }.whenever(transport).laheta(any(), any())
+
+        ArkistointiLogCapture().use { logs ->
+            val result = approve(fixture, type).andExpect(status().isInternalServerError)
+                .andExpect(jsonPath("$.errorKey").value(SynchronousArkistointiException.ERROR_KEY))
+                .andExpect(jsonPath("$.detail").value(SynchronousArkistointiException.SAFE_DESCRIPTION))
+                .andReturn()
+            assertThat(result.resolvedException).isInstanceOf(SynchronousArkistointiException::class.java).hasNoCause()
+            assertThat(result.response.contentAsString).doesNotContain(secret, "/tmp/approval-transaction-test.zip")
+            logs.assertDoesNotContain(secret, "/tmp/approval-transaction-test.zip")
+        }
+        assertNotApproved(fixture, type)
+        assertThat(documentCount(fixture)).isEqualTo(initialDocuments)
+        verifyNoInteractions(mail)
     }
 
     @ParameterizedTest

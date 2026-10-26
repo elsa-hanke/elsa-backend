@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.siilo
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiException
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -33,7 +34,7 @@ class HelsinkiSiiloService(
 
         val zipFile = File(zipFilePath)
         require(zipFile.exists()) {
-            "Arkistointitiedostoa ei löydy: $zipFilePath"
+            "Arkistointitiedostoa ei löydy"
         }
 
         val requestBody = MultipartBody.Builder()
@@ -51,22 +52,18 @@ class HelsinkiSiiloService(
             .post(requestBody)
             .build()
 
-        log.info("Lähetetään arkistointipaketti HY:lle osoitteeseen $url")
+        log.info("Lähetetään arkistointipaketti HY Siiloon")
         try {
             okHttpClient.newCall(request).execute().use { response ->
-                val responseBody = response.body?.string()
                 if (!response.isSuccessful) {
-                    throw RuntimeException(
-                        "HY arkistointi epäonnistui: HTTP ${response.code} ${response.message}, " +
-                            "URL: $url. Palvelimen vastaus: ${responseBody?.take(500) ?: "(tyhjä)"}"
-                    )
+                    throw SynchronousArkistointiException(response.code)
                 }
-                log.info("HY arkistointivastaus: ${response.code} $responseBody")
+                log.info("HY Siilo arkistointi onnistui [httpStatus={}]", response.code)
             }
         } finally {
             val deleted = zipFile.delete()
             if (!deleted) {
-                log.warn("Tiedoston ${zipFile.name} poistaminen epäonnistui")
+                log.warn("Siilon väliaikaisen arkistointipaketin poistaminen epäonnistui")
             }
         }
     }

@@ -41,6 +41,10 @@ open class LoggingAspect(private val env: Environment) {
     fun applicationPackagePointcut() =
         Unit // Method is empty as this is just a Pointcut, the implementations are in the advices.
 
+    /** Archive services own their logging to avoid exposing documents, paths and transport exceptions. */
+    @Pointcut("within(fi.elsapalvelu.elsa.service.arkistointi..*)")
+    fun archivePackagePointcut() = Unit
+
     /**
      * Retrieves the {@link Logger} associated to the given {@link JoinPoint}.
      *
@@ -55,7 +59,7 @@ open class LoggingAspect(private val env: Environment) {
      * @param joinPoint join point for advice.
      * @param e exception.
      */
-    @AfterThrowing(pointcut = "applicationPackagePointcut() && springBeanPointcut()", throwing = "e")
+    @AfterThrowing(pointcut = "applicationPackagePointcut() && springBeanPointcut() && !archivePackagePointcut()", throwing = "e")
     fun logAfterThrowing(joinPoint: JoinPoint, e: Throwable) {
         if (env.acceptsProfiles(Profiles.of(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT))) {
             logger(joinPoint).error(
@@ -81,7 +85,7 @@ open class LoggingAspect(private val env: Environment) {
      * @return result.
      * @throws Throwable throws [IllegalArgumentException].
      */
-    @Around(value = "applicationPackagePointcut() && springBeanPointcut()")
+    @Around(value = "applicationPackagePointcut() && springBeanPointcut() && !archivePackagePointcut()")
     fun logAround(joinPoint: ProceedingJoinPoint): Any? {
         val log = logger(joinPoint)
         if (log.isDebugEnabled) {

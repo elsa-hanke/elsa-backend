@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.errors
 
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiException
 import jakarta.servlet.ServletException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -18,6 +19,16 @@ import org.springframework.web.server.ResponseStatusException
 class BadRequestExceptionAdvice {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+    @ExceptionHandler(SynchronousArkistointiException::class)
+    fun handleSynchronousArkistointiException(e: SynchronousArkistointiException): ProblemDetail {
+        log.error("Archive delivery failed [code={}, httpStatus={}]", SynchronousArkistointiException.ERROR_KEY, e.remoteStatus)
+        val body = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, SynchronousArkistointiException.SAFE_DESCRIPTION)
+        body.setProperty("message", "error.${SynchronousArkistointiException.ERROR_KEY}")
+        body.setProperty("errorKey", SynchronousArkistointiException.ERROR_KEY)
+        return body
+    }
+
     @ExceptionHandler(BadRequestAlertException::class)
     fun handleBadRequestException(e: BadRequestAlertException): ProblemDetail {
         log.warn(e.message ?: e.defaultMessage, e)

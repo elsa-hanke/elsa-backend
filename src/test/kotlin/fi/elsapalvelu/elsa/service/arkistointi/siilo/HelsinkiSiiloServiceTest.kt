@@ -1,6 +1,9 @@
 package fi.elsapalvelu.elsa.service.arkistointi.siilo
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.aop.logging.LoggingAspect
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiLogCapture
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiException
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -10,6 +13,11 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.aop.aspectj.annotation.AspectJProxyFactory
+import org.springframework.mock.env.MockEnvironment
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -36,7 +44,9 @@ class HelsinkiSiiloServiceTest {
                 )
             }
         }
-        service = HelsinkiSiiloService(properties)
+        val proxy = AspectJProxyFactory(HelsinkiSiiloService(properties))
+        proxy.addAspect(LoggingAspect(MockEnvironment().apply { setActiveProfiles("dev") }))
+        service = proxy.getProxy()
     }
 
     @AfterEach
@@ -69,12 +79,12 @@ class HelsinkiSiiloServiceTest {
         server.enqueue(MockResponse().setResponseCode(503).setStatus("HTTP/1.1 503 Service Unavailable").setBody("maintenance"))
         val zipFile = createTemporaryZip("failed-package")
 
-        assertThatThrownBy {
+        val failure = assertThrows<SynchronousArkistointiException> {
             service.laheta(zipFile.toString(), CaseType.VALMISTUMINEN)
         }
-            .isInstanceOf(RuntimeException::class.java)
-            .hasMessageContaining("HTTP 503")
-            .hasMessageContaining("maintenance")
+        assertThat(failure.message).isEqualTo(SynchronousArkistointiException.SAFE_DESCRIPTION)
+        assertThat(failure.cause).isNull()
+        assertThat(failure.remoteStatus).isEqualTo(503)
 
         assertThat(zipFile).doesNotExist()
     }
@@ -88,6 +98,27 @@ class HelsinkiSiiloServiceTest {
             service.laheta(zipFile.toString(), CaseType.VALMISTUMINEN)
         }.isInstanceOf(java.io.IOException::class.java)
 
+        assertThat(zipFile).doesNotExist()
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [200, 503])
+    fun `response body credentials and filename are absent from logs and errors`(status: Int) {
+        val privateResponse = "private-response-personal-data"
+        server.enqueue(MockResponse().setResponseCode(status).setBody(privateResponse))
+        val zipFile = createTemporaryZip("test-package")
+
+        ArkistointiLogCapture().use { logs ->
+            if (status == 200) {
+                service.laheta(zipFile.toString(), CaseType.VALMISTUMINEN)
+            } else {
+                assertThatThrownBy { service.laheta(zipFile.toString(), CaseType.VALMISTUMINEN) }
+                    .isInstanceOf(RuntimeException::class.java)
+                    .hasMessageNotContaining(privateResponse)
+                    .hasMessageNotContaining(server.url("/").toString())
+            }
+            logs.assertDoesNotContain(privateResponse, "test-api-key", zipFile.fileName.toString())
+        }
         assertThat(zipFile).doesNotExist()
     }
 

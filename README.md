@@ -172,6 +172,16 @@ tietokannan suojaukset estävät sen sisällön ja metatietojen muuttamisen tai 
 Job, snapshotit ja ajastus tallentuvat samassa transaktiossa; rollback ei jätä
 osittaista arkistointia. PDF/A-konvertoinnin sivu- tai pikselirajoja ei ole.
 
+### Synkronisen arkistoinnin toimitusvirheet
+
+Siilon ja Louhen toimitusvirheet palautetaan HTTP 500 -vastauksena, jonka
+`errorKey` on `ARCHIVE_DELIVERY_FAILED`. Käyttäjälle näytetään yleinen suomenkielinen
+virheviesti. Lokeihin ja hälytyksiin tallennetaan asiatyyppi, asian tunniste,
+virhekoodi ja mahdollinen HTTP-status. Siilon vastausrunkoa, paketin nimeä,
+henkilön nimeä tai alkuperäisen toimituspoikkeuksen sisältöä ei välitetä näihin.
+Arkistointipalvelut on rajattu pois yleisestä argumenttien ja poikkeusten
+AOP-lokituksesta. Epäonnistunut hyväksyntä peruuntuu transaktion mukana.
+
 ### Ulkoiset integraatiotestit
 
 Ulkoiset integraatiotestit testaavat etäpalveluita eivätkä käytä paikallista

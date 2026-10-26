@@ -27,9 +27,14 @@ class SynchronousArkistointiDispatcher(
             adapter.laheta(request)
             arkistointiMetrics.recordSuccess(request.yliopisto, request.caseType)
         } catch (e: Exception) {
-            publishFailureAlert(request, e)
+            val failure = SynchronousArkistointiException((e as? SynchronousArkistointiException)?.remoteStatus)
+            log.error(
+                "Synchronous archiving failed [university={}, caseType={}, caseId={}, code={}, httpStatus={}]",
+                request.yliopisto, request.caseType, request.caseId, SynchronousArkistointiException.ERROR_KEY, failure.remoteStatus
+            )
             arkistointiMetrics.recordError(request.yliopisto, request.caseType)
-            throw e
+            publishFailureAlert(request, failure)
+            throw failure
         } finally {
             arkistointiMetrics.activeArkistointiOperations.updateAndGet { maxOf(0, it - 1) }
         }
@@ -57,15 +62,14 @@ class SynchronousArkistointiDispatcher(
         }
     }
 
-    private fun publishFailureAlert(request: SynchronousArkistointiDeliveryRequest, exception: Exception) {
+    private fun publishFailureAlert(request: SynchronousArkistointiDeliveryRequest, exception: SynchronousArkistointiException) {
         when (request.yliopisto) {
             YliopistoEnum.TAMPEREEN_YLIOPISTO -> alertPublisherService.publishAlert(
                 subject = "Tampere arkistointi epäonnistui",
                 message = buildAlertMessage(
                     intro = "Arkistointitiedoston lähetys Louhi SFTP-palvelimelle epäonnistui.",
-                    extra = "SFTP-palvelin: ${configurationProvider.getTampereHost() ?: "tuntematon"}.",
                     request = request,
-                    error = exception.message
+                    status = exception.remoteStatus
                 )
             )
 
@@ -73,9 +77,8 @@ class SynchronousArkistointiDispatcher(
                 subject = "Helsinki arkistointi epäonnistui",
                 message = buildAlertMessage(
                     intro = "Arkistointitiedoston lähetys HY Siilo-palveluun epäonnistui.",
-                    extra = null,
                     request = request,
-                    error = exception.message
+                    status = exception.remoteStatus
                 )
             )
 
@@ -85,18 +88,13 @@ class SynchronousArkistointiDispatcher(
 
     private fun buildAlertMessage(
         intro: String,
-        extra: String?,
         request: SynchronousArkistointiDeliveryRequest,
-        error: String?
+        status: Int?
     ): String = buildString {
         append(intro)
-        if (extra != null) append(" $extra")
         append(" CaseType: ${request.caseType.value}")
         if (request.caseId != null) append(", Id: ${request.caseId}")
-        if (request.erikoistujanNimi != null) {
-            append(". Erikoistuva lääkäri: ${request.erikoistujanNimi}")
-        }
-        append(". Tiedosto: ${request.filePath}")
-        append(". Virhe: $error")
+        append(". Virhekoodi: ${SynchronousArkistointiException.ERROR_KEY}")
+        status?.let { append(". HTTP status: $it") }
     }
 }
