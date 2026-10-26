@@ -87,6 +87,54 @@ before another run; in-memory restoration state is lost on process termination.
 The existing shard discovery includes the new specs automatically; no explicit
 spec list or additional GHA job is required.
 
+## Approval → asynchronous archive worker
+
+The six specs in `cypress/async-archive/` reuse the existing approval UI flows:
+training contract, positive and negative final trial-period assessment, and EL,
+EHL and YEK graduation. Each spec registers one independent test. Generated
+graduation summary, attachments and (EL/EHL) licensing certificate are checked as
+one delivery, not separate jobs. Ordinary specs in `cypress/e2e/` keep their
+existing archive-disabled configuration and assertions.
+
+`.github/workflows/archive-e2e.yml`, called by `e2e.yml`, runs each async spec on
+its own fresh Compose/PostgreSQL stack. The regular shard selector never includes
+these specs. Existing forms and real approval APIs generate the documents; the
+real db-scheduler, processor and JDBC loader deliver the committed snapshots.
+Only the university adapter is replaced. This tests the delivery boundary, not
+the real Dynasty/Louhi protocol or receiver-side deduplication.
+
+`src/archiveE2e` is a separate Gradle source set. `archiveE2eJar` builds
+`build/libs/elsa-archive-e2e.jar`, mounted into `/app/libs/` by
+`infra/docker-compose-archive-e2e.yml`. Its `archive-e2e` profile enables Helsinki
+and UEF test adapters and the worker; the adapters are excluded with `prod` or
+`replica`. `verifyArchiveE2eIsolation` checks that their classes/configuration are
+absent from the ordinary application jar. No production migration is added.
+
+The adapter commits a compact receipt in the test-only `archive_e2e.receipt`
+table, independently hashes the received bytes and returns `e2e:<job UUID>`.
+Node DB tasks poll by the exact operation business key. Assertions check the
+adapter invocation, UUID, approval metadata, document types/order, byte sizes,
+SHA-256, snapshot/source equality, `LAHETETTY`, `completedAt`, `externalId` and
+removal of the scheduler entry. Receipt data and documents are not logged.
+
+Run **one** async spec per freshly created stack. For local use, first build
+`./gradlew archiveE2eJar`, supply the usual disposable-stack secrets/image tags,
+then use both Compose files:
+
+```bash
+docker compose -p elsa-archive-e2e -f infra/docker-compose-cicd.yml -f infra/docker-compose-archive-e2e.yml up -d --wait
+cd e2e
+yarn cy:run --config 'baseUrl=http://localhost:8080,specPattern=cypress/async-archive/*.cy.ts,retries=0' --spec cypress/async-archive/sopimus.cy.ts
+```
+
+After collecting results, stop the worker and discard the entire stack/database
+with the same Compose files and `down -v`. Recreate it before another spec or
+retry. Tests deliberately leave immutable jobs/snapshots in place; no trigger is
+disabled. The fresh-stack guard rejects accidental reuse. The EHL fixture creates
+a matching dental specialty/guide and approver rights only for the disposable
+E2E identities; the test profile disables Hibernate entity caching so direct
+fixture SQL is visible to the application.
+
 ## Parallel GitHub Actions runs
 
 `.github/workflows/e2e.yml` runs three shards on separate runners. Each shard

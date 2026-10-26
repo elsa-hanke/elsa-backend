@@ -1,0 +1,8 @@
+# Additional fixture classes are mounted only in the disposable browser-test stack.
+# The application image itself is the same image under review; its entrypoint already includes /app/libs/*.
+services:
+  elsa-backend:
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev,archive-e2e
+    volumes:
+      - ../build/libs/elsa-archive-e2e.jar:/app/libs/elsa-archive-e2e.jar:ro

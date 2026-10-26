@@ -156,6 +156,36 @@ configurations {
     providedRuntime
 }
 
+// Browser-test fixtures are shipped as a separate jar mounted only by the disposable E2E stack.
+sourceSets {
+    archiveE2e {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+configurations.archiveE2eImplementation.extendsFrom(configurations.implementation)
+configurations.archiveE2eRuntimeOnly.extendsFrom(configurations.runtimeOnly)
+
+tasks.register('archiveE2eJar', Jar) {
+    archiveFileName = 'elsa-archive-e2e.jar'
+    from sourceSets.archiveE2e.output
+}
+
+tasks.register('verifyArchiveE2eIsolation') {
+    dependsOn tasks.named('bootJar'), tasks.named('archiveE2eJar')
+    doLast {
+        def forbidden = zipTree(tasks.named('bootJar').get().archiveFile.get()).matching {
+            include '**/archivee2e/**', '**/application-archive-e2e.yml'
+        }
+        if (!forbidden.isEmpty()) {
+            throw new GradleException('Browser-test archive fixtures must not be packaged in the application')
+        }
+    }
+}
+tasks.named('check') {
+    dependsOn tasks.named('verifyArchiveE2eIsolation'), tasks.named('detektArchiveE2e')
+}
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -163,6 +193,7 @@ repositories {
 }
 
 dependencies {
+    testImplementation sourceSets.archiveE2e.output
     implementation "tech.jhipster:jhipster-framework:${jhipsterDependenciesVersion}"
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate7"

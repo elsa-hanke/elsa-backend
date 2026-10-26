@@ -1,0 +1,107 @@
+name: Async archive E2E
+
+on:
+  workflow_call:
+    inputs:
+      image-tag:
+        required: true
+        type: string
+      frontend-image-tag:
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  fixtures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build test-only adapter jar
+        run: ./gradlew verifyArchiveE2eIsolation detektArchiveE2e
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archive-e2e-fixtures
+          path: build/libs/elsa-archive-e2e.jar
+          if-no-files-found: error
+
+  approval-to-worker:
+    name: Approval → archive adapter (${{ matrix.scenario }})
+    needs: fixtures
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: shared
+    strategy:
+      fail-fast: false
+      matrix:
+        # One scenario per fresh PostgreSQL instance; no immutable-data cleanup bypass.
+        scenario: [sopimus, koejakso-hyvaksytty, koejakso-hylatty, valmistuminen-el, valmistuminen-ehl, valmistuminen-yek]
+    env:
+      COMPOSE_FILE: infra/docker-compose-cicd.yml:infra/docker-compose-archive-e2e.yml
+      COMPOSE_PROJECT_NAME: elsa-archive-e2e
+      BACKEND_IMAGE_TAG: ${{ inputs.image-tag }}
+      FRONTEND_IMAGE_TAG: ${{ inputs.frontend-image-tag }}
+      APPLICATION_SECURITY_ENCODED_KEY: ${{ secrets.APPLICATION_SECURITY_ENCODED_KEY }}
+      PRIVATE_KEY_FILE: /tmp/private.key
+      PUBLIC_CRT_FILE: /tmp/public.crt
+      HY_SISU_KEY_FILE: /tmp/hy-sisu.key
+      HY_SISU_CRT_FILE: /tmp/hy-sisu.crt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: archive-e2e-fixtures
+          path: build/libs
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GithubActionsRole
+          aws-region: eu-west-1
+      - uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: "939452229770,654795471143"
+      - name: Write secret files
+        env:
+          SAML_KEY: ${{ secrets.SAML_PRIVATE_KEY }}
+          SAML_CERT: ${{ secrets.SAML_PUBLIC_CRT }}
+          SISU_KEY: ${{ secrets.HY_SISU_KEY }}
+          SISU_CERT: ${{ secrets.HY_SISU_CRT }}
+        run: |
+          printf '%s' "$SAML_KEY" > /tmp/private.key
+          printf '%s' "$SAML_CERT" > /tmp/public.crt
+          printf '%s' "$SISU_KEY" > /tmp/hy-sisu.key
+          printf '%s' "$SISU_CERT" > /tmp/hy-sisu.crt
+      - name: Start isolated async stack
+        run: docker compose up -d --wait --wait-timeout 300
+      - name: Run real approval and worker flow
+        env:
+          SCENARIO: ${{ matrix.scenario }}
+          E2E_RESULTS_DIR: /e2e/results/archive-${{ matrix.scenario }}
+        run: |
+          docker run --rm --network=host --entrypoint /bin/sh \
+            -e SCENARIO -e E2E_RESULTS_DIR \
+            -v "${{ github.workspace }}/e2e:/e2e" -w /e2e \
+            cypress/included:16.1.1 \
+            -c 'npm install && npx tsc --noEmit && npx cypress run --browser chrome --config "baseUrl=http://localhost:8080,specPattern=cypress/async-archive/*.cy.ts,retries=0" --spec "cypress/async-archive/$SCENARIO.cy.ts"'
+      - name: Collect application logs
+        if: always()
+        run: |
+          mkdir -p e2e/archive-logs
+          docker compose logs --no-color --timestamps > e2e/archive-logs/stack.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: archive-e2e-${{ matrix.scenario }}
+          path: |
+            e2e/results/archive-${{ matrix.scenario }}/
+            e2e/archive-logs/
+            e2e/cypress/screenshots/
+      - name: Stop worker and dispose database
+        if: always()
+        run: docker compose down -v
