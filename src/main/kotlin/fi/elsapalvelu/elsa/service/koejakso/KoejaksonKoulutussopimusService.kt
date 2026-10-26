@@ -12,7 +12,8 @@ interface KoejaksonKoulutussopimusService {
 
     fun update(
         koulutussopimusDTO: KoejaksonKoulutussopimusDTO,
-        userId: String
+        userId: String,
+        actor: KoejaksoUpdateActor
     ): KoejaksonKoulutussopimusDTO
 
     fun findOne(id: Long): Optional<KoejaksonKoulutussopimusDTO>

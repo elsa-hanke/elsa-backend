@@ -268,6 +268,10 @@
   "error": {
     "empty-text": "Ilmoituksen sisältö ei saa olla tyhjä.",
     "dataillegal": {
+      "hyvaksyttya-sopimusta-ei-saa-muokata": "Koulutussopimus on jo hyväksytty, eikä sitä voi enää muokata tai poistaa.",
+      "hyvaksyttya-arviointia-ei-saa-muokata": "Koejakson arvio on jo vahvistettu, eikä sitä voi enää muokata.",
+      "sopimuksen-aiemmat-hyvaksynnat-puuttuvat": "Koulutussopimusta ei voi käsitellä ennen erikoistujan lähetystä ja kouluttajien hyväksyntää.",
+      "arvion-aiemmat-hyvaksynnat-puuttuvat": "Koejakson arviota ei voi käsitellä ennen erikoistujan lähetystä ja virkailijan hyväksyntää.",
       "samanniminen-tiedosto-on-jo-olemassa": "Samanniminen tiedosto on jo olemassa. Tarkista tiedosto ja sen nimi. Jos toinen samanniminen tiedosto on jo lisätty ELSA-palveluun, anna tiedostolle toinen nimi, ja lataa se sitten uudelleen.",
       "pdf-tiedostoa-ei-voitu-kasitella": "Liitetiedostoa ei voitu käsitellä. Tarkista, että saat tiedoston aukeamaan normaalisti ennen lataamista ELSA-palveluun. Jos PDF-tiedosto avautuu normaalisti, tallenna se uudelleen PDF-muodossa ja yritä uudelleen.",
       "pdf-tiedosto-vaatii-salasanan": "PDF-tiedosto vaatii salasanan avaamiseen. Tallenna tiedostosta kopio, joka avautuu ilman salasanaa, ja yritä uudelleen. Tarvittaessa pyydä tiedoston toimittajalta salasanasuojaamaton kopio.",

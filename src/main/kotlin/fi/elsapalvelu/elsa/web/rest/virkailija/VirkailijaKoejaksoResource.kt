@@ -141,7 +141,7 @@ class VirkailijaKoejaksoResource(
             )
         }
 
-        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id.required())
+        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id.required(), KoejaksoUpdateActor.REVIEWER)
         return ResponseEntity.ok(result)
     }
 }

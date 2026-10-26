@@ -154,7 +154,7 @@ class VastuuhenkiloKoejaksoResource(
         }
 
         val result =
-            koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id.required())
+            koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id.required(), KoejaksoUpdateActor.APPROVER)
         return ResponseEntity.ok(result)
     }
 
@@ -242,7 +242,7 @@ class VastuuhenkiloKoejaksoResource(
             )
         }
 
-        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id.required())
+        val result = koejaksonVastuuhenkilonArvioService.update(vastuuhenkilonArvioDTO, user.id.required(), KoejaksoUpdateActor.APPROVER)
         return ResponseEntity.ok(result)
     }
 }

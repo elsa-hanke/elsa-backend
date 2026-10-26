@@ -49,6 +49,7 @@ import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonKoulutussopimusMappe
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
@@ -66,7 +67,6 @@ private const val ENTITY_KOEJAKSON_SOPIMUS = "koejakson_koulutussopimus"
 @Service
 @Transactional
 class KoejaksonKoulutussopimusServiceImpl(
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper,
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val mailService: MailService,
@@ -137,71 +137,103 @@ class KoejaksonKoulutussopimusServiceImpl(
         }
     }
 
-    override fun update(koulutussopimusDTO: KoejaksonKoulutussopimusDTO, userId: String): KoejaksonKoulutussopimusDTO {
-        try {
-            var koulutussopimus = koejaksonKoulutussopimusRepository.findById(koulutussopimusDTO.id.required())
-                .orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
-            val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-            val updatedKoulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koulutussopimusDTO)
-            val onSopimuksenErikoistuja = kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == koulutussopimus.opintooikeus?.erikoistuvaLaakari
-
-            // Validate every field this caller can persist before changing data or sending notifications.
-            val vastuuhenkilo = kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(listOf(VASTUUHENKILO),
-                koulutussopimus.opintooikeus?.yliopisto?.id, koulutussopimus.opintooikeus?.erikoisala?.id, KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN)
-            if (onSopimuksenErikoistuja) {
+    override fun update(
+        koulutussopimusDTO: KoejaksonKoulutussopimusDTO,
+        userId: String,
+        actor: KoejaksoUpdateActor
+    ): KoejaksonKoulutussopimusDTO {
+        actor.requireAuthority()
+        var sopimus = loadForUpdate(koulutussopimusDTO.id.required())
+        val updated = koejaksonKoulutussopimusMapper.toEntity(koulutussopimusDTO)
+        when (actor) {
+            KoejaksoUpdateActor.TRAINEE -> {
+                if (sopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id != userId) {
+                    throw AccessDeniedException("Koulutussopimuksen erikoistujan kasittelyoikeus puuttuu")
+                }
                 koulutussopimusPdfTextValidator.validateErikoistujanKentat(koulutussopimusDTO)
-            }
-            koulutussopimus.kouluttajat?.filter { it.kouluttaja?.user?.id == userId }?.forEach {
-                koulutussopimusPdfTextValidator.validateKouluttajanKentat(koulutussopimusDTO, it.id, userId)
-            }
-            if (vastuuhenkilo?.user?.id == userId) {
-                koulutussopimusPdfTextValidator.validateVastuuhenkilonKentat(koulutussopimusDTO)
-            }
-
-            if (onSopimuksenErikoistuja) {
-                koulutussopimus = handleErikoistuva(koulutussopimus, updatedKoulutussopimus)
-                koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
+                sopimus = handleErikoistuva(sopimus, updated)
+                sopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
                     user.email = koulutussopimusDTO.erikoistuvanSahkoposti
                     user.phoneNumber = koulutussopimusDTO.erikoistuvanPuhelinnumero
                     userRepository.save(user)
                 }
             }
-
-            koulutussopimus.kouluttajat?.toTypedArray()?.forEach {
-                if (it.kouluttaja?.user?.id == userId) {
-                    koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
-                    updateKouluttajaContact(it, koulutussopimusDTO, userId)
-                }
-            }
-
-            if (vastuuhenkilo?.user?.id == userId) {
-                koulutussopimus = handleVastuuhenkilo(
-                    koulutussopimus, updatedKoulutussopimus, vastuuhenkilo, koulutussopimusDTO, userId
+            KoejaksoUpdateActor.TRAINER -> updateAsTrainer(sopimus, updated, koulutussopimusDTO, userId)
+            KoejaksoUpdateActor.APPROVER -> {
+                val approver = kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
+                    listOf(VASTUUHENKILO), sopimus.opintooikeus?.yliopisto?.id,
+                    sopimus.opintooikeus?.erikoisala?.id, KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
                 )
+                if (approver?.user?.id != userId) {
+                    throw AccessDeniedException("Koulutussopimuksen vastuuhenkilon kasittelyoikeus puuttuu")
+                }
+                validatePreviousApprovals(sopimus, approving = updated.korjausehdotus.isNullOrBlank())
+                koulutussopimusPdfTextValidator.validateVastuuhenkilonKentat(koulutussopimusDTO)
+                sopimus = handleVastuuhenkilo(sopimus, updated, approver, koulutussopimusDTO, userId)
             }
+            KoejaksoUpdateActor.REVIEWER -> throw AccessDeniedException("Virkailija ei kasittele koulutussopimusta")
+        }
 
-            koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
-            logger.info("Kasitelty kouluttaja paivitys kantaan KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-
-            val dto = koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
-            if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
-                logger.info("Kasitellaan sopimus hyvaksytty KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-                val asiakirja = luoPdf(dto, koulutussopimus)
-                logger.info("Luotu koulutussopimuksesta pdf: $asiakirja.id")
-                val yliopisto = koulutussopimus.opintooikeus?.yliopisto?.nimi.required()
-
+        sopimus = koejaksonKoulutussopimusRepository.save(sopimus)
+        val dto = koejaksonKoulutussopimusMapper.toDto(sopimus)
+        if (actor == KoejaksoUpdateActor.APPROVER) {
+            if (sopimus.vastuuhenkiloHyvaksynyt) {
+                val asiakirja = luoPdf(dto, sopimus)
+                logger.info("Luotu koulutussopimuksesta pdf [asiakirjaId={}]", asiakirja.id)
+                val yliopisto = sopimus.opintooikeus?.yliopisto?.nimi.required()
                 if (arkistointiService.onKaytossa(yliopisto, CaseType.SOPIMUS)) {
-                    arkistoiKoulutussopimus(koulutussopimus.opintooikeus, asiakirja, koulutussopimus, yliopisto)
+                    arkistoiKoulutussopimus(sopimus.opintooikeus, asiakirja, sopimus, yliopisto)
                 }
             }
-            if (vastuuhenkilo?.user?.id == userId) {
-                ilmoitaVastuuhenkilonKasittelysta(koulutussopimus)
-            }
-            return dto
+            ilmoitaVastuuhenkilonKasittelysta(sopimus)
         }
-        catch(e: Exception) {
-            logger.error("Virhe koulutussopimuksen päivityksessä: ${e.message}", e)
-            throw e
+        return dto
+    }
+
+    private fun updateAsTrainer(
+        sopimus: KoejaksonKoulutussopimus,
+        updated: KoejaksonKoulutussopimus,
+        dto: KoejaksonKoulutussopimusDTO,
+        userId: String
+    ) {
+        val trainers = sopimus.kouluttajat.orEmpty().filter { it.kouluttaja?.user?.id == userId }
+        if (trainers.isEmpty()) throw AccessDeniedException("Koulutussopimuksen kouluttajan kasittelyoikeus puuttuu")
+        if (!sopimus.lahetetty) {
+            throw BadRequestAlertException(
+                "Erikoistuva ei ole lahettanyt sopimusta.", ENTITY_KOEJAKSON_SOPIMUS,
+                "dataillegal.koulutussopimusta-ei-saa-muokata-jos-erikoistua-ei-ole-hyvaksynyt-sita"
+            )
+        }
+        trainers.forEach { koulutussopimusPdfTextValidator.validateKouluttajanKentat(dto, it.id, userId) }
+        trainers.forEach {
+            handleKouluttaja(sopimus, it, updated)
+            updateKouluttajaContact(it, dto, userId)
+        }
+    }
+
+    private fun loadForUpdate(id: Long): KoejaksonKoulutussopimus {
+        val sopimus = koejaksonKoulutussopimusRepository.findByIdForUpdate(id)
+            ?: throw EntityNotFoundException("Koulutussopimusta ei löydy")
+        requireEditable(sopimus)
+        return sopimus
+    }
+
+    private fun requireEditable(sopimus: KoejaksonKoulutussopimus) {
+        if (sopimus.vastuuhenkiloHyvaksynyt) {
+            throw BadRequestAlertException(
+                "Hyväksyttyä sopimusta ei saa muokata.", ENTITY_KOEJAKSON_SOPIMUS,
+                "dataillegal.hyvaksyttya-sopimusta-ei-saa-muokata"
+            )
+        }
+    }
+
+    private fun validatePreviousApprovals(sopimus: KoejaksonKoulutussopimus, approving: Boolean) {
+        val trainers = sopimus.kouluttajat
+        if (!sopimus.lahetetty || (approving && trainers.isNullOrEmpty()) || trainers?.any { !it.sopimusHyvaksytty } == true) {
+            throw BadRequestAlertException(
+                "Sopimuksen aikaisemmat hyväksynnät puuttuvat.", ENTITY_KOEJAKSON_SOPIMUS,
+                "dataillegal.sopimuksen-aiemmat-hyvaksynnat-puuttuvat"
+            )
         }
     }
 
@@ -507,8 +539,9 @@ class KoejaksonKoulutussopimusServiceImpl(
     override fun delete(id: Long, userId: String) {
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
-        koejaksonKoulutussopimusRepository.findByIdOrNull(id)?.let { koejaksonKoulutussopimus ->
+        koejaksonKoulutussopimusRepository.findByIdForUpdate(id)?.let { koejaksonKoulutussopimus ->
             if (koejaksonKoulutussopimus.opintooikeus?.id == opintooikeusId) {
+                requireEditable(koejaksonKoulutussopimus)
 
                 koejaksonKoulutussopimusRepository.deleteById(id)
 

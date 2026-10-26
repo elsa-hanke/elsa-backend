@@ -54,6 +54,8 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.security.access.AccessDeniedException
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
@@ -82,7 +84,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val koejaksonLoppukeskusteluService: KoejaksonLoppukeskusteluService,
     private val opintooikeusService: OpintooikeusService,
     private val koulutussopimusRepository: KoejaksonKoulutussopimusRepository,
-    private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val asiakirjaRepository: AsiakirjaRepository,
     private val arkistointiService: SynchronousArkistointiService,
     private val keskeytysaikaService: KeskeytysaikaService,
@@ -144,18 +145,15 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     override fun update(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
         userId: String,
+        actor: KoejaksoUpdateActor,
         asiakirjat: Set<AsiakirjaDTO>?,
         deletedAsiakirjaIds: Set<Int>?
     ): KoejaksonVastuuhenkilonArvioDTO {
-        val vastuuhenkilonArvio =
-            koejaksonVastuuhenkilonArvioRepository.findById(koejaksonVastuuhenkilonArvioDTO.id.required())
-                .orElseThrow { EntityNotFoundException("Vastuuhenkilön arviota ei löydy") }
+        actor.requireAuthority()
+        val vastuuhenkilonArvio = loadForUpdate(koejaksonVastuuhenkilonArvioDTO.id.required())
 
         val updatedVastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
-
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
 
         val vastuuhenkilo =
             kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
@@ -165,9 +163,10 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
             )
 
-        if (kirjautunutErikoistuvaLaakari != null
-            && kirjautunutErikoistuvaLaakari == vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari
-        ) {
+        if (actor == KoejaksoUpdateActor.TRAINEE) {
+            if (vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id != userId) {
+                throw AccessDeniedException("Koejakson arvion erikoistujan kasittelyoikeus puuttuu")
+            }
             vastuuhenkilonArvioPdfTextValidator.validateErikoistujanKentat(
                 koejaksonVastuuhenkilonArvioDTO, asiakirjat.orEmpty().map { it.nimi }
             )
@@ -178,7 +177,16 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 asiakirjat,
                 deletedAsiakirjaIds
             )
-        } else if (vastuuhenkilo?.user?.id == userId) {
+        } else if (actor == KoejaksoUpdateActor.APPROVER) {
+            if (vastuuhenkilo?.user?.id != userId) {
+                throw AccessDeniedException("Koejakson arvion vastuuhenkilon kasittelyoikeus puuttuu")
+            }
+            if (!vastuuhenkilonArvio.virkailijaHyvaksynyt || vastuuhenkilonArvio.erikoistuvanKuittausaika == null) {
+                throw BadRequestAlertException(
+                    "Arvion aikaisemmat hyväksynnät puuttuvat.", "koejakson_vastuuhenkilon_arvio",
+                    "dataillegal.arvion-aiemmat-hyvaksynnat-puuttuvat"
+                )
+            }
             vastuuhenkilonArvioPdfTextValidator.validateVastuuhenkilonKentat(koejaksonVastuuhenkilonArvioDTO)
             handleVastuuhenkilo(
                 vastuuhenkilonArvio,
@@ -187,18 +195,30 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 koejaksonVastuuhenkilonArvioDTO.vastuuhenkilonSahkoposti,
                 koejaksonVastuuhenkilonArvioDTO.vastuuhenkilonPuhelinnumero
             )
-        } else {
-            kayttajaRepository.findOneByUserId(userId).orElse(null)?.let { k ->
-                k.yliopistot.firstOrNull()?.let { yliopisto ->
-                    if (yliopisto.id == vastuuhenkilonArvio.opintooikeus?.yliopisto?.id) {
-                        vastuuhenkilonArvioPdfTextValidator.validateVirkailijanKentat(koejaksonVastuuhenkilonArvioDTO)
-                        handleVirkailija(vastuuhenkilonArvio, updatedVastuuhenkilonArvio, k)
-                    }
-                }
+        } else if (actor == KoejaksoUpdateActor.REVIEWER) {
+            val reviewer = kayttajaRepository.findOneByUserId(userId).orElse(null)
+            if (reviewer == null || reviewer.yliopistot.none { it.id == vastuuhenkilonArvio.opintooikeus?.yliopisto?.id }) {
+                throw AccessDeniedException("Koejakson arvion virkailijan kasittelyoikeus puuttuu")
             }
+            vastuuhenkilonArvioPdfTextValidator.validateVirkailijanKentat(koejaksonVastuuhenkilonArvioDTO)
+            handleVirkailija(vastuuhenkilonArvio, updatedVastuuhenkilonArvio, reviewer)
+        } else {
+            throw AccessDeniedException("Kouluttaja ei kasittele vastuuhenkilon arviota")
         }
 
         return koejaksonVastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvio)
+    }
+
+    private fun loadForUpdate(id: Long): KoejaksonVastuuhenkilonArvio {
+        val arvio = koejaksonVastuuhenkilonArvioRepository.findByIdForUpdate(id)
+            ?: throw EntityNotFoundException("Vastuuhenkilön arviota ei löydy")
+        if (arvio.vastuuhenkiloHyvaksynyt) {
+            throw BadRequestAlertException(
+                "Hyväksyttyä arviointia ei saa muokata.", "koejakson_vastuuhenkilon_arvio",
+                "dataillegal.hyvaksyttya-arviointia-ei-saa-muokata"
+            )
+        }
+        return arvio
     }
 
     private fun handleErikoistuja(

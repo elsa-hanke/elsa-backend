@@ -15,6 +15,7 @@ interface KoejaksonVastuuhenkilonArvioService {
     fun update(
         koejaksonVastuuhenkilonArvioDTO: KoejaksonVastuuhenkilonArvioDTO,
         userId: String,
+        actor: KoejaksoUpdateActor,
         asiakirjat: Set<AsiakirjaDTO>? = null,
         deletedAsiakirjaIds: Set<Int>? = null
     ): KoejaksonVastuuhenkilonArvioDTO

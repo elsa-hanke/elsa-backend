@@ -90,7 +90,7 @@ class KouluttajaKoejaksoResource(
             )
         }
 
-        val result = koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id.required())
+        val result = koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id.required(), KoejaksoUpdateActor.TRAINER)
         return ResponseEntity.ok(result)
     }
 

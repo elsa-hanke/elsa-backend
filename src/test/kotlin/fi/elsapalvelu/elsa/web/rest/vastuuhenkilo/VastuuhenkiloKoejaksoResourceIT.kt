@@ -634,6 +634,9 @@ class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
     @Transactional
     fun ackVastuuhenkilonArvio() {
         initTest()
+        koejaksonVastuuhenkilonArvio.erikoistuvanKuittausaika = java.time.LocalDate.now()
+        koejaksonVastuuhenkilonArvio.virkailijaHyvaksynyt = true
+        koejaksonVastuuhenkilonArvio.virkailijanKuittausaika = java.time.LocalDate.now()
 
         val databaseSizeBeforeUpdate = koejaksonVastuuhenkilonArvioRepository.findAll().size
 
@@ -664,6 +667,9 @@ class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
     @Transactional
     fun declineVastuuhenkilonArvio() {
         initTest()
+        koejaksonVastuuhenkilonArvio.erikoistuvanKuittausaika = java.time.LocalDate.now()
+        koejaksonVastuuhenkilonArvio.virkailijaHyvaksynyt = true
+        koejaksonVastuuhenkilonArvio.virkailijanKuittausaika = java.time.LocalDate.now()
 
         val databaseSizeBeforeUpdate = koejaksonVastuuhenkilonArvioRepository.findAll().size
 

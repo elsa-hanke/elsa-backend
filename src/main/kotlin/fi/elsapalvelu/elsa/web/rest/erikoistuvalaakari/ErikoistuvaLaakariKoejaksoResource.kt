@@ -219,7 +219,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             )
         }
 
-        val result = koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id.required())
+        val result = koejaksonKoulutussopimusService.update(koulutussopimusDTO, user.id.required(), KoejaksoUpdateActor.TRAINEE)
         return ResponseEntity.ok(result)
     }
 
@@ -652,6 +652,7 @@ class ErikoistuvaLaakariKoejaksoResource(
             val result = koejaksonVastuuhenkilonArvioService.update(
                 vastuuhenkilonArvioDTO,
                 user.id.required(),
+                KoejaksoUpdateActor.TRAINEE,
                 asiakirjat,
                 deletedAsiakirjaIds
             )
