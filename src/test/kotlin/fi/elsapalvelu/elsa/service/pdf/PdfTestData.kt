@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service
+package fi.elsapalvelu.elsa.service.pdf
 
 import com.itextpdf.io.font.constants.StandardFonts
 import com.itextpdf.kernel.font.PdfFontFactory

@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
-import fi.elsapalvelu.elsa.service.PdfTestData
+import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.apache.commons.codec.digest.DigestUtils
 import org.assertj.core.api.Assertions.assertThat

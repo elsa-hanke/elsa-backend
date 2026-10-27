@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.koejakso
 
-import fi.elsapalvelu.elsa.service.PdfTextTestSupport
+import fi.elsapalvelu.elsa.service.pdf.PdfTextTestSupport
 import fi.elsapalvelu.elsa.service.dto.koejakso.*
 import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import org.assertj.core.api.Assertions.assertThat

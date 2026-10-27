@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.service
+package fi.elsapalvelu.elsa.service.pdf
 
+import fi.elsapalvelu.elsa.service.PdfPreparation
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException
 import org.apache.pdfbox.text.PDFTextStripper

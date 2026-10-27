@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.required
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import java.time.LocalDate
 
 /** Approval-time metadata; the worker must not reconstruct it from mutable domain entities. */
@@ -26,12 +27,17 @@ data class ValmistuminenArkistointiPayload(
     val reviewDate: LocalDate?,
     val approver: String?,
     @get:JsonFormat(shape = JsonFormat.Shape.STRING)
-    val approvalDate: LocalDate?
+    val approvalDate: LocalDate?,
+    val documents: List<ArkistointiDocumentIdentity>
 ) {
     override fun toString() = "ValmistuminenArkistointiPayload(valmistumispyyntoId=$valmistumispyyntoId)"
 
     companion object {
-        fun create(request: Valmistumispyynto, university: YliopistoEnum): ValmistuminenArkistointiPayload {
+        fun create(
+            request: Valmistumispyynto,
+            university: YliopistoEnum,
+            documents: List<ArkistointiDocumentIdentity>
+        ): ValmistuminenArkistointiPayload {
             val studyRight = request.opintooikeus.required()
             val trainee = studyRight.erikoistuvaLaakari
             val user = trainee?.kayttaja?.user
@@ -50,7 +56,8 @@ data class ValmistuminenArkistointiPayload(
                 reviewer = request.virkailija?.user?.getName(),
                 reviewDate = request.virkailijanKuittausaika,
                 approver = request.vastuuhenkiloHyvaksyja?.user?.getName(),
-                approvalDate = request.vastuuhenkiloHyvaksyjaKuittausaika
+                approvalDate = request.vastuuhenkiloHyvaksyjaKuittausaika,
+                documents = documents.toList()
             )
         }
     }

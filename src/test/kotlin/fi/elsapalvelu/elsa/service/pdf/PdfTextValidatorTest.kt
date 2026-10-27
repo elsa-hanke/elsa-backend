@@ -1,5 +1,7 @@
-package fi.elsapalvelu.elsa.service
+package fi.elsapalvelu.elsa.service.pdf
 
+import fi.elsapalvelu.elsa.service.PdfTextValidator
+import fi.elsapalvelu.elsa.service.UnsupportedPdfCharacter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource

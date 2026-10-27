@@ -66,8 +66,11 @@ commitoidu. Tämä sallii JPA:n lisätä ensin jobin ja vasta sitten sen viittee
 `ArkistointiJobCreatorImpl` asettaa määrän koko pyyntölistasta ennen tallennusta.
 Saman liiketoiminta-avaimen toistuva luontikutsu palauttaa aiemman jobin ennen
 viitteiden käsittelyä: payloadia, asiakirjamäärää tai snapshot-viitteitä ei vaihdeta,
-eikä creator luo uusia snapshoteja tai ajastusta. Tämä ei poista kutsujan ennen
-creator-kutsua mahdollisesti luomia erillisiä snapshoteja.
+eikä creator luo uusia snapshoteja tai ajastusta. Valmistumisen async-viimeistely
+tarkistaa saman avaimen jo ennen PDF-tuotantoa, ilmoituksia ja snapshotien luontia,
+joten olemassa olevan jobin toistuva sisäinen käsittely ei luo ylimääräisiä kopioita.
+Hyväksynnän rivin lukitus ja creatorin lopullinen avaintarkistus säilyvät;
+pelkkä ennakkohaku ei korvaa niitä.
 Lisäykset lukitsevat saman job-rivin, joten rinnakkaiset viitelisäykset
 sarjallistuvat. Valmiiseen toimitukseen ei voi lisätä uusia viitteitä.
 Tarkistusten pakottaminen välittömiksi `SET CONSTRAINTS` -komennolla edellyttää,
@@ -227,7 +230,17 @@ Valmistumisen hyväksyntä käyttää oletuksena nykyistä arkistointitoimitusta
 
 Pidä `async-enabled=false`, kunnes `ArkistointiJobProcessor` ja kyseisen yliopiston job-adapteri on toteutettu ja otettu käyttöön. Pelkkä tämän muutoksen käyttöönotto ei kytke nykyisiä Siilo/Louhi-toimituksia pois. Jonopolku tallentaa hyväksynnän, asiakirjakopiot, hyväksymishetken metatiedot ja db-scheduler-ajastuksen samaan transaktioon.
 
-Asetuksen palauttaminen arvoon `false` koskee uusia hyväksyntöjä. Jo jonossa olevat jobit säilyvät ja tarvitsevat edelleen taustakäsittelyn; niitä ei toimiteta automaattisesti vanhan synkronisen polun kautta. Nykyinen opiskelijan tiedosto säilyy muuttumattomana myös laillistamistodistuksen normalisoinnissa.
+Valmistumisen payloadin `documents`-lista tallentaa jokaisesta jonoon valitusta
+asiakirjasta `sourceDocumentId`-, `snapshotDocumentId`-, `recordType`- ja
+`jarjestysnumero`-arvot. Alkuperäinen tunniste ja snapshotin tunniste sidotaan
+toisiinsa snapshotin luonnissa. Payload on tietokannassa muuttumaton; tunnisteita
+ei päätellä myöhemmin valmistumispyynnön nykyisistä asiakirjoista.
+Worker lataa tavut edelleen snapshot-viitteen kautta. Louhi-adapterin XML-kytkennän
+tulee käyttää tallennettua `sourceDocumentId`-arvoa SÄHKE-`Record.nativeId`-kentässä
+ja tarkistaa, että payloadin asiakirjat vastaavat jobin snapshot-viitteitä.
+Tämä vaihe tallentaa tunnisteet; niiden käyttö Louhi-XML:ssä toteutetaan adapterin tehtävässä.
+
+Asetuksen palauttaminen arvoon `false` koskee uusia hyväksyntöjä. Jo jonossa olevat jobit säilyvät ja tarvitsevat edelleen taustakäsittelyn; niitä ei toimiteta automaattisesti vanhan synkronisen polun kautta.
 
 ### Koodin laadun analysointi
 
