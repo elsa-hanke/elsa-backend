@@ -90,7 +90,9 @@ class TampereLouhiService internal constructor(
         }
     }
 
-    fun laheta(filePath: String, yek: Boolean, policy: LouhiExecutionPolicy = LouhiExecutionPolicy.SYNC) {
+    fun laheta(filePath: String, yek: Boolean) = laheta(filePath, yek, LouhiExecutionPolicy.SYNC)
+
+    fun laheta(filePath: String, yek: Boolean, policy: LouhiExecutionPolicy) {
         val file = File(filePath)
         require(file.exists()) {
             "Arkistointitiedostoa ei löydy"
