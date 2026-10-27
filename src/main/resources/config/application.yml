@@ -300,6 +300,9 @@ application:
       jitter-factor: 0.1
     tre:
       kaytossa: false
+      transfer:
+        operation-timeout: 30s
+        transfer-timeout: 2m
       host:
       port:
       user:
