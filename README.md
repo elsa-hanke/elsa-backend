@@ -152,8 +152,13 @@ Arkistosnapshot tallentaa olemassa olevan asiakirjan tavut, nimen ja MIME-tyypin
 sellaisinaan. PDF:t luodaan ja liitteet yhdistetään olemassa olevalla PDF-palvelulla;
 snapshot ei normalisoi, rasteroi tai pienennä sisältöä eikä edellytä PDF/A-muotoa.
 Oma HTML-pohjainen PDF-tuotanto säilyttää aiemman PDF/A-2b-luontitapansa.
-Erillinen laillistamistodistus säilyttää alkuperäisen tiedostomuotonsa, myös kuvat
-ja `image/jpg`-MIME-tyypin. Snapshotin tallennus ei ole uusi tiedostovalidaattori:
+Jobin asiakirjat valitaan yliopiston ja asian tyypin asiakirja-asetuksista samalla
+tavalla kuin synkronisessa SÄHKE-paketissa. Tampereen valmistumisessa arkistoidaan
+vain yhteenveto ja liitteet, Helsingin valmistumisessa vain yhteenveto.
+Async-polku ei lisää synkronisesta toimituksesta puuttuvia asiakirjoja:
+erillistä laillistamistodistusta ei lueta snapshotia varten eikä sen puuttuminen
+estä arkistointijonoon siirtämistä kummassakaan yliopistossa.
+Snapshotin tallennus ei ole uusi tiedostovalidaattori:
 sisällön hyväksyttävyys tarkistetaan olemassa olevassa lataus- ja PDF-käsittelyssä.
 Pakollinen puuttuva tai tyhjä aineisto sekä puuttuvat metatiedot estävät snapshotin
 luonnin hallitulla virheellä. Nimen ja MIME-tyypin tulee mahtua 255 merkin sarakkeisiin.

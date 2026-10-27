@@ -11,6 +11,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference
 import fi.elsapalvelu.elsa.service.arkistointi.valmistuminen.ValmistuminenArkistointiPayload
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
@@ -27,7 +28,7 @@ class ValmistumispyynnonViimeistelyService(
     private val arkistointiService: SynchronousArkistointiService,
     private val arkistointiJobCreator: ArkistointiJobCreator,
     private val asiakirjaSnapshotService: ArkistointiAsiakirjaSnapshotService,
-    private val configurationProvider: ArkistointiConfigurationProvider,
+    private val arkistointiConfigurationProvider: ArkistointiConfigurationProvider,
     private val objectMapper: ObjectMapper
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -55,11 +56,11 @@ class ValmistumispyynnonViimeistelyService(
         }
 
         val yek = valmistumispyynto.opintooikeus?.erikoisala.required().id == YEK_ERIKOISALA_ID
-        if (!configurationProvider.isAsyncEnabled(yliopisto.required(), CaseType.VALMISTUMINEN)) {
+        if (!arkistointiConfigurationProvider.isAsyncEnabled(yliopisto.required(), CaseType.VALMISTUMINEN)) {
             archiveSynchronously(valmistumispyynto, yliopisto.required(), asiakirjat, yek)
             return
         }
-        val references = createDocumentReferences(asiakirjat, valmistumispyynto, yek)
+        val references = createDocumentReferences(asiakirjat, yliopisto.required())
         arkistointiJobCreator.create(
             CreateArkistointiJobRequest(
                 university = yliopisto.required(),
@@ -99,23 +100,17 @@ class ValmistumispyynnonViimeistelyService(
 
     private fun createDocumentReferences(
         asiakirjat: List<RecordProperties>,
-        valmistumispyynto: Valmistumispyynto,
-        yek: Boolean
-    ) = buildList {
-        asiakirjat.forEachIndexed { index, record ->
-            // Freeze exactly the documents produced for the synchronous path; do not regenerate or convert them.
-            add(asiakirjaSnapshotService.createReference(record.asiakirja, record.type, index))
+        yliopisto: YliopistoEnum
+    ): List<ArkistointiAsiakirjaReference> {
+        val configuration = arkistointiConfigurationProvider.getConfiguration(yliopisto, CaseType.VALMISTUMINEN)
+        val configuredDocuments = asiakirjat.filter {
+            configuration.metadata.getDocumentMetadata(it.type, configuration.case) != null
         }
-        if (!yek) {
-            add(
-                asiakirjaSnapshotService.createLaillistamistodistusReference(
-                    valmistumispyynto.opintooikeus.required(),
-                    size
-                )
-            )
+        return configuredDocuments.mapIndexed { index, record ->
+            // Apply the same university/case document selection as the synchronous SÄHKE builder.
+            asiakirjaSnapshotService.createReference(record.asiakirja, record.type, index)
         }
     }
 
-    fun onkoArkistointiKaytossa(yliopisto: YliopistoEnum?): Boolean =
-        arkistointiService.onKaytossa(yliopisto.required(), CaseType.VALMISTUMINEN)
+    fun onkoArkistointiKaytossa(yliopisto: YliopistoEnum?): Boolean = arkistointiService.onKaytossa(yliopisto.required(), CaseType.VALMISTUMINEN)
 }
