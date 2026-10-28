@@ -74,15 +74,12 @@ class ValmistumispyynnonViimeistelyService(
             return
         }
         val documents = prepareDocuments(asiakirjat, yliopisto.required())
+        val valmistuminenArkistointiPayload = ValmistuminenArkistointiPayload.create(valmistumispyynto, yliopisto.required(), documents.map { it.identity })
         arkistointiJobCreator.create(
             CreateArkistointiJobRequest(
                 university = yliopisto.required(),
                 caseType = CaseType.VALMISTUMINEN,
-                payload = objectMapper.writeValueAsString(
-                    ValmistuminenArkistointiPayload.create(
-                        valmistumispyynto, yliopisto.required(), documents.map { it.identity }
-                    )
-                ),
+                payload = objectMapper.writeValueAsString(valmistuminenArkistointiPayload),
                 key = jobKey,
                 asiakirjat = documents.map { it.reference }
             )
