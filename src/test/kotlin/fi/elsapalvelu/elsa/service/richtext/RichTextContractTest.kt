@@ -1,6 +1,7 @@
-package fi.elsapalvelu.elsa.service
+package fi.elsapalvelu.elsa.service.richtext
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.service.RichTextHtmlSanitizer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource

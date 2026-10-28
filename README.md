@@ -17,6 +17,11 @@ Yhteinen `ArkistointiError` on job-paketin juuressa. Spring-konfiguraatio
 Snapshotien ja jobin luonnin toteutukset kuuluvat asiakirjatehtävään.
 Taustakäsittelijän toteutus lisätään myöhemmässä tehtävässä.
 
+Valmistumisen hyväksymishetken tiedot määrittelee
+`service.arkistointi.valmistuminen.ValmistuminenArkistointiPayload`.
+Hyväksynnän transaktiotestit ja niiden HTTP-apufunktiot ovat vastaavassa
+testipaketissa `service.arkistointi.valmistuminen`.
+
 ## Asynkronisen arkistoinnin avaimet
 
 `ArkistointiJob.key` (`job_key`) on paikallinen liiketoiminta-avain: sen avulla
@@ -61,8 +66,11 @@ commitoidu. Tämä sallii JPA:n lisätä ensin jobin ja vasta sitten sen viittee
 `ArkistointiJobCreatorImpl` asettaa määrän koko pyyntölistasta ennen tallennusta.
 Saman liiketoiminta-avaimen toistuva luontikutsu palauttaa aiemman jobin ennen
 viitteiden käsittelyä: payloadia, asiakirjamäärää tai snapshot-viitteitä ei vaihdeta,
-eikä creator luo uusia snapshoteja tai ajastusta. Tämä ei poista kutsujan ennen
-creator-kutsua mahdollisesti luomia erillisiä snapshoteja.
+eikä creator luo uusia snapshoteja tai ajastusta. Valmistumisen async-viimeistely
+tarkistaa saman avaimen jo ennen PDF-tuotantoa, ilmoituksia ja snapshotien luontia,
+joten olemassa olevan jobin toistuva sisäinen käsittely ei luo ylimääräisiä kopioita.
+Hyväksynnän rivin lukitus ja creatorin lopullinen avaintarkistus säilyvät;
+pelkkä ennakkohaku ei korvaa niitä.
 Lisäykset lukitsevat saman job-rivin, joten rinnakkaiset viitelisäykset
 sarjallistuvat. Valmiiseen toimitukseen ei voi lisätä uusia viitteitä.
 Tarkistusten pakottaminen välittömiksi `SET CONSTRAINTS` -komennolla edellyttää,
@@ -147,17 +155,31 @@ Arkistosnapshot tallentaa olemassa olevan asiakirjan tavut, nimen ja MIME-tyypin
 sellaisinaan. PDF:t luodaan ja liitteet yhdistetään olemassa olevalla PDF-palvelulla;
 snapshot ei normalisoi, rasteroi tai pienennä sisältöä eikä edellytä PDF/A-muotoa.
 Oma HTML-pohjainen PDF-tuotanto säilyttää aiemman PDF/A-2b-luontitapansa.
-Erillinen laillistamistodistus säilyttää alkuperäisen tiedostomuotonsa, myös kuvat
-ja `image/jpg`-MIME-tyypin. Snapshotin tallennus ei ole uusi tiedostovalidaattori:
+Jobin asiakirjat valitaan yliopiston ja asian tyypin asiakirja-asetuksista samalla
+tavalla kuin synkronisessa SÄHKE-paketissa. Tampereen valmistumisessa arkistoidaan
+vain yhteenveto ja liitteet, Helsingin valmistumisessa vain yhteenveto.
+Async-polku ei lisää synkronisesta toimituksesta puuttuvia asiakirjoja:
+erillistä laillistamistodistusta ei lueta snapshotia varten eikä sen puuttuminen
+estä arkistointijonoon siirtämistä kummassakaan yliopistossa.
+Snapshotin tallennus ei ole uusi tiedostovalidaattori:
 sisällön hyväksyttävyys tarkistetaan olemassa olevassa lataus- ja PDF-käsittelyssä.
 Pakollinen puuttuva tai tyhjä aineisto sekä puuttuvat metatiedot estävät snapshotin
 luonnin hallitulla virheellä. Nimen ja MIME-tyypin tulee mahtua 255 merkin sarakkeisiin.
 
 `ArkistointiAsiakirjaException.category` erottaa hylätyn lähdeaineiston
 (`INPUT_DOCUMENT`), tallennetun aineiston eheysvirheen (`STORED_DOCUMENT`) ja
-odottamattoman käsittelyvirheen (`PROCESSING_FAILURE`). Vain ensimmäinen luokka
-soveltuu käyttäjän korjattavaksi 4xx-virheeksi; HTTP-muunnos toteutetaan hyväksynnän
-rajapinnassa erikseen. `errorKey` on vakaa `ARCHIVE_DOCUMENT_*`-koodi.
+odottamattoman käsittelyvirheen (`PROCESSING_FAILURE`). Hyväksynnän HTTP-rajapinta
+palauttaa ensimmäisestä luokasta 400 ja kahdesta muusta 500. ProblemDetail-vastaus
+sisältää vakaan `ARCHIVE_DOCUMENT_*`-arvon kentässä `errorKey`, kentän
+`message: error.<errorKey>`. Dokumenttivirhe ei sisällä operaatiokohtaista
+`params`-kenttää, joten sama sopimus ei sido virhettä valmistumispyyntöön. Vastaus ei sisällä
+tiedostonimeä, dokumentin sisältöä tai alkuperäistä virhekuvausta.
+Dokumenttivirheestä lokitetaan vain koodi ja tarvittaessa luokka, ei poikkeusta.
+Virhe peruuttaa hyväksymistransaktion; osittaisia snapshoteja tai jonorivejä ei jää.
+Valmistumisen ja YEK-valmistumisen hyväksyntälomakkeet näyttävät dokumenttivirheen
+suomenkielisen syyn. Lähdevirheelle (400) annetaan asiakirjan täydentämis- tai
+tarkistusohje. Palvelinvirheelle (500) näytetään käsittelyvirheen yleinen ohje,
+ei kehotusta korvata käyttäjän liitettä. Käännökset eivät sisällä henkilötietoja.
 Dokumenttivirheen viesti ja kuvaus eivät sisällä tiedostonimeä tai sisältöä,
 eikä poikkeus säilytä kirjaston alkuperäistä cause-ketjua.
 Tietokantapoikkeuksia ei muuteta lähdeaineiston virheiksi.
@@ -171,6 +193,14 @@ Loader tarkistaa tiivisteen ennen lähetystä. Snapshotilla on oma tavutaulukko 
 tietokannan suojaukset estävät sen sisällön ja metatietojen muuttamisen tai poistamisen.
 Job, snapshotit ja ajastus tallentuvat samassa transaktiossa; rollback ei jätä
 osittaista arkistointia. PDF/A-konvertoinnin sivu- tai pikselirajoja ei ole.
+
+Valmistumisen hyväksyntä luo PDF:t samalla palvelulla sekä synkronisessa että
+asynkronisessa tilassa. Asynkroninen haara jäädyttää valmiin yhteenvedon ja
+liitekoosteen sellaisinaan sekä laillistamistodistuksen alkuperäisessä muodossa;
+se ei kokoa liitteitä uudelleen eikä käytä erillistä konvertteria. Integraatiotestit
+tarkistavat snapshotin tavujen, nimen ja MIME-tyypin yhtäsuuruuden valmistuneen
+asiakirjan kanssa, 30/100/201-sivuiset PDF:t ilman upotettuja fontteja, CMYK-kuvat,
+sekä hyväksynnän rollbackin ja synkronisen ZIP-lähetyksen ilman jonorivejä.
 
 ### Ulkoiset integraatiotestit
 
@@ -193,6 +223,24 @@ Opintotietointegraatioiden testihenkilöt annetaan `EXTERNAL_INTEGRATION_<PALVEL
 `<PALVELU>` on `PEPPI_OULU`, `PEPPI_TURKU`, `PEPPI_UEF`, `SISU_HY` tai `SISU_TRE`. Yliopisto ja palvelukohtainen `assert-erikoisala-tunniste-list`-sopimus tarkistetaan aina, vaikka valinnaisia tarkistuspisteitä ei olisi määritetty.
 
 Arkistoinnin ulkoiset testit luovat oikeita testiaineistoja Helsingin Siiloon ja Tampereen Louheen. Tapaus- ja tiedostonimet sisältävät `CODEBUILD_BUILD_ID`:stä muodostetun korrelaatiotunnisteen, jotta lähetykset voidaan jäljittää.
+
+### Valmistumisen asynkroninen arkistointi
+
+Valmistumisen hyväksyntä käyttää oletuksena nykyistä arkistointitoimitusta. Uusi jono otetaan käyttöön yliopistokohtaisesti asetuksella `application.arkistointi.<yliopisto>.metadata.cases.valmistuminen.async-enabled=true`; myös integraation `kaytossa`-asetuksen on oltava päällä. Yliopiston avain on `tre`, `hki`, `oulu`, `turku` tai `uef`.
+
+Pidä `async-enabled=false`, kunnes `ArkistointiJobProcessor` ja kyseisen yliopiston job-adapteri on toteutettu ja otettu käyttöön. Pelkkä tämän muutoksen käyttöönotto ei kytke nykyisiä Siilo/Louhi-toimituksia pois. Jonopolku tallentaa hyväksynnän, asiakirjakopiot, hyväksymishetken metatiedot ja db-scheduler-ajastuksen samaan transaktioon.
+
+Valmistumisen payloadin `documents`-lista tallentaa jokaisesta jonoon valitusta
+asiakirjasta `sourceDocumentId`-, `snapshotDocumentId`-, `recordType`- ja
+`jarjestysnumero`-arvot. Alkuperäinen tunniste ja snapshotin tunniste sidotaan
+toisiinsa snapshotin luonnissa. Payload on tietokannassa muuttumaton; tunnisteita
+ei päätellä myöhemmin valmistumispyynnön nykyisistä asiakirjoista.
+Worker lataa tavut edelleen snapshot-viitteen kautta. Louhi-adapterin XML-kytkennän
+tulee käyttää tallennettua `sourceDocumentId`-arvoa SÄHKE-`Record.nativeId`-kentässä
+ja tarkistaa, että payloadin asiakirjat vastaavat jobin snapshot-viitteitä.
+Tämä vaihe tallentaa tunnisteet; niiden käyttö Louhi-XML:ssä toteutetaan adapterin tehtävässä.
+
+Asetuksen palauttaminen arvoon `false` koskee uusia hyväksyntöjä. Jo jonossa olevat jobit säilyvät ja tarvitsevat edelleen taustakäsittelyn; niitä ei toimiteta automaattisesti vanhan synkronisen polun kautta.
 
 ### Koodin laadun analysointi
 

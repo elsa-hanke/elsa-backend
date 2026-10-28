@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.config
+package fi.elsapalvelu.elsa.config.logging
 
 import org.springframework.beans.factory.annotation.Value
 import ch.qos.logback.classic.Logger
