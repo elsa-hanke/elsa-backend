@@ -314,6 +314,22 @@ Jitter lyhentää viiveitä eikä kasvata yllä kuvattua enimmäisodotusaikaa. A
 poistaa jitterin käytöstä. Kelvollinen kerroin on vähintään 0 ja alle 1; viive on
 aina vähintään yksi millisekunti.
 
+Async-tulokset päivittävät commitin jälkeen nykyisiä `arkistointi.requests.total`-
+ja `arkistointi.errors.total`-mittareita sekä `arkistointi.async.attempts.total`-mittaria
+rajatuilla yliopisto-, tapaustyyppi- ja tulostageilla. Virhemittari laskee epäonnistuneita
+käsittely-yrityksiä, myös palautettuja keskeytyneitä suorituksia. SNS-varoitus lähetetään
+asetuksen `application.arkistointi.retry.alert-after-attempts` kohdalla (oletus 3);
+aiemmat ja myöhemmät tilapäiset virheet eivät lähetä yrityskohtaista SNS-viestiä.
+Pysyvä virhe tai yritysrajan täyttyminen lähettää erillisen toimenpideilmoituksen heti
+`VAATII_TOIMENPITEITA`-tilan commitin jälkeen. Viesti sisältää vain job-UUID:n,
+yliopiston, tapaustyypin, yritysnumeron, tuloksen ja turvallisen virhekoodin.
+Rollback ja vanhentunut suoritus eivät julkaise tulosta. Ilmoituksen tai mittarin
+virhe ei muuta arkistointitulosta tai estä schedulerin kuittausta.
+Havainnointi on best effort: prosessin kaatuminen commitin jälkeen voi hukata viestin,
+ja saman version rinnakkaiset handlerit voivat tuottaa saman varoituksen uudelleen.
+Pysyvää ilmoitusjonoa, deduplikointia tai palautumisviestiä ei vielä ole;
+ne kuuluvat erilliseen valvonta- ja hallintatehtävään.
+
 Jobin tilan commit ja db-schedulerin `reschedule`/`remove` ovat erillisiä vaiheita.
 Jos ajastuksen päivitys epäonnistuu commitin jälkeen, poimittu suoritus jää
 db-schedulerin dead-execution-palautuksen käsiteltäväksi. Jo tallennettua lopputilaa

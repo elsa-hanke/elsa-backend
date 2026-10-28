@@ -64,5 +64,4 @@ class ArkistointiJobProcessorImpl(
     }
 }
 
-internal fun unexpectedArchiveError() =
-    ArkistointiError.create("ARCHIVE_PROCESSING_FAILED", "Arkistoinnin kasittely epaonnistui")
+internal fun unexpectedArchiveError() = ArkistointiError.create("ARCHIVE_PROCESSING_FAILED", "Arkistoinnin kasittely epaonnistui")
