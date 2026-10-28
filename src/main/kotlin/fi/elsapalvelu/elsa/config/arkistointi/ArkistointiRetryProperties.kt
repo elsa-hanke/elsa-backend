@@ -2,14 +2,11 @@ package fi.elsapalvelu.elsa.config.arkistointi
 
 import java.time.Duration
 
-/** Bound under application.arkistointi.retry; contains settings, not scheduling logic. */
 class ArkistointiRetryProperties {
-    /** Total attempts, including the first execution and interrupted executions. */
     var maxAttempts: Int = 25
     var initialDelay: Duration = Duration.ofMinutes(1)
     var maxDelay: Duration = Duration.ofHours(4)
     var multiplier: Double = 2.0
-    /** Downward-only jitter: 0.1 chooses 90-100% of the capped exponential delay; 0 disables it. */
     var jitterFactor: Double = 0.1
 
     fun validate() {
