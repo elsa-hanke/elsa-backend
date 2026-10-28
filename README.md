@@ -258,10 +258,10 @@ Worker käyttää tallennettua sisältöä eikä muodosta PDF:ää uudelleen.
 Payloadin `documents`-lista tallentaa myös `SOPIMUS`- ja `KOEJAKSO`-toimituksille
 alkuperäisen `sourceDocumentId`-tunnisteen ja muuttumattoman `snapshotDocumentId`-tunnisteen
 sekä `recordType`- ja `jarjestysnumero`-arvot. Worker lataa tavut snapshotin tunnisteella;
-Louhi-adapterin tulee käyttää tallennettua alkuperäistä tunnistetta SÄHKE-XML:n
-`Record.nativeId`-kentässä ja tarkistaa vastaavuus jobin asiakirjaviitteisiin.
+Louhi-adapteri käyttää koejakson tallennettua alkuperäistä tunnistetta SÄHKE-XML:n
+`Record.nativeId`-kentässä ja tarkistaa vastaavuuden jobin asiakirjaviitteisiin.
 Alkuperäisen dokumentin myöhempi muutos ei muuta tätä sidosta tai toimitettavia tavuja.
-XML-kytkentä toteutetaan adapterin tehtävässä; nykyinen synkroninen polku säilyy.
+Tampereen adapteri ei lisää `SOPIMUS`-toimituksia; nykyinen synkroninen polku säilyy.
 Sähköposti-ilmoitukset lähetetään commitin jälkeen.
 Hyväksymistransaktio peruuntuu myös checked-poikkeuksilla, kuten payloadin
 sarjoitusvirheellä.
@@ -333,6 +333,12 @@ ZIP:n myös siirtovirheissä. Async-adapteri poistaa lisäksi oman hakemistonsa 
 mahdollisen paketin muodostuksessa kesken jääneen tiedoston. Siivousvirhe ei muuta
 jo tunnettua lähetyksen tulosta. Lokeihin ja jobin virheisiin ei lisätä tiedostonimiä,
 henkilötietoja tai alkuperäistä SFTP-poikkeusketjua.
+Siirtovirheen turvallinen diagnostiikka sisältää vaiheen, toimituksen virhekoodin,
+SFTP-statuksen ja erillisen `reason`-luokan (esimerkiksi `TIMEOUT` tai
+`AUTHENTICATION_FAILED`). Luokka tunnistetaan poikkeustyypeistä ja SSH:n
+rakenteisista koodeista, ei virheviestin tekstistä. Tuntematon syy jää luokkaan
+`UNKNOWN`. Syyluokka ei muuta toimituksen onnistumisen tai uudelleenyrityksen
+arviointia; alkuperäistä poikkeusketjua ei säilytetä turvallisessa virheessä.
 
 Molempien polkujen yhteiset asetukset ovat `application.arkistointi.tre.transfer`:
 `operation-timeout: 30s` rajaa yhteyden muodostusta, autentikointia ja yksittäisiä
@@ -354,6 +360,18 @@ yhteyskatkoksen, timeoutin tai erittelemättömän virheen takia, adapteri palau
 pysyvän `LOUHI_DELIVERY_UNCERTAIN`-virheen. Pelkkä `SftpException` ei siis ratkaise
 uusittavuutta. Turvallinen diagnostiikka sisältää vaiheen ja numeerisen SFTP-statuksen,
 ei alkuperäistä virheviestiä, tiedostonimeä tai poikkeusketjua.
+Virhekoodit kuvaavat kyseisen kutsun tulosta, eivät koko toimituksen julkaisutilaa.
+`LOUHI_REMOTE_PATH_MISSING` ei todista, ettei pakettia ole julkaistu: toinen
+suoritus on voinut jo siirtää samannimisen tiedoston. Myöskään
+`publicationMayHaveStarted=false` ei ole tällainen todiste.
+Spring Integrationin `Session.rename` poistaa olemassa olevan kohteen ennen
+siirtoa SFTP-versioilla alle 5 ja käyttää overwrite-siirtoa versioilla 5 ja sitä
+uudemmilla. `LOUHI_REMOTE_TARGET_EXISTS` käsittelee palvelimen mahdollisen
+virhevastauksen; se ei ole olemassaolotarkistus eikä suoja ylikirjoitusta vastaan.
+Yleinen `SSH_FX_FAILURE` `RENAME`-vaiheessa jää luokkaan
+`LOUHI_DELIVERY_UNCERTAIN`: sovellus ei tiedä, epäonnistuiko kirjaston sisäinen
+kohteen poisto vai varsinainen siirto. Tämä tarkennus ei muuta lähetysalgoritmia
+tai uudelleenyrityssääntöjä eikä korjaa nykyisen sync-/async-protokollan nimiristiriitoja.
 Paketin muodostuksessa tunnettu virheellinen payload päättyy koodiin
 `LOUHI_PAYLOAD_INVALID`, puuttuva case-/asiakirja-asetus tai vaadittu ZIP-asetus
 koodiin `LOUHI_CONFIGURATION_INVALID` ja puuttuva lokalisointiresurssi koodiin
@@ -395,10 +413,19 @@ asiakirjasta `sourceDocumentId`-, `snapshotDocumentId`-, `recordType`- ja
 `jarjestysnumero`-arvot. Alkuperäinen tunniste ja snapshotin tunniste sidotaan
 toisiinsa snapshotin luonnissa. Payload on tietokannassa muuttumaton; tunnisteita
 ei päätellä myöhemmin valmistumispyynnön nykyisistä asiakirjoista.
-Worker lataa tavut edelleen snapshot-viitteen kautta. Louhi-adapterin XML-kytkennän
-tulee käyttää tallennettua `sourceDocumentId`-arvoa SÄHKE-`Record.nativeId`-kentässä
-ja tarkistaa, että payloadin asiakirjat vastaavat jobin snapshot-viitteitä.
-Tämä vaihe tallentaa tunnisteet; niiden käyttö Louhi-XML:ssä toteutetaan adapterin tehtävässä.
+Worker lataa tavut edelleen snapshot-viitteen kautta. Louhi-adapteri käyttää
+tallennettua `sourceDocumentId`-arvoa SÄHKE-`Record.nativeId`-kentässä. Ennen ZIP:n
+luontia adapteri tarkistaa, että payloadin manifesti vastaa ladattuja snapshotteja
+tunnisteen, asiakirjatyypin ja järjestysnumeron osalta. Puuttuva, ylimääräinen,
+päällekkäinen tai ristiriitainen sidonta on pysyvä `LOUHI_PAYLOAD_INVALID`-virhe.
+Alkuperäistä tunnistetta ei haeta muuttuvista lähdetiedoista eikä korvata snapshotin tunnisteella.
+
+`TampereAsyncApprovalIT` tarkistaa EL-, EHL- ja YEK-valmistumisen sekä koejakson
+HTTP-hyväksynnästä oikean db-scheduler-workerin ja adapterin kautta paikalliseen
+SFTP-vastaanottoon. ZIP:n asiakirjajoukko, alkuperäiset XML-tunnisteet, tallennetut
+tavut, `LAHETETTY` ja ajastusrivin poistuminen tarkistetaan. Erillinen kontekstin
+sulkemistesti tarkistaa, että aktiivinen siirto valmistuu ennen Louhi-asiakkaan
+tuhoamista. Testi ei määritä ECS-kontin todellista pysäytysaikaa.
 
 Asetuksen palauttaminen arvoon `false` koskee uusia hyväksyntöjä. Jo jonossa olevat jobit säilyvät ja tarvitsevat edelleen taustakäsittelyn; niitä ei toimiteta automaattisesti vanhan synkronisen polun kautta.
 
@@ -472,8 +499,13 @@ aina vähintään yksi millisekunti.
 
 Async-tulokset päivittävät commitin jälkeen nykyisiä `arkistointi.requests.total`-
 ja `arkistointi.errors.total`-mittareita sekä `arkistointi.async.attempts.total`-mittaria
-rajatuilla yliopisto-, tapaustyyppi- ja tulostageilla. Virhemittari laskee epäonnistuneita
-käsittely-yrityksiä, myös palautettuja keskeytyneitä suorituksia. SNS-varoitus lähetetään
+rajatuilla yliopisto-, tapaustyyppi- ja tulostageilla. Async-polussa `arkistointi.errors.total`
+kasvaa vain lopullisessa epäonnistumisessa (`TERMINAL_FAILURE`), ei tilapäisistä
+virheistä. `arkistointi.async.attempts.total` laskee kaikki käsittely-yritysten tulokset,
+myös palautetut keskeytyneet suoritukset, ja kuuluu productionin CloudWatch-allowlistiin.
+Esimerkiksi kolme tilapäistä virhettä ja onnistuminen tuottavat neljä yritystä,
+yhden onnistumisen ja nolla lopullista virhettä. Synkronisen polun mittaus säilyy ennallaan.
+SNS-varoitus lähetetään
 asetuksen `application.arkistointi.retry.alert-after-attempts` kohdalla (oletus 3);
 aiemmat ja myöhemmät tilapäiset virheet eivät lähetä yrityskohtaista SNS-viestiä.
 Pysyvä virhe tai yritysrajan täyttyminen lähettää erillisen toimenpideilmoituksen heti

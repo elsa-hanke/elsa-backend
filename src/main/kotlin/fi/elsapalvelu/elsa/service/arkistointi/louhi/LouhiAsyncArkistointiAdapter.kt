@@ -32,7 +32,7 @@ class LouhiAsyncArkistointiAdapter(
         } catch (exception: LouhiTransferException) {
             val failure = exception.failure
             val error = ArkistointiError.create(failure.code,
-                "Louhi-siirto epaonnistui [stage=${exception.stage.name}, status=${exception.sftpStatus}]")
+                "Louhi-siirto epaonnistui [stage=${exception.stage.name}, reason=${exception.reason.name}, status=${exception.sftpStatus}]")
             if (failure.retryable) ArkistointiResult.RetryableFailure(error)
             else ArkistointiResult.PermanentFailure(error)
         } catch (_: ResponseStatusException) {

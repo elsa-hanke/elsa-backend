@@ -133,6 +133,7 @@ class TampereLouhiService internal constructor(
             stage = LouhiTransferStage.WRITE
             FileInputStream(file).use { session.write(it, targetPath) }
             check(!Thread.currentThread().isInterrupted)
+            // Includes any destination removal performed internally by Session.rename, not only the final move.
             stage = LouhiTransferStage.RENAME
             session.rename(targetPath, "$finished/$subFolder/${file.name}")
             log.info("Louhi package transfer completed")

@@ -1,22 +1,20 @@
 package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataRequest
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataResult
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePakettiBuilder
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePerson
-import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import org.springframework.stereotype.Component
 import java.nio.file.Path
-import java.time.LocalDate
-import java.time.format.DateTimeParseException
 import java.util.MissingResourceException
 
 data class PreparedLouhiPackage(val path: Path, val yek: Boolean) {
@@ -26,62 +24,25 @@ data class PreparedLouhiPackage(val path: Path, val yek: Boolean) {
 /** Reuses the production SÄHKE serializer, but takes all person/document data from the saved submission. */
 @Component
 class LouhiAsyncPackageBuilder(
-    private val mapper: ObjectMapper,
+    private val payloadReader: LouhiPayloadReader,
     private val configurationProvider: ArkistointiConfigurationProvider,
     private val metadataBuilder: SahkeMetadataBuilder,
     private val packageBuilder: SahkePakettiBuilder
 ) {
     fun build(submission: ArkistointiSubmission, directory: Path): PreparedLouhiPackage {
-        val payload = try {
-            payloadValue(mapper.readTree(submission.payload))
-        } catch (_: JsonProcessingException) {
-            throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
-        }
-        checkPayload(payload.isObject)
-        checkPayload(payload.path("university").asText() == submission.university.name)
-        fun text(field: String): String? = payload[field]?.takeUnless { it.isNull }?.let {
-            checkPayload(it.isTextual)
-            it.textValue()
-        }
-        fun date(field: String) = try {
-            text(field)?.let(LocalDate::parse)
-        } catch (_: DateTimeParseException) {
-            throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
-        }
-        val approvalDate = payloadValue(date("approvalDate"))
-        fun identifier(field: String): Long {
-            val value = payloadValue(payload[field])
-            checkPayload(value.isIntegralNumber && value.canConvertToLong() && value.longValue() > 0)
-            return value.longValue()
-        }
-        val studyRightId = identifier("opintooikeusId")
-        val caseId = if (submission.caseType == CaseType.VALMISTUMINEN) "valmistumispyyntoId" else "caseId"
-        val savedCaseId = identifier(caseId)
-        checkPayload(payload.path("yek").isBoolean)
-        val configuration = configuration(submission)
-        checkPayload(submission.asiakirjat.isNotEmpty())
-        val documents = documents(submission, configuration)
-        checkPayload(documents.map { it.asiakirja.nimi }.distinct().size == documents.size)
-        val request = SahkeMetadataRequest(
-            null, documents, savedCaseId.toString(), text("reviewer"), date("reviewDate"),
-            text("approver"), approvalDate,
-            SahkePerson(studyRightId, text("traineeName"), text("firstName"), text("lastName"),
-                date("birthDate"), text("specialtyName"), text("studentNumber"), submission.university),
-            approvalDate
-        )
-        val filename = packageBuilder.filename(configuration.case.type, text("firstName"), text("lastName"))
-        checkPayload(filename.none { it == '/' || it == '\\' || it.isISOControl() })
-        val destination = directory.resolve(filename)
-        val metadata = try {
-            metadataBuilder.build(request, configuration)
-        } catch (_: MissingResourceException) {
-            throw LouhiPackageException(LouhiPackageFailure.LOCALIZATION_MISSING)
-        }
+        val payload = payloadReader.read(submission.payload, submission.caseType)
+        requireValidPayload(payload.university == submission.university.name)
+        val configuration = requireConfiguration(submission)
+        val identities = validateDocumentManifest(payload.documents, submission.asiakirjat)
+        val records = createRecordProperties(submission.asiakirjat, configuration, identities)
+        val request = createMetadataRequest(payload, records, submission)
+        val destination = resolvePackagePath(directory, payload, configuration)
+        val metadata = buildMetadata(request, configuration)
         packageBuilder.build(metadata, destination, true)
-        return PreparedLouhiPackage(destination, payload["yek"].booleanValue())
+        return PreparedLouhiPackage(destination, payload.yek)
     }
 
-    private fun configuration(submission: ArkistointiSubmission): ArkistointiConfiguration {
+    private fun requireConfiguration(submission: ArkistointiSubmission): ArkistointiConfiguration {
         val configuration = try {
             configurationProvider.getConfiguration(submission.university, submission.caseType)
         } catch (_: IllegalArgumentException) {
@@ -94,25 +55,95 @@ class LouhiAsyncPackageBuilder(
         return configuration
     }
 
-    private fun documents(submission: ArkistointiSubmission, configuration: ArkistointiConfiguration): List<RecordProperties> =
-        submission.asiakirjat.sortedBy { it.jarjestysnumero }.map {
-            // Detached value holders for the shared legacy serializer, never persisted or lazily loaded.
-            checkPayload(it.filename.isNotBlank() && it.filename !in setOf(".", ".."))
-            checkPayload(it.filename.none { character -> character == '/' || character == '\\' || character.isISOControl() })
-            if (configuration.metadata.getDocumentMetadata(it.asiakirjatyyppi, configuration.case) == null) {
+    private fun validateDocumentManifest(
+        identities: List<ArkistointiDocumentIdentity>,
+        documents: List<LoadedArkistointiAsiakirja>
+    ): Map<Long, ArkistointiDocumentIdentity> {
+        requireValidPayload(documents.isNotEmpty() && identities.size == documents.size)
+        requireValidPayload(identities.all { it.sourceDocumentId > 0 && it.snapshotDocumentId > 0 && it.jarjestysnumero >= 0 })
+        requireValidPayload(identities.map { it.snapshotDocumentId }.distinct().size == identities.size)
+        requireValidPayload(identities.map { it.jarjestysnumero }.distinct().size == identities.size)
+        requireValidPayload(documents.map { it.asiakirjaId }.distinct().size == identities.size)
+        val bySnapshot = identities.associateBy { it.snapshotDocumentId }
+        documents.forEach { document ->
+            val identity = requirePayloadValue(bySnapshot[document.asiakirjaId])
+            requireValidPayload(identity.recordType == document.asiakirjatyyppi && identity.jarjestysnumero == document.jarjestysnumero)
+        }
+        return bySnapshot
+    }
+
+    private fun createRecordProperties(
+        documents: List<LoadedArkistointiAsiakirja>,
+        configuration: ArkistointiConfiguration,
+        identities: Map<Long, ArkistointiDocumentIdentity>
+    ): List<RecordProperties> {
+        val records = documents.sortedBy { it.jarjestysnumero }.map { document ->
+            requireValidPayload(document.filename.isNotBlank() && document.filename !in setOf(".", ".."))
+            requireValidPayload(document.filename.none { it == '/' || it == '\\' || it.isISOControl() })
+            if (configuration.metadata.getDocumentMetadata(document.asiakirjatyyppi, configuration.case) == null) {
                 throw LouhiPackageException(LouhiPackageFailure.CONFIGURATION_INVALID)
             }
             RecordProperties(
-                Asiakirja(id = it.asiakirjaId, nimi = it.filename, tyyppi = it.contentType,
-                    asiakirjaData = AsiakirjaData(data = it.sisalto)),
-                it.asiakirjatyyppi
+                // In-memory holders only: legacy XML uses the original ID, bytes come from the snapshot.
+                Asiakirja(
+                    id = identities.getValue(document.asiakirjaId).sourceDocumentId,
+                    nimi = document.filename,
+                    tyyppi = document.contentType,
+                    asiakirjaData = AsiakirjaData(data = document.sisalto)
+                ),
+                document.asiakirjatyyppi
             )
         }
+        requireValidPayload(records.map { it.asiakirja.nimi }.distinct().size == records.size)
+        return records
+    }
 
-    private fun checkPayload(valid: Boolean) {
+    private fun createMetadataRequest(
+        payload: LouhiArchivePayload,
+        records: List<RecordProperties>,
+        submission: ArkistointiSubmission
+    ) = SahkeMetadataRequest(
+        opintooikeus = null,
+        asiakirjat = records,
+        caseId = payload.caseId.toString(),
+        tarkastaja = payload.reviewer,
+        tarkastusPaiva = payload.reviewDate,
+        hyvaksyja = payload.approver,
+        hyvaksymisPaiva = payload.approvalDate,
+        savedPerson = SahkePerson(
+            studyRightId = payload.studyRightId,
+            name = payload.traineeName,
+            firstName = payload.firstName,
+            lastName = payload.lastName,
+            birthDate = payload.birthDate,
+            specialty = payload.specialtyName,
+            studentNumber = payload.studentNumber,
+            university = submission.university
+        ),
+        created = payload.approvalDate
+    )
+
+    private fun resolvePackagePath(
+        directory: Path,
+        payload: LouhiArchivePayload,
+        configuration: ArkistointiConfiguration
+    ): Path {
+        val filename = packageBuilder.filename(configuration.case.type, payload.firstName, payload.lastName)
+        requireValidPayload(filename.none { it == '/' || it == '\\' || it.isISOControl() })
+        return directory.resolve(filename)
+    }
+
+    private fun buildMetadata(request: SahkeMetadataRequest, configuration: ArkistointiConfiguration): SahkeMetadataResult =
+        try {
+            metadataBuilder.build(request, configuration)
+        } catch (_: MissingResourceException) {
+            throw LouhiPackageException(LouhiPackageFailure.LOCALIZATION_MISSING)
+        }
+
+    private fun requireValidPayload(valid: Boolean) {
         if (!valid) throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
     }
 
-    private fun <T : Any> payloadValue(value: T?): T =
+    private fun <T : Any> requirePayloadValue(value: T?): T =
         value ?: throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
 }

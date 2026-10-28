@@ -9,6 +9,8 @@ import org.apache.sshd.sftp.server.FileHandle
 import org.apache.sshd.sftp.server.SftpEventListener
 import org.apache.sshd.sftp.server.SftpSubsystemFactory
 import org.apache.sshd.sftp.common.SftpConstants
+import org.apache.sshd.sftp.common.SftpException
+import org.apache.sshd.sftp.SftpModuleProperties
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
@@ -25,6 +27,7 @@ import java.nio.file.CopyOption
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.AccessDeniedException
+import java.nio.file.NoSuchFileException
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -124,7 +127,7 @@ class TampereLouhiTransferIT {
 
     @ParameterizedTest
     @ValueSource(strings = ["permission", "missing-path"])
-    fun `server rejects rename with a confirmed safe permanent failure`(reason: String) {
+    fun `server rejects this rename invocation with a classified permanent failure`(reason: String) {
         if (reason == "permission") {
             subsystem.addSftpEventListener(object : SftpEventListener {
                 override fun moving(session: ServerSession, source: Path, target: Path, options: Collection<CopyOption>) {
@@ -157,6 +160,82 @@ class TampereLouhiTransferIT {
         assertThat(remote.resolve("InProgress/$legacyFilename")).exists()
         assertThat(remote.resolve("Finished/ELSA/$legacyFilename")).doesNotExist()
         assertThat(file).doesNotExist()
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [3, 6])
+    fun `legacy rename replaces an existing package without a target-exists refusal`(version: Int) {
+        SftpModuleProperties.SFTP_VERSION.set(server, version)
+        val destination = remote.resolve("Finished/ELSA/$legacyFilename")
+        Files.writeString(destination, "previous unconsumed package")
+        val removed = AtomicBoolean(false)
+        subsystem.addSftpEventListener(object : SftpEventListener {
+            override fun removed(session: ServerSession, path: Path, isDirectory: Boolean, thrown: Throwable?) {
+                if (path.fileName.toString() == legacyFilename && thrown == null) removed.set(true)
+            }
+        })
+
+        client().laheta(source().toString(), false)
+
+        assertThat(Files.readString(destination)).isEqualTo("immutable ZIP bytes")
+        assertThat(removed.get()).isEqualTo(version < 5)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["DELETE", "MOVE"])
+    fun `generic failure in either internal rename step remains uncertain`(step: String) {
+        SftpModuleProperties.SFTP_VERSION.set(server, 3)
+        val destination = remote.resolve("Finished/ELSA/$legacyFilename")
+        Files.writeString(destination, "previous unconsumed package")
+        subsystem.addSftpEventListener(object : SftpEventListener {
+            override fun removing(session: ServerSession, path: Path, isDirectory: Boolean) {
+                if (step == "DELETE" && path.fileName.toString() == legacyFilename) {
+                    throw SftpException(SftpConstants.SSH_FX_FAILURE, "private deletion details")
+                }
+            }
+            override fun moving(session: ServerSession, source: Path, target: Path, options: Collection<CopyOption>) {
+                if (step == "MOVE") throw SftpException(SftpConstants.SSH_FX_FAILURE, "private move details")
+            }
+        })
+
+        assertThatThrownBy { client().laheta(source().toString(), false) }
+            .isInstanceOfSatisfying(LouhiTransferException::class.java) {
+                assertThat(it.stage).isEqualTo(LouhiTransferStage.RENAME)
+                assertThat(it.sftpStatus).isEqualTo(SftpConstants.SSH_FX_FAILURE)
+                assertThat(it.failure).isEqualTo(LouhiTransferFailure.DELIVERY_UNCERTAIN)
+                assertThat(it.failure.retryable).isFalse()
+                assertThat(it.message).doesNotContain("private", legacyFilename)
+            }
+        if (step == "DELETE") {
+            assertThat(Files.readString(destination)).isEqualTo("previous unconsumed package")
+        } else {
+            assertThat(destination).doesNotExist()
+        }
+        assertThat(remote.resolve("InProgress/$legacyFilename")).exists()
+    }
+
+    @Test
+    fun `missing source refusal does not prove the common package was never published`() {
+        SftpModuleProperties.SFTP_VERSION.set(server, 3)
+        subsystem.addSftpEventListener(object : SftpEventListener {
+            override fun moving(session: ServerSession, source: Path, target: Path, options: Collection<CopyOption>) {
+                // Deterministically model another execution moving the shared source before this move runs.
+                Files.move(source, target)
+                throw NoSuchFileException("private source details")
+            }
+        })
+
+        assertThatThrownBy { client().laheta(source().toString(), false) }
+            .isInstanceOfSatisfying(LouhiTransferException::class.java) {
+                assertThat(it.failure).isEqualTo(LouhiTransferFailure.PATH_NOT_FOUND)
+                assertThat(it.failure.retryable).isFalse()
+                // This flag describes our classification, not absence of publication by another execution.
+                assertThat(it.publicationMayHaveStarted).isFalse()
+                assertThat(it.message).doesNotContain("private", legacyFilename)
+            }
+        assertThat(Files.readString(remote.resolve("Finished/ELSA/$legacyFilename")))
+            .isEqualTo("immutable ZIP bytes")
+        assertThat(remote.resolve("InProgress/$legacyFilename")).doesNotExist()
     }
 
     @Test

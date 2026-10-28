@@ -125,7 +125,7 @@ class LouhiAsyncArkistointiAdapterTest {
             PreparedLouhiPackage(path, false)
         }.whenever(builder).build(eq(submission), any())
         whenever(louhi.laheta(any(), eq(false), eq(LouhiExecutionPolicy.ASYNC)))
-            .thenThrow(LouhiTransferException(LouhiTransferStage.RENAME, failure, 3))
+            .thenThrow(LouhiTransferException(LouhiTransferStage.RENAME, failure, 3, LouhiTransferReason.SFTP_REJECTION))
 
         val result = adapter.arkistoi(submission)
         val error = if (failure.retryable) {
@@ -136,7 +136,8 @@ class LouhiAsyncArkistointiAdapterTest {
             (result as ArkistointiResult.PermanentFailure).error
         }
         assertThat(error.code).isEqualTo(failure.code)
-        assertThat(error.description).contains("stage=RENAME", "status=3").doesNotContain("private", "person", ".zip")
+        assertThat(error.description).contains("stage=RENAME", "reason=SFTP_REJECTION", "status=3")
+            .doesNotContain("private", "person", ".zip")
         assertThat(path!!).doesNotExist()
         assertThat(path.parent).doesNotExist()
     }

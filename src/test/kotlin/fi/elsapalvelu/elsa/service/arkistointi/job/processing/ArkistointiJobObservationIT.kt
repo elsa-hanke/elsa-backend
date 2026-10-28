@@ -74,6 +74,7 @@ class ArkistointiJobObservationIT {
     @Test
     fun `third scheduler failure warns only after the new state is committed`() {
         val execution = fixture(previousFailures = 2)
+        val errorsBefore = errors()
         var observedCommittedState = false
         doAnswer {
             val independent = TransactionTemplate(transactions.transactionManager!!).apply {
@@ -88,6 +89,7 @@ class ArkistointiJobObservationIT {
         assertThat(state.fail(execution, failure(), stopRetrying = false)).isTrue()
 
         assertThat(observedCommittedState).isTrue()
+        assertThat(errors()).isEqualTo(errorsBefore)
         verify(observer).onCompleted(ArkistointiAttemptCompleted(execution.jobId, YliopistoEnum.TURUN_YLIOPISTO,
             CaseType.VALMISTUMINEN, 3, ArkistointiAttemptCompleted.Outcome.RETRYABLE_FAILURE, "UNAVAILABLE"))
         verify(alerts).publishAlert(any(), any())
@@ -98,6 +100,7 @@ class ArkistointiJobObservationIT {
     fun `failed commit emits neither metrics nor alerts`(success: Boolean) {
         val execution = fixture(previousFailures = 2)
         val count = attempts()
+        val errorsBefore = errors()
         transactions.executeWithoutResult {
             jdbc.execute("""
                 CREATE FUNCTION fail_observation_commit() RETURNS trigger LANGUAGE plpgsql AS ${'$'}${'$'}
@@ -113,6 +116,7 @@ class ArkistointiJobObservationIT {
 
         assertThat(jobs.findById(execution.jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
         assertThat(attempts()).isEqualTo(count)
+        assertThat(errors()).isEqualTo(errorsBefore)
         verifyNoInteractions(alerts, observer)
     }
 
@@ -134,15 +138,21 @@ class ArkistointiJobObservationIT {
     @Test
     fun `SNS exception cannot undo terminal commit or prevent acknowledgement`() {
         val execution = fixture(previousFailures = 0)
+        val errorsBefore = errors()
         doThrow(IllegalStateException("private SNS detail")).`when`(alerts).publishAlert(any(), any())
 
         assertThat(state.fail(execution, failure(), stopRetrying = true)).isFalse()
 
         assertThat(jobs.findById(execution.jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
+        assertThat(errors()).isEqualTo(errorsBefore + 1)
+        assertThat(state.fail(execution, failure(), stopRetrying = true)).isFalse()
+        assertThat(errors()).isEqualTo(errorsBefore + 1)
         verify(alerts).publishAlert(any(), any())
     }
 
     private fun attempts() = registry.find("arkistointi.async.attempts.total").counters().sumOf { it.count() }
+
+    private fun errors() = registry.find("arkistointi.errors.total").counters().sumOf { it.count() }
 
     private fun failure() = ArkistointiError.create("UNAVAILABLE", "private filename and payload must not reach alerts")
 

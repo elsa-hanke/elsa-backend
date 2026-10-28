@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiDispatcher
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiServiceImpl
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePakettiBuilder
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -34,7 +35,7 @@ class LouhiAsyncPackageBuilderTest {
     private val mapper = jacksonObjectMapper()
     private val properties = ArkistointiTestData.createApplicationProperties()
     private val configuration = ArkistointiConfigurationProvider(properties)
-    private val builder = LouhiAsyncPackageBuilder(mapper, configuration, SahkeMetadataBuilder(), SahkePakettiBuilder())
+    private val builder = LouhiAsyncPackageBuilder(LouhiPayloadReader(mapper), configuration, SahkeMetadataBuilder(), SahkePakettiBuilder())
 
     @ParameterizedTest
     @CsvSource("VALMISTUMINEN,false", "VALMISTUMINEN,true", "KOEJAKSO,false")
@@ -50,11 +51,14 @@ class LouhiAsyncPackageBuilderTest {
             "birthDate" to studyRight.erikoistuvaLaakari!!.syntymaaika.toString(),
             "specialtyName" to studyRight.erikoisala!!.nimi, "studentNumber" to studyRight.opiskelijatunnus,
             "reviewer" to "Reviewer", "reviewDate" to LocalDate.now().minusDays(1).toString(),
-            "approver" to "Approver", "approvalDate" to LocalDate.now().toString()
+            "approver" to "Approver", "approvalDate" to LocalDate.now().toString(),
+            "documents" to input.asiakirjat.mapIndexed { index, record ->
+                ArkistointiDocumentIdentity(record.asiakirja.id!!, record.asiakirja.id!! + 10000, record.type, index)
+            }
         ))
         val documents = input.asiakirjat.mapIndexed { index, record ->
             val document = record.asiakirja
-            LoadedArkistointiAsiakirja(document.id!!, record.type, index, document.nimi!!, document.tyyppi!!,
+            LoadedArkistointiAsiakirja(document.id!! + 10000, record.type, index, document.nimi!!, document.tyyppi!!,
                 DigestUtils.sha256Hex(document.asiakirjaData!!.data), document.asiakirjaData!!.data!!)
         }
         val submission = ArkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, caseType, payload, documents)
@@ -160,11 +164,40 @@ class LouhiAsyncPackageBuilderTest {
         val packages = SahkePakettiBuilder()
         whenever(metadata.build(any(), any()))
             .thenThrow(MissingResourceException("private resource details", "private", "private"))
-        val subject = LouhiAsyncPackageBuilder(mapper, configuration, metadata, packages)
+        val subject = LouhiAsyncPackageBuilder(LouhiPayloadReader(mapper), configuration, metadata, packages)
 
         assertThatThrownBy { subject.build(validSubmission(), directory) }
             .isInstanceOfSatisfying(LouhiPackageException::class.java) {
                 assertThat(it.failure).isEqualTo(LouhiPackageFailure.LOCALIZATION_MISSING)
+                assertThat(it.message).doesNotContain("private")
+                assertThat(it.cause).isNull()
+            }
+        Files.list(directory).use { assertThat(it.count()).isZero() }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["missing", "empty", "duplicate", "extra", "snapshot", "type", "order", "source", "malformed", "duplicate-loaded"])
+    fun `invalid document identity manifest is rejected before writing ZIP`(invalid: String) {
+        val valid = validSubmission()
+        val payload = mapper.readTree(valid.payload) as ObjectNode
+        val identities = payload.withArray("documents")
+        val first = identities[0] as ObjectNode
+        val submission = when (invalid) {
+            "missing" -> { payload.remove("documents"); valid }
+            "empty" -> { identities.removeAll(); valid }
+            "duplicate" -> { identities.set(1, first.deepCopy()); valid }
+            "extra" -> { identities.add(first.deepCopy()); valid }
+            "snapshot" -> { first.put("snapshotDocumentId", 999999); valid }
+            "type" -> { first.put("recordType", "SOPIMUS"); valid }
+            "order" -> { first.put("jarjestysnumero", 999); valid }
+            "source" -> { first.put("sourceDocumentId", 0); valid }
+            "malformed" -> { first.put("recordType", "private-invalid-type"); valid }
+            else -> valid.copy(asiakirjat = listOf(valid.asiakirjat.first(), valid.asiakirjat.first()))
+        }.copy(payload = payload.toString())
+
+        assertThatThrownBy { builder.build(submission, directory) }
+            .isInstanceOfSatisfying(LouhiPackageException::class.java) {
+                assertThat(it.failure).isEqualTo(LouhiPackageFailure.PAYLOAD_INVALID)
                 assertThat(it.message).doesNotContain("private")
                 assertThat(it.cause).isNull()
             }
@@ -182,7 +215,10 @@ class LouhiAsyncPackageBuilderTest {
         val payload = mapper.writeValueAsString(mapOf(
             "university" to scenario.yliopisto.name, "yek" to false,
             "approvalDate" to "2026-01-01", "opintooikeusId" to 1,
-            "valmistumispyyntoId" to 42, "caseId" to 42
+            "valmistumispyyntoId" to 42, "caseId" to 42,
+            "documents" to documents.map {
+                ArkistointiDocumentIdentity(it.asiakirjaId + 10000, it.asiakirjaId, it.asiakirjatyyppi, it.jarjestysnumero)
+            }
         ))
         return ArkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, scenario.caseType, payload, documents)
     }
