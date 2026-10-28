@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.config
+package fi.elsapalvelu.elsa.config.logging
 
 import fi.elsapalvelu.elsa.aop.logging.LoggingAspect
 import org.springframework.context.annotation.Bean

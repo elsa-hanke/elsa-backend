@@ -15,7 +15,6 @@ data class ArkistointiDocumentDescriptor(
     override fun toString() = "ArkistointiDocumentDescriptor(asiakirjaId=$asiakirjaId)"
 }
 
-/** Must be called while the job reference is attached; no entity escapes the transaction. */
 internal fun ArkistointiJobAsiakirja.toDescriptor() = ArkistointiDocumentDescriptor(
     asiakirja?.id ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing()),
     asiakirjatyyppi.required(), jarjestysnumero.required(), filename.required(), contentType.required(),

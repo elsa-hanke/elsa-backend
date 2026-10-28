@@ -1,8 +1,14 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.0...HEAD)
 
+- Yhdista kayttajatileja pääsyy UI virhe [`#797`](https://github.com/elsa-hanke/elsa-backend/pull/797)(26 October 2026)
+- Korjaa hyväksyntöjen transaktionaalisuus ja sähköposti-ilmoitusten ajoitus [`#796`](https://github.com/elsa-hanke/elsa-backend/pull/796)(26 October 2026)
+- Dynasty - Vaihe 2, task 1 — Arkistoitavien asiakirjojen muuttumaton tallennus [`#783`](https://github.com/elsa-hanke/elsa-backend/pull/783)(26 October 2026)
 - Dynasty - Vaihe 1 - Asynkronisen arkistoinnin tietomalli ja db-scheduler-integraatio [`#782`](https://github.com/elsa-hanke/elsa-backend/pull/782)(24 October 2026)
+
+## [v2.5.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...v2.5.0) - 23 October 2026
+
 - SisuOpintooikeudenTila: TERMINATED ja PASSIVATED [`#793`](https://github.com/elsa-hanke/elsa-backend/pull/793)(23 October 2026)
 - Bump launch-editor from 2.14.1 to 2.14.2 in /frontend [`#790`](https://github.com/elsa-hanke/elsa-backend/pull/790)(23 October 2026)
 - Bump dompurify from 3.4.16 to 3.4.17 in /frontend [`#791`](https://github.com/elsa-hanke/elsa-backend/pull/791)(23 October 2026)

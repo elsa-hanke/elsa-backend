@@ -19,6 +19,7 @@ import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiTestData
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference
@@ -38,14 +39,6 @@ import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.*
 import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
 import jakarta.persistence.EntityManager
-import java.io.ByteArrayOutputStream
-import java.io.OutputStream
-import java.time.LocalDate
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -73,6 +66,14 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.support.TransactionTemplate
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
+import java.time.LocalDate
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 private const val ARKISTOINTI_HYVAKSYNTA_ENDPOINT = "/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta"
 
@@ -199,11 +200,12 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
     @BeforeEach
     fun stubArchivingDocumentSnapshots() {
         whenever(configurationProvider.isAsyncEnabled(any(), any())).thenReturn(true)
+        val configurations = ArkistointiConfigurationProvider(ArkistointiTestData.createApplicationProperties())
+        whenever(configurationProvider.getConfiguration(any(), any())).thenAnswer {
+            configurations.getConfiguration(it.getArgument(0), it.getArgument(1))
+        }
         whenever(asiakirjaSnapshotService.createReference(any(), any(), any())).thenAnswer { invocation ->
             archiveReference(invocation.getArgument(1), invocation.getArgument(2))
-        }
-        whenever(asiakirjaSnapshotService.createLaillistamistodistusReference(any(), any())).thenAnswer { invocation ->
-            archiveReference(RecordType.LAILLISTAMISTODISTUS, invocation.getArgument(1))
         }
     }
 
@@ -342,8 +344,7 @@ class ValmistumispyyntoHyvaksyntaArkistointiIT {
         assertThat(requestCaptor.firstValue.asiakirjat.map { it.asiakirjatyyppi })
             .containsExactly(
                 RecordType.YHTEENVETO,
-                RecordType.LIITE,
-                RecordType.LAILLISTAMISTODISTUS
+                RecordType.LIITE
             )
         assertThat(requestCaptor.firstValue.key)
             .isEqualTo("valmistuminen:TAMPEREEN_YLIOPISTO:$valmistumispyyntoId")

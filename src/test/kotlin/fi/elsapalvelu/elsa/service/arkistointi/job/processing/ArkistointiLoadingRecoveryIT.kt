@@ -166,7 +166,7 @@ class ArkistointiLoadingRecoveryIT {
         try {
             assertThat(entered.await(10, TimeUnit.SECONDS)).isTrue()
             val execution = ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, jobId.toString(), versions.single())
-            assertThat(state.fail(execution, ArkistointiError.create("RECOVERING", "Uudelleenyritys"), terminal = false)).isTrue()
+            assertThat(state.fail(execution, ArkistointiError.create("RECOVERING", "Uudelleenyritys"), stopRetrying = false)).isTrue()
             val before = schedulerStateOrEmpty(jobId)
             release.countDown()
             await().atMost(Duration.ofSeconds(10)).untilAsserted { assertThat(first.currentlyExecuting).isEmpty() }
