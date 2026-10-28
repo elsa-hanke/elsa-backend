@@ -15,23 +15,18 @@ class ArkistointiJobCreatorImpl(
 ) : ArkistointiJobCreator {
 
     @Transactional
-    override fun create(pyynto: CreateArkistointiJobRequest): ArkistointiJob {
-        require(pyynto.key.isNotBlank()) { "Arkistointi-jobin key ei saa olla tyhja" }
-        require(pyynto.payload.isNotBlank()) { "Arkistointi-jobin payload ei saa olla tyhja" }
-        require(pyynto.asiakirjat.isNotEmpty()) { "Arkistointi-jobilla on oltava asiakirjoja" }
-        require(pyynto.asiakirjat.map { it.jarjestysnumero }.distinct().size == pyynto.asiakirjat.size) {
-            "Arkistointi-jobin asiakirjojen jarjestysnumeroiden on oltava yksilollisia"
-        }
+    override fun create(jobRequest: CreateArkistointiJobRequest): ArkistointiJob {
+        validate(jobRequest)
 
-        jobRepository.findByKey(pyynto.key)?.let { return it }
+        jobRepository.findByKey(jobRequest.key)?.let { return it }
         val job = ArkistointiJob(
-            university = pyynto.university,
-            caseType = pyynto.caseType,
-            payload = pyynto.payload,
-            key = pyynto.key,
-            expectedDocumentCount = pyynto.asiakirjat.size
+            university = jobRequest.university,
+            caseType = jobRequest.caseType,
+            payload = jobRequest.payload,
+            key = jobRequest.key,
+            expectedDocumentCount = jobRequest.asiakirjat.size
         )
-        pyynto.asiakirjat.sortedBy { it.jarjestysnumero }.forEach { reference ->
+        jobRequest.asiakirjat.sortedBy { it.jarjestysnumero }.forEach { reference ->
             val snapshot = snapshotService.resolveReference(reference)
             job.lisaaAsiakirja(
                 ArkistointiJobAsiakirja(
@@ -49,5 +44,14 @@ class ArkistointiJobCreatorImpl(
         val jobId = requireNotNull(saved.id)
         check(jobScheduler.schedule(jobId)) { "Arkistointi-jobin ajastus epaonnistui" }
         return saved
+    }
+
+    private fun validate(pyynto: CreateArkistointiJobRequest) {
+        require(pyynto.key.isNotBlank()) { "Arkistointi-jobin key ei saa olla tyhja" }
+        require(pyynto.payload.isNotBlank()) { "Arkistointi-jobin payload ei saa olla tyhja" }
+        require(pyynto.asiakirjat.isNotEmpty()) { "Arkistointi-jobilla on oltava asiakirjoja" }
+        require(pyynto.asiakirjat.map { it.jarjestysnumero }.distinct().size == pyynto.asiakirjat.size) {
+            "Arkistointi-jobin asiakirjojen jarjestysnumeroiden on oltava yksilollisia"
+        }
     }
 }

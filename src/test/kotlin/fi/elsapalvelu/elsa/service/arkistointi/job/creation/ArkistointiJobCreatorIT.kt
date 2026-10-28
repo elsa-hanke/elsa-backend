@@ -7,7 +7,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
-import fi.elsapalvelu.elsa.service.PdfTestData
+import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaErrorCategory
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
@@ -193,7 +193,7 @@ class ArkistointiJobCreatorIT {
     @ParameterizedTest
     @ValueSource(strings = ["image/jpg", "image/png"])
     @Transactional
-    fun `large certificate image is archived without modifying its stored original`(contentType: String) {
+    fun `large image snapshot is queued without modifying its stored original`(contentType: String) {
         val opintooikeus = AsiakirjaHelper.createEntity(entityManager).opintooikeus!!
         val student = opintooikeus.erikoistuvaLaakari!!
         val original = ArchiveImageTestData.image(if (contentType == "image/jpg") "jpeg" else "png", 4000, 3000)
@@ -204,7 +204,9 @@ class ArkistointiJobCreatorIT {
         entityManager.flush()
         val sourceId = student.laillistamistodistus!!.id
 
-        val reference = snapshotService.createLaillistamistodistusReference(opintooikeus, 0)
+        val reference = snapshotService.createSnapshot(
+            opintooikeus, filename, contentType, student.laillistamistodistus!!.data, RecordType.LIITE, 0
+        )
         val job = creator.create(
             CreateArkistointiJobRequest(
                 YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{\"approved\":true}",
@@ -257,6 +259,31 @@ class ArkistointiJobCreatorIT {
         return snapshotService.createSnapshot(
             source.opintooikeus!!, source.nimi, source.tyyppi, source.asiakirjaData!!.data, RecordType.LIITE, 0
         )
+    }
+
+    @Test
+    @Transactional
+    fun `repeated creation with the same business key preserves the persisted UUID documents and schedule`() {
+        val request = request(storedSnapshot())
+        val first = creator.create(request)
+        val jobId = requireNotNull(first.id)
+        entityManager.flush()
+        entityManager.clear()
+        val jobsBefore = jobRepository.count()
+        val documentsBefore = asiakirjaRepository.count()
+        val scheduleSql = "select * from scheduled_tasks where task_name = ? and task_instance = ?"
+        val scheduleBefore = jdbcTemplate.queryForMap(scheduleSql, ARKISTOINTI_JOB_TASK.taskName, jobId.toString())
+
+        val repeated = creator.create(request)
+        entityManager.flush()
+        entityManager.clear()
+
+        assertThat(repeated.id).isEqualTo(jobId)
+        assertThat(jobRepository.findByKey(request.key)?.id).isEqualTo(jobId)
+        assertThat(jobRepository.count()).isEqualTo(jobsBefore)
+        assertThat(asiakirjaRepository.count()).isEqualTo(documentsBefore)
+        assertThat(scheduledTaskCount(jobId)).isEqualTo(1)
+        assertThat(jdbcTemplate.queryForMap(scheduleSql, ARKISTOINTI_JOB_TASK.taskName, jobId.toString())).isEqualTo(scheduleBefore)
     }
 
     @Test

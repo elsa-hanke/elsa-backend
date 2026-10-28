@@ -12,6 +12,22 @@ class ArkistointiConfigurationProviderTest {
     private val provider = ArkistointiConfigurationProvider(applicationProperties)
 
     @Test
+    fun `async archiving is opt-in per university and case and requires integration enablement`() {
+        val metadata = createMetadata("Tampere")
+        configure(YliopistoEnum.TAMPEREEN_YLIOPISTO, true, metadata)
+        configure(YliopistoEnum.HELSINGIN_YLIOPISTO, true, createMetadata("Helsinki"))
+        assertThat(provider.isAsyncEnabled(YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.VALMISTUMINEN)).isFalse
+
+        metadata.getCaseMetadata(CaseType.VALMISTUMINEN)!!.asyncEnabled = true
+        assertThat(provider.isAsyncEnabled(YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.VALMISTUMINEN)).isTrue
+        assertThat(provider.isAsyncEnabled(YliopistoEnum.HELSINGIN_YLIOPISTO, CaseType.VALMISTUMINEN)).isFalse
+        assertThat(provider.isAsyncEnabled(YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.KOEJAKSO)).isFalse
+
+        configure(YliopistoEnum.TAMPEREEN_YLIOPISTO, false, metadata)
+        assertThat(provider.isAsyncEnabled(YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.VALMISTUMINEN)).isFalse
+    }
+
+    @Test
     fun `getConfiguration resolves metadata for every university`() {
         YliopistoEnum.entries.forEach { yliopisto ->
             val metadata = createMetadata(yliopisto.name)

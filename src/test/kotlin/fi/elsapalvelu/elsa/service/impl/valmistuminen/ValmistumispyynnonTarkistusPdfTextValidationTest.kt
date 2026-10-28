@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
-import fi.elsapalvelu.elsa.service.PdfTextTestSupport
+import fi.elsapalvelu.elsa.service.pdf.PdfTextTestSupport
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.UusiValmistumispyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusUpdateDTO
 import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException

@@ -104,9 +104,14 @@ export default class ValmistumispyyntoMixin extends Vue {
     return this.vastuuhenkiloOsaamisenArvioija !== this.vastuuhenkiloHyvaksyja
   }
 
-  formatValmistumispyyntoError(error?: ElsaError): string | undefined {
+  formatValmistumispyyntoError(error?: ElsaError, status?: number): string | undefined {
     if (!error?.message) {
       return undefined
+    }
+
+    // A stored-document or infrastructure error is not an instruction to replace a user's upload.
+    if (status && status >= 500 && error.message.startsWith('error.ARCHIVE_DOCUMENT_')) {
+      return `${this.$t('error.ARCHIVE_DOCUMENT_PROCESSING_FAILED')}`
     }
 
     if (error.message === UNSUPPORTED_PDF_CHARACTERS_ERROR) {

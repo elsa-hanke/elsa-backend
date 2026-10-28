@@ -21,7 +21,7 @@ class ArkistointiAsiakirjaSnapshotService(
         asiakirjatyyppi: RecordType,
         jarjestysnumero: Int
     ): ArkistointiAsiakirjaReference {
-        documentData(asiakirja, jarjestysnumero)
+        requireDocumentData(asiakirja, jarjestysnumero)
         val stored = loadDocument(asiakirja.id)
         return prepareReference(stored, asiakirjatyyppi, jarjestysnumero)
     }
@@ -30,7 +30,7 @@ class ArkistointiAsiakirjaSnapshotService(
     @Transactional
     fun resolveReference(reference: ArkistointiAsiakirjaReference): ArkistointiAsiakirjaReference {
         val stored = loadDocument(reference.asiakirja.id)
-        val data = documentData(stored, reference.jarjestysnumero)
+        val data = requireDocumentData(stored, reference.jarjestysnumero)
         val checksum = ArkistointiChecksum.sha256(data)
         if (!checksum.equals(reference.sha256, ignoreCase = true)) {
             throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.checksumMismatch())
@@ -45,7 +45,7 @@ class ArkistointiAsiakirjaSnapshotService(
         id?.let(asiakirjaRepository::findOneWithDataById)
             ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
 
-    private fun documentData(asiakirja: Asiakirja, jarjestysnumero: Int): ByteArray {
+    private fun requireDocumentData(asiakirja: Asiakirja, jarjestysnumero: Int): ByteArray {
         if (jarjestysnumero < 0 || asiakirja.nimi.isNullOrBlank() || asiakirja.tyyppi.isNullOrBlank()) {
             throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid())
         }
@@ -66,10 +66,10 @@ class ArkistointiAsiakirjaSnapshotService(
         jarjestysnumero: Int,
         verifiedChecksum: String? = null
     ): ArkistointiAsiakirjaReference {
-        val data = documentData(asiakirja, jarjestysnumero)
+        val data = requireDocumentData(asiakirja, jarjestysnumero)
         // Snapshot the existing output without introducing another conversion or format policy.
         if (asiakirjaRepository.findArchiveSnapshotFlagById(requireNotNull(asiakirja.id)) != true) {
-            return createSnapshot(
+            return createSnapshotInternal(
                 requireNotNull(asiakirja.opintooikeus), asiakirja.nimi, asiakirja.tyyppi,
                 data, asiakirjatyyppi, jarjestysnumero
             )
@@ -87,18 +87,21 @@ class ArkistointiAsiakirjaSnapshotService(
         data: ByteArray?,
         asiakirjatyyppi: RecordType,
         jarjestysnumero: Int
+    ): ArkistointiAsiakirjaReference = createSnapshotInternal(
+        opintooikeus, filename, contentType, data, asiakirjatyyppi, jarjestysnumero
+    )
+
+    private fun createSnapshotInternal(
+        opintooikeus: Opintooikeus,
+        filename: String?,
+        contentType: String?,
+        data: ByteArray?,
+        asiakirjatyyppi: RecordType,
+        jarjestysnumero: Int
     ): ArkistointiAsiakirjaReference {
-        if (jarjestysnumero < 0) {
-            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid())
-        }
-        if (data == null) throw inputError(ArkistointiAsiakirjaErrors.missing())
-        if (data.isEmpty()) throw inputError(ArkistointiAsiakirjaErrors.empty())
-        if (filename.isNullOrBlank() || filename.length > MAX_METADATA_LENGTH ||
-            contentType.isNullOrBlank() || contentType.length > MAX_METADATA_LENGTH) {
-            throw inputError(ArkistointiAsiakirjaErrors.invalid())
-        }
+        val validatedData = requireSnapshotData(filename, contentType, data, jarjestysnumero)
         // Own the snapshot bytes: subsequent changes to the caller's buffer must not change this document.
-        val snapshotData = data.copyOf()
+        val snapshotData = validatedData.copyOf()
         val snapshot = asiakirjaRepository.save(
             Asiakirja(
                 opintooikeus = opintooikeus,
@@ -112,6 +115,24 @@ class ArkistointiAsiakirjaSnapshotService(
         return verifiedReference(snapshot, asiakirjatyyppi, jarjestysnumero, ArkistointiChecksum.sha256(snapshotData))
     }
 
+    private fun requireSnapshotData(
+        filename: String?,
+        contentType: String?,
+        data: ByteArray?,
+        jarjestysnumero: Int
+    ): ByteArray {
+        if (jarjestysnumero < 0) {
+            throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.invalid())
+        }
+        if (data == null) throw inputError(ArkistointiAsiakirjaErrors.missing())
+        if (data.isEmpty()) throw inputError(ArkistointiAsiakirjaErrors.empty())
+        if (filename.isNullOrBlank() || filename.length > MAX_METADATA_LENGTH ||
+            contentType.isNullOrBlank() || contentType.length > MAX_METADATA_LENGTH) {
+            throw inputError(ArkistointiAsiakirjaErrors.invalid())
+        }
+        return data
+    }
+
     private fun verifiedReference(
         snapshot: Asiakirja,
         type: RecordType,
@@ -121,27 +142,7 @@ class ArkistointiAsiakirjaSnapshotService(
         snapshot, type, order, requireNotNull(snapshot.nimi), requireNotNull(snapshot.tyyppi), checksum
     )
 
-    @Transactional
-    fun createLaillistamistodistusReference(
-        opintooikeus: Opintooikeus,
-        jarjestysnumero: Int
-    ): ArkistointiAsiakirjaReference {
-        val erikoistuvaLaakari = opintooikeus.erikoistuvaLaakari
-            ?: throw ArkistointiAsiakirjaException(
-                ArkistointiAsiakirjaErrors.missing()
-            )
-        return createSnapshot(
-            opintooikeus = opintooikeus,
-            filename = erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi,
-            contentType = erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi,
-            data = erikoistuvaLaakari.laillistamistodistus?.data,
-            asiakirjatyyppi = RecordType.LAILLISTAMISTODISTUS,
-            jarjestysnumero = jarjestysnumero
-        )
-    }
-
-    private fun inputError(error: ArkistointiError) =
-        ArkistointiAsiakirjaException(error, ArkistointiAsiakirjaErrorCategory.INPUT_DOCUMENT)
+    private fun inputError(error: ArkistointiError) = ArkistointiAsiakirjaException(error, ArkistointiAsiakirjaErrorCategory.INPUT_DOCUMENT)
 
     private companion object {
         const val MAX_METADATA_LENGTH = 255

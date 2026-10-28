@@ -1,5 +1,6 @@
-package fi.elsapalvelu.elsa.service
+package fi.elsapalvelu.elsa.service.richtext
 
+import fi.elsapalvelu.elsa.service.RichTextHtmlSanitizer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest

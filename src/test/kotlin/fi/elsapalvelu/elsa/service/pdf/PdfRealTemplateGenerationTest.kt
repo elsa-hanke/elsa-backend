@@ -1,6 +1,7 @@
-package fi.elsapalvelu.elsa.service
+package fi.elsapalvelu.elsa.service.pdf
 
 import fi.elsapalvelu.elsa.config.ThymeleafConfiguration
+import fi.elsapalvelu.elsa.service.PdfContentValidator
 import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfCachingResourceRetriever
 import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfServiceImpl
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
@@ -14,6 +15,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.context.support.ResourceBundleMessageSource
 import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import kotlin.test.assertFailsWith
@@ -70,7 +72,7 @@ class PdfRealTemplateGenerationTest {
     @Test
     fun `template matrix covers every PDF template resource`() {
         // New templates must be added to this matrix instead of silently losing coverage.
-        val resources = org.springframework.core.io.support.PathMatchingResourcePatternResolver()
+        val resources = PathMatchingResourcePatternResolver()
             .getResources("classpath*:templates/pdf/**/*.html")
             .map { it.url.toString().substringAfter("templates/") }.toSet()
         assertThat(templates().toSet()).isEqualTo(resources)

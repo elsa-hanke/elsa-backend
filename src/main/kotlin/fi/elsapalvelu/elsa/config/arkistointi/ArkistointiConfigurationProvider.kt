@@ -37,6 +37,9 @@ class ArkistointiConfigurationProvider(
 
     fun getTampereHost(): String? = applicationProperties.getArkistointi().getTre().host
 
+    fun isAsyncEnabled(yliopisto: YliopistoEnum, caseType: CaseType): Boolean =
+        onKaytossa(yliopisto, caseType) && getConfiguration(yliopisto, caseType).case.asyncEnabled
+
     private fun getMetadata(yliopisto: YliopistoEnum): ApplicationProperties.Arkistointi.Metadata? {
         val arkistointi = applicationProperties.getArkistointi()
         return when (yliopisto) {

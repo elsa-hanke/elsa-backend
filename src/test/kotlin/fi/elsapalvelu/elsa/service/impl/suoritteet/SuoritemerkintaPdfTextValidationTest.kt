@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.impl.suoritteet
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoritemerkintaRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
-import fi.elsapalvelu.elsa.service.PdfTextTestSupport
+import fi.elsapalvelu.elsa.service.pdf.PdfTextTestSupport
 import fi.elsapalvelu.elsa.service.dto.suoritteet.SuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.dto.suoritteet.UusiSuoritemerkintaDTO
 import fi.elsapalvelu.elsa.service.mapper.suoritteet.SuoritemerkintaMapper
