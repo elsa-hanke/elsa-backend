@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.required
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import java.time.LocalDate
 
 /** Frozen metadata for SOPIMUS and KOEJAKSO; no domain entities are needed during delivery. */
@@ -27,7 +28,8 @@ data class KoejaksoArkistointiPayload(
     val approver: String?,
     @get:JsonFormat(shape = JsonFormat.Shape.STRING)
     val approvalDate: LocalDate?,
-    val koejaksoHyvaksytty: Boolean?
+    val koejaksoHyvaksytty: Boolean?,
+    val documents: List<ArkistointiDocumentIdentity>
 ) {
     override fun toString() = "KoejaksoArkistointiPayload(caseId=$caseId)"
 
@@ -35,6 +37,7 @@ data class KoejaksoArkistointiPayload(
         fun create(
             caseId: Long,
             studyRight: Opintooikeus,
+            documents: List<ArkistointiDocumentIdentity>,
             reviewer: String?,
             reviewDate: LocalDate?,
             approver: String?,
@@ -48,7 +51,7 @@ data class KoejaksoArkistointiPayload(
                 studyRight.erikoisala?.id == YEK_ERIKOISALA_ID,
                 user?.getName(), user?.firstName, user?.lastName, trainee?.syntymaaika,
                 studyRight.erikoisala?.id, studyRight.erikoisala?.nimi, studyRight.opiskelijatunnus,
-                reviewer, reviewDate, approver, approvalDate, koejaksoHyvaksytty
+                reviewer, reviewDate, approver, approvalDate, koejaksoHyvaksytty, documents.toList()
             )
         }
     }

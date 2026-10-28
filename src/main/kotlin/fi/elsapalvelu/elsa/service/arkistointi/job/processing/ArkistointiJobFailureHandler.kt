@@ -22,7 +22,7 @@ class ArkistointiJobFailureHandler(
         val exhausted = execution.consecutiveFailures >= policy.maxAttempts - 1
         val cause = completed.cause.orElse(null) as? ArkistointiProcessingException
         val lastError = cause?.error ?: unexpectedArchiveError()
-        val terminal = exhausted || cause?.retryable == false
+        val stopRetrying = exhausted || cause?.retryable == false
         val error = if (exhausted && cause?.retryable != false) {
             ArkistointiError.create(
                 "ARCHIVE_RETRIES_EXHAUSTED",
@@ -35,14 +35,14 @@ class ArkistointiJobFailureHandler(
         val retry = try {
             state.fail(
                 identity, error,
-                terminal = terminal
+                stopRetrying = stopRetrying
             )
         } catch (_: StaleArkistointiExecutionException) {
             return
         } catch (_: Exception) {
             // Preserve this live execution's sanitized outcome; never acknowledge a failed commit.
             // Dead-execution recovery cannot reconstruct an outcome that was never committed.
-            throw ArkistointiProcessingException(error, retryable = !terminal)
+            throw ArkistointiProcessingException(error, retryable = !stopRetrying)
         }
         if (retry) {
             operations.reschedule(completed, completed.timeDone.plus(policy.delay(execution.consecutiveFailures)))

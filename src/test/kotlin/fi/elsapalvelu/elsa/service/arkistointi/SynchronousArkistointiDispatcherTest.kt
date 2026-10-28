@@ -1,6 +1,8 @@
 package fi.elsapalvelu.elsa.service.arkistointi
 
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiTransferException
+import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiTransferStage
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
@@ -15,9 +17,12 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.net.SocketTimeoutException
 
 @ExtendWith(MockitoExtension::class)
 class SynchronousArkistointiDispatcherTest {
@@ -108,6 +113,22 @@ class SynchronousArkistointiDispatcherTest {
         assertThat(successCount(request)).isZero()
         assertThat(errorCount(request)).isEqualTo(1.0)
         assertThat(arkistointiMetrics.activeArkistointiOperations.get()).isZero()
+    }
+
+    @Test
+    fun `sync alert includes safe Louhi reason without original exception message`() {
+        val request = createRequest(YliopistoEnum.TAMPEREEN_YLIOPISTO)
+        val failure = LouhiTransferException.from(
+            SocketTimeoutException("PrivatePerson /secret/private.zip password=secret"), LouhiTransferStage.CONNECT
+        )
+        val dispatcher = createDispatcher(listOf(TestAdapter(request.yliopisto) { throw failure }))
+
+        org.assertj.core.api.Assertions.assertThatThrownBy { dispatcher.laheta(request) }.isSameAs(failure)
+
+        val message = argumentCaptor<String>()
+        verify(alertPublisherService).publishAlert(eq("Tampere arkistointi epäonnistui"), message.capture())
+        assertThat(message.firstValue).contains("reason=TIMEOUT", "stage=CONNECT", "LOUHI_TRANSFER_FAILED")
+            .doesNotContain("PrivatePerson", "/secret/", "password=secret")
     }
 
     private fun createDispatcher(adapters: List<SynchronousArkistointiAdapter>) = SynchronousArkistointiDispatcher(

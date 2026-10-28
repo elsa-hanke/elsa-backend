@@ -194,7 +194,7 @@ class ArkistointiJobCreatorIT {
     @ParameterizedTest
     @ValueSource(strings = ["image/jpg", "image/png"])
     @Transactional
-    fun `large certificate image is archived without modifying its stored original`(contentType: String) {
+    fun `large image snapshot is queued without modifying its stored original`(contentType: String) {
         val opintooikeus = AsiakirjaHelper.createEntity(entityManager).opintooikeus!!
         val student = opintooikeus.erikoistuvaLaakari!!
         val original = ArchiveImageTestData.image(if (contentType == "image/jpg") "jpeg" else "png", 4000, 3000)
@@ -205,7 +205,9 @@ class ArkistointiJobCreatorIT {
         entityManager.flush()
         val sourceId = student.laillistamistodistus!!.id
 
-        val reference = snapshotService.createLaillistamistodistusReference(opintooikeus, 0)
+        val reference = snapshotService.createSnapshot(
+            opintooikeus, filename, contentType, student.laillistamistodistus!!.data, RecordType.LIITE, 0
+        )
         val job = creator.create(
             CreateArkistointiJobRequest(
                 YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{\"approved\":true}",

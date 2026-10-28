@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.arkistointi.job.document
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
-import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
@@ -32,7 +31,7 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
 
     @ParameterizedTest
     @ValueSource(strings = ["pdf", "restricted-pdf", "jpeg", "png", "alias", "large-jpeg", "cmyk", "sixteen-bit", "oriented"])
-    fun `certificate snapshot preserves exact bytes filename and content type`(kind: String) {
+    fun `snapshot preserves exact bytes filename and content type`(kind: String) {
         whenever(repository.save(any<Asiakirja>())).thenAnswer { it.getArgument<Asiakirja>(0).apply { id = 123L } }
         val (type, original) = when (kind) {
             "pdf" -> "application/pdf" to PdfTestData.unembeddedFontPdf(100)
@@ -45,19 +44,14 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
             "oriented" -> "image/jpeg" to ArchiveImageTestData.orientedJpeg(6)
             else -> "image/jpeg" to ArchiveImageTestData.image()
         }
-        val filename = "certificate." + type.substringAfter('/')
+        val filename = "document." + type.substringAfter('/')
         val unchanged = original.copyOf()
-        val student = ErikoistuvaLaakari(
-            laillistamistodistus = AsiakirjaData(data = original),
-            laillistamispaivanLiitetiedostonNimi = filename,
-            laillistamispaivanLiitetiedostonTyyppi = type
+
+        val reference = service.createSnapshot(
+            Opintooikeus(id = 10L), filename, type, original, RecordType.LIITE, 2
         )
 
-        val reference = service.createLaillistamistodistusReference(
-            Opintooikeus(id = 10L, erikoistuvaLaakari = student), 2
-        )
-
-        assertThat(reference.asiakirjatyyppi).isEqualTo(RecordType.LAILLISTAMISTODISTUS)
+        assertThat(reference.asiakirjatyyppi).isEqualTo(RecordType.LIITE)
         assertThat(reference.jarjestysnumero).isEqualTo(2)
         assertThat(reference.filename).isEqualTo(filename)
         assertThat(reference.contentType).isEqualTo(type)
@@ -67,16 +61,15 @@ class ArkistointiAsiakirjaSnapshotServiceTest {
         assertThat(reference.asiakirja.archiveSnapshot).isTrue
         original[0] = (original[0].toInt() xor 1).toByte()
         assertThat(bytes).containsExactly(*unchanged)
-        assertThat(student.laillistamispaivanLiitetiedostonNimi).isEqualTo(filename)
-        assertThat(student.laillistamispaivanLiitetiedostonTyyppi).isEqualTo(type)
     }
 
     @Test
-    fun `missing licensing certificate fails with a controlled error`() {
+    fun `missing snapshot data fails with a controlled input error`() {
         val exception = assertThrows<ArkistointiAsiakirjaException> {
-            service.createLaillistamistodistusReference(Opintooikeus(erikoistuvaLaakari = ErikoistuvaLaakari()), 0)
+            service.createSnapshot(Opintooikeus(id = 10L), "document.pdf", "application/pdf", null, RecordType.LIITE, 0)
         }
         assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_MISSING")
+        assertThat(exception.category).isEqualTo(ArkistointiAsiakirjaErrorCategory.INPUT_DOCUMENT)
         verifyNoInteractions(repository)
     }
 

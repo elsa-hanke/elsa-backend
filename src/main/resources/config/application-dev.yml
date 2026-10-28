@@ -13,7 +13,6 @@
 # http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 # ===================================================================
 
-# Opt in only against a local test database with DB_SCHEDULER_ENABLED=true.
 db-scheduler:
   enabled: false
 

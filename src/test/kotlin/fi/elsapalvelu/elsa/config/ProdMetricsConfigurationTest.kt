@@ -27,6 +27,8 @@ class ProdMetricsConfigurationTest {
             assertThat(registry.find("http.sessions.active").gauge()?.value()).isEqualTo(3.0)
             registry.counter("arkistointi.errors.total").increment()
             assertThat(registry.find("arkistointi.errors.total").counter()).isNotNull()
+            registry.counter("arkistointi.async.attempts.total", "outcome", "RETRYABLE_FAILURE").increment()
+            assertThat(registry.find("arkistointi.async.attempts.total").tag("outcome", "RETRYABLE_FAILURE").counter()).isNotNull()
             registry.counter("unexpected.metric").increment()
             assertThat(registry.find("unexpected.metric").counter()).isNull()
 
