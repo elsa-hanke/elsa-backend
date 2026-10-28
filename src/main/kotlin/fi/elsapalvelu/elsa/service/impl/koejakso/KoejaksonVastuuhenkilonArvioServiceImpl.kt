@@ -180,7 +180,9 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 deletedAsiakirjaIds
             )
         } else if (vastuuhenkilo?.user?.id == userId) {
-            if (!vastuuhenkilonArvio.virkailijaHyvaksynyt || vastuuhenkilonArvio.erikoistuvanKuittausaika == null) {
+            if (koejaksoArkistointiService.isAsyncEnabled(
+                    vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi.required(), CaseType.KOEJAKSO
+                ) && (!vastuuhenkilonArvio.virkailijaHyvaksynyt || vastuuhenkilonArvio.erikoistuvanKuittausaika == null)) {
                 throw BadRequestAlertException(
                     "Arvion aikaisemmat hyväksynnät puuttuvat.", "koejakson_vastuuhenkilon_arvio",
                     "dataillegal.arvion-aiemmat-hyvaksynnat-puuttuvat"
@@ -209,6 +211,11 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     }
 
     private fun loadForUpdate(id: Long): KoejaksonVastuuhenkilonArvio {
+        val university = koejaksonVastuuhenkilonArvioRepository.findUniversityById(id)
+        if (university == null || !koejaksoArkistointiService.isAsyncEnabled(university, CaseType.KOEJAKSO)) {
+            return koejaksonVastuuhenkilonArvioRepository.findById(id)
+                .orElseThrow { EntityNotFoundException("Vastuuhenkilön arviota ei löydy") }
+        }
         val arvio = koejaksonVastuuhenkilonArvioRepository.findByIdForUpdate(id)
             ?: throw EntityNotFoundException("Vastuuhenkilön arviota ei löydy")
         if (arvio.vastuuhenkiloHyvaksynyt) {

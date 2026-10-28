@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.repository.koejakso
 
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import jakarta.persistence.LockModeType
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.JpaRepository
@@ -13,7 +14,11 @@ import java.util.*
 @Repository
 interface KoejaksonKoulutussopimusRepository : JpaRepository<KoejaksonKoulutussopimus, Long> {
 
-    /** Call before loading the contract in the write transaction; serializes all updates. */
+    /** Read the routing value without loading a potentially stale contract into the persistence context. */
+    @Query("select s.opintooikeus.yliopisto.nimi from KoejaksonKoulutussopimus s where s.id = :id")
+    fun findUniversityById(id: Long): YliopistoEnum?
+
+    /** Call before loading the contract in an async approval transaction; serializes its updates. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from KoejaksonKoulutussopimus s where s.id = :id")
     fun findByIdForUpdate(id: Long): KoejaksonKoulutussopimus?

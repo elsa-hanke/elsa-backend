@@ -251,13 +251,25 @@ Hyväksyntä, tavallisen ladattavan PDF:n luonti, sen muuttumaton snapshot, job 
 `scheduled_tasks` tallentuvat samassa transaktiossa. Payload sisältää hyväksymishetken
 henkilö-, opinto-oikeus-, tarkastaja- ja hyväksyjätiedot sekä arvion lopputuloksen.
 Worker käyttää tallennettua sisältöä eikä muodosta PDF:ää uudelleen.
+Payloadin `documents`-lista tallentaa myös `SOPIMUS`- ja `KOEJAKSO`-toimituksille
+alkuperäisen `sourceDocumentId`-tunnisteen ja muuttumattoman `snapshotDocumentId`-tunnisteen
+sekä `recordType`- ja `jarjestysnumero`-arvot. Worker lataa tavut snapshotin tunnisteella;
+Louhi-adapterin tulee käyttää tallennettua alkuperäistä tunnistetta SÄHKE-XML:n
+`Record.nativeId`-kentässä ja tarkistaa vastaavuus jobin asiakirjaviitteisiin.
+Alkuperäisen dokumentin myöhempi muutos ei muuta tätä sidosta tai toimitettavia tavuja.
+XML-kytkentä toteutetaan adapterin tehtävässä; nykyinen synkroninen polku säilyy.
 Sähköposti-ilmoitukset lähetetään commitin jälkeen.
 Hyväksymistransaktio peruuntuu myös checked-poikkeuksilla, kuten payloadin
 sarjoitusvirheellä.
 
-Päivitykset lukitsevat sopimuksen tai arvion rivin ennen tilan tarkistamista.
-Lopullisesti hyväksyttyä käsittelyä ei voi toistaa tai muokata tämän päivityspolun
-kautta. Paikalliset liiketoiminta-avaimet ovat
+Asynkronisessa tilassa päivitykset lukitsevat sopimuksen tai arvion rivin ennen
+tilan tarkistamista. Lopullisesti hyväksyttyä käsittelyä ei voi tällöin toistaa
+tai muokata tämän päivityspolun kautta, ja aikaisemmat hyväksynnät tarkistetaan.
+Synkronisessa tilassa säilyvät aiemmat päivityssäännöt ilman uusia
+ennakkolukituksia tai hyväksyntätarkistuksia. Synkroninen lähetys käyttää suoraan
+alkuperäistä asiakirjaa ja aiempia metatietoja eikä muodosta async-payloadia.
+HTTP-rajapinnan nykyiset hyväksyntätarkistukset säilyvät molemmissa tiloissa.
+Paikalliset liiketoiminta-avaimet ovat
 `koejakso-sopimus:<YLIOPISTO>:<sopimusId>` ja
 `koejakso-arvio:<YLIOPISTO>:<arvioId>`; toimitusavaimena säilyy jobin UUID.
 Koejakson jonopolku tarkistaa olemassa olevan jobin liiketoiminta-avaimella ennen

@@ -40,6 +40,7 @@ import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.arkistointi.koejakso.KoejaksoArkistointiService
 import fi.elsapalvelu.elsa.service.mail.TransactionalMailService
 import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonKoulutussopimusDTO
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
@@ -150,7 +151,9 @@ class KoejaksonKoulutussopimusServiceImpl(
                 koulutussopimusPdfTextValidator.validateKouluttajanKentat(koulutussopimusDTO, it.id, userId)
             }
             if (vastuuhenkilo?.user?.id == userId) {
-                validatePreviousApprovals(koulutussopimus)
+                if (arkistointiService.isAsyncEnabled(koulutussopimus.opintooikeus?.yliopisto?.nimi.required(), CaseType.SOPIMUS)) {
+                    validatePreviousApprovals(koulutussopimus)
+                }
                 koulutussopimusPdfTextValidator.validateVastuuhenkilonKentat(koulutussopimusDTO)
             }
 
@@ -199,6 +202,11 @@ class KoejaksonKoulutussopimusServiceImpl(
     }
 
     private fun loadForUpdate(id: Long): KoejaksonKoulutussopimus {
+        val university = koejaksonKoulutussopimusRepository.findUniversityById(id)
+        if (university == null || !arkistointiService.isAsyncEnabled(university, CaseType.SOPIMUS)) {
+            return koejaksonKoulutussopimusRepository.findById(id)
+                .orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
+        }
         val sopimus = koejaksonKoulutussopimusRepository.findByIdForUpdate(id)
             ?: throw EntityNotFoundException("Koulutussopimusta ei löydy")
         if (sopimus.vastuuhenkiloHyvaksynyt) {
@@ -365,8 +373,6 @@ class KoejaksonKoulutussopimusServiceImpl(
         // Palautettu korjattavaksi
         else {
             koulutussopimus.vastuuhenkilonKorjausehdotus = updated.korjausehdotus
-            koulutussopimus.vastuuhenkiloHyvaksynyt = false
-            koulutussopimus.vastuuhenkilonKuittausaika = null
             koulutussopimus.lahetetty = false
             koulutussopimus.erikoistuvanAllekirjoitusaika = null
 

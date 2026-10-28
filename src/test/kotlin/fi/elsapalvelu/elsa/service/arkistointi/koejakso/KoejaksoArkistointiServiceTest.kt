@@ -5,11 +5,13 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
+import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
@@ -17,6 +19,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreato
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiPackage
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -44,14 +47,14 @@ class KoejaksoArkistointiServiceTest {
     private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
     private val service = KoejaksoArkistointiService(configuration, synchronous, snapshots, creator, mapper, jobs)
     private val university = YliopistoEnum.HELSINGIN_YLIOPISTO
-    private val studyRight = Opintooikeus(id = 12, yliopisto = Yliopisto(nimi = university))
+    private val studyRight = Opintooikeus(id = 12, yliopisto = Yliopisto(nimi = university), erikoisala = Erikoisala(id = 1))
     private val document = Asiakirja(id = 22, nimi = "approval.pdf", tyyppi = "application/pdf")
 
     @ParameterizedTest
     @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
     fun `disabled integration creates no snapshot or job`(type: CaseType) {
         archive(type)
-        verifyNoInteractions(configuration, snapshots, creator, jobs)
+        verifyNoInteractions(snapshots, creator, jobs)
     }
 
     @ParameterizedTest
@@ -60,7 +63,8 @@ class KoejaksoArkistointiServiceTest {
         whenever(synchronous.onKaytossa(university, type)).thenReturn(true)
         whenever(configuration.isAsyncEnabled(university, type)).thenReturn(true)
         val recordType = if (type == CaseType.SOPIMUS) RecordType.SOPIMUS else RecordType.ARVIOINTI
-        val reference = ArkistointiAsiakirjaReference(document, recordType, 0, "approval.pdf", "application/pdf", "abc")
+        val snapshot = Asiakirja(id = 33, nimi = "approval.pdf", tyyppi = "application/pdf", archiveSnapshot = true)
+        val reference = ArkistointiAsiakirjaReference(snapshot, recordType, 0, "approval.pdf", "application/pdf", "abc")
         whenever(snapshots.createReference(document, recordType, 0)).thenReturn(reference)
 
         archive(type)
@@ -74,6 +78,7 @@ class KoejaksoArkistointiServiceTest {
         val payload = mapper.readValue(request.firstValue.payload, KoejaksoArkistointiPayload::class.java)
         assertThat(payload.caseId).isEqualTo(7)
         assertThat(payload.opintooikeusId).isEqualTo(12)
+        assertThat(payload.documents).containsExactly(ArkistointiDocumentIdentity(22, 33, recordType, 0))
         assertThat(payload.approvalDate).isEqualTo(LocalDate.of(2026, 10, 24))
         assertThat(payload.koejaksoHyvaksytty).isEqualTo(if (type == CaseType.KOEJAKSO) false else null)
         assertThat(payload.reviewer).isEqualTo(if (type == CaseType.SOPIMUS) "" else null)
@@ -87,6 +92,9 @@ class KoejaksoArkistointiServiceTest {
     @ParameterizedTest
     @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
     fun `sync keeps existing package and delivery path`(type: CaseType) {
+        // These values are required by async payload creation, but not by the legacy sender.
+        studyRight.id = null
+        document.id = null
         whenever(synchronous.onKaytossa(university, type)).thenReturn(true)
         whenever(synchronous.muodostaSahke(
             anyOrNull(), any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any()
@@ -94,7 +102,29 @@ class KoejaksoArkistointiServiceTest {
 
         archive(type)
 
+        val records = argumentCaptor<List<fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties>>()
+        verify(synchronous).muodostaSahke(
+            eq(studyRight), records.capture(), eq("7"), eq(if (type == CaseType.SOPIMUS) "" else null),
+            eq(null), eq(null), eq(LocalDate.of(2026, 10, 24)), eq(university), eq(type)
+        )
+        assertThat(records.firstValue).hasSize(1)
+        assertThat(records.firstValue.single().asiakirja).isSameAs(document)
         verify(synchronous).laheta(eq(university), eq("/tmp/test.zip"), eq(type), eq(false), eq("7"), anyOrNull())
+        verifyNoInteractions(snapshots, creator, jobs)
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
+    fun `sync preserves YEK flag`(type: CaseType) {
+        studyRight.erikoisala!!.id = YEK_ERIKOISALA_ID
+        whenever(synchronous.onKaytossa(university, type)).thenReturn(true)
+        whenever(synchronous.muodostaSahke(
+            anyOrNull(), any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any()
+        )).thenReturn(ArkistointiPackage("/tmp/test.zip", null))
+
+        archive(type)
+
+        verify(synchronous).laheta(eq(university), eq("/tmp/test.zip"), eq(type), eq(true), eq("7"), anyOrNull())
         verifyNoInteractions(snapshots, creator, jobs)
     }
 
