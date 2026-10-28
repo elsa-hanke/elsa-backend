@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service
+package fi.elsapalvelu.elsa.service.richtext
 
 import fi.elsapalvelu.elsa.domain.arviointi.Arviointityokalu
 import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavaKokonaisuus

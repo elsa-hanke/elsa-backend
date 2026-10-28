@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.document.toDescriptor
 import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -20,7 +21,8 @@ import org.springframework.transaction.annotation.Transactional
 class ArkistointiJobStateService(
     private val jobs: ArkistointiJobRepository,
     private val mapper: ObjectMapper,
-    private val jdbc: JdbcTemplate
+    private val jdbc: JdbcTemplate,
+    private val events: ApplicationEventPublisher
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -32,7 +34,7 @@ class ArkistointiJobStateService(
             log.warn("Archive job missing [jobId={}]", jobId)
             return null
         }
-        if (job.isTerminal()) return null
+        if (job.isFinished()) return null
         job.startProcessing()
         val payload = job.payload.required()
         val validPayload = try {
@@ -56,7 +58,7 @@ class ArkistointiJobStateService(
     fun checkBeforeSend(execution: ArkistointiJobExecution): Boolean {
         lockExecution(execution)
         val job = jobs.findByIdForStateChange(execution.jobId) ?: return false
-        if (job.isTerminal()) return false
+        if (job.isFinished()) return false
         // A recovery handler may have committed ODOTTAA before rescheduling this same version.
         // Do not acknowledge that execution while its retry is still being arranged.
         if (job.status != ArkistointiJobStatus.KASITTELYSSA) throw StaleArkistointiExecutionException()
@@ -64,9 +66,9 @@ class ArkistointiJobStateService(
     }
 
     fun succeed(execution: ArkistointiJobExecution, externalId: String?) {
-        lockExecution(execution)
+        val attempt = lockExecution(execution)
         val job = requireNotNull(jobs.findByIdForStateChange(execution.jobId))
-        if (job.isTerminal()) return
+        if (job.isFinished()) return
         ArkistointiExternalId.validate(externalId)
         job.startProcessing()
         job.transitionTo(ArkistointiJobStatus.LAHETETTY)
@@ -74,42 +76,50 @@ class ArkistointiJobStateService(
         job.completedAt = Instant.now()
         job.errorCode = null
         job.lastError = null
+        publishOutcome(job, attempt, ArkistointiAttemptCompleted.Outcome.SUCCESS)
     }
 
     /** Returns false once no further automatic execution is needed. */
-    fun fail(execution: ArkistointiJobExecution, error: ArkistointiError, terminal: Boolean): Boolean {
-        lockExecution(execution)
+    fun fail(execution: ArkistointiJobExecution, error: ArkistointiError, stopRetrying: Boolean): Boolean {
+        val attempt = lockExecution(execution)
         val job = jobs.findByIdForStateChange(execution.jobId) ?: return false
-        return recordFailure(job, error, terminal)
+        if (job.isFinished()) return false
+        val retry = recordFailure(job, error, stopRetrying)
+        publishOutcome(job, attempt, if (stopRetrying) ArkistointiAttemptCompleted.Outcome.TERMINAL_FAILURE
+            else ArkistointiAttemptCompleted.Outcome.RETRYABLE_FAILURE, error.code)
+        return retry
     }
 
-    private fun lockExecution(execution: ArkistointiJobExecution) {
+    private fun lockExecution(execution: ArkistointiJobExecution): Int {
         // Lock order: scheduled_tasks -> arkistointi_job. Keep the scheduler's version stable until
         // the job update commits; a separate SELECT without FOR UPDATE would leave another race.
         val current = jdbc.query(
-            "select version from scheduled_tasks where task_name = ? and task_instance = ? " +
+            "select consecutive_failures from scheduled_tasks where task_name = ? and task_instance = ? " +
                 "and version = ? and picked = true for update",
-            { _, _ -> true }, execution.taskName, execution.taskInstanceId, execution.version
-        ).isNotEmpty()
-        if (!current) throw StaleArkistointiExecutionException()
+            { row, _ -> row.getInt("consecutive_failures") + 1 }, execution.taskName, execution.taskInstanceId, execution.version
+        ).singleOrNull()
+        return current ?: throw StaleArkistointiExecutionException()
     }
 
-    private fun recordFailure(job: ArkistointiJob, error: ArkistointiError, terminal: Boolean): Boolean {
-        if (job.isTerminal()) return false
+    private fun publishOutcome(job: ArkistointiJob, attempt: Int, outcome: ArkistointiAttemptCompleted.Outcome, code: String? = null) {
+        events.publishEvent(ArkistointiAttemptCompleted(job.id.required(), job.university.required(), job.caseType.required(), attempt, outcome, code))
+    }
+
+    private fun recordFailure(job: ArkistointiJob, error: ArkistointiError, stopRetrying: Boolean): Boolean {
+        if (job.isFinished()) return false
         job.startProcessing()
         job.errorCode = error.code
         job.lastError = error.description
         job.transitionTo(
-            if (terminal) ArkistointiJobStatus.VAATII_TOIMENPITEITA else ArkistointiJobStatus.ODOTTAA
+            if (stopRetrying) ArkistointiJobStatus.VAATII_TOIMENPITEITA else ArkistointiJobStatus.ODOTTAA
         )
-        return !terminal
+        return !stopRetrying
     }
 
     private fun ArkistointiJob.startProcessing() {
-        // KASITTELYSSA is valid after db-scheduler recovers an interrupted execution.
         if (status == ArkistointiJobStatus.ODOTTAA) transitionTo(ArkistointiJobStatus.KASITTELYSSA)
     }
 
-    private fun ArkistointiJob.isTerminal() =
-        status == ArkistointiJobStatus.LAHETETTY || status == ArkistointiJobStatus.VAATII_TOIMENPITEITA
+    /** Automatic processing is finished; a controlled manual retry may still be possible. */
+    private fun ArkistointiJob.isFinished() = status == ArkistointiJobStatus.LAHETETTY || status == ArkistointiJobStatus.VAATII_TOIMENPITEITA
 }

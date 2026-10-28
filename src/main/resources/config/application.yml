@@ -298,6 +298,7 @@ application:
       max-delay: 4h
       multiplier: 2.0
       jitter-factor: 0.1
+      alert-after-attempts: 3
     tre:
       kaytossa: false
       transfer:

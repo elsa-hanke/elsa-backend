@@ -15,5 +15,6 @@ data class CreateArkistointiJobRequest(
     override fun toString() = "CreateArkistointiJobRequest(" +
         "university=$university, " +
         "caseType=$caseType, " +
+        "key=$key, " +
         "asiakirjoja=${asiakirjat.size})"
 }

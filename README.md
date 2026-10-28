@@ -73,8 +73,11 @@ commitoidu. Tämä sallii JPA:n lisätä ensin jobin ja vasta sitten sen viittee
 `ArkistointiJobCreatorImpl` asettaa määrän koko pyyntölistasta ennen tallennusta.
 Saman liiketoiminta-avaimen toistuva luontikutsu palauttaa aiemman jobin ennen
 viitteiden käsittelyä: payloadia, asiakirjamäärää tai snapshot-viitteitä ei vaihdeta,
-eikä creator luo uusia snapshoteja tai ajastusta. Tämä ei poista kutsujan ennen
-creator-kutsua mahdollisesti luomia erillisiä snapshoteja.
+eikä creator luo uusia snapshoteja tai ajastusta. Valmistumisen async-viimeistely
+tarkistaa saman avaimen jo ennen PDF-tuotantoa, ilmoituksia ja snapshotien luontia,
+joten olemassa olevan jobin toistuva sisäinen käsittely ei luo ylimääräisiä kopioita.
+Hyväksynnän rivin lukitus ja creatorin lopullinen avaintarkistus säilyvät;
+pelkkä ennakkohaku ei korvaa niitä.
 Lisäykset lukitsevat saman job-rivin, joten rinnakkaiset viitelisäykset
 sarjallistuvat. Valmiiseen toimitukseen ei voi lisätä uusia viitteitä.
 Tarkistusten pakottaminen välittömiksi `SET CONSTRAINTS` -komennolla edellyttää,
@@ -159,8 +162,13 @@ Arkistosnapshot tallentaa olemassa olevan asiakirjan tavut, nimen ja MIME-tyypin
 sellaisinaan. PDF:t luodaan ja liitteet yhdistetään olemassa olevalla PDF-palvelulla;
 snapshot ei normalisoi, rasteroi tai pienennä sisältöä eikä edellytä PDF/A-muotoa.
 Oma HTML-pohjainen PDF-tuotanto säilyttää aiemman PDF/A-2b-luontitapansa.
-Erillinen laillistamistodistus säilyttää alkuperäisen tiedostomuotonsa, myös kuvat
-ja `image/jpg`-MIME-tyypin. Snapshotin tallennus ei ole uusi tiedostovalidaattori:
+Jobin asiakirjat valitaan yliopiston ja asian tyypin asiakirja-asetuksista samalla
+tavalla kuin synkronisessa SÄHKE-paketissa. Tampereen valmistumisessa arkistoidaan
+vain yhteenveto ja liitteet, Helsingin valmistumisessa vain yhteenveto.
+Async-polku ei lisää synkronisesta toimituksesta puuttuvia asiakirjoja:
+erillistä laillistamistodistusta ei lueta snapshotia varten eikä sen puuttuminen
+estä arkistointijonoon siirtämistä kummassakaan yliopistossa.
+Snapshotin tallennus ei ole uusi tiedostovalidaattori:
 sisällön hyväksyttävyys tarkistetaan olemassa olevassa lataus- ja PDF-käsittelyssä.
 Pakollinen puuttuva tai tyhjä aineisto sekä puuttuvat metatiedot estävät snapshotin
 luonnin hallitulla virheellä. Nimen ja MIME-tyypin tulee mahtua 255 merkin sarakkeisiin.
@@ -247,13 +255,25 @@ Hyväksyntä, tavallisen ladattavan PDF:n luonti, sen muuttumaton snapshot, job 
 `scheduled_tasks` tallentuvat samassa transaktiossa. Payload sisältää hyväksymishetken
 henkilö-, opinto-oikeus-, tarkastaja- ja hyväksyjätiedot sekä arvion lopputuloksen.
 Worker käyttää tallennettua sisältöä eikä muodosta PDF:ää uudelleen.
+Payloadin `documents`-lista tallentaa myös `SOPIMUS`- ja `KOEJAKSO`-toimituksille
+alkuperäisen `sourceDocumentId`-tunnisteen ja muuttumattoman `snapshotDocumentId`-tunnisteen
+sekä `recordType`- ja `jarjestysnumero`-arvot. Worker lataa tavut snapshotin tunnisteella;
+Louhi-adapterin tulee käyttää tallennettua alkuperäistä tunnistetta SÄHKE-XML:n
+`Record.nativeId`-kentässä ja tarkistaa vastaavuus jobin asiakirjaviitteisiin.
+Alkuperäisen dokumentin myöhempi muutos ei muuta tätä sidosta tai toimitettavia tavuja.
+XML-kytkentä toteutetaan adapterin tehtävässä; nykyinen synkroninen polku säilyy.
 Sähköposti-ilmoitukset lähetetään commitin jälkeen.
 Hyväksymistransaktio peruuntuu myös checked-poikkeuksilla, kuten payloadin
 sarjoitusvirheellä.
 
-Päivitykset lukitsevat sopimuksen tai arvion rivin ennen tilan tarkistamista.
-Lopullisesti hyväksyttyä käsittelyä ei voi toistaa tai muokata tämän päivityspolun
-kautta. Paikalliset liiketoiminta-avaimet ovat
+Asynkronisessa tilassa päivitykset lukitsevat sopimuksen tai arvion rivin ennen
+tilan tarkistamista. Lopullisesti hyväksyttyä käsittelyä ei voi tällöin toistaa
+tai muokata tämän päivityspolun kautta, ja aikaisemmat hyväksynnät tarkistetaan.
+Synkronisessa tilassa säilyvät aiemmat päivityssäännöt ilman uusia
+ennakkolukituksia tai hyväksyntätarkistuksia. Synkroninen lähetys käyttää suoraan
+alkuperäistä asiakirjaa ja aiempia metatietoja eikä muodosta async-payloadia.
+HTTP-rajapinnan nykyiset hyväksyntätarkistukset säilyvät molemmissa tiloissa.
+Paikalliset liiketoiminta-avaimet ovat
 `koejakso-sopimus:<YLIOPISTO>:<sopimusId>` ja
 `koejakso-arvio:<YLIOPISTO>:<arvioId>`; toimitusavaimena säilyy jobin UUID.
 Koejakson jonopolku tarkistaa olemassa olevan jobin liiketoiminta-avaimella ennen
@@ -370,12 +390,23 @@ kadonneen `rename`-kuittauksen ja todellisen yhteyden sulkemisen timeoutissa.
 Testi dokumentoi myös, että toinen kutsu voi lähettää jo käsitellyn paketin uudelleen:
 nämä testit eivät osoita deduplikointia, arkiston lopullista sisäänlukua tai vastaanottajan tiedostorajoja.
 
+Valmistumisen payloadin `documents`-lista tallentaa jokaisesta jonoon valitusta
+asiakirjasta `sourceDocumentId`-, `snapshotDocumentId`-, `recordType`- ja
+`jarjestysnumero`-arvot. Alkuperäinen tunniste ja snapshotin tunniste sidotaan
+toisiinsa snapshotin luonnissa. Payload on tietokannassa muuttumaton; tunnisteita
+ei päätellä myöhemmin valmistumispyynnön nykyisistä asiakirjoista.
+Worker lataa tavut edelleen snapshot-viitteen kautta. Louhi-adapterin XML-kytkennän
+tulee käyttää tallennettua `sourceDocumentId`-arvoa SÄHKE-`Record.nativeId`-kentässä
+ja tarkistaa, että payloadin asiakirjat vastaavat jobin snapshot-viitteitä.
+Tämä vaihe tallentaa tunnisteet; niiden käyttö Louhi-XML:ssä toteutetaan adapterin tehtävässä.
+
 Asetuksen palauttaminen arvoon `false` koskee uusia hyväksyntöjä. Jo jonossa olevat jobit säilyvät ja tarvitsevat edelleen taustakäsittelyn; niitä ei toimiteta automaattisesti vanhan synkronisen polun kautta.
 
 Async-hyväksyntä tallentaa muuttumattoman kopion samasta valmiista yhteenvedosta
-ja liitekoosteesta, jota synkroninen toimitus käyttää. Alkuperäisiä liitteitä ei
-kysellä tai yhdistetä uudelleen arkistokopiota varten. Laillistamistodistus
-säilyttää alkuperäiset tavunsa, nimensä ja MIME-tyyppinsä. Taustakäsittelijä
+ja liitekoosteesta yliopiston ja tapaustyypin synkronista toimitusta vastaavan
+asiakirjavalinnan mukaisesti: Tampereelle yhteenveto ja liitekooste, Helsingille
+vain yhteenveto. Erillistä laillistamistodistusta ei lueta tai vaadita.
+Alkuperäisiä liitteitä ei kysellä tai yhdistetä uudelleen arkistokopiota varten. Taustakäsittelijä
 lataa snapshotin JDBC:llä, tarkistaa tiivisteen ja välittää sisällön adapterille
 sellaisenaan. Muunnoksia tai PDF/A-vaatimusta ei lisätä lähetyksen tai uusintojen
 yhteydessä. Testit kattavat myös tavallisen pitkän PDF:n ja CMYK-JPEG:n täsmällisen
@@ -438,6 +469,22 @@ eksponentiaalisesta viiveestä; neljän tunnin kohdalla vaihteluväli on 3 h 36 
 Jitter lyhentää viiveitä eikä kasvata yllä kuvattua enimmäisodotusaikaa. Arvo `0`
 poistaa jitterin käytöstä. Kelvollinen kerroin on vähintään 0 ja alle 1; viive on
 aina vähintään yksi millisekunti.
+
+Async-tulokset päivittävät commitin jälkeen nykyisiä `arkistointi.requests.total`-
+ja `arkistointi.errors.total`-mittareita sekä `arkistointi.async.attempts.total`-mittaria
+rajatuilla yliopisto-, tapaustyyppi- ja tulostageilla. Virhemittari laskee epäonnistuneita
+käsittely-yrityksiä, myös palautettuja keskeytyneitä suorituksia. SNS-varoitus lähetetään
+asetuksen `application.arkistointi.retry.alert-after-attempts` kohdalla (oletus 3);
+aiemmat ja myöhemmät tilapäiset virheet eivät lähetä yrityskohtaista SNS-viestiä.
+Pysyvä virhe tai yritysrajan täyttyminen lähettää erillisen toimenpideilmoituksen heti
+`VAATII_TOIMENPITEITA`-tilan commitin jälkeen. Viesti sisältää vain job-UUID:n,
+yliopiston, tapaustyypin, yritysnumeron, tuloksen ja turvallisen virhekoodin.
+Rollback ja vanhentunut suoritus eivät julkaise tulosta. Ilmoituksen tai mittarin
+virhe ei muuta arkistointitulosta tai estä schedulerin kuittausta.
+Havainnointi on best effort: prosessin kaatuminen commitin jälkeen voi hukata viestin,
+ja saman version rinnakkaiset handlerit voivat tuottaa saman varoituksen uudelleen.
+Pysyvää ilmoitusjonoa, deduplikointia tai palautumisviestiä ei vielä ole;
+ne kuuluvat erilliseen valvonta- ja hallintatehtävään.
 
 Jobin tilan commit ja db-schedulerin `reschedule`/`remove` ovat erillisiä vaiheita.
 Jos ajastuksen päivitys epäonnistuu commitin jälkeen, poimittu suoritus jää

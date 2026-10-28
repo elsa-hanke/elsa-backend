@@ -5,7 +5,6 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentD
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import java.util.UUID
 
-/** Detached scalar metadata only: preparation never loads document bytes. */
 data class PreparedArkistointiJob(
     val jobId: UUID,
     val university: YliopistoEnum,

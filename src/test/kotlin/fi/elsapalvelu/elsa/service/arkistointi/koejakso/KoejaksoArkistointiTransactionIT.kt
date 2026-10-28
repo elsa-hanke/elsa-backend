@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
+import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonKoulutussopimusRepository
@@ -72,6 +73,8 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isA
+import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.mockito.kotlin.verify
@@ -110,8 +113,8 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
     @Autowired private lateinit var jdbc: JdbcTemplate
     @Autowired private lateinit var jobs: ArkistointiJobRepository
     @Autowired private lateinit var properties: ApplicationProperties
-    @Autowired private lateinit var contracts: KoejaksonKoulutussopimusRepository
-    @Autowired private lateinit var assessments: KoejaksonVastuuhenkilonArvioRepository
+    @MockitoSpyBean private lateinit var contracts: KoejaksonKoulutussopimusRepository
+    @MockitoSpyBean private lateinit var assessments: KoejaksonVastuuhenkilonArvioRepository
     @Autowired private lateinit var contractMapper: KoejaksonKoulutussopimusMapper
     @Autowired private lateinit var assessmentMapper: KoejaksonVastuuhenkilonArvioMapper
     @Autowired private lateinit var contractService: KoejaksonKoulutussopimusService
@@ -150,7 +153,8 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         approve(fixture, type).andExpect(status().isInternalServerError)
 
         assertRolledBack(fixture, type)
-        verifyNoInteractions(snapshots, creator, scheduler)
+        verify(snapshots).createReference(any(), any(), any())
+        verifyNoInteractions(creator, scheduler)
     }
 
     @ParameterizedTest
@@ -171,6 +175,13 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
             assertThat(reference.asiakirjatyyppi).isEqualTo(if (type == CaseType.SOPIMUS) RecordType.SOPIMUS else RecordType.ARVIOINTI)
             val snapshot = reference.asiakirja!!
             val original = asiakirjaRepository.findAllByOpintooikeusId(fixture.studyRightId).single()
+            assertThat(snapshot.id).isNotEqualTo(original.id)
+            assertThat(payload.documents).hasSize(1)
+            val identity = payload.documents.single()
+            assertThat(identity.sourceDocumentId).isEqualTo(original.id)
+            assertThat(identity.snapshotDocumentId).isEqualTo(snapshot.id)
+            assertThat(identity.recordType).isEqualTo(reference.asiakirjatyyppi)
+            assertThat(identity.jarjestysnumero).isEqualTo(reference.jarjestysnumero)
             assertThat(snapshot.archiveSnapshot).isTrue()
             assertThat(snapshot.asiakirjaData!!.data).isEqualTo(original.asiakirjaData!!.data)
             assertThat(reference.sha256).isEqualTo(ArkistointiChecksum.sha256(snapshot.asiakirjaData!!.data!!))
@@ -396,6 +407,77 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
 
     @ParameterizedTest
     @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
+    fun `sync service preserves approval without the new previous approval checks`(type: CaseType) {
+        properties.getArkistointi().getTre().metadata!!.getCaseMetadata(type)!!.asyncEnabled = false
+        val fixture = fixture()
+        transactions.executeWithoutResult {
+            if (type == CaseType.SOPIMUS) {
+                contracts.findById(fixture.contractId).orElseThrow().kouluttajat!!.forEach { trainer -> trainer.sopimusHyvaksytty = false }
+            } else {
+                assessments.findById(fixture.assessmentId).orElseThrow().virkailijaHyvaksynyt = false
+            }
+        }
+
+        // Existing HTTP guards still apply; exercise the service boundary changed by task5 directly.
+        updateApproval(fixture, type)
+
+        verify(legacy).laheta(any(), eq("/tmp/koejakso-test.zip"), eq(type), any(), anyOrNull(), anyOrNull())
+        assertNoJob(fixture, type)
+        assertThat(documentCount(fixture)).isEqualTo(1)
+        verifyNoInteractions(snapshots, creator, scheduler)
+        verify(contracts, never()).findByIdForUpdate(any())
+        verify(assessments, never()).findByIdForUpdate(any())
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
+    fun `sync service preserves repeated approval without the new async guard`(type: CaseType) {
+        properties.getArkistointi().getTre().metadata!!.getCaseMetadata(type)!!.asyncEnabled = false
+        val fixture = fixture()
+
+        updateApproval(fixture, type)
+        updateApproval(fixture, type)
+
+        verify(legacy, times(2)).laheta(any(), eq("/tmp/koejakso-test.zip"), eq(type), any(), anyOrNull(), anyOrNull())
+        assertNoJob(fixture, type)
+        assertThat(documentCount(fixture)).isEqualTo(2)
+        verifyNoInteractions(snapshots, creator, scheduler)
+        verify(contracts, never()).findByIdForUpdate(any())
+        verify(assessments, never()).findByIdForUpdate(any())
+    }
+
+    @Test
+    fun `sync HTTP still rejects assessment reapproval as on main`() {
+        properties.getArkistointi().getTre().metadata!!.getCaseMetadata(CaseType.KOEJAKSO)!!.asyncEnabled = false
+        val fixture = fixture()
+
+        approve(fixture, CaseType.KOEJAKSO).andExpect(status().isOk)
+        approve(fixture, CaseType.KOEJAKSO).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("error.dataillegal.hyvaksyttya-arviointia-ei-saa-muokata"))
+
+        assertThat(documentCount(fixture)).isEqualTo(1)
+        assertNoJob(fixture, CaseType.KOEJAKSO)
+        verifyNoInteractions(snapshots, creator, scheduler)
+    }
+
+    @Test
+    fun `sync HTTP still requires trainer approvals for a contract as on main`() {
+        properties.getArkistointi().getTre().metadata!!.getCaseMetadata(CaseType.SOPIMUS)!!.asyncEnabled = false
+        val fixture = fixture()
+        transactions.executeWithoutResult {
+            contracts.findById(fixture.contractId).orElseThrow().kouluttajat!!.forEach { trainer -> trainer.sopimusHyvaksytty = false }
+        }
+
+        approve(fixture, CaseType.SOPIMUS).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value(
+                "error.dataillegal.vastuuhenkilo-ei-saa-muokata-sopimusta-jos-kouluttajat-eivat-ole-hyvaksyneet-sita"
+            ))
+
+        assertAwaitingFinalApproval(fixture, CaseType.SOPIMUS)
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
     fun `disabled archiving still generates ordinary PDF without a snapshot`(type: CaseType) {
         val fixture = fixture()
         properties.getArkistointi().getTre().kaytossa = false
@@ -437,17 +519,25 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         }
     }
 
-    @Test
-    fun `processor delivers saved metadata and bytes with job UUID after source changes`() {
+    @ParameterizedTest
+    @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
+    fun `processor delivers saved identities and bytes after the original document is replaced`(type: CaseType) {
         val fixture = fixture()
-        approve(fixture, CaseType.KOEJAKSO).andExpect(status().isOk)
-        val saved = job(fixture, CaseType.KOEJAKSO)
+        approve(fixture, type).andExpect(status().isOk)
+        val saved = job(fixture, type)
+        val identity = objectMapper.readValue(saved.payload, KoejaksoArkistointiPayload::class.java).documents.single()
         transactions.executeWithoutResult {
             val studyRight = opintooikeusRepository.findById(fixture.studyRightId).orElseThrow()
             studyRight.opiskelijatunnus = "changed-after-approval"
             val source = asiakirjaRepository.findAllByOpintooikeusId(fixture.studyRightId).single()
-            source.asiakirjaData!!.data = "changed-original-document".toByteArray()
+            assertThat(source.id).isEqualTo(identity.sourceDocumentId).isNotEqualTo(identity.snapshotDocumentId)
+            val replacement = source.copy(id = null, nimi = "replacement-original.pdf",
+                asiakirjaData = AsiakirjaData(data = "changed-original-document".toByteArray()))
+            asiakirjaRepository.delete(source)
+            asiakirjaRepository.save(replacement)
+            assertThat(replacement.id).isNotEqualTo(identity.sourceDocumentId).isNotEqualTo(identity.snapshotDocumentId)
         }
+        assertThat(asiakirjaRepository.existsById(identity.sourceDocumentId)).isFalse()
         var submission: ArkistointiSubmission? = null
         adapter.behavior = {
             submission = it
@@ -457,9 +547,11 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         processor.process(claim(saved.id!!))
         val delivered = requireNotNull(submission)
         assertThat(delivered.key).isEqualTo(saved.id)
-        assertThat(delivered.caseType).isEqualTo(CaseType.KOEJAKSO)
+        assertThat(delivered.caseType).isEqualTo(type)
         assertThat(delivered.payload).isEqualTo(saved.payload)
+        assertThat(objectMapper.readValue(delivered.payload, KoejaksoArkistointiPayload::class.java).documents).containsExactly(identity)
         assertThat(delivered.asiakirjat).hasSize(1)
+        assertThat(delivered.asiakirjat.single().asiakirjaId).isEqualTo(identity.snapshotDocumentId)
         assertThat(ArkistointiChecksum.sha256(delivered.asiakirjat.single().sisalto))
             .isEqualTo(delivered.asiakirjat.single().sha256)
         PdfDocument(PdfReader(ByteArrayInputStream(delivered.asiakirjat.single().sisalto))).use {
@@ -526,6 +618,15 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         jdbc.update("update scheduled_tasks set picked = true where task_instance = ?", id.toString())
         val version = jdbc.queryForObject("select version from scheduled_tasks where task_instance = ?", Long::class.java, id.toString())!!
         ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, id.toString(), version)
+    }
+
+    private fun updateApproval(fixture: Fixture, type: CaseType) {
+        setSecurityContext(fixture.approverId, VASTUUHENKILO)
+        if (type == CaseType.SOPIMUS) {
+            contractService.update(contractDto(fixture), fixture.approverId)
+        } else {
+            assessmentService.update(assessmentDto(fixture).apply { koejaksoHyvaksytty = true }, fixture.approverId, null, null)
+        }
     }
 
     private fun approve(fixture: Fixture, type: CaseType, accepted: Boolean = true, correction: String? = null): org.springframework.test.web.servlet.ResultActions {

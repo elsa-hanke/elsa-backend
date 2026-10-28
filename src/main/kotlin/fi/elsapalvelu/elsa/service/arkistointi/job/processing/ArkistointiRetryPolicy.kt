@@ -10,7 +10,6 @@ class ArkistointiRetryPolicy(
     properties: ArkistointiRetryProperties = ArkistointiRetryProperties(),
     private val randomSample: () -> Double = { ThreadLocalRandom.current().nextDouble() }
 ) {
-    // Capture validated settings once; configuration binding must not mutate a running policy.
     init {
         properties.validate()
     }
@@ -27,7 +26,6 @@ class ArkistointiRetryPolicy(
         if (jitterFactor == 0.0) return Duration.ofMillis(cappedMillis)
         val sample = randomSample()
         require(sample.isFinite() && sample in 0.0..1.0) { "Archiving random sample must be between 0 and 1" }
-        // Round the lower bound up so even a 1ms delay stays positive and inside the chosen range.
         val minimumMillis = ceil(cappedMillis.toDouble() * (1.0 - jitterFactor)).toLong().coerceAtLeast(1)
         val jitteredMillis = (minimumMillis.toDouble() + (cappedMillis - minimumMillis).toDouble() * sample).toLong()
         return Duration.ofMillis(jitteredMillis.coerceIn(minimumMillis, cappedMillis))

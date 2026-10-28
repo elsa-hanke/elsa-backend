@@ -21,7 +21,8 @@ import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
-import fi.elsapalvelu.elsa.service.ArchiveImageTestData
+import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
+import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaErrorCategory
@@ -36,8 +37,8 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksyntaFormDTO
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
-import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonViimeistelyService
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.web.rest.findAll
@@ -49,15 +50,6 @@ import fi.elsapalvelu.elsa.web.rest.helpers.ValmistumispyynnonTarkistusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.ValmistumispyyntoHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
 import jakarta.persistence.EntityManager
-import java.io.ByteArrayInputStream
-import java.net.URI
-import java.nio.file.Files
-import java.nio.file.Path
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.UUID
-import java.util.zip.ZipFile
-import javax.cache.Caching
 import org.assertj.core.api.Assertions.assertThat
 import org.ehcache.core.config.DefaultConfiguration
 import org.ehcache.jsr107.EhcacheCachingProvider
@@ -66,10 +58,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -86,6 +81,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.transaction.support.TransactionTemplate
+import java.io.ByteArrayInputStream
+import java.net.URI
+import java.nio.file.Files
+import java.nio.file.Path
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
+import java.util.zip.ZipFile
+import javax.cache.Caching
 
 /** Real PDFs, SAHKE packages, approval and queue persistence; only email and remote SFTP are mocked. */
 @SpringBootTest(classes = [ElsaBackendApp::class], properties = [
@@ -99,6 +103,14 @@ import org.springframework.transaction.support.TransactionTemplate
     "application.arkistointi.tre.metadata.cases.valmistuminen.function=04.02.05",
     "application.arkistointi.tre.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
     "application.arkistointi.tre.metadata.cases.valmistuminen.documents.liite.retention-period=10",
+    "application.arkistointi.hki.kaytossa=true",
+    "application.arkistointi.hki.metadata.cases.valmistuminen.async-enabled=true",
+    "application.arkistointi.hki.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
+    "application.arkistointi.hki.metadata.zip-metadata=true",
+    "application.arkistointi.hki.metadata.organisation=Helsingin yliopisto",
+    "application.arkistointi.hki.metadata.cases.valmistuminen.title=Valmistumisen yhteenveto",
+    "application.arkistointi.hki.metadata.cases.valmistuminen.type=Raportti",
+    "application.arkistointi.hki.metadata.cases.valmistuminen.function=04.12",
     "db-scheduler.enabled=false"
 ])
 @Import(ValmistuminenArkistointiTransactionIT.CacheConfig::class)
@@ -109,7 +121,9 @@ class ValmistuminenArkistointiTransactionIT {
     @Autowired private lateinit var transactions: TransactionTemplate
     @Autowired private lateinit var jdbc: JdbcTemplate
     @Autowired private lateinit var service: ValmistumispyyntoService
+    @Autowired private lateinit var finalization: ValmistumispyynnonViimeistelyService
     @Autowired private lateinit var jobs: ArkistointiJobRepository
+    @Autowired private lateinit var requests: ValmistumispyyntoRepository
     @Autowired private lateinit var loader: ArkistointiAsiakirjaLoader
     @MockitoSpyBean private lateinit var snapshots: ArkistointiAsiakirjaSnapshotService
     @Autowired private lateinit var mapper: ObjectMapper
@@ -129,12 +143,11 @@ class ValmistuminenArkistointiTransactionIT {
     @ParameterizedTest
     @ValueSource(strings = ["EL", "EHL", "YEK"])
     fun `approval commits immutable documents metadata and scheduler task together`(kind: String) {
-        val fixture = fixture(kind, attachment = PdfTestData.cmykJpeg(), contentType = MediaType.IMAGE_JPEG_VALUE)
+        val fixture = fixture(kind, certificate = null, attachment = PdfTestData.cmykJpeg(), contentType = MediaType.IMAGE_JPEG_VALUE)
         approve(fixture)
         val key = key(fixture)
         val jobId = requireNotNull(transactions.execute { jobs.findByKey(key)?.id })
-        val expectedTypes = mutableListOf(RecordType.YHTEENVETO, RecordType.LIITE)
-        if (kind != "YEK") expectedTypes.add(RecordType.LAILLISTAMISTODISTUS)
+        val expectedTypes = listOf(RecordType.YHTEENVETO, RecordType.LIITE)
         val archivedBytes = mutableMapOf<Long, ByteArray>()
         val payload = transactions.execute {
             val job = jobs.findByKey(key)!!
@@ -147,6 +160,7 @@ class ValmistuminenArkistointiTransactionIT {
             val stored = job.payload!!
             val request = em.find(Valmistumispyynto::class.java, fixture.id)
             assertQueuedDocumentsMatchSources(job, request)
+            assertZipContents(job, request, expectedTypes, properties)
             assertThat(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }.asiakirja!!.id)
                 .isNotEqualTo(request.liitteetAsiakirja!!.id)
             assertGeneratedSummary(request)
@@ -188,6 +202,87 @@ class ValmistuminenArkistointiTransactionIT {
         verify(mail).sendEmailFromTemplate(anyOrNull<String>(), any(), any(), any(), any(), any())
         verify(legacyArchive, never()).muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
         verify(legacyArchive, never()).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
+    }
+
+    @ParameterizedTest
+    @EnumSource(YliopistoEnum::class, names = ["TAMPEREEN_YLIOPISTO", "HELSINGIN_YLIOPISTO"])
+    fun `repeated internal finalization keeps the existing job without generating documents or snapshots`(university: YliopistoEnum) {
+        val fixture = fixture("EL", certificate = null, universityName = university)
+        approve(fixture)
+        val before = transactions.execute {
+            val job = jobs.findByKey(key(fixture))!!
+            Triple(job.id!!, job.payload, job.asiakirjat.map { document -> document.id })
+        }
+        val sourcesBefore = transactions.execute {
+            val request = em.find(Valmistumispyynto::class.java, fixture.id)
+            listOf(request.yhteenvetoAsiakirja!!.id, request.liitteetAsiakirja!!.id, request.erikoistujanTiedotAsiakirja!!.id)
+        }
+        val snapshotsBefore = snapshotCount(fixture)
+        clearInvocations(snapshots, mail)
+
+        repeat(2) { _ ->
+            transactions.executeWithoutResult {
+                val request = requests.findByIdForHyvaksynta(fixture.id)!!
+                finalization.viimeistele(fixture.id, request.valmistumispyynnonTarkistus!!, request, university)
+            }
+        }
+
+        transactions.executeWithoutResult {
+            val job = jobs.findByKey(key(fixture))!!
+            assertThat(Triple(job.id!!, job.payload, job.asiakirjat.map { document -> document.id })).isEqualTo(before)
+            assertThat(job.expectedDocumentCount).isEqualTo(before.third.size)
+            val request = em.find(Valmistumispyynto::class.java, fixture.id)
+            assertThat(listOf(request.yhteenvetoAsiakirja!!.id, request.liitteetAsiakirja!!.id, request.erikoistujanTiedotAsiakirja!!.id))
+                .isEqualTo(sourcesBefore)
+        }
+        assertThat(snapshotCount(fixture)).isEqualTo(snapshotsBefore)
+        assertThat(taskCount(before.first)).isEqualTo(1)
+        assertThat(jdbc.queryForObject("select count(*) from arkistointi_job where job_key = ?", Long::class.javaObjectType, key(fixture)))
+            .isEqualTo(1)
+        verify(snapshots, never()).createReference(any(), any(), any())
+        verify(mail, never()).sendEmailFromTemplate(any<User>(), any(), any(), any(), any(), any())
+        verify(mail, never()).sendEmailFromTemplate(anyOrNull<String>(), any(), any(), any(), any(), any())
+        verify(legacyArchive, never()).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
+    }
+
+    @ParameterizedTest
+    @EnumSource(YliopistoEnum::class, names = ["TAMPEREEN_YLIOPISTO", "HELSINGIN_YLIOPISTO"])
+    fun `original document identities remain frozen after live documents are replaced`(university: YliopistoEnum) {
+        val fixture = fixture("EL", certificate = null, universityName = university)
+        approve(fixture)
+        val frozen = transactions.execute {
+            val request = em.find(Valmistumispyynto::class.java, fixture.id)
+            val job = jobs.findByKey(key(fixture))!!
+            assertQueuedDocumentsMatchSources(job, request)
+            Triple(job.payload!!, request.yhteenvetoAsiakirja!!.id!!,
+                job.asiakirjat.associate { document -> document.asiakirja!!.id!! to loader.load(document.toDescriptor()).sisalto })
+        }
+
+        transactions.executeWithoutResult {
+            val request = em.find(Valmistumispyynto::class.java, fixture.id)
+            val replacement = Asiakirja(
+                opintooikeus = request.opintooikeus, nimi = "replacement.pdf", tyyppi = MediaType.APPLICATION_PDF_VALUE,
+                lisattypvm = LocalDateTime.now(),
+                asiakirjaData = AsiakirjaData(data = PdfTestData.unembeddedFontPdf(1))
+            )
+            em.persist(replacement)
+            request.yhteenvetoAsiakirja = replacement
+        }
+
+        transactions.executeWithoutResult {
+            val request = em.find(Valmistumispyynto::class.java, fixture.id)
+            val job = jobs.findByKey(key(fixture))!!
+            assertThat(request.yhteenvetoAsiakirja!!.id).isNotEqualTo(frozen.second)
+            assertThat(em.find(Asiakirja::class.java, frozen.second)).isNull()
+            assertThat(job.payload).isEqualTo(frozen.first)
+            val summaryIdentity = mapper.readTree(job.payload)["documents"].single { identity ->
+                identity["recordType"].asText() == RecordType.YHTEENVETO.name
+            }
+            assertThat(summaryIdentity["sourceDocumentId"].longValue()).isEqualTo(frozen.second)
+            job.asiakirjat.forEach { document ->
+                assertThat(loader.load(document.toDescriptor()).sisalto).containsExactly(*frozen.third.getValue(document.asiakirja!!.id!!))
+            }
+        }
     }
 
     @ParameterizedTest
@@ -233,88 +328,71 @@ class ValmistuminenArkistointiTransactionIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["EL", "EHL"])
-    fun `missing mandatory certificate rolls back approval and partially created snapshots`(kind: String) {
-        val fixture = fixture(kind, certificate = null)
-        val tasksBefore = jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)
-        val exception = assertArchiveDocumentHttpFailure(mvc, fixture.id, fixture.approverUserId,
-            400, "ARCHIVE_DOCUMENT_MISSING")
-        assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_MISSING")
-        assertRolledBack(fixture)
-        assertThat(jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)).isEqualTo(tasksBefore)
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = ["JPG_ALIAS", "LARGE_JPEG", "LARGE_PNG", "CMYK_JPEG", "SIXTEEN_BIT_PNG", "ORIENTED_JPEG"])
-    fun `approval archives the image certificate without changing bytes format or metadata`(imageType: String) {
-        val (contentType, original) = certificateImage(imageType)
-        val fixture = fixture("EL", certificate = original, certificateContentType = contentType)
-        val sourceId = transactions.execute {
-            em.find(Valmistumispyynto::class.java, fixture.id).opintooikeus!!.erikoistuvaLaakari!!.laillistamistodistus!!.id!!
-        }
+    @CsvSource(
+        "TAMPEREEN_YLIOPISTO,EL,MISSING",
+        "TAMPEREEN_YLIOPISTO,EHL,MISSING",
+        "TAMPEREEN_YLIOPISTO,YEK,MISSING",
+        "HELSINGIN_YLIOPISTO,EL,MISSING",
+        "HELSINGIN_YLIOPISTO,EHL,MISSING",
+        "HELSINGIN_YLIOPISTO,YEK,MISSING",
+        "TAMPEREEN_YLIOPISTO,EL,EMPTY",
+        "TAMPEREEN_YLIOPISTO,EL,MISSING_FILENAME",
+        "TAMPEREEN_YLIOPISTO,EL,MISSING_CONTENT_TYPE",
+        "HELSINGIN_YLIOPISTO,EL,EMPTY",
+        "HELSINGIN_YLIOPISTO,EL,MISSING_FILENAME",
+        "HELSINGIN_YLIOPISTO,EL,MISSING_CONTENT_TYPE"
+    )
+    fun `async approval queues exactly the universitys sync document set without requiring a certificate`(
+        university: YliopistoEnum, kind: String, certificateState: String
+    ) {
+        val fixture = fixture(kind,
+            certificate = when (certificateState) {
+                "MISSING" -> null
+                "EMPTY" -> byteArrayOf()
+                else -> byteArrayOf(1)
+            },
+            certificateFilename = if (certificateState == "MISSING_FILENAME") "" else "unused-certificate.pdf",
+            certificateContentType = if (certificateState == "MISSING_CONTENT_TYPE") "" else MediaType.APPLICATION_PDF_VALUE,
+            universityName = university)
 
         approve(fixture)
 
-        val archived = transactions.execute {
+        transactions.executeWithoutResult {
             val request = em.find(Valmistumispyynto::class.java, fixture.id)
-            assertThat(request.vastuuhenkiloHyvaksyjaKuittausaika).isEqualTo(LocalDate.now())
-            assertGeneratedSummary(request)
-            val student = request.opintooikeus!!.erikoistuvaLaakari!!
-            assertThat(student.laillistamistodistus!!.id).isEqualTo(sourceId)
-            assertThat(student.laillistamistodistus!!.data).containsExactly(*original)
-            assertThat(student.laillistamispaivanLiitetiedostonNimi).isEqualTo("laillistamistodistus.${contentType.substringAfter('/')}")
-            assertThat(student.laillistamispaivanLiitetiedostonTyyppi).isEqualTo(contentType)
             val job = jobs.findByKey(key(fixture))!!
-            assertThat(job.asiakirjat.map { document -> document.asiakirjatyyppi })
-                .containsExactly(RecordType.YHTEENVETO, RecordType.LIITE, RecordType.LAILLISTAMISTODISTUS)
-            assertSnapshots(job)
+            val expectedTypes = if (university == YliopistoEnum.TAMPEREEN_YLIOPISTO)
+                listOf(RecordType.YHTEENVETO, RecordType.LIITE) else listOf(RecordType.YHTEENVETO)
+            assertThat(job.asiakirjat.map { document -> document.asiakirjatyyppi }).containsExactlyElementsOf(expectedTypes)
+            assertThat(snapshotCount(fixture)).isEqualTo(expectedTypes.size.toLong())
             assertThat(taskCount(job.id!!)).isEqualTo(1)
-            val certificate = job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LAILLISTAMISTODISTUS }
-            assertThat(certificate.filename).isEqualTo(student.laillistamispaivanLiitetiedostonNimi)
-            assertThat(certificate.contentType).isEqualTo(contentType)
-            assertThat(certificate.asiakirja!!.asiakirjaData!!.id).isNotEqualTo(sourceId)
-            val bytes = loader.load(certificate.toDescriptor()).sisalto
-            assertThat(bytes).containsExactly(*original)
-            certificate.id!! to bytes
+            assertThat(request.vastuuhenkiloHyvaksyjaKuittausaika).isEqualTo(LocalDate.now())
+            assertQueuedDocumentsMatchSources(job, request)
+            assertSnapshots(job)
+            assertZipContents(job, request, expectedTypes, properties)
         }
-        // A later upload must not replace the certificate already approved and queued.
-        transactions.executeWithoutResult {
-            val student = em.find(Valmistumispyynto::class.java, fixture.id).opintooikeus!!.erikoistuvaLaakari!!
-            student.laillistamistodistus!!.data = ArchiveImageTestData.image("png")
-            student.laillistamispaivanLiitetiedostonNimi = "replacement.png"
-            student.laillistamispaivanLiitetiedostonTyyppi = MediaType.IMAGE_PNG_VALUE
-        }
-        transactions.executeWithoutResult {
-            val stored = jobs.findByKey(key(fixture))!!.asiakirjat.single { document -> document.id == archived.first }
-            assertThat(loader.load(stored.toDescriptor()).sisalto).containsExactly(*archived.second)
-            assertThat(stored.filename).isEqualTo("laillistamistodistus.${contentType.substringAfter('/')}")
-            assertThat(stored.contentType).isEqualTo(contentType)
-            assertThat(stored.sha256).isEqualTo(ArkistointiChecksum.sha256(archived.second))
-        }
-        verify(transport, never()).laheta(any(), any())
+        verify(legacyArchive, never()).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["EMPTY", "MISSING_FILENAME", "MISSING_CONTENT_TYPE"])
-    fun `incomplete certificate rolls back approval documents and queue with a safe HTTP error`(kind: String) {
-        val original = ArchiveImageTestData.image("png")
-        val contentType = if (kind == "MISSING_CONTENT_TYPE") "" else "image/png"
-        val invalid = if (kind == "EMPTY") byteArrayOf() else original
-        val fixture = fixture("EL", certificate = invalid, certificateContentType = contentType,
-            certificateFilename = if (kind == "MISSING_FILENAME") "" else "$PRIVATE_CERTIFICATE_NAME.png")
+    @ValueSource(strings = ["MISSING", "EMPTY", "INVALID"])
+    fun `input document failure rolls back approval snapshots and queue with safe HTTP error`(kind: String) {
+        val fixture = fixture("EL")
         val tasksBefore = jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)
+        val code = "ARCHIVE_DOCUMENT_$kind"
+        doAnswer { invocation ->
+            if (invocation.getArgument<Int>(2) == 1) {
+                throw ArkistointiAsiakirjaException(
+                    ArkistointiError.create(code, PRIVATE_CERTIFICATE_NAME), ArkistointiAsiakirjaErrorCategory.INPUT_DOCUMENT
+                )
+            }
+            invocation.callRealMethod()
+        }.`when`(snapshots).createReference(any(), any(), any())
 
-        val code = if (kind == "EMPTY") "ARCHIVE_DOCUMENT_EMPTY" else "ARCHIVE_DOCUMENT_INVALID"
         val exception = assertArchiveDocumentHttpFailure(mvc, fixture.id, fixture.approverUserId, 400, code)
 
         assertThat(exception.error.code).isEqualTo(code)
         assertRolledBack(fixture)
         assertThat(jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)).isEqualTo(tasksBefore)
-        transactions.executeWithoutResult {
-            val student = em.find(Valmistumispyynto::class.java, fixture.id).opintooikeus!!.erikoistuvaLaakari!!
-            assertThat(student.laillistamistodistus!!.data).containsExactly(*invalid)
-            assertThat(student.laillistamispaivanLiitetiedostonTyyppi).isEqualTo(contentType)
-        }
         verify(transport, never()).laheta(any(), any())
     }
 
@@ -335,18 +413,18 @@ class ValmistuminenArkistointiTransactionIT {
     @ParameterizedTest
     @ValueSource(strings = ["STORED_DOCUMENT", "PROCESSING_FAILURE"])
     fun `server document errors return safe 500 and roll back approval`(category: String) {
-        val fixture = fixture("EL", certificateFilename = "$PRIVATE_CERTIFICATE_NAME.pdf")
+        val fixture = fixture("EL")
         val tasksBefore = jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)
         if (category == "STORED_DOCUMENT") {
             doAnswer { invocation ->
                 (invocation.callRealMethod() as ArkistointiAsiakirjaReference).copy(sha256 = "0".repeat(64))
-            }.`when`(snapshots).createLaillistamistodistusReference(any(), any())
+            }.`when`(snapshots).createReference(any(), any(), any())
         } else {
             doThrow(ArkistointiAsiakirjaException(
                 ArkistointiError.create("ARCHIVE_DOCUMENT_PROCESSING_FAILED", PRIVATE_CERTIFICATE_NAME),
                 ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE
             ).apply { addSuppressed(IllegalStateException(PRIVATE_CERTIFICATE_NAME)) })
-                .`when`(snapshots).createLaillistamistodistusReference(any(), any())
+                .`when`(snapshots).createReference(any(), any(), any())
         }
         val code = if (category == "STORED_DOCUMENT") "ARCHIVE_DOCUMENT_CHECKSUM_MISMATCH" else "ARCHIVE_DOCUMENT_PROCESSING_FAILED"
 
@@ -356,16 +434,6 @@ class ValmistuminenArkistointiTransactionIT {
         assertRolledBack(fixture)
         assertThat(jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.javaObjectType)).isEqualTo(tasksBefore)
         verify(transport, never()).laheta(any(), any())
-    }
-
-    private fun certificateImage(imageType: String): Pair<String, ByteArray> = when (imageType) {
-        "JPG_ALIAS" -> "image/jpg" to ArchiveImageTestData.image()
-        "LARGE_JPEG" -> "image/jpeg" to ArchiveImageTestData.image("jpeg", 4000, 3000)
-        "LARGE_PNG" -> "image/png" to ArchiveImageTestData.image("png", 4000, 3000)
-        "CMYK_JPEG" -> "image/jpeg" to PdfTestData.cmykJpeg()
-        "SIXTEEN_BIT_PNG" -> "image/png" to ArchiveImageTestData.sixteenBitPng()
-        "ORIENTED_JPEG" -> "image/jpeg" to ArchiveImageTestData.orientedJpeg(6)
-        else -> error("Unknown test certificate type")
     }
 
     @Test
@@ -496,38 +564,25 @@ class ValmistuminenArkistointiTransactionIT {
 
     /** The async path freezes the very same generated output that the sync path packages. */
     private fun assertQueuedDocumentsMatchSources(job: ArkistointiJob, request: Valmistumispyynto) {
+        val identities = mapper.readTree(job.payload)["documents"]
+        assertThat(identities.isArray).isTrue()
+        assertThat(identities.size()).isEqualTo(job.asiakirjat.size)
         job.asiakirjat.forEach { document ->
-            val student = request.opintooikeus!!.erikoistuvaLaakari!!
             val source = when (document.asiakirjatyyppi) {
-                RecordType.YHTEENVETO -> request.yhteenvetoAsiakirja
-                RecordType.LIITE -> request.liitteetAsiakirja
-                RecordType.LAILLISTAMISTODISTUS -> null
+                RecordType.YHTEENVETO -> request.yhteenvetoAsiakirja!!
+                RecordType.LIITE -> request.liitteetAsiakirja!!
                 else -> error("Unexpected archive document type")
             }
-            if (document.asiakirjatyyppi != RecordType.LAILLISTAMISTODISTUS) assertThat(source).isNotNull
-            val bytes = if (source == null) student.laillistamistodistus!!.data!! else source.asiakirjaData!!.data!!
-            val filename = source?.nimi ?: student.laillistamispaivanLiitetiedostonNimi
-            val contentType = source?.tyyppi ?: student.laillistamispaivanLiitetiedostonTyyppi
+            val bytes = source.asiakirjaData!!.data!!
             assertThat(loader.load(document.toDescriptor()).sisalto).containsExactly(*bytes)
-            assertThat(document.filename).isEqualTo(filename)
-            assertThat(document.contentType).isEqualTo(contentType)
+            assertThat(document.filename).isEqualTo(source.nimi)
+            assertThat(document.contentType).isEqualTo(source.tyyppi)
             assertThat(document.sha256).isEqualTo(ArkistointiChecksum.sha256(bytes))
-            if (source != null) assertThat(document.asiakirja!!.id).isNotEqualTo(source.id)
-        }
-    }
-
-    private fun assertAttachmentPdf(bytes: ByteArray, textPages: Int, totalPages: Int = textPages, prefix: String = "Attachment page") {
-        PdfDocument(PdfReader(ByteArrayInputStream(bytes))).use { pdf ->
-            assertThat(pdf.numberOfPages).isEqualTo(totalPages)
-            repeat(textPages) { index ->
-                assertThat(PdfTextExtractor.getTextFromPage(pdf.getPage(index + 1))).isEqualTo("$prefix ${index + 1}")
-            }
-        }
-    }
-
-    private fun assertGeneratedSummary(request: Valmistumispyynto) {
-        PdfDocument(PdfReader(ByteArrayInputStream(request.yhteenvetoAsiakirja!!.asiakirjaData!!.data!!))).use { pdf ->
-            assertThat(PdfTextExtractor.getTextFromPage(pdf.firstPage)).containsIgnoringCase("john")
+            assertThat(document.asiakirja!!.id).isNotEqualTo(source.id)
+            val identity = identities.single { it["snapshotDocumentId"].longValue() == document.asiakirja!!.id }
+            assertThat(identity["sourceDocumentId"].longValue()).isEqualTo(source.id).isNotEqualTo(document.asiakirja!!.id)
+            assertThat(identity["recordType"].asText()).isEqualTo(document.asiakirjatyyppi!!.name)
+            assertThat(identity["jarjestysnumero"].intValue()).isEqualTo(document.jarjestysnumero)
         }
     }
 
@@ -580,7 +635,7 @@ class ValmistuminenArkistointiTransactionIT {
         fixture.id, fixture.approverUserId, ValmistumispyyntoHyvaksyntaFormDTO(null)
     )
 
-    private fun key(fixture: ApprovalFixture) = "valmistuminen:TAMPEREEN_YLIOPISTO:${fixture.id}"
+    private fun key(fixture: ApprovalFixture) = "valmistuminen:${fixture.university.name}:${fixture.id}"
 
     private fun taskCount(jobId: UUID) = jdbc.queryForObject(
         "select count(*) from scheduled_tasks where task_name = 'arkistointi-job' and task_instance = ?",
@@ -599,9 +654,10 @@ class ValmistuminenArkistointiTransactionIT {
         contentType: String = MediaType.APPLICATION_PDF_VALUE,
         certificateContentType: String = MediaType.APPLICATION_PDF_VALUE,
         extraAttachments: List<Pair<String, ByteArray>> = emptyList(),
-        certificateFilename: String? = null
+        certificateFilename: String? = null,
+        universityName: YliopistoEnum = YliopistoEnum.TAMPEREEN_YLIOPISTO
     ): ApprovalFixture = transactions.execute {
-        val university = YliopistoHelper.createReferenceData(em, YliopistoEnum.TAMPEREEN_YLIOPISTO)
+        val university = YliopistoHelper.createReferenceData(em, universityName)
         val specialty = em.findAll(Erikoisala::class).first { erikoisala ->
             when (kind) {
                 "YEK" -> erikoisala.id == YEK_ERIKOISALA_ID
@@ -656,10 +712,13 @@ class ValmistuminenArkistointiTransactionIT {
         em.persist(request)
         em.persist(ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(request))
         em.flush()
-        ApprovalFixture(request.id!!, request.opintooikeus!!.id!!, approverUser.id!!, uploaded.id!!)
+        ApprovalFixture(request.id!!, request.opintooikeus!!.id!!, approverUser.id!!, uploaded.id!!, universityName)
     }
 
-    private data class ApprovalFixture(val id: Long, val studyRightId: Long, val approverUserId: String, val attachmentId: Long)
+    private data class ApprovalFixture(
+        val id: Long, val studyRightId: Long, val approverUserId: String, val attachmentId: Long,
+        val university: YliopistoEnum
+    )
 
     @TestConfiguration(proxyBeanMethods = false)
     class CacheConfig {
