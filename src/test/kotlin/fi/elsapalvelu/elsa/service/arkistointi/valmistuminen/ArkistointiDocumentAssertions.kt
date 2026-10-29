@@ -54,11 +54,13 @@ internal fun assertZipContents(
     }
 }
 
-internal fun assertAttachmentPdf(bytes: ByteArray, textPages: Int, totalPages: Int = textPages) {
+internal fun assertAttachmentPdf(
+    bytes: ByteArray, textPages: Int, totalPages: Int = textPages, prefix: String = "Attachment page"
+) {
     PdfDocument(PdfReader(ByteArrayInputStream(bytes))).use { pdf ->
         assertThat(pdf.numberOfPages).isEqualTo(totalPages)
         repeat(textPages) { index ->
-            assertThat(PdfTextExtractor.getTextFromPage(pdf.getPage(index + 1))).isEqualTo("Attachment page ${index + 1}")
+            assertThat(PdfTextExtractor.getTextFromPage(pdf.getPage(index + 1))).isEqualTo("$prefix ${index + 1}")
         }
     }
 }

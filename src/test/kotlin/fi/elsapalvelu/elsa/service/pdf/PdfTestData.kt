@@ -9,6 +9,7 @@ import com.itextpdf.kernel.pdf.canvas.PdfCanvas
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
+import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy
 import org.apache.pdfbox.pdmodel.font.PDType0Font
@@ -33,6 +34,28 @@ object PdfTestData {
         }
         return output.toByteArray()
     }
+
+    /** A PDF/A-copyable attachment: every page uses an embedded TrueType font and carries "$label N" as text. */
+    fun embeddedFontPdf(pageCount: Int, label: String = "Embedded page"): ByteArray =
+        ByteArrayOutputStream().use { output ->
+            PDDocument().use { document ->
+                val font = requireNotNull(javaClass.getResourceAsStream("/fonts/LiberationSerif-Regular.ttf"))
+                    .use { PDType0Font.load(document, it) }
+                repeat(pageCount) { index ->
+                    val page = PDPage(PDRectangle.A4)
+                    document.addPage(page)
+                    PDPageContentStream(document, page).use { content ->
+                        content.beginText()
+                        content.setFont(font, 12f)
+                        content.newLineAtOffset(50f, 700f)
+                        content.showText("$label ${index + 1}")
+                        content.endText()
+                    }
+                }
+                document.save(output)
+            }
+            output.toByteArray()
+        }
 
     /** Four unprofiled components reproduce a DeviceCMYK JPEG from an uploaded attachment. */
     fun cmykJpeg(): ByteArray {

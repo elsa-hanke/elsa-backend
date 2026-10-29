@@ -1,28 +1,26 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
-import fi.elsapalvelu.elsa.required
-
-import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
-import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
-import java.security.Principal
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
-import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
+import fi.elsapalvelu.elsa.required
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonAsiakirjaService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import fi.elsapalvelu.elsa.web.rest.errors.ValmistumispyynnonHyvaksyntaKaynnissaException
+import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
+import jakarta.validation.Valid
+import java.security.Principal
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import jakarta.validation.Valid
-
 
 @RestController
 @RequestMapping("/api/vastuuhenkilo")

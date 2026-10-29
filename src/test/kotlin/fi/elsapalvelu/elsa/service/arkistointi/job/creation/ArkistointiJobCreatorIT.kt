@@ -7,7 +7,6 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
-import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaErrorCategory
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
@@ -15,11 +14,14 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirja
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.toDescriptor
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
+import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import jakarta.persistence.EntityManager
+import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -33,7 +35,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.server.ResponseStatusException
-import java.util.UUID
 
 @SpringBootTest(classes = [ElsaBackendApp::class])
 class ArkistointiJobCreatorIT {
@@ -85,7 +86,7 @@ class ArkistointiJobCreatorIT {
         entityManager.flush()
         entityManager.clear()
         val attached = jobRepository.findById(job.id!!).orElseThrow().asiakirjat.single()
-        val bytes = loader.load(attached).sisalto
+        val bytes = loader.load(attached.toDescriptor()).sisalto
         assertThat(attached.asiakirja!!.id).isNotEqualTo(source.id)
         assertThat(attached.filename).isEqualTo(source.nimi)
         assertThat(attached.contentType).isEqualTo(source.tyyppi)
@@ -107,7 +108,7 @@ class ArkistointiJobCreatorIT {
         val job = creator.create(request(reference))
         val attached = job.asiakirjat.single()
         assertThat(attached.asiakirja!!.id).isEqualTo(source.id)
-        assertThat(loader.load(attached).sisalto).containsExactly(*source.asiakirjaData!!.data!!)
+        assertThat(loader.load(attached.toDescriptor()).sisalto).containsExactly(*source.asiakirjaData!!.data!!)
         assertThat(scheduledTaskCount(job.id!!)).isEqualTo(1)
     }
 
@@ -166,7 +167,7 @@ class ArkistointiJobCreatorIT {
         entityManager.flush()
         entityManager.clear()
         val stored = jobRepository.findById(job.id!!).orElseThrow()
-        assertThat(loader.load(stored.asiakirjat.single()).sisalto).containsExactly(*original)
+        assertThat(loader.load(stored.asiakirjat.single().toDescriptor()).sisalto).containsExactly(*original)
         assertThat(stored.payload).isEqualTo("{\"approved\":true}")
         assertThat(stored.asiakirjat.single().filename).isEqualTo(AsiakirjaHelper.ASIAKIRJA_PDF_NIMI)
         assertThat(asiakirjaRepository.findAllByOpintooikeusId(source.opintooikeus!!.id!!).map { it.id })
@@ -223,7 +224,7 @@ class ArkistointiJobCreatorIT {
         assertThat(storedStudent.laillistamispaivanLiitetiedostonTyyppi).isEqualTo(contentType)
         val storedJob = jobRepository.findById(job.id!!).orElseThrow()
         val storedReference = storedJob.asiakirjat.single()
-        val snapshotBytes = loader.load(storedReference).sisalto
+        val snapshotBytes = loader.load(storedReference.toDescriptor()).sisalto
         assertThat(snapshotBytes).containsExactly(*original)
         assertThat(storedReference.sha256).isEqualTo(ArkistointiChecksum.sha256(snapshotBytes))
         assertThat(storedReference.filename).isEqualTo(filename)
@@ -320,7 +321,7 @@ class ArkistointiJobCreatorIT {
         assertThat(scheduledTaskCount(job.id!!)).isEqualTo(1)
         val submission = ArkistointiSubmission(
             requireNotNull(stored.id), requireNotNull(stored.university), requireNotNull(stored.caseType),
-            requireNotNull(stored.payload), stored.asiakirjat.map(loader::load)
+            requireNotNull(stored.payload), stored.asiakirjat.map { loader.load(it.toDescriptor()) }
         )
         assertThat(submission.key).isEqualTo(job.id)
         assertThat(submission.key.toString()).isNotEqualTo(stored.key)

@@ -4,15 +4,20 @@ import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
-import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaLoader
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.toDescriptor
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
+import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import jakarta.persistence.EntityManager
+import java.sql.SQLException
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -22,10 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.transaction.support.TransactionTemplate
-import java.sql.SQLException
-import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 
 @SpringBootTest(
     classes = [ElsaBackendApp::class],
@@ -144,7 +145,7 @@ class ArkistointiJobManifestIT {
         val exception = assertThrows<ArkistointiAsiakirjaException> {
             transactions.executeWithoutResult {
                 val reference = jobs.findById(original.id).orElseThrow().asiakirjat.single()
-                loader.load(reference.copy(sha256 = "a".repeat(64)))
+                loader.load(reference.toDescriptor().copy(sha256 = "a".repeat(64)))
             }
         }
         assertThat(exception.error.code).isEqualTo("ARCHIVE_DOCUMENT_CHECKSUM_MISMATCH")
@@ -179,7 +180,7 @@ class ArkistointiJobManifestIT {
         Manifest(id, requireNotNull(job.payload), requireNotNull(job.expectedDocumentCount), job.asiakirjat.map { reference ->
             assertThat(reference.asiakirja!!.archiveSnapshot).isTrue()
             Snapshot(requireNotNull(reference.asiakirja!!.id), requireNotNull(reference.asiakirja!!.asiakirjaData!!.id),
-                requireNotNull(reference.sha256), loader.load(reference).sisalto, requireNotNull(reference.filename),
+                requireNotNull(reference.sha256), loader.load(reference.toDescriptor()).sisalto, requireNotNull(reference.filename),
                 requireNotNull(reference.contentType), requireNotNull(reference.jarjestysnumero))
         })
     })
