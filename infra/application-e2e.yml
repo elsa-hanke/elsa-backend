@@ -2,6 +2,12 @@
 # EHL setup changes a study right after login with SQL. Bypass Hibernate caches
 # so the application reads the new specialty and study guide on its next request.
 spring:
+  main:
+    # Cypress DB tasks run before the first application request. Initialize
+    # Liquibase during startup instead of inheriting dev's lazy initialization.
+    lazy-initialization: false
+  liquibase:
+    enabled: true
   jpa:
     properties:
       hibernate.cache.use_second_level_cache: false
