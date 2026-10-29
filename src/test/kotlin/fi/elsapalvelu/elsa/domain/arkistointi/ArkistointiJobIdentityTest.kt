@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.domain.arkistointi
 
+import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class ArkistointiJobIdentityTest {
     @Test

@@ -4,7 +4,10 @@ import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.boot.autoconfigure.DbSchedulerAutoConfiguration
 import com.github.kagkarlsson.scheduler.boot.config.DbSchedulerCustomizer
 import fi.elsapalvelu.elsa.ElsaBackendApp
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobScheduler
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
@@ -52,6 +55,12 @@ class DbSchedulerArkistointiJobSchedulerIT {
     @Autowired
     private lateinit var dataSource: DataSource
 
+    @Autowired
+    private lateinit var properties: ApplicationProperties
+
+    @Autowired
+    private lateinit var failureHandler: ArkistointiJobFailureHandler
+
     @Test
     fun `scheduler kaynnistyy Spring kontekstin mukana`() {
         assertThat(backgroundScheduler.schedulerState.isStarted).isTrue
@@ -62,7 +71,13 @@ class DbSchedulerArkistointiJobSchedulerIT {
         val runningScheduler = AtomicReference<Scheduler>()
         ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(DbSchedulerAutoConfiguration::class.java))
-            .withUserConfiguration(ArkistointiDbSchedulerConfiguration::class.java)
+            .withUserConfiguration(
+                ArkistointiDbSchedulerConfiguration::class.java,
+                ArkistointiAdapterRegistry::class.java,
+                ArkistointiConfigurationProvider::class.java
+            )
+            .withBean(ApplicationProperties::class.java, Supplier { properties })
+            .withBean(ArkistointiJobFailureHandler::class.java, Supplier { failureHandler })
             // The wrapper prevents closing the parent context's shared connection pool.
             .withBean(DataSource::class.java, Supplier { DelegatingDataSource(dataSource) })
             .withPropertyValues(
@@ -82,7 +97,7 @@ class DbSchedulerArkistointiJobSchedulerIT {
     }
 
     @Test
-    fun `puuttuva processor ei paata suoritusta onnistuneena`() {
+    fun `missing domain job removes orphaned scheduler execution`() {
         val jobId = UUID.randomUUID()
         try {
             transactionTemplate.executeWithoutResult {
@@ -91,15 +106,7 @@ class DbSchedulerArkistointiJobSchedulerIT {
             backgroundScheduler.triggerCheckForDueExecutions()
 
             await().atMost(Duration.ofSeconds(10)).untilAsserted {
-                val execution = jdbcTemplate.queryForMap(
-                    "select * from scheduled_tasks where task_name = ? and task_instance = ?",
-                    ARKISTOINTI_JOB_TASK.taskName,
-                    jobId.toString()
-                )
-                assertThat(execution["consecutive_failures"]).isEqualTo(1)
-                assertThat(execution["last_failure"]).isNotNull
-                assertThat(execution["last_success"]).isNull()
-                assertThat(execution["picked"]).isEqualTo(false)
+                assertThat(scheduledTaskCount(jobId)).isZero()
             }
         } finally {
             transactionTemplate.executeWithoutResult {

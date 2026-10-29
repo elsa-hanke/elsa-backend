@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.document
 
-import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
@@ -11,13 +10,18 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.springframework.dao.DataAccessResourceFailureException
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.RowMapper
 
 class ArkistointiAsiakirjaErrorClassificationTest {
     private val repository = mock<AsiakirjaRepository>()
+    private val jdbc = mock<JdbcTemplate>()
     private val service = ArkistointiAsiakirjaSnapshotService(repository)
     private val privateValue = "private-patient-name-secret.pdf"
 
@@ -64,9 +68,10 @@ class ArkistointiAsiakirjaErrorClassificationTest {
     fun `loader failures are stored document errors even when their codes also describe input`(kind: String) {
         val stored = Asiakirja(id = 1L, nimi = privateValue,
             asiakirjaData = AsiakirjaData(data = if (kind == "empty") byteArrayOf() else byteArrayOf(1)))
-        whenever(repository.findOneWithDataById(1L)).thenReturn(if (kind == "missing") null else stored)
-        val reference = ArkistointiJobAsiakirja(asiakirja = stored, filename = privateValue, sha256 = "0".repeat(64))
-        val exception = assertThrows<ArkistointiAsiakirjaException> { ArkistointiAsiakirjaLoaderImpl(repository).load(reference) }
+        whenever(jdbc.query(any<String>(), any<RowMapper<ByteArray?>>(), eq(1L)))
+            .thenReturn(if (kind == "missing") emptyList() else listOf(stored.asiakirjaData!!.data))
+        val reference = ArkistointiDocumentDescriptor(1L, RecordType.LIITE, 0, privateValue, "application/pdf", "0".repeat(64))
+        val exception = assertThrows<ArkistointiAsiakirjaException> { ArkistointiAsiakirjaLoaderImpl(jdbc).load(reference) }
         val code = when (kind) {
             "missing" -> "ARCHIVE_DOCUMENT_MISSING"
             "empty" -> "ARCHIVE_DOCUMENT_EMPTY"
@@ -78,9 +83,11 @@ class ArkistointiAsiakirjaErrorClassificationTest {
     @Test
     fun `repository outage is not converted into an input error`() {
         val failure = DataAccessResourceFailureException("database unavailable")
-        whenever(repository.findOneWithDataById(1L)).thenThrow(failure)
+        whenever(jdbc.query(any<String>(), any<RowMapper<ByteArray?>>(), eq(1L))).thenThrow(failure)
         val exception = assertThrows<DataAccessResourceFailureException> {
-            ArkistointiAsiakirjaLoaderImpl(repository).load(ArkistointiJobAsiakirja(asiakirja = Asiakirja(id = 1L)))
+            ArkistointiAsiakirjaLoaderImpl(jdbc).load(
+                ArkistointiDocumentDescriptor(1L, RecordType.LIITE, 0, privateValue, "application/pdf", "0".repeat(64))
+            )
         }
         assertThat(exception).isSameAs(failure)
     }

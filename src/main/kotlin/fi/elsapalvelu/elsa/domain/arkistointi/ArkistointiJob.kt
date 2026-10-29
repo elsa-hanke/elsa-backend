@@ -14,15 +14,15 @@ import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OrderBy
 import jakarta.persistence.Table
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
-import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.io.Serializable
 import java.time.Instant
 import java.util.UUID
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
 @EntityListeners(AuditingEntityListener::class)
@@ -65,8 +65,8 @@ data class ArkistointiJob(
     @Column(name = "expected_document_count", nullable = false)
     var expectedDocumentCount: Int? = null,
 
-    @get:Size(max = 255)
-    @Column(name = "external_id", length = 255)
+    @get:Size(max = MAX_EXTERNAL_ID_LENGTH)
+    @Column(name = "external_id", length = MAX_EXTERNAL_ID_LENGTH)
     var externalId: String? = null,
 
     @get:Size(max = 100)
@@ -127,6 +127,7 @@ data class ArkistointiJob(
         "}"
 
     companion object {
+        const val MAX_EXTERNAL_ID_LENGTH = 255
         private const val serialVersionUID = 1L
     }
 }

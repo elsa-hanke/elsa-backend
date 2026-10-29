@@ -1,8 +1,9 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
 import fi.elsapalvelu.elsa.service.pdf.PdfTextTestSupport
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.UusiValmistumispyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusUpdateDTO
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonTarkistusService
 import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

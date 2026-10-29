@@ -1,36 +1,43 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.document
 
-import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
-import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ArkistointiAsiakirjaLoaderImpl(
-    private val asiakirjaRepository: AsiakirjaRepository
+    private val jdbc: JdbcTemplate
 ) : ArkistointiAsiakirjaLoader {
 
     @Transactional(readOnly = true)
-    override fun load(viite: ArkistointiJobAsiakirja): LoadedArkistointiAsiakirja {
-        val asiakirjaId = viite.asiakirja?.id
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
-        val asiakirja = asiakirjaRepository.findOneWithDataById(asiakirjaId)
-            ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
-        val data = asiakirja.asiakirjaData?.data
+    override fun load(viite: ArkistointiDocumentDescriptor): LoadedArkistointiAsiakirja {
+        val asiakirjaId = viite.asiakirjaId
+        // Each retry reads a fresh array without a managed entity graph or scheduler/job locks.
+        val data = jdbc.query(
+            "select d.data from asiakirja a join asiakirja_data d on d.id = a.asiakirja_data_id where a.id = ?",
+            { rs, _ -> rs.getBytes(1) },
+            asiakirjaId
+        ).firstOrNull()
             ?: throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.missing())
         if (data.isEmpty()) {
             throw ArkistointiAsiakirjaException(ArkistointiAsiakirjaErrors.empty())
         }
         val expectedChecksum = viite.sha256
-            ?: throw ArkistointiAsiakirjaException(
-                ArkistointiAsiakirjaErrors.checksumMismatch()
-            )
         if (!ArkistointiChecksum.sha256(data).equals(expectedChecksum, ignoreCase = true)) {
             throw ArkistointiAsiakirjaException(
                 ArkistointiAsiakirjaErrors.checksumMismatch()
             )
         }
 
-        return LoadedArkistointiAsiakirja(viite, data.copyOf())
+        // Only saved job metadata crosses the transaction boundary. The adapter must not mutate sisalto.
+        return LoadedArkistointiAsiakirja(
+            asiakirjaId,
+            viite.asiakirjatyyppi,
+            viite.jarjestysnumero,
+            viite.filename,
+            viite.contentType,
+            expectedChecksum,
+            data
+        )
     }
 }

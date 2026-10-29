@@ -13,6 +13,9 @@
 # http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 # ===================================================================
 
+db-scheduler:
+  enabled: false
+
 logging:
   level:
     ROOT: DEBUG

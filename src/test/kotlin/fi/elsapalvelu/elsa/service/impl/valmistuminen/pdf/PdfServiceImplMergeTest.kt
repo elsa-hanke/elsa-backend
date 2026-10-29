@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.impl.valmistuminen
+package fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf
 
 import com.itextpdf.io.image.ImageDataFactory
 import com.itextpdf.kernel.pdf.PdfDocument
@@ -11,15 +11,15 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
 import fi.elsapalvelu.elsa.service.PdfContentValidator
-import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.service.PdfTextFieldValidator
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
-import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfCachingResourceRetriever
-import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfServiceImpl
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
+import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -29,8 +29,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.http.MediaType
 import org.thymeleaf.spring6.SpringTemplateEngine
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 
 class PdfServiceImplMergeTest {
     private val service = PdfServiceImpl(

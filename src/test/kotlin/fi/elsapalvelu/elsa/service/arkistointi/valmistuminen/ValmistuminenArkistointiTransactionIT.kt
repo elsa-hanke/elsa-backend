@@ -31,6 +31,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirja
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.toDescriptor
 import fi.elsapalvelu.elsa.service.arkistointi.louhi.TampereLouhiService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -191,7 +192,7 @@ class ValmistuminenArkistointiTransactionIT {
             val stored = jobs.findByKey(key)!!
             assertThat(stored.payload).isEqualTo(payload)
             stored.asiakirjat.forEach { asiakirja ->
-                assertThat(loader.load(asiakirja).sisalto).containsExactly(*archivedBytes.getValue(asiakirja.id!!))
+                assertThat(loader.load(asiakirja.toDescriptor()).sisalto).containsExactly(*archivedBytes.getValue(asiakirja.id!!))
             }
         }
         assertRepeatedApprovalKeepsJob(fixture, jobId)
@@ -254,7 +255,7 @@ class ValmistuminenArkistointiTransactionIT {
             val job = jobs.findByKey(key(fixture))!!
             assertQueuedDocumentsMatchSources(job, request)
             Triple(job.payload!!, request.yhteenvetoAsiakirja!!.id!!,
-                job.asiakirjat.associate { document -> document.asiakirja!!.id!! to loader.load(document).sisalto })
+                job.asiakirjat.associate { document -> document.asiakirja!!.id!! to loader.load(document.toDescriptor()).sisalto })
         }
 
         transactions.executeWithoutResult {
@@ -279,7 +280,7 @@ class ValmistuminenArkistointiTransactionIT {
             }
             assertThat(summaryIdentity["sourceDocumentId"].longValue()).isEqualTo(frozen.second)
             job.asiakirjat.forEach { document ->
-                assertThat(loader.load(document).sisalto).containsExactly(*frozen.third.getValue(document.asiakirja!!.id!!))
+                assertThat(loader.load(document.toDescriptor()).sisalto).containsExactly(*frozen.third.getValue(document.asiakirja!!.id!!))
             }
         }
     }
@@ -525,7 +526,7 @@ class ValmistuminenArkistointiTransactionIT {
             assertQueuedDocumentsMatchSources(job, request)
             assertSnapshots(job)
             assertThat(taskCount(job.id!!)).isEqualTo(1)
-            val archived = loader.load(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }).sisalto
+            val archived = loader.load(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }.toDescriptor()).sisalto
             assertAttachmentPdf(archived, pages)
             assertThat(em.find(Asiakirja::class.java, fixture.attachmentId).asiakirjaData!!.data).containsExactly(*original)
         }
@@ -533,10 +534,11 @@ class ValmistuminenArkistointiTransactionIT {
         verify(legacyArchive, never()).muodostaSahke(any(), any(), any(), any(), any(), any(), any(), any(), any())
     }
 
-    @Test
-    fun `async approval freezes the ordinary merge of a long PDF and CMYK image`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `async approval freezes the ordinary merge of a long PDF and CMYK image`(embeddedFont: Boolean) {
         val pages = 100
-        val original = PdfTestData.unembeddedFontPdf(pages)
+        val original = if (embeddedFont) PdfTestData.embeddedFontPdf(pages) else PdfTestData.unembeddedFontPdf(pages)
         val jpeg = PdfTestData.cmykJpeg()
         val fixture = fixture("EL", attachment = original,
             extraAttachments = listOf(MediaType.IMAGE_JPEG_VALUE to jpeg))
@@ -548,8 +550,9 @@ class ValmistuminenArkistointiTransactionIT {
             val job = jobs.findByKey(key(fixture))!!
             assertQueuedDocumentsMatchSources(job, request)
             assertThat(taskCount(job.id!!)).isEqualTo(1)
-            val archived = loader.load(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }).sisalto
-            assertAttachmentPdf(archived, pages, totalPages = pages + 1)
+            val archived = loader.load(job.asiakirjat.single { document -> document.asiakirjatyyppi == RecordType.LIITE }.toDescriptor()).sisalto
+            assertAttachmentPdf(archived, pages, totalPages = pages + 1,
+                prefix = if (embeddedFont) "Embedded page" else "Attachment page")
             PdfDocument(PdfReader(ByteArrayInputStream(archived))).use { pdf ->
                 val images = pdf.getPage(pages + 1).resources.getResource(PdfName.XObject)
                 val image = images.getAsStream(images.keySet().single())
@@ -571,7 +574,7 @@ class ValmistuminenArkistointiTransactionIT {
                 else -> error("Unexpected archive document type")
             }
             val bytes = source.asiakirjaData!!.data!!
-            assertThat(loader.load(document).sisalto).containsExactly(*bytes)
+            assertThat(loader.load(document.toDescriptor()).sisalto).containsExactly(*bytes)
             assertThat(document.filename).isEqualTo(source.nimi)
             assertThat(document.contentType).isEqualTo(source.tyyppi)
             assertThat(document.sha256).isEqualTo(ArkistointiChecksum.sha256(bytes))
@@ -587,7 +590,7 @@ class ValmistuminenArkistointiTransactionIT {
         assertThat(job.expectedDocumentCount).isEqualTo(job.asiakirjat.size).isPositive()
         return job.asiakirjat.associate { document ->
             assertThat(document.asiakirja!!.archiveSnapshot).isTrue
-            val bytes = loader.load(document).sisalto
+            val bytes = loader.load(document.toDescriptor()).sisalto
             assertThat(bytes).isNotEmpty
             assertThat(document.filename).isEqualTo(document.asiakirja!!.nimi)
             assertThat(document.contentType).isEqualTo(document.asiakirja!!.tyyppi)
