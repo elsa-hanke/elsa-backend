@@ -611,3 +611,19 @@ ja pysyvän vastaanottovirheen. Tarkistuksiin kuuluvat ZIP:n sisältö, SHA-256,
 alkuperäiset XML-tunnisteet ja ajastusrivin poistuminen onnistumisen jälkeen.
 Testit eivät lähetä oikeaan yliopiston arkistoon. Vastaanottajan hyväksyntä ja
 pakettikokojen/aikarajojen sopivuus varmistetaan ympäristökohtaisessa käyttöönotossa.
+
+### Cypress: hyväksynnästä taustakäsittelyn loppuun
+
+Disposable-stack (`infra/docker-compose-cicd.yml`) käyttää profiileja
+`dev,e2e-archive`. Worker on käytössä, mutta `E2eArchiveConfiguration` korvaa
+Helsingin ja Tampereen toimitusadapterit yhteisellä testitoteutuksella. Myös
+olemassa olevan YEK-testin UEF-job käsitellään testiadapterilla. Profiili ei
+rekisteröi testiadaptereita `prod`- tai `replica`-profiilin kanssa.
+
+Nykyiset valmistumisen, koulutussopimuksen ja koejakson arvion UI-testit käyttävät
+samaa `assertArchiveProcessed`-apuria. Se odottaa kyseisen liiketoiminta-avaimen
+jobille tilan `LAHETETTY`, testiadapterin job- ja yliopistokohtaisen kuittauksen
+sekä ajastusrivin poistumisen. Lisäksi tarkistetaan yksi job, tallennettu payload,
+asiakirjojen manifesti, alkuperäiset tunnisteet ja snapshotien tarkistussummat.
+Oikea processor ja JDBC-loader suoritetaan; ulkoista lähetystä ei tehdä.
+Siilo/Louhi-protokollan ja ZIP/XML-sisällön tarkistukset kuuluvat IT-testeihin.

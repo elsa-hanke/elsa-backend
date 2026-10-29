@@ -13,9 +13,10 @@ spring:
       hibernate.cache.use_second_level_cache: false
       hibernate.cache.use_query_cache: false
 
-# Keep queued jobs available for assertions; never call external archive systems.
+# Process jobs through profile-scoped test adapters; never call external archive systems.
 db-scheduler:
-  enabled: false
+  enabled: true
+  polling-interval: 1s
 
 application:
   arkistointi:

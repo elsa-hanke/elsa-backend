@@ -9,12 +9,14 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import org.springframework.web.server.ResponseStatusException
 
 @Component
+@Profile("!e2e-archive | prod | replica")
 class LouhiAsyncArkistointiAdapter(
     private val packageBuilder: AsyncSahkePackageBuilder,
     private val louhi: TampereLouhiService

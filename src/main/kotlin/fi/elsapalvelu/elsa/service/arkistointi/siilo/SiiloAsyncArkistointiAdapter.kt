@@ -9,10 +9,12 @@ import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkePackageBuilder
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePackageException
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.nio.file.Files
 
 @Component
+@Profile("!e2e-archive | prod | replica")
 class SiiloAsyncArkistointiAdapter(
     private val packageBuilder: AsyncSahkePackageBuilder,
     private val siilo: HelsinkiSiiloService

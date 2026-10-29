@@ -44,7 +44,7 @@ services:
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_USER=elsaBackend
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=dev,e2e-archive
       - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/application-e2e.yml
       - POSTGRES_PASSWORD=
       - APPLICATION_SECURITY_ENCODED_KEY

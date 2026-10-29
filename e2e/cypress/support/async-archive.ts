@@ -51,16 +51,19 @@ export function assertArchiveAbsent(prefix: string, university: string, caseId: 
     .should('eq', null)
 }
 
-export function assertArchiveScheduled(expected: ExpectedArchive) {
+export function assertArchiveProcessed(expected: ExpectedArchive) {
   const key = `${expected.prefix}:${expected.university}:${expected.caseId}`
-  // Called after the successful approval response: the transaction must already be committed.
-  // The worker is disabled so the scheduled task remains available for inspection.
-  return cy
-    .task<ArchiveRead | null>(
-      'archive:read',
-      { key, sourceIds: expected.sourceIds },
-      { log: false }
-    )
+  // Poll the committed result: Cypress tasks themselves are not retried by should().
+  const readCompleted = (remaining = 60): Cypress.Chainable<ArchiveRead> =>
+    cy.task<ArchiveRead | null>('archive:read', { key, sourceIds: expected.sourceIds }, { log: false })
+      .then((job): Cypress.Chainable<ArchiveRead> => {
+        if (job?.status === 'LAHETETTY' && job.schedule.length === 0) return cy.wrap(job, { log: false })
+        if (remaining === 0 || job?.status === 'VAATII_TOIMENPITEITA') {
+          throw new Error(`Archive ${key} did not complete: ${job?.status ?? 'missing'}`)
+        }
+        return cy.wait(500, { log: false }).then(() => readCompleted(remaining - 1))
+      })
+  return readCompleted()
     .then((result) => {
       expect(result, `committed archive job for ${key}`).not.to.eq(null)
       const job = result!
@@ -68,18 +71,10 @@ export function assertArchiveScheduled(expected: ExpectedArchive) {
       expect(job.university).to.eq(expected.university)
       expect(job.caseType).to.eq(expected.caseType)
       expect(job.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
-      expect(job.status).to.eq('ODOTTAA')
-      expect(job.externalId).to.eq(null)
-      expect(job.completedAt).to.eq(null)
-      expect(job.schedule).to.have.length(1)
-      expect(job.schedule[0]).to.include({
-        jobId: job.id,
-        picked: false,
-        due: true,
-        lastSuccess: null,
-        lastFailure: null
-      })
-      expect(Number.isFinite(Date.parse(job.schedule[0].executionTime))).to.eq(true)
+      expect(job.status).to.eq('LAHETETTY')
+      expect(job.externalId).to.eq(`e2e:${expected.university}:${job.id}`)
+      expect(Number.isFinite(Date.parse(job.completedAt!))).to.eq(true)
+      expect(job.schedule).to.have.length(0)
       expect(job.metadata).to.include({ ...expected.metadata, university: expected.university })
       expect(job.expectedDocumentCount).to.eq(expected.types.length)
       expect(job.documents.map((document) => document.type)).to.deep.eq(expected.types)
