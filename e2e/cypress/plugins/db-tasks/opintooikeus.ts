@@ -1,4 +1,5 @@
 import { Client } from 'pg'
+import { cleanupArchiveForStudyRights } from './archive-cleanup'
 import { dbClient, withDb } from './db-client'
 import {addRoletoUser, getErikoistujaLaakariId, getOpintooikeusId} from './db-helpers'
 
@@ -174,6 +175,7 @@ export const opintoOikeusTasks = {
   }): Promise<null> {
     return withDb(dbClient, async (client: Client) => {
       if (typeof id === 'number') {
+        await cleanupArchiveForStudyRights([id])
         await client.query(`DELETE FROM opintooikeus WHERE id = $1`, [id])
         return null
       }
@@ -182,6 +184,8 @@ export const opintoOikeusTasks = {
         const erikoistuvaId = await getErikoistujaLaakariId(client, email)
         if (!erikoistuvaId) return null
 
+        const rights = await client.query('SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1', [erikoistuvaId])
+        await cleanupArchiveForStudyRights(rights.rows.map((row) => Number(row.id)))
         await client.query(`DELETE FROM opintooikeus WHERE erikoistuva_laakari_id = $1`, [erikoistuvaId])
         return null
       }

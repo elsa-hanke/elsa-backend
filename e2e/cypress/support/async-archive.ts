@@ -8,14 +8,6 @@ type ExpectedArchive = {
   sourceIds?: Record<string, number>
 }
 
-type DocumentReceipt = {
-  id: number
-  type: string
-  order: number
-  size: number
-  sha256: string
-  contentType: string
-}
 type ArchiveRead = {
   count: number
   id: string
@@ -25,25 +17,33 @@ type ArchiveRead = {
   expectedDocumentCount: number
   externalId: string | null
   completedAt: string | null
-  scheduled: number
-  documents: (DocumentReceipt & {
+  metadata: Record<string, unknown> & {
+    documents: {
+      sourceDocumentId: number
+      snapshotDocumentId: number
+      recordType: string
+      jarjestysnumero: number
+    }[]
+  }
+  schedule: {
+    jobId: string
+    picked: boolean
+    executionTime: string
+    due: boolean
+    lastSuccess: string | null
+    lastFailure: string | null
+  }[]
+  documents: {
+    id: number
+    type: string
+    order: number
+    size: number
+    sha256: string
     snapshot: boolean
     sourceMatches: boolean
     storedSha256: string
-  })[]
-  receipt: null | {
-    job_id: string
-    delivery_key: string
-    university: string
-    case_type: string
-    invocation_count: number
-    metadata: Record<string, unknown>
-    documents: DocumentReceipt[]
-  }
+  }[]
 }
-
-export const assertFreshArchiveStack = () =>
-  cy.task('archive:assertFreshStack', null, { log: false })
 
 export function assertArchiveAbsent(prefix: string, university: string, caseId: number) {
   return cy
@@ -51,58 +51,51 @@ export function assertArchiveAbsent(prefix: string, university: string, caseId: 
     .should('eq', null)
 }
 
-export function assertArchiveDelivered(expected: ExpectedArchive) {
+export function assertArchiveScheduled(expected: ExpectedArchive) {
   const key = `${expected.prefix}:${expected.university}:${expected.caseId}`
-  const deadline = Date.now() + 60000
-  const poll = (): Cypress.Chainable<ArchiveRead> =>
-    cy
-      .task<ArchiveRead | null>(
-        'archive:read',
-        { key, sourceIds: expected.sourceIds },
-        { log: false }
-      )
-      .then((result) => {
-        if (result?.status === 'VAATII_TOIMENPITEITA')
-          throw new Error(`Archive job ${result.id} requires attention`)
-        if (result?.status === 'LAHETETTY' && result.receipt && result.scheduled === 0)
-          return cy.wrap(result, { log: false })
-        if (Date.now() >= deadline) throw new Error(`Archive delivery did not complete for ${key}`)
-        // Repeat the actual DB query: .should() alone does not rerun cy.task().
-        return cy.wait(250, { log: false }).then(poll)
+  // Called after the successful approval response: the transaction must already be committed.
+  // The worker is disabled so the scheduled task remains available for inspection.
+  return cy
+    .task<ArchiveRead | null>(
+      'archive:read',
+      { key, sourceIds: expected.sourceIds },
+      { log: false }
+    )
+    .then((result) => {
+      expect(result, `committed archive job for ${key}`).not.to.eq(null)
+      const job = result!
+      expect(job.count).to.eq(1)
+      expect(job.university).to.eq(expected.university)
+      expect(job.caseType).to.eq(expected.caseType)
+      expect(job.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+      expect(job.status).to.eq('ODOTTAA')
+      expect(job.externalId).to.eq(null)
+      expect(job.completedAt).to.eq(null)
+      expect(job.schedule).to.have.length(1)
+      expect(job.schedule[0]).to.include({
+        jobId: job.id,
+        picked: false,
+        due: true,
+        lastSuccess: null,
+        lastFailure: null
       })
-  return poll().then((result) => {
-    expect(result.count).to.eq(1)
-    expect(result.university).to.eq(expected.university)
-    expect(result.caseType).to.eq(expected.caseType)
-    expect(result.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
-    expect(result.externalId).to.eq(`e2e:${result.id}`)
-    expect(result.completedAt).not.to.eq(null)
-    expect(result.expectedDocumentCount).to.eq(expected.types.length)
-    const receipt = result.receipt!
-    expect(receipt).to.include({
-      job_id: result.id,
-      delivery_key: result.id,
-      university: expected.university,
-      case_type: expected.caseType,
-      invocation_count: 1
-    })
-    expect(receipt.metadata).to.include({ ...expected.metadata, university: expected.university })
-    expect(result.documents.map((document) => document.type)).to.deep.eq(expected.types)
-    expect(receipt.documents).to.have.length(expected.types.length)
-    result.documents.forEach((document, order) => {
-      expect(document.order).to.eq(order)
-      expect(document.snapshot).to.eq(true)
-      expect(document.sourceMatches, `snapshot ${document.id} retains source bytes`).to.eq(true)
-      expect(document.size).to.be.greaterThan(0)
-      expect(document.sha256).to.eq(document.storedSha256)
-      expect(receipt.documents[order]).to.deep.eq({
-        id: document.id,
-        type: document.type,
-        order,
-        size: document.size,
-        sha256: document.sha256,
-        contentType: document.contentType
+      expect(Number.isFinite(Date.parse(job.schedule[0].executionTime))).to.eq(true)
+      expect(job.metadata).to.include({ ...expected.metadata, university: expected.university })
+      expect(job.expectedDocumentCount).to.eq(expected.types.length)
+      expect(job.documents.map((document) => document.type)).to.deep.eq(expected.types)
+      expect(job.metadata.documents).to.have.length(expected.types.length)
+      job.documents.forEach((document, order) => {
+        const identity = job.metadata.documents[order]
+        expect(identity).to.include({
+          snapshotDocumentId: document.id, recordType: document.type, jarjestysnumero: order
+        })
+        expect(identity.sourceDocumentId).to.be.greaterThan(0)
+        expect(identity.sourceDocumentId).not.to.eq(document.id)
+        expect(document.order).to.eq(order)
+        expect(document.snapshot).to.eq(true)
+        expect(document.sourceMatches, `snapshot ${document.id} retains source bytes`).to.eq(true)
+        expect(document.size).to.be.greaterThan(0)
+        expect(document.sha256).to.eq(document.storedSha256)
       })
     })
-  })
 }

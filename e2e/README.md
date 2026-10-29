@@ -87,53 +87,34 @@ before another run; in-memory restoration state is lost on process termination.
 The existing shard discovery includes the new specs automatically; no explicit
 spec list or additional GHA job is required.
 
-## Approval → asynchronous archive worker
+## Approval → scheduled archive job
 
-The six specs in `cypress/async-archive/` reuse the existing approval UI flows:
-training contract, positive and negative final trial-period assessment, and EL,
-EHL and YEK graduation. Each spec registers one independent test. Generated
-graduation summary, attachments and (EL/EHL) licensing certificate are checked as
-one delivery, not separate jobs. Ordinary specs in `cypress/e2e/` keep their
-existing archive-disabled configuration and assertions.
+The existing approval UI specs also verify asynchronous archive scheduling for
+training contracts, positive and negative trial-period decisions, and EL/EHL/YEK
+graduation. After the real Approve response, `assertArchiveScheduled` reads the
+exact operation business key and checks one committed `ODOTTAA` job, approval
+metadata, document order, nonempty snapshots, SHA-256 and source/snapshot equality.
+One unpicked `arkistointi-job` scheduler task must reference the job UUID.
 
-`.github/workflows/archive-e2e.yml`, called by `e2e.yml`, runs each async spec on
-its own fresh Compose/PostgreSQL stack. The regular shard selector never includes
-these specs. Existing forms and real approval APIs generate the documents; the
-real db-scheduler, processor and JDBC loader deliver the committed snapshots.
-Only the university adapter is replaced. This tests the delivery boundary, not
-the real Dynasty/Louhi protocol or receiver-side deduplication.
+The ordinary Compose stack mounts `infra/application-e2e.yml`. It enables async
+job creation for HKI/UEF while keeping the worker disabled, so no external archive
+system is contacted. HKI graduation archives its configured summary only; the UEF
+YEK fixture explicitly configures summary and attachments. No separate archive
+specs, JAR, CI phase or per-spec stack restart is needed. Full Tampere backend
+delivery through ZIP/SFTP remains covered by `TampereAsyncApprovalIT`.
 
-`src/archiveE2e` is a separate Gradle source set. `archiveE2eJar` builds
-`build/libs/elsa-archive-e2e.jar`, mounted into `/app/libs/` by
-`infra/docker-compose-archive-e2e.yml`. Its `archive-e2e` profile enables Helsinki
-and UEF test adapters and the worker; the adapters are excluded with `prod` or
-`replica`. `verifyArchiveE2eIsolation` checks that their classes/configuration are
-absent from the ordinary application jar. No production migration is added.
+The shared cleanup removes only archive data belonging to the selected fixture's
+study rights before deleting the parent records. Its own connection and transaction
+use `SET LOCAL session_replication_role = replica` to bypass immutable triggers in
+the disposable test DB. Scheduler rows, document links, jobs, snapshots and snapshot
+bytes are deleted explicitly because FK checks and cascades are disabled too.
+COMMIT/ROLLBACK restores the setting before ordinary cleanup continues. Production
+migrations and protections remain unchanged. Specs run serially within each shard's
+DB, with one ordinary stack per shard.
 
-The adapter commits a compact receipt in the test-only `archive_e2e.receipt`
-table, independently hashes the received bytes and returns `e2e:<job UUID>`.
-Node DB tasks poll by the exact operation business key. Assertions check the
-adapter invocation, UUID, approval metadata, document types/order, byte sizes,
-SHA-256, snapshot/source equality, `LAHETETTY`, `completedAt`, `externalId` and
-removal of the scheduler entry. Receipt data and documents are not logged.
-
-Run **one** async spec per freshly created stack. For local use, first build
-`./gradlew archiveE2eJar`, supply the usual disposable-stack secrets/image tags,
-then use both Compose files:
-
-```bash
-docker compose -p elsa-archive-e2e -f infra/docker-compose-cicd.yml -f infra/docker-compose-archive-e2e.yml up -d --wait
-cd e2e
-yarn cy:run --config 'baseUrl=http://localhost:8080,specPattern=cypress/async-archive/*.cy.ts,retries=0' --spec cypress/async-archive/sopimus.cy.ts
-```
-
-After collecting results, stop the worker and discard the entire stack/database
-with the same Compose files and `down -v`. Recreate it before another spec or
-retry. Tests deliberately leave immutable jobs/snapshots in place; no trigger is
-disabled. The fresh-stack guard rejects accidental reuse. The EHL fixture creates
-a matching dental specialty/guide and approver rights only for the disposable
-E2E identities; the test profile disables Hibernate entity caching so direct
-fixture SQL is visible to the application.
+EHL is a variant of the ordinary graduation spec. Its SQL fixture selects a dental
+specialty and clones the active study guide. Hibernate caches are disabled in the
+external E2E configuration because the fixture changes the study right after login.
 
 ## Parallel GitHub Actions runs
 

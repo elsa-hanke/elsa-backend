@@ -29,13 +29,6 @@ permissions:
   contents: read
 
 jobs:
-  async-archive:
-    uses: ./.github/workflows/archive-e2e.yml
-    with:
-      image-tag: ${{ inputs.image-tag }}
-      frontend-image-tag: ${{ inputs.frontend-image-tag }}
-    secrets: inherit
-
   e2e:
     name: E2E shard ${{ matrix.shard }}/${{ strategy.job-total }}
     runs-on: ubuntu-latest
