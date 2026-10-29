@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.0...HEAD)
 
+- Dynasty - Vaihe 2, task 2 — Valmistumisen hyväksynnän siirtäminen arkistointijonoon [`#784`](https://github.com/elsa-hanke/elsa-backend/pull/784)(28 October 2026)
 - Yhdista kayttajatileja pääsyy UI virhe [`#797`](https://github.com/elsa-hanke/elsa-backend/pull/797)(26 October 2026)
 - Korjaa hyväksyntöjen transaktionaalisuus ja sähköposti-ilmoitusten ajoitus [`#796`](https://github.com/elsa-hanke/elsa-backend/pull/796)(26 October 2026)
 - Dynasty - Vaihe 2, task 1 — Arkistoitavien asiakirjojen muuttumaton tallennus [`#783`](https://github.com/elsa-hanke/elsa-backend/pull/783)(26 October 2026)
