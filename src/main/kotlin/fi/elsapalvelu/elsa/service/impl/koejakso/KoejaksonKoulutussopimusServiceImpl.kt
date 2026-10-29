@@ -4,8 +4,6 @@ import fi.elsapalvelu.elsa.required
 
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
-import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
-import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.*
@@ -18,7 +16,6 @@ import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum.*
-import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.repository.koejakso.*
 import fi.elsapalvelu.elsa.repository.tyoskentely.*
@@ -40,12 +37,10 @@ import fi.elsapalvelu.elsa.service.seuranta.*
 import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
-import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.koejakso.KoejaksoArkistointiService
 import fi.elsapalvelu.elsa.service.mail.TransactionalMailService
 import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
-import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
-import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonKoulutussopimusMapper
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
@@ -78,7 +73,7 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
     private val pdfService: PdfService,
     private val opintooikeusService: OpintooikeusService,
-    private val arkistointiService: SynchronousArkistointiService,
+    private val arkistointiService: KoejaksoArkistointiService,
     private val koulutussopimusPdfTextValidator: KoulutussopimusPdfTextValidator,
     private val logger: Logger = LoggerFactory.getLogger(KoejaksonKoulutussopimusServiceImpl::class.java)
 ) : KoejaksonKoulutussopimusService {
@@ -141,8 +136,7 @@ class KoejaksonKoulutussopimusServiceImpl(
     @Transactional(rollbackFor = [Exception::class])
     override fun update(koulutussopimusDTO: KoejaksonKoulutussopimusDTO, userId: String): KoejaksonKoulutussopimusDTO {
         try {
-            var koulutussopimus = koejaksonKoulutussopimusRepository.findById(koulutussopimusDTO.id.required())
-                .orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
+            var koulutussopimus = loadForUpdate(koulutussopimusDTO.id.required())
             val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
             val updatedKoulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koulutussopimusDTO)
             val onSopimuksenErikoistuja = kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == koulutussopimus.opintooikeus?.erikoistuvaLaakari
@@ -157,6 +151,9 @@ class KoejaksonKoulutussopimusServiceImpl(
                 koulutussopimusPdfTextValidator.validateKouluttajanKentat(koulutussopimusDTO, it.id, userId)
             }
             if (vastuuhenkilo?.user?.id == userId) {
+                if (arkistointiService.isAsyncEnabled(koulutussopimus.opintooikeus?.yliopisto?.nimi.required(), CaseType.SOPIMUS)) {
+                    validatePreviousApprovals(koulutussopimus)
+                }
                 koulutussopimusPdfTextValidator.validateVastuuhenkilonKentat(koulutussopimusDTO)
             }
 
@@ -189,12 +186,8 @@ class KoejaksonKoulutussopimusServiceImpl(
             if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
                 logger.info("Kasitellaan sopimus hyvaksytty KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
                 val asiakirja = luoPdf(dto, koulutussopimus)
-                logger.info("Luotu koulutussopimuksesta pdf: $asiakirja.id")
-                val yliopisto = koulutussopimus.opintooikeus?.yliopisto?.nimi.required()
-
-                if (arkistointiService.onKaytossa(yliopisto, CaseType.SOPIMUS)) {
-                    arkistoiKoulutussopimus(koulutussopimus.opintooikeus, asiakirja, koulutussopimus, yliopisto)
-                }
+                logger.info("Luotu koulutussopimuksesta pdf [asiakirjaId={}]", asiakirja.id)
+                arkistointiService.archive(koulutussopimus, asiakirja)
             }
             if (vastuuhenkilo?.user?.id == userId) {
                 ilmoitaVastuuhenkilonKasittelysta(koulutussopimus)
@@ -202,8 +195,35 @@ class KoejaksonKoulutussopimusServiceImpl(
             return dto
         }
         catch(e: Exception) {
-            logger.error("Virhe koulutussopimuksen päivityksessä: ${e.message}", e)
+            // The HTTP advice classifies document errors without exposing filenames or causes.
+            logger.debug("Koulutussopimuksen paivitys epaonnistui")
             throw e
+        }
+    }
+
+    private fun loadForUpdate(id: Long): KoejaksonKoulutussopimus {
+        val university = koejaksonKoulutussopimusRepository.findUniversityById(id)
+        if (university == null || !arkistointiService.isAsyncEnabled(university, CaseType.SOPIMUS)) {
+            return koejaksonKoulutussopimusRepository.findById(id)
+                .orElseThrow { EntityNotFoundException("Koulutussopimusta ei löydy") }
+        }
+        val sopimus = koejaksonKoulutussopimusRepository.findByIdForUpdate(id)
+            ?: throw EntityNotFoundException("Koulutussopimusta ei löydy")
+        if (sopimus.vastuuhenkiloHyvaksynyt) {
+            throw BadRequestAlertException(
+                "Hyväksyttyä sopimusta ei saa muokata.", ENTITY_KOEJAKSON_SOPIMUS,
+                "dataillegal.hyvaksyttya-sopimusta-ei-saa-muokata"
+            )
+        }
+        return sopimus
+    }
+
+    private fun validatePreviousApprovals(sopimus: KoejaksonKoulutussopimus) {
+        if (!sopimus.lahetetty || sopimus.kouluttajat?.any { !it.sopimusHyvaksytty } == true) {
+            throw BadRequestAlertException(
+                "Sopimuksen aikaisemmat hyväksynnät puuttuvat.", ENTITY_KOEJAKSON_SOPIMUS,
+                "dataillegal.sopimuksen-aiemmat-hyvaksynnat-puuttuvat"
+            )
         }
     }
 
@@ -222,41 +242,6 @@ class KoejaksonKoulutussopimusServiceImpl(
         kayttaja.nimike = kouluttaja?.nimike
         userRepository.save(user)
         kayttajaRepository.save(kayttaja)
-    }
-
-    private fun arkistoiKoulutussopimus(
-        opintooikeus: Opintooikeus?,
-        asiakirja: Asiakirja,
-        koulutussopimus: KoejaksonKoulutussopimus,
-        yliopisto: YliopistoEnum
-    ) {
-        logger.info("Kasitellaan koulutussopimuksesta pdf arkistointi")
-        val result = arkistointiService.muodostaSahke(
-            opintooikeus,
-            listOf(RecordProperties(asiakirja, RecordType.SOPIMUS)),
-            caseId = koulutussopimus.id.required().toString(),
-            tarkastaja = "",
-            tarkastusPaiva = null,
-            hyvaksyja = koulutussopimus.vastuuhenkilo?.user?.getName(),
-            hyvaksymisPaiva = koulutussopimus.vastuuhenkilonKuittausaika,
-            yliopisto = yliopisto,
-            caseType = CaseType.SOPIMUS
-        )
-        logger.info("Koulutussopimuksesta pdf arkistointi onnistui, tuloste: ${result.zipFilePath}")
-
-        val erikoisala = opintooikeus?.erikoisala.required()
-        val yek = erikoisala.id == YEK_ERIKOISALA_ID
-        val erikoistujanNimi = requireNotNull(opintooikeus).erikoistuvaLaakari?.kayttaja?.user?.getName()
-        logger.info("Lahetetaan arkistopyynto: ${result.zipFilePath}")
-        arkistointiService.laheta(
-            yliopisto = yliopisto,
-            filePath = result.zipFilePath,
-            caseType = CaseType.SOPIMUS,
-            yek = yek,
-            caseId = koulutussopimus.id.required().toString(),
-            erikoistujanNimi = erikoistujanNimi
-        )
-        logger.info("Lahetettiin arkistopyynto")
     }
 
     private fun handleErikoistuva(

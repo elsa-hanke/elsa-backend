@@ -1,6 +1,9 @@
 package fi.elsapalvelu.elsa.repository.koejakso
 
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import jakarta.persistence.LockModeType
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
@@ -11,6 +14,15 @@ import java.util.*
 interface KoejaksonVastuuhenkilonArvioRepository :
     JpaRepository<KoejaksonVastuuhenkilonArvio, Long>,
     JpaSpecificationExecutor<KoejaksonVastuuhenkilonArvio> {
+
+    /** Read the routing value without loading a potentially stale assessment into the persistence context. */
+    @Query("select a.opintooikeus.yliopisto.nimi from KoejaksonVastuuhenkilonArvio a where a.id = :id")
+    fun findUniversityById(id: Long): YliopistoEnum?
+
+    /** Call before loading the assessment in an async approval transaction; serializes its updates. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select a from KoejaksonVastuuhenkilonArvio a where a.id = :id")
+    fun findByIdForUpdate(id: Long): KoejaksonVastuuhenkilonArvio?
 
     fun findOneByIdAndVastuuhenkiloUserId(
         id: Long,

@@ -1,9 +1,13 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.delivery
 
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 
 interface ArkistointiAdapter {
     val university: YliopistoEnum
+
+    /** Explicit capabilities; configuring another case type must not silently enable its delivery. */
+    val supportedCaseTypes: Set<CaseType>
 
     /**
      * Deduplicate by the persisted pyynto.key UUID, including concurrent calls and retries after an uncertain success.

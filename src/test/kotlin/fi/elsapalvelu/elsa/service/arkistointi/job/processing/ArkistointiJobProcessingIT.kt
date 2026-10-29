@@ -338,6 +338,16 @@ class ArkistointiJobProcessingIT {
     }
 
     @Test
+    fun `unsupported case type terminates without loading documents or sending`() {
+        val jobId = fixture(caseType = CaseType.KOEJAKSO)
+
+        assertTerminal(jobId, "ARCHIVE_CASE_TYPE_UNSUPPORTED")
+
+        assertThat(adapter.submissions).isEmpty()
+        verifyNoInteractions(loader)
+    }
+
+    @Test
     fun `checksum mismatch and invalid payload terminate without invoking adapter`() {
         val corruptJob = fixture(checksum = "0".repeat(64))
         assertTerminal(corruptJob, "ARCHIVE_DOCUMENT_CHECKSUM_MISMATCH")
@@ -723,7 +733,8 @@ class ArkistointiJobProcessingIT {
     private fun fixture(
         university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO,
         payload: String = "{\"approved\":true}",
-        checksum: String? = null
+        checksum: String? = null,
+        caseType: CaseType = CaseType.VALMISTUMINEN
     ): UUID = transactions.execute {
         YliopistoHelper.createReferenceData(em, university)
         val source = AsiakirjaHelper.createEntity(em)
@@ -731,7 +742,7 @@ class ArkistointiJobProcessingIT {
         em.persist(source)
         val reference = snapshots.createReference(source, RecordType.YHTEENVETO, 0)
         val request = CreateArkistointiJobRequest(
-            university, CaseType.VALMISTUMINEN, payload, "processing-${UUID.randomUUID()}", listOf(reference)
+            university, caseType, payload, "processing-${UUID.randomUUID()}", listOf(reference)
         )
         if (checksum == null) {
             creator.create(request).id!!
@@ -753,6 +764,7 @@ class ArkistointiJobProcessingIT {
 
     class TestAdapter : ArkistointiAdapter {
         override val university = YliopistoEnum.TURUN_YLIOPISTO
+        override val supportedCaseTypes = setOf(CaseType.VALMISTUMINEN)
         val submissions = CopyOnWriteArrayList<ArkistointiSubmission>()
         @Volatile var behavior: (ArkistointiSubmission) -> ArkistointiResult = { ArkistointiResult.Success(null) }
         override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult {

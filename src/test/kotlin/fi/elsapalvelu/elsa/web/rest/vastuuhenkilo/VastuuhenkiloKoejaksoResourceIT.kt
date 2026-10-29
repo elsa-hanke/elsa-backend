@@ -39,6 +39,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertNotNull
+import java.time.LocalDate
 
 @SpringBootTest(classes = [ElsaBackendApp::class])
 class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
@@ -634,6 +635,10 @@ class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
     @Transactional
     fun ackVastuuhenkilonArvio() {
         initTest()
+        // The final decision follows submission by the trainee and review by the officer.
+        koejaksonVastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
+        koejaksonVastuuhenkilonArvio.virkailijaHyvaksynyt = true
+        koejaksonVastuuhenkilonArvio.virkailijanKuittausaika = LocalDate.now()
 
         val databaseSizeBeforeUpdate = koejaksonVastuuhenkilonArvioRepository.findAll().size
 
@@ -664,6 +669,9 @@ class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
     @Transactional
     fun declineVastuuhenkilonArvio() {
         initTest()
+        koejaksonVastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
+        koejaksonVastuuhenkilonArvio.virkailijaHyvaksynyt = true
+        koejaksonVastuuhenkilonArvio.virkailijanKuittausaika = LocalDate.now()
 
         val databaseSizeBeforeUpdate = koejaksonVastuuhenkilonArvioRepository.findAll().size
 

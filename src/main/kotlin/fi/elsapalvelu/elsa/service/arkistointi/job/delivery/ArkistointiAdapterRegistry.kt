@@ -15,10 +15,15 @@ class ArkistointiAdapterRegistry(adapters: List<ArkistointiAdapter>) {
 
     fun validateWorkerConfiguration(configuration: ArkistointiConfigurationProvider) {
         YliopistoEnum.entries.forEach { university ->
-            CaseType.entries.forEach { caseType ->
-                require(!configuration.isAsyncEnabled(university, caseType) || find(university) != null) {
+            CaseType.entries.forEach caseTypes@ { caseType ->
+                if (!configuration.isAsyncEnabled(university, caseType)) return@caseTypes
+                val adapter = requireNotNull(find(university)) {
                     "Async archiving is enabled for ${university.name} / ${caseType.value}, " +
                         "but no asynchronous ArkistointiAdapter is registered"
+                }
+                require(caseType in adapter.supportedCaseTypes) {
+                    "Async archiving is enabled for ${university.name} / ${caseType.value}, " +
+                        "but the asynchronous ArkistointiAdapter does not support this case type"
                 }
             }
         }

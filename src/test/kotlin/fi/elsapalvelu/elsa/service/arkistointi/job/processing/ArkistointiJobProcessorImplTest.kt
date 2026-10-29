@@ -34,6 +34,7 @@ class ArkistointiJobProcessorImplTest {
     private val loader = mock<ArkistointiAsiakirjaLoader>()
     private val adapter = mock<ArkistointiAdapter>().apply {
         whenever(university).thenReturn(YliopistoEnum.TURUN_YLIOPISTO)
+        whenever(supportedCaseTypes).thenReturn(setOf(CaseType.VALMISTUMINEN))
     }
     private val processor = ArkistointiJobProcessorImpl(state, loader, ArkistointiAdapterRegistry(listOf(adapter)))
     private val jobId = UUID.randomUUID()
@@ -72,6 +73,18 @@ class ArkistointiJobProcessorImplTest {
         assertThat(exception.cause).isNull()
         verify(state, never()).succeed(any(), anyOrNull())
         verify(state, never()).fail(any(), any(), any())
+    }
+
+    @Test
+    fun `unsupported case type is a permanent failure before loading documents or sending`() {
+        whenever(adapter.supportedCaseTypes).thenReturn(setOf(CaseType.SOPIMUS))
+
+        val exception = assertThrows<ArkistointiProcessingException> { processor.process(execution) }
+
+        assertThat(exception.retryable).isFalse()
+        assertThat(exception.error.code).isEqualTo("ARCHIVE_CASE_TYPE_UNSUPPORTED")
+        verify(loader, never()).load(any())
+        verify(adapter, never()).arkistoi(any())
     }
 
     @Test
