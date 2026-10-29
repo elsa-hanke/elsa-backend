@@ -40,13 +40,13 @@ import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.koejakso.KoejaksoArkistointiService
 import fi.elsapalvelu.elsa.service.mail.TransactionalMailService
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksotTableDTO
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
-import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
-import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.mapper.kayttaja.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonVastuuhenkilonArvioMapper
@@ -86,6 +86,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val asiakirjaRepository: AsiakirjaRepository,
     private val arkistointiService: SynchronousArkistointiService,
+    private val koejaksoArkistointiService: KoejaksoArkistointiService,
     private val keskeytysaikaService: KeskeytysaikaService,
     private val pdfService: PdfService,
     private val asiakirjaMapper: AsiakirjaMapper,
@@ -149,9 +150,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         asiakirjat: Set<AsiakirjaDTO>?,
         deletedAsiakirjaIds: Set<Int>?
     ): KoejaksonVastuuhenkilonArvioDTO {
-        val vastuuhenkilonArvio =
-            koejaksonVastuuhenkilonArvioRepository.findById(koejaksonVastuuhenkilonArvioDTO.id.required())
-                .orElseThrow { EntityNotFoundException("Vastuuhenkilön arviota ei löydy") }
+        val vastuuhenkilonArvio = loadForUpdate(koejaksonVastuuhenkilonArvioDTO.id.required())
 
         val updatedVastuuhenkilonArvio =
             koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
@@ -181,6 +180,14 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 deletedAsiakirjaIds
             )
         } else if (vastuuhenkilo?.user?.id == userId) {
+            if (koejaksoArkistointiService.isAsyncEnabled(
+                    vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi.required(), CaseType.KOEJAKSO
+                ) && (!vastuuhenkilonArvio.virkailijaHyvaksynyt || vastuuhenkilonArvio.erikoistuvanKuittausaika == null)) {
+                throw BadRequestAlertException(
+                    "Arvion aikaisemmat hyväksynnät puuttuvat.", "koejakson_vastuuhenkilon_arvio",
+                    "dataillegal.arvion-aiemmat-hyvaksynnat-puuttuvat"
+                )
+            }
             vastuuhenkilonArvioPdfTextValidator.validateVastuuhenkilonKentat(koejaksonVastuuhenkilonArvioDTO)
             handleVastuuhenkilo(
                 vastuuhenkilonArvio,
@@ -201,6 +208,23 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         }
 
         return koejaksonVastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvio)
+    }
+
+    private fun loadForUpdate(id: Long): KoejaksonVastuuhenkilonArvio {
+        val university = koejaksonVastuuhenkilonArvioRepository.findUniversityById(id)
+        if (university == null || !koejaksoArkistointiService.isAsyncEnabled(university, CaseType.KOEJAKSO)) {
+            return koejaksonVastuuhenkilonArvioRepository.findById(id)
+                .orElseThrow { EntityNotFoundException("Vastuuhenkilön arviota ei löydy") }
+        }
+        val arvio = koejaksonVastuuhenkilonArvioRepository.findByIdForUpdate(id)
+            ?: throw EntityNotFoundException("Vastuuhenkilön arviota ei löydy")
+        if (arvio.vastuuhenkiloHyvaksynyt) {
+            throw BadRequestAlertException(
+                "Hyväksyttyä arviointia ei saa muokata.", "koejakson_vastuuhenkilon_arvio",
+                "dataillegal.hyvaksyttya-arviointia-ei-saa-muokata"
+            )
+        }
+        return arvio
     }
 
     private fun handleErikoistuja(
@@ -327,7 +351,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
         if (vastuuhenkilonArvio.vastuuhenkilonKuittausaika != null) {
             val asiakirja = luoPdf(mapVastuuhenkilonArvio(result), result)
-            arkistoiVastuuhenkilonArvio(result, asiakirja)
+            koejaksoArkistointiService.archive(result, asiakirja)
 
             if (vastuuhenkilonArvio.koejaksoHyvaksytty == false) {
                 mailService.sendEmailFromTemplate(
@@ -392,39 +416,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
             )
         )
-    }
-
-    private fun arkistoiVastuuhenkilonArvio(
-        vastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio,
-        asiakirja: Asiakirja
-    ) {
-        val yliopisto = vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi.required()
-        val erikoisala = vastuuhenkilonArvio.opintooikeus?.erikoisala.required()
-
-        if (arkistointiService.onKaytossa(yliopisto, CaseType.KOEJAKSO)) {
-            val result = arkistointiService.muodostaSahke(
-                vastuuhenkilonArvio.opintooikeus,
-                listOf(RecordProperties(asiakirja, RecordType.ARVIOINTI)),
-                caseId = vastuuhenkilonArvio.id.required().toString(),
-                tarkastaja = vastuuhenkilonArvio.virkailija?.user?.getName(),
-                tarkastusPaiva = vastuuhenkilonArvio.virkailijanKuittausaika,
-                hyvaksyja = vastuuhenkilonArvio.vastuuhenkilo?.user?.getName(),
-                hyvaksymisPaiva = vastuuhenkilonArvio.vastuuhenkilonKuittausaika,
-                yliopisto = yliopisto,
-                caseType = CaseType.KOEJAKSO
-            )
-            val yek = erikoisala.id == YEK_ERIKOISALA_ID
-            val erikoistujanNimi = vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
-            arkistointiService.laheta(
-                yliopisto = yliopisto,
-                filePath = result.zipFilePath,
-                caseType = CaseType.KOEJAKSO,
-                yek = yek,
-                caseId = vastuuhenkilonArvio.id.required().toString(),
-                erikoistujanNimi = erikoistujanNimi
-            )
-        }
-
     }
 
     @Transactional(readOnly = true)

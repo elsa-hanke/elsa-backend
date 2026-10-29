@@ -229,6 +229,54 @@ Opintotietointegraatioiden testihenkilöt annetaan `EXTERNAL_INTEGRATION_<PALVEL
 
 Arkistoinnin ulkoiset testit luovat oikeita testiaineistoja Helsingin Siiloon ja Tampereen Louheen. Tapaus- ja tiedostonimet sisältävät `CODEBUILD_BUILD_ID`:stä muodostetun korrelaatiotunnisteen, jotta lähetykset voidaan jäljittää.
 
+### Koejakson asynkroninen arkistointi
+
+`service.arkistointi.koejakso.KoejaksoArkistointiService` liittää kaksi nykyistä
+arkistointitapahtumaa yhteiseen jonoon: vastuuhenkilön hyväksymän koulutussopimuksen
+(`SOPIMUS`, asiakirjatyyppi `SOPIMUS`) ja lopullisen vastuuhenkilön arvion
+(`KOEJAKSO`, asiakirjatyyppi `ARVIOINTI`). Myös koejakson hylkäävä lopullinen arvio
+arkistoidaan. Korjattavaksi palauttaminen ja välivaiheiden kuittaukset eivät luo jobia.
+
+Valinta tehdään yliopisto- ja asiatyyppikohtaisella asetuksella
+`application.arkistointi.<yliopisto>.metadata.cases.<sopimus|koejakso>.async-enabled`.
+Oletus on `false`: nykyinen synkroninen lähetys säilyy. Jos koko integraatio tai
+asiatyyppi ei ole käytössä, jonoon ei lisätä tehtävää. Asynkroninen käyttöönotto
+edellyttää kyseistä asiatyyppiä tukevaa yliopiston adapteria.
+Adapteri ilmoittaa tuetut asiatyypit `supportedCaseTypes`-joukossa. Worker tarkistaa
+käynnistyessään jokaisen käyttöön otetun yliopisto–asiatyyppiparin. Jo jonossa oleva
+tukematon asiatyyppi päätyy tilaan `VAATII_TOIMENPITEITA` ilman lähetystä tai uusintaa.
+Pelkkä jobien tuottaminen ei edellytä paikallista toimitusadapteria.
+
+Hyväksyntä, tavallisen ladattavan PDF:n luonti, sen muuttumaton snapshot, job ja
+`scheduled_tasks` tallentuvat samassa transaktiossa. Payload sisältää hyväksymishetken
+henkilö-, opinto-oikeus-, tarkastaja- ja hyväksyjätiedot sekä arvion lopputuloksen.
+Worker käyttää tallennettua sisältöä eikä muodosta PDF:ää uudelleen.
+Payloadin `documents`-lista tallentaa myös `SOPIMUS`- ja `KOEJAKSO`-toimituksille
+alkuperäisen `sourceDocumentId`-tunnisteen ja muuttumattoman `snapshotDocumentId`-tunnisteen
+sekä `recordType`- ja `jarjestysnumero`-arvot. Worker lataa tavut snapshotin tunnisteella;
+Louhi-adapterin tulee käyttää tallennettua alkuperäistä tunnistetta SÄHKE-XML:n
+`Record.nativeId`-kentässä ja tarkistaa vastaavuus jobin asiakirjaviitteisiin.
+Alkuperäisen dokumentin myöhempi muutos ei muuta tätä sidosta tai toimitettavia tavuja.
+XML-kytkentä toteutetaan adapterin tehtävässä; nykyinen synkroninen polku säilyy.
+Sähköposti-ilmoitukset lähetetään commitin jälkeen.
+Hyväksymistransaktio peruuntuu myös checked-poikkeuksilla, kuten payloadin
+sarjoitusvirheellä.
+
+Asynkronisessa tilassa päivitykset lukitsevat sopimuksen tai arvion rivin ennen
+tilan tarkistamista. Lopullisesti hyväksyttyä käsittelyä ei voi tällöin toistaa
+tai muokata tämän päivityspolun kautta, ja aikaisemmat hyväksynnät tarkistetaan.
+Synkronisessa tilassa säilyvät aiemmat päivityssäännöt ilman uusia
+ennakkolukituksia tai hyväksyntätarkistuksia. Synkroninen lähetys käyttää suoraan
+alkuperäistä asiakirjaa ja aiempia metatietoja eikä muodosta async-payloadia.
+HTTP-rajapinnan nykyiset hyväksyntätarkistukset säilyvät molemmissa tiloissa.
+Paikalliset liiketoiminta-avaimet ovat
+`koejakso-sopimus:<YLIOPISTO>:<sopimusId>` ja
+`koejakso-arvio:<YLIOPISTO>:<arvioId>`; toimitusavaimena säilyy jobin UUID.
+Koejakson jonopolku tarkistaa olemassa olevan jobin liiketoiminta-avaimella ennen
+snapshotin luontia. Toistuva kutsu ei luo irrallista snapshotia eikä muuta olemassa
+olevaa jobia tai sen ajastusta. Tarkistus ei korvaa hyväksynnän rivilukitusta tai
+jobin avaimen yksilöllisyysrajoitetta.
+
 ### Valmistumisen asynkroninen arkistointi
 
 Valmistumisen hyväksyntä käyttää oletuksena nykyistä arkistointitoimitusta. Uusi jono otetaan käyttöön yliopistokohtaisesti asetuksella `application.arkistointi.<yliopisto>.metadata.cases.valmistuminen.async-enabled=true`; myös integraation `kaytossa`-asetuksen on oltava päällä. Yliopiston avain on `tre`, `hki`, `oulu`, `turku` tai `uef`.

@@ -328,6 +328,7 @@ application:
               liite:
                 retention-period: "10"
           koejakso:
+            async-enabled: false
             title: "Koejakson arviointi"
             type: "Koejakson arviointi"
             function: "04.01.04"
@@ -360,6 +361,7 @@ application:
               yhteenveto:
                 retention-period: "20"
           koejakso:
+            async-enabled: false
             title: "Koejakson arviointi"
             siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_KOEJAKSO_SIILO_KOODI:0b00000000000006}
             type: "Muu"
@@ -368,6 +370,7 @@ application:
               arviointi:
                 retention-period: "20"
           sopimus:
+            async-enabled: false
             title: "Koulutuspaikkasopimus"
             siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_SOPIMUS_SIILO_KOODI:0b00000000000007}
             type: "Sopimus"

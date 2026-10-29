@@ -47,6 +47,12 @@ class ArkistointiJobProcessorImpl(
                 ArkistointiError.create("ARCHIVE_ADAPTER_MISSING", "Yliopiston arkistointiadapteria ei ole maaritelty"),
                 retryable = false
             )
+        if (prepared.caseType !in adapter.supportedCaseTypes) {
+            throw ArkistointiProcessingException(
+                ArkistointiError.create("ARCHIVE_CASE_TYPE_UNSUPPORTED", "Arkistointiadapteri ei tue asiatyyppia"),
+                retryable = false
+            )
+        }
         val submission = ArkistointiSubmission(
             prepared.jobId, prepared.university, prepared.caseType, prepared.payload,
             prepared.asiakirjat.map(loader::load)
