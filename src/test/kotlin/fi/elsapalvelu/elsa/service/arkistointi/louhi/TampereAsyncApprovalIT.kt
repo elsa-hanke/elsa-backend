@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkePackageBuilder
+
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.boot.autoconfigure.DbSchedulerAutoConfiguration
 import fi.elsapalvelu.elsa.ElsaBackendApp
@@ -130,7 +132,7 @@ class TampereAsyncApprovalIT : ResourceIntegrationTestBase() {
     @Autowired private lateinit var assessmentMapper: KoejaksonVastuuhenkilonArvioMapper
     @Autowired private lateinit var properties: ApplicationProperties
     @Autowired private lateinit var configuration: ArkistointiConfigurationProvider
-    @Autowired private lateinit var packageBuilder: LouhiAsyncPackageBuilder
+    @Autowired private lateinit var packageBuilder: AsyncSahkePackageBuilder
     @Autowired private lateinit var failureHandler: ArkistointiJobFailureHandler
     @Autowired private lateinit var dataSource: DataSource
     @MockitoBean lateinit var mail: MailService
@@ -203,7 +205,7 @@ class TampereAsyncApprovalIT : ResourceIntegrationTestBase() {
                     ArkistointiAdapterRegistry::class.java, LouhiAsyncArkistointiAdapter::class.java)
                 .withBean(ApplicationProperties::class.java, Supplier { properties })
                 .withBean(ArkistointiConfigurationProvider::class.java, Supplier { configuration })
-                .withBean(LouhiAsyncPackageBuilder::class.java, Supplier { packageBuilder })
+                .withBean(AsyncSahkePackageBuilder::class.java, Supplier { packageBuilder })
                 .withBean(ArkistointiJobFailureHandler::class.java, Supplier { failureHandler })
                 .withBean(DataSource::class.java, Supplier { DelegatingDataSource(dataSource) })
                 .withBean(TampereLouhiService::class.java, Supplier { receiver.client { destroyed.set(true) } },

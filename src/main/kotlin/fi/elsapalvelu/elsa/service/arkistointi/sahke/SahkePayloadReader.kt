@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.arkistointi.louhi
+package fi.elsapalvelu.elsa.service.arkistointi.sahke
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonNode
@@ -11,18 +11,18 @@ import java.time.format.DateTimeParseException
 
 /** Explicit JSON type checks preserve the saved payload contract without scalar coercion. */
 @Component
-class LouhiPayloadReader(private val mapper: ObjectMapper) {
-    fun read(json: String, caseType: CaseType): LouhiArchivePayload {
+class SahkePayloadReader(private val mapper: ObjectMapper) {
+    fun read(json: String, caseType: CaseType): SahkeArchivePayload {
         val root = try {
             requirePayloadValue(mapper.readTree(json))
         } catch (_: JsonProcessingException) {
-            throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
+            throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
         }
         requireValidPayload(root.isObject)
         val caseIdField = if (caseType == CaseType.VALMISTUMINEN) "valmistumispyyntoId" else "caseId"
         val yek = root.path("yek")
         requireValidPayload(yek.isBoolean)
-        return LouhiArchivePayload(
+        return SahkeArchivePayload(
             university = requirePayloadValue(text(root, "university")),
             studyRightId = identifier(root, "opintooikeusId"),
             caseId = identifier(root, caseIdField),
@@ -50,7 +50,7 @@ class LouhiPayloadReader(private val mapper: ObjectMapper) {
     private fun date(root: JsonNode, field: String): LocalDate? = try {
         text(root, field)?.let(LocalDate::parse)
     } catch (_: DateTimeParseException) {
-        throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
+        throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
     }
 
     private fun identifier(root: JsonNode, field: String): Long {
@@ -65,14 +65,14 @@ class LouhiPayloadReader(private val mapper: ObjectMapper) {
         return try {
             mapper.treeToValue(manifest, Array<ArkistointiDocumentIdentity>::class.java).toList()
         } catch (_: JsonProcessingException) {
-            throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
+            throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
         }
     }
 
     private fun requireValidPayload(valid: Boolean) {
-        if (!valid) throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
+        if (!valid) throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
     }
 
     private fun <T : Any> requirePayloadValue(value: T?): T =
-        value ?: throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
+        value ?: throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
 }

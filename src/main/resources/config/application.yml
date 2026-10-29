@@ -342,6 +342,8 @@ application:
       kaytossa: false
       host:
       api-key:
+      # Applies only to the asynchronous Siilo call; legacy sync timeouts stay unchanged.
+      async-transfer-timeout: 2m
       metadata:
         zip-metadata: true
         contact:

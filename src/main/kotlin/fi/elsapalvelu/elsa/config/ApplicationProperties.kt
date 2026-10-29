@@ -207,6 +207,7 @@ class ApplicationProperties {
             var kaytossa: Boolean = false
             var host: String? = null
             var apiKey: String? = null
+            var asyncTransferTimeout: java.time.Duration = java.time.Duration.ofMinutes(2)
             var metadata: Metadata? = null
         }
 

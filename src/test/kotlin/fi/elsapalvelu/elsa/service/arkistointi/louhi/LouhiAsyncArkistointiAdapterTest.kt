@@ -1,5 +1,10 @@
 package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkePackageBuilder
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePackageException
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePackageFailure
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.PreparedSahkePackage
+
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
@@ -22,7 +27,7 @@ import java.io.IOException
 import java.util.UUID
 
 class LouhiAsyncArkistointiAdapterTest {
-    private val builder = mock<LouhiAsyncPackageBuilder>()
+    private val builder = mock<AsyncSahkePackageBuilder>()
     private val louhi = mock<TampereLouhiService>()
     private val adapter = LouhiAsyncArkistointiAdapter(builder, louhi)
     private val submission = ArkistointiSubmission(UUID.randomUUID(), YliopistoEnum.TAMPEREEN_YLIOPISTO,
@@ -36,7 +41,7 @@ class LouhiAsyncArkistointiAdapterTest {
             val path = call.getArgument<Path>(1).resolve("valmistuminen_matti_meikäläinen.zip")
             paths.add(path)
             Files.writeString(path, "package")
-            PreparedLouhiPackage(path, true)
+            PreparedSahkePackage(path, true)
         }.whenever(builder).build(eq(submission), any())
         doAnswer { call ->
             val path = Path.of(call.getArgument<String>(0))
@@ -73,7 +78,7 @@ class LouhiAsyncArkistointiAdapterTest {
         doAnswer { call ->
             directory = call.getArgument(1)
             Files.writeString(directory!!.resolve("partial.zip"), "partial")
-            throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
+            throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
         }.whenever(builder).build(eq(submission), any())
 
         val result = adapter.arkistoi(submission) as ArkistointiResult.PermanentFailure
@@ -85,13 +90,13 @@ class LouhiAsyncArkistointiAdapterTest {
     }
 
     @ParameterizedTest
-    @EnumSource(LouhiPackageFailure::class)
-    fun `known package failure is permanent and prevents sending`(failure: LouhiPackageFailure) {
-        whenever(builder.build(eq(submission), any())).thenThrow(LouhiPackageException(failure))
+    @EnumSource(SahkePackageFailure::class)
+    fun `known package failure is permanent and prevents sending`(failure: SahkePackageFailure) {
+        whenever(builder.build(eq(submission), any())).thenThrow(SahkePackageException(failure))
 
         val result = adapter.arkistoi(submission) as ArkistointiResult.PermanentFailure
 
-        assertThat(result.error.code).isEqualTo(failure.code)
+        assertThat(result.error.code).isEqualTo("LOUHI_${failure.name}")
         verifyNoInteractions(louhi)
     }
 
@@ -122,7 +127,7 @@ class LouhiAsyncArkistointiAdapterTest {
         doAnswer { call ->
             path = call.getArgument<Path>(1).resolve("private-person.zip")
             Files.writeString(path!!, "package")
-            PreparedLouhiPackage(path, false)
+            PreparedSahkePackage(path, false)
         }.whenever(builder).build(eq(submission), any())
         whenever(louhi.laheta(any(), eq(false), eq(LouhiExecutionPolicy.ASYNC)))
             .thenThrow(LouhiTransferException(LouhiTransferStage.RENAME, failure, 3, LouhiTransferReason.SFTP_REJECTION))

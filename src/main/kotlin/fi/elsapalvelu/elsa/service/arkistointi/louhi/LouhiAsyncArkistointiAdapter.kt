@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkePackageBuilder
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePackageException
+
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
@@ -13,7 +16,7 @@ import org.springframework.web.server.ResponseStatusException
 
 @Component
 class LouhiAsyncArkistointiAdapter(
-    private val packageBuilder: LouhiAsyncPackageBuilder,
+    private val packageBuilder: AsyncSahkePackageBuilder,
     private val louhi: TampereLouhiService
 ) : ArkistointiAdapter {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -37,8 +40,8 @@ class LouhiAsyncArkistointiAdapter(
             else ArkistointiResult.PermanentFailure(error)
         } catch (_: ResponseStatusException) {
             retryable()
-        } catch (exception: LouhiPackageException) {
-            invalid(exception.failure.code)
+        } catch (exception: SahkePackageException) {
+            invalid("LOUHI_${exception.failure.name}")
         } finally {
             try {
                 // laheta owns file deletion; also remove partial output if package creation failed.
