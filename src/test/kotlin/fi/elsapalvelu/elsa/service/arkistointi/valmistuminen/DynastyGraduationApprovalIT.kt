@@ -17,6 +17,9 @@ import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksynta
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import org.assertj.core.api.Assertions.assertThat
+import org.mockito.Mockito.clearInvocations
+import org.mockito.Mockito.mockingDetails
+import org.mockito.Mockito.verifyNoInteractions
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,6 +33,10 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 
 @SpringBootTest(classes = [ElsaBackendApp::class], properties = [
     "spring.datasource.url=jdbc:tc:postgresql:16.9:///dynastyGraduation?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true",
@@ -51,29 +58,41 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
     @MockitoBean lateinit var mail: MailService
 
     @ParameterizedTest
-    @CsvSource("TURUN_YLIOPISTO,EL", "TURUN_YLIOPISTO,EHL", "TURUN_YLIOPISTO,YEK",
-        "ITA_SUOMEN_YLIOPISTO,EL", "ITA_SUOMEN_YLIOPISTO,EHL", "ITA_SUOMEN_YLIOPISTO,YEK")
-    fun `approval freezes all three documents and worker delivers them`(university: YliopistoEnum, kind: String) {
+    @CsvSource("TURUN_YLIOPISTO,EL,pdf", "TURUN_YLIOPISTO,EHL,pdf", "TURUN_YLIOPISTO,YEK,pdf",
+        "ITA_SUOMEN_YLIOPISTO,EL,pdf", "ITA_SUOMEN_YLIOPISTO,EHL,pdf", "ITA_SUOMEN_YLIOPISTO,YEK,pdf",
+        "TURUN_YLIOPISTO,YEK,png", "ITA_SUOMEN_YLIOPISTO,YEK,png")
+    fun `approval freezes all three documents and worker delivers them`(university: YliopistoEnum, kind: String, format: String) {
+        val originalBytes = if (format == "png") certificateImage else certificate
+        val originalFilename = "certificate.$format"
+        val originalContentType = if (format == "png") "image/png" else "application/pdf"
         val fixture = graduationFixture(kind, university, true)
         transactions.executeWithoutResult { _ ->
             val request = em.find(fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto::class.java, fixture.first)
             request.opintooikeus!!.erikoistuvaLaakari!!.apply {
-                if (laillistamistodistus != null) laillistamistodistus = AsiakirjaData(data = certificate.copyOf())
-                laillistamispaivanLiitetiedostonNimi = "certificate.pdf"
-                laillistamispaivanLiitetiedostonTyyppi = "application/pdf"
+                laillistamistodistus = AsiakirjaData(data = originalBytes.copyOf())
+                laillistamispaivanLiitetiedostonNimi = originalFilename
+                laillistamispaivanLiitetiedostonTyyppi = originalContentType
             }
         }
         setSecurityContext(fixture.second, VASTUUHENKILO)
+        clearInvocations(mail)
         approve(fixture.first).andExpect(status().isOk)
+        assertThat(mockingDetails(mail).invocations).isNotEmpty()
         val job = transactions.execute { _ -> jobs.findByKey("valmistuminen:$university:${fixture.first}")!! }
+        assertManifest(job.id!!, originalFilename, originalContentType)
         val before = jdbc.queryForObject("select count(*) from asiakirja", Long::class.java)!!
         // The student's current certificate changes after approval; the worker must see saved bytes.
         transactions.executeWithoutResult { _ ->
             val request = em.find(fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto::class.java, fixture.first)
-            request.opintooikeus!!.erikoistuvaLaakari!!.laillistamistodistus = AsiakirjaData(data = byteArrayOf(1, 2))
+            request.opintooikeus!!.erikoistuvaLaakari!!.apply {
+                laillistamistodistus = AsiakirjaData(data = byteArrayOf(1, 2))
+                laillistamispaivanLiitetiedostonNimi = "changed.txt"
+                laillistamispaivanLiitetiedostonTyyppi = "text/plain"
+            }
         }
         scheduler.triggerCheckForDueExecutions()
         awaitDelivered(job.id!!)
+        assertManifest(job.id!!, originalFilename, originalContentType)
         // Repeating approval must not materialize another source or snapshot.
         approve(fixture.first).andExpect(status().isBadRequest)
         assertThat(jdbc.queryForObject("select count(*) from asiakirja", Long::class.java)).isEqualTo(before)
@@ -102,7 +121,16 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
         }
         val before = jdbc.queryForObject("select count(*) from asiakirja", Long::class.java)
         val tasks = jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.java)
+        val expectedKey = when (problem) {
+            "missing" -> "ARCHIVE_DOCUMENT_MISSING"
+            "empty" -> "ARCHIVE_DOCUMENT_EMPTY"
+            else -> "ARCHIVE_DOCUMENT_INVALID"
+        }
+        clearInvocations(mail)
         approve(fixture.first).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.errorKey").value(expectedKey))
+            .andExpect(jsonPath("$.message").value("error.$expectedKey"))
+        verifyNoInteractions(mail)
         assertThat(jobs.findByKey("valmistuminen:$university:${fixture.first}")).isNull()
         assertThat(jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.java)).isEqualTo(tasks)
         transactions.executeWithoutResult { _ ->
@@ -129,11 +157,39 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
         }
     }
 
+    private fun assertManifest(jobId: java.util.UUID, filename: String, contentType: String) {
+        transactions.executeWithoutResult { _ ->
+            val job = jobs.findById(jobId).orElseThrow()
+            val payload = objectMapper.readValue(job.payload, ValmistuminenArkistointiPayload::class.java)
+            assertThat(payload.documents).hasSize(job.asiakirjat.size)
+            payload.documents.forEach { identity ->
+                val reference = job.asiakirjat.single { it.jarjestysnumero == identity.jarjestysnumero }
+                assertThat(identity.snapshotDocumentId).isEqualTo(reference.asiakirja!!.id)
+                assertThat(identity.recordType).isEqualTo(reference.asiakirjatyyppi)
+                assertThat(identity.sourceDocumentId).isNotEqualTo(identity.snapshotDocumentId)
+                val source = em.find(fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja::class.java, identity.sourceDocumentId)
+                assertThat(source).isNotNull()
+                assertThat(source.archiveSnapshot).isFalse()
+                assertThat(reference.asiakirja!!.archiveSnapshot).isTrue()
+                if (identity.recordType == RecordType.LAILLISTAMISTODISTUS) {
+                    assertThat(reference.filename).isEqualTo(filename)
+                    assertThat(reference.contentType).isEqualTo(contentType)
+                    assertThat(source.nimi).isEqualTo(filename)
+                    assertThat(source.tyyppi).isEqualTo(contentType)
+                }
+            }
+        }
+    }
+
     private fun approve(id: Long) = testMockMvc.perform(put("/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id")
         .contentType(MediaType.APPLICATION_JSON).with(csrf())
         .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null))))
 
     companion object {
+        private val certificateImage = ByteArrayOutputStream().use { output ->
+            check(ImageIO.write(BufferedImage(4, 4, BufferedImage.TYPE_INT_RGB), "png", output))
+            output.toByteArray()
+        }
         private val certificate = fi.elsapalvelu.elsa.service.pdf.PdfTestData.certificate()
     }
 
@@ -154,7 +210,11 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
                 assertThat(pyynto.asiakirjat.map { it.asiakirjatyyppi }).containsExactly(
                     RecordType.YHTEENVETO, RecordType.LIITE, RecordType.LAILLISTAMISTODISTUS)
                 pyynto.asiakirjat.forEach { assertThat(ArkistointiChecksum.sha256(it.sisalto)).isEqualTo(it.sha256) }
-                assertThat(pyynto.asiakirjat.last().sisalto).isEqualTo(certificate)
+                val savedCertificate = pyynto.asiakirjat.last()
+                val image = savedCertificate.filename == "certificate.png"
+                assertThat(savedCertificate.filename).isEqualTo(if (image) "certificate.png" else "certificate.pdf")
+                assertThat(savedCertificate.contentType).isEqualTo(if (image) "image/png" else "application/pdf")
+                assertThat(savedCertificate.sisalto).isEqualTo(if (image) certificateImage else certificate)
                 return ArkistointiResult.Success("test:${pyynto.jobId}")
             }
         }
