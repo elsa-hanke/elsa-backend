@@ -389,8 +389,32 @@ application:
       kaytossa: false
     turku:
       kaytossa: false
+      metadata:
+        cases:
+          valmistuminen:
+            async-enabled: false
+            # Document selection only; Dynasty-specific metadata will be configured with its adapter.
+            documents:
+              yhteenveto:
+                retention-period: ""
+              liite:
+                retention-period: ""
+              laillistamistodistus:
+                retention-period: ""
     uef:
       kaytossa: false
+      metadata:
+        cases:
+          valmistuminen:
+            async-enabled: false
+            # Document selection only; Dynasty-specific metadata will be configured with its adapter.
+            documents:
+              yhteenveto:
+                retention-period: ""
+              liite:
+                retention-period: ""
+              laillistamistodistus:
+                retention-period: ""
 
 db-scheduler:
   delay-startup-until-context-ready: true

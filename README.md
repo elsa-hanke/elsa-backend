@@ -639,3 +639,18 @@ sekä ajastusrivin poistumisen. Lisäksi tarkistetaan yksi job, tallennettu payl
 asiakirjojen manifesti, alkuperäiset tunnisteet ja snapshotien tarkistussummat.
 Oikea processor ja JDBC-loader suoritetaan; ulkoista lähetystä ei tehdä.
 Siilo/Louhi-protokollan ja ZIP/XML-sisällön tarkistukset kuuluvat IT-testeihin.
+
+### Turun ja Itä-Suomen valmistumisasiakirjat
+
+Turun ja Itä-Suomen async-valmistumisen hyväksyntä kokoaa EL-, EHL- ja
+YEK-tapauksissa yhteenvedon, liitteet ja laillistamistodistuksen. Todistus
+kopioidaan hyväksymishetken tiedostosta alkuperäisine tavuineen ja metatietoineen.
+Sille luodaan oma Asiakirja ja muuttumaton snapshot; payloadin lähdetunniste on
+Asiakirjan tunniste, ei AsiakirjaData-tunniste. Puuttuva tai tyhjä todistus tai
+puutteelliset tiedostometatiedot peruuttavat async-hyväksymistransaktion.
+
+Molemmat integraatiot ja async ovat oletuksena pois käytöstä. Tyhjät
+retention-period-arvot ovat sitoutumisen mahdollistavia paikkamerkkejä,
+eivät sovittuja säilytysaikoja. Dynasty-kohtaiset metatiedot, asiakas ja adapterit
+sekä vastaanottajan tiedostorajat toteutetaan integraatiotehtävissä.
+Koulutussopimuksen arkistointipäätöstä ei muuteta tässä tehtävässä.

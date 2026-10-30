@@ -22,6 +22,10 @@ class AsyncArchiveEnvironmentConfigurationTest {
         runner().run { context ->
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
+            if (university == YliopistoEnum.TURUN_YLIOPISTO || university == YliopistoEnum.ITA_SUOMEN_YLIOPISTO) {
+                val settings = provider.getConfiguration(university, CaseType.VALMISTUMINEN)
+                assertThat(settings.case.documents?.keys).containsExactlyInAnyOrder("yhteenveto", "liite", "laillistamistodistus")
+            }
             flows.getValue(university).forEach { caseType ->
                 assertThat(provider.getConfiguration(university, caseType).case.asyncEnabled)
                     .describedAs("$university / $caseType").isFalse()
@@ -38,6 +42,8 @@ class AsyncArchiveEnvironmentConfigurationTest {
         runner(mapOf(
             // Enable both universities so university isolation is not hidden by kaytossa=false.
             "APPLICATION_ARKISTOINTI_TRE_KAYTOSSA" to "true",
+            "APPLICATION_ARKISTOINTI_TURKU_KAYTOSSA" to "true",
+            "APPLICATION_ARKISTOINTI_UEF_KAYTOSSA" to "true",
             "APPLICATION_ARKISTOINTI_HKI_KAYTOSSA" to "true",
             "APPLICATION_ARKISTOINTI_${prefix}_METADATA_CASES_${caseType.name}_ASYNCENABLED" to "true"
         )).run { context ->
@@ -72,10 +78,13 @@ class AsyncArchiveEnvironmentConfigurationTest {
 
     companion object {
         private val flows = mapOf(
+            YliopistoEnum.TURUN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN),
+            YliopistoEnum.ITA_SUOMEN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN),
             YliopistoEnum.TAMPEREEN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO),
             YliopistoEnum.HELSINGIN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO, CaseType.SOPIMUS)
         )
         private val environmentPrefixes = mapOf(
+            YliopistoEnum.TURUN_YLIOPISTO to "TURKU", YliopistoEnum.ITA_SUOMEN_YLIOPISTO to "UEF",
             YliopistoEnum.TAMPEREEN_YLIOPISTO to "TRE", YliopistoEnum.HELSINGIN_YLIOPISTO to "HKI"
         )
 
