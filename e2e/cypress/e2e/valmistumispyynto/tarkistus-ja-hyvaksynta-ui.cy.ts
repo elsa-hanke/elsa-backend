@@ -4,7 +4,7 @@ import {
   VASTUUHENKILO_EMAIL
 } from '../../support/commands/credentials'
 import { downloadPdfPages, expectTextInOrder } from '../../support/pdf'
-import { assertArchiveAbsent, assertArchiveScheduled } from '../../support/async-archive'
+import { assertArchiveAbsent, assertArchiveProcessed } from '../../support/async-archive'
 import {
   acceptRequirements,
   fillContactInformation,
@@ -507,7 +507,7 @@ for (const degree of ['EL', 'EHL', 'YEK'] as const) {
           expect(response?.statusCode).to.eq(200)
           saved = response?.body.valmistumispyynto
           approved(saved)
-          assertArchiveScheduled({
+          assertArchiveProcessed({
             prefix: 'valmistuminen',
             university,
             caseId: original.id,

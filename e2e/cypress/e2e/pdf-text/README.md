@@ -31,10 +31,14 @@ resubmits as the trainee, and corrects the summary as the officer through the re
 API before retrying approval. No cached review is repaired with direct SQL.
 
 Setup and cleanup use the existing shared test users and koejakso DB tasks.
-The final-review PDF cases run with async job creation enabled and the archive
-worker disabled. A successful approval creates the source PDF and one immutable
-snapshot. Rejected requests must leave all document records, including snapshots,
-unchanged.
+The final-review PDF cases run with async job creation and the archive worker
+enabled in the disposable `e2e-archive` profile with the explicit
+`application.e2e.archive-stub-enabled=true` flag. A successful approval creates the
+source PDF and one immutable snapshot; the worker processes the job through a test
+adapter without external delivery. These specs focus on PDF validation and rollback;
+the approval UI specs described in `e2e/README.md` use `assertArchiveProcessed` to
+verify `LAHETETTY`, the test-adapter receipt and scheduler-row removal.
+Rejected requests must leave all document records, including snapshots, unchanged.
 
 To select only these specs in a configured E2E environment:
 

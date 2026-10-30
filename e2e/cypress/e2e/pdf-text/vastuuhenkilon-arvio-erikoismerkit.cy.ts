@@ -71,7 +71,7 @@ function visitResponsible(id: number) {
   cy.visit(`/koejakso/vastuuhenkilon-arvio/${id}`)
   return cy.wait('@responsibleReview').then(({ response }) => {
     expect(response?.statusCode).to.eq(200)
-    expect(response?.body.arkistoitava, 'async archiving enabled; worker disabled in E2E').to.eq(true)
+    expect(response?.body.arkistoitava, 'async archiving enabled; E2E uses a test delivery adapter').to.eq(true)
     expect(response?.body.vastuuhenkilo?.sopimusHyvaksytty ?? false).to.eq(false)
     return response?.body
   })

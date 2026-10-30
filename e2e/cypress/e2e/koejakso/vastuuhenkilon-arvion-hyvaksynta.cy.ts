@@ -3,7 +3,7 @@ import {
   KOULUTTAJA_EMAIL,
   VASTUUHENKILO_EMAIL
 } from '../../support/commands/credentials'
-import { assertArchiveAbsent, assertArchiveScheduled } from '../../support/async-archive'
+import { assertArchiveAbsent, assertArchiveProcessed } from '../../support/async-archive'
 
 const SIVU = 'main[role="main"]'
 const VAHVISTUS = '#confirm-sign'
@@ -337,7 +337,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
         expect(response?.body.vastuuhenkilo.kuittausaika).to.match(/^\d{4}-\d{2}-\d{2}$/)
         kuittausaika = response?.body.vastuuhenkilo.kuittausaika
         tarkistaTallennettuPaatos(response?.body, hyvaksytty, kuittausaika)
-        assertArchiveScheduled({
+        assertArchiveProcessed({
           prefix: 'koejakso-arvio',
           university: 'HELSINGIN_YLIOPISTO',
           caseId: arvio.id,
@@ -364,7 +364,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
         cy.apiRequest({
           method: 'PUT', url: API, body: tallennettu, failOnStatusCode: false
         }).its('status').should('eq', 400)
-        assertArchiveScheduled({
+        assertArchiveProcessed({
           prefix: 'koejakso-arvio', university: 'HELSINGIN_YLIOPISTO',
           caseId: arvio.id, caseType: 'KOEJAKSO', types: ['ARVIOINTI'],
           metadata: { caseId: arvio.id, koejaksoHyvaksytty: hyvaksytty, approvalDate: kuittausaika }

@@ -1,5 +1,5 @@
 import type { Client } from 'pg'
-import { cleanupArchiveForStudyRights } from './archive-cleanup'
+import { cleanupArchiveForErikoistuva } from './archive-cleanup'
 import { dbClient, withDb } from './db-client'
 import {
   deleteKoejaksoRowsByOpintooikeusId,
@@ -201,8 +201,7 @@ async function deletePaivakirjamerkintaRows(client: Client, el_id: number): Prom
 // ─── Opintooikeus cleanup ─────────────────────────────────────────────────────
 
 async function deleteOpintooikeusRows(client: Client, el_id: number): Promise<void> {
-  const rights = await client.query('SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1', [el_id])
-  await cleanupArchiveForStudyRights(rights.rows.map((row) => Number(row.id)))
+  await cleanupArchiveForErikoistuva(client, el_id)
   // Approval records can exist for either EL or YEK rights, including fixtures
   // left by another spec. Remove them before deleting the parent study rights.
   await client.query(

@@ -3,7 +3,7 @@ import {
   KOULUTTAJA_EMAIL,
   VASTUUHENKILO_EMAIL
 } from '../../support/commands/credentials'
-import { assertArchiveAbsent, assertArchiveScheduled } from '../../support/async-archive'
+import { assertArchiveAbsent, assertArchiveProcessed } from '../../support/async-archive'
 
 const KOULUTTAJA_NIMI = 'Lassekalevi Hummaamistes'
 const VASTUUHENKILO_NIMI = 'Mia Ålands'
@@ -184,7 +184,7 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
       expect(response?.body.vastuuhenkilo.sopimusHyvaksytty).to.eq(true)
       expect(response?.body.vastuuhenkilo.kuittausaika).to.match(/^\d{4}-\d{2}-\d{2}$/)
       vastuuhenkilonKuittausaika = response?.body.vastuuhenkilo.kuittausaika
-      assertArchiveScheduled({
+      assertArchiveProcessed({
         prefix: 'koejakso-sopimus',
         university: 'HELSINGIN_YLIOPISTO',
         caseId: sopimusId,
@@ -220,7 +220,7 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
         body: response?.body,
         failOnStatusCode: false
       }).its('status').should('eq', 400)
-      assertArchiveScheduled({
+      assertArchiveProcessed({
         prefix: 'koejakso-sopimus', university: 'HELSINGIN_YLIOPISTO',
         caseId: sopimusId, caseType: 'SOPIMUS', types: ['SOPIMUS'],
         metadata: { caseId: sopimusId, approvalDate: vastuuhenkilonKuittausaika }

@@ -332,7 +332,7 @@ class ArkistointiJobProcessingIT {
 
     @Test
     fun `missing adapter terminates with an explicit error`() {
-        val jobId = fixture(YliopistoEnum.HELSINGIN_YLIOPISTO)
+        val jobId = fixture(YliopistoEnum.OULUN_YLIOPISTO)
         assertTerminal(jobId, "ARCHIVE_ADAPTER_MISSING")
         assertThat(adapter.submissions).isEmpty()
     }

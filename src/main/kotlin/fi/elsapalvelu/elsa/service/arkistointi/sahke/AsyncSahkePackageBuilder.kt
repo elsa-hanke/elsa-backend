@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.arkistointi.louhi
+package fi.elsapalvelu.elsa.service.arkistointi.sahke
 
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
@@ -7,29 +7,24 @@ import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
-import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
-import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataRequest
-import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataResult
-import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePakettiBuilder
-import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePerson
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import org.springframework.stereotype.Component
 import java.nio.file.Path
 import java.util.MissingResourceException
 
-data class PreparedLouhiPackage(val path: Path, val yek: Boolean) {
-    override fun toString() = "PreparedLouhiPackage(yek=$yek)"
+data class PreparedSahkePackage(val path: Path, val yek: Boolean) {
+    override fun toString() = "PreparedSahkePackage(yek=$yek)"
 }
 
 /** Reuses the production SÄHKE serializer, but takes all person/document data from the saved submission. */
 @Component
-class LouhiAsyncPackageBuilder(
-    private val payloadReader: LouhiPayloadReader,
+class AsyncSahkePackageBuilder(
+    private val payloadReader: SahkePayloadReader,
     private val configurationProvider: ArkistointiConfigurationProvider,
     private val metadataBuilder: SahkeMetadataBuilder,
     private val packageBuilder: SahkePakettiBuilder
 ) {
-    fun build(submission: ArkistointiSubmission, directory: Path): PreparedLouhiPackage {
+    fun build(submission: ArkistointiSubmission, directory: Path): PreparedSahkePackage {
         val payload = payloadReader.read(submission.payload, submission.caseType)
         requireValidPayload(payload.university == submission.university.name)
         val configuration = requireConfiguration(submission)
@@ -39,7 +34,7 @@ class LouhiAsyncPackageBuilder(
         val destination = resolvePackagePath(directory, payload, configuration)
         val metadata = buildMetadata(request, configuration)
         packageBuilder.build(metadata, destination, true)
-        return PreparedLouhiPackage(destination, payload.yek)
+        return PreparedSahkePackage(destination, payload.yek)
     }
 
     private fun requireConfiguration(submission: ArkistointiSubmission): ArkistointiConfiguration {
@@ -47,10 +42,10 @@ class LouhiAsyncPackageBuilder(
             configurationProvider.getConfiguration(submission.university, submission.caseType)
         } catch (_: IllegalArgumentException) {
             // The provider explicitly rejects a missing university/case configuration.
-            throw LouhiPackageException(LouhiPackageFailure.CONFIGURATION_INVALID)
+            throw SahkePackageException(SahkePackageFailure.CONFIGURATION_INVALID)
         }
         if (!configuration.metadata.zipMetadata) {
-            throw LouhiPackageException(LouhiPackageFailure.CONFIGURATION_INVALID)
+            throw SahkePackageException(SahkePackageFailure.CONFIGURATION_INVALID)
         }
         return configuration
     }
@@ -81,7 +76,7 @@ class LouhiAsyncPackageBuilder(
             requireValidPayload(document.filename.isNotBlank() && document.filename !in setOf(".", ".."))
             requireValidPayload(document.filename.none { it == '/' || it == '\\' || it.isISOControl() })
             if (configuration.metadata.getDocumentMetadata(document.asiakirjatyyppi, configuration.case) == null) {
-                throw LouhiPackageException(LouhiPackageFailure.CONFIGURATION_INVALID)
+                throw SahkePackageException(SahkePackageFailure.CONFIGURATION_INVALID)
             }
             RecordProperties(
                 // In-memory holders only: legacy XML uses the original ID, bytes come from the snapshot.
@@ -99,7 +94,7 @@ class LouhiAsyncPackageBuilder(
     }
 
     private fun createMetadataRequest(
-        payload: LouhiArchivePayload,
+        payload: SahkeArchivePayload,
         records: List<RecordProperties>,
         submission: ArkistointiSubmission
     ) = SahkeMetadataRequest(
@@ -125,7 +120,7 @@ class LouhiAsyncPackageBuilder(
 
     private fun resolvePackagePath(
         directory: Path,
-        payload: LouhiArchivePayload,
+        payload: SahkeArchivePayload,
         configuration: ArkistointiConfiguration
     ): Path {
         val filename = packageBuilder.filename(configuration.case.type, payload.firstName, payload.lastName)
@@ -137,13 +132,13 @@ class LouhiAsyncPackageBuilder(
         try {
             metadataBuilder.build(request, configuration)
         } catch (_: MissingResourceException) {
-            throw LouhiPackageException(LouhiPackageFailure.LOCALIZATION_MISSING)
+            throw SahkePackageException(SahkePackageFailure.LOCALIZATION_MISSING)
         }
 
     private fun requireValidPayload(valid: Boolean) {
-        if (!valid) throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
+        if (!valid) throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
     }
 
     private fun <T : Any> requirePayloadValue(value: T?): T =
-        value ?: throw LouhiPackageException(LouhiPackageFailure.PAYLOAD_INVALID)
+        value ?: throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
 }

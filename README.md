@@ -312,7 +312,8 @@ Käytä päätettä `ASYNCENABLED`: Spring Bootin ympäristömuuttujamuodossa
 `async-enabled`-nimen yhdysmerkki poistetaan. Älä käytä päätettä `ASYNC_ENABLED`.
 Replica-profiilissa worker pidetään edelleen pois käytöstä.
 
-`LouhiAsyncPackageBuilder` käyttää samoja SÄHKE/XML- ja ZIP-rakentajia kuin
+Tampere ja Helsinki käyttävät yhteistä `AsyncSahkePackageBuilder`-rakentajaa,
+joka käyttää samoja SÄHKE/XML- ja ZIP-rakentajia kuin
 synkroninen toimitus. ZIP sisältää `sahke.xml`-tiedoston ja `pdf/<nimi>`-asiakirjat.
 Henkilötiedot, tarkastaja, hyväksyjä ja asiakirjojen sisältö tulevat vain tallennetusta
 payloadista ja snapshoteista. Luontipäivä ja siirron vuosiluku perustuvat
@@ -563,3 +564,78 @@ Asenna Dependency-Check lisäosa Sonarin marketplacesta. Tämän jälkeen suorit
 ```
 ./gradlew -Pprod clean check jacocoTestReport dependencyCheckAnalyze sonarqube
 ```
+
+
+## Helsingin Siilo-arkistointi taustakäsittelyssä
+
+`SiiloAsyncArkistointiAdapter` käsittelee Helsingin `VALMISTUMINEN`-, `KOEJAKSO`-
+ja `SOPIMUS`-jobit. Hyväksymisessä käytetään jo olemassa olevaa yliopisto- ja
+asiatyyppikohtaista sync/async-valintaa. Oletuksena async on pois käytöstä.
+Käyttöönoton ympäristömuuttujat ovat:
+
+```text
+APPLICATION_ARKISTOINTI_HKI_KAYTOSSA=true
+APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_VALMISTUMINEN_ASYNCENABLED=true
+APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_KOEJAKSO_ASYNCENABLED=true
+APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_SOPIMUS_ASYNCENABLED=true
+```
+
+Asiatyypit voidaan ottaa käyttöön erikseen. Worker tarvitsee lisäksi
+`db-scheduler.enabled=true`, Siilon host/api-key-asetukset ja asiatyyppien
+siilo-koodit. Replica-worker pidetään pois käytöstä.
+
+Adapteri rakentaa nykyisen ZIP-paketin tallennetusta payloadista ja snapshoteista.
+SÄHKE-XML käyttää alkuperäisiä asiakirjatunnisteita ja hyväksymishetken tietoja.
+Toimitus käyttää nykyistä `HelsinkiSiiloService`-palvelua ja samaa multipart-
+`file`-kenttää, `X-Api-Key`-otsaketta sekä `/unisign/elsa/archive/<siilo-koodi>`-polkua.
+Synkronisen metodin aikarajat ja vastausten käsittely säilyvät ennallaan.
+
+Async Siilo vaatii HTTPS-osoitteen. Vain paikalliset testivastaanottajat voivat
+käyttää HTTP:tä asetuksella
+`application.arkistointi.hki.async-allow-loopback-http-for-tests=true`
+(oletus false), ja silloinkin vain kirjaimellisilla osoitteilla `127.0.0.1` tai
+`::1`. Hostnameja tai muita HTTP-osoitteita ei hyväksytä edes tällä asetuksella.
+Testipoikkeus ei muuta synkronista asiakasta eikä TLS-varmenteiden tarkistusta.
+
+Async-kutsun kokonaiskestoa rajaa `application.arkistointi.hki.async-transfer-timeout`
+(oletus 2 minuuttia). OkHttp peruu varsinaisen HTTP-kutsun aikarajan täyttyessä.
+Async ei seuraa redirecteja eikä tee HTTP-clientin sisäisiä yhteysuusintoja.
+HTTP 408/425/429 ja 5xx sekä epävarmat yhteysvirheet palaavat db-schedulerin
+rajoitettuihin uusintoihin. Muut HTTP-virheet ja tunnistetut payload/configuration-
+virheet siirtävät jobin tilaan `VAATII_TOIMENPITEITA`. Etävastauksen sisältöä,
+API-avainta tai henkilötietoja ei sisällytetä async-virhediagnostiikkaan.
+Adapteri siivoaa oman väliaikaishakemistonsa myös virhetilanteissa.
+
+Nykyinen Siilo-protokolla ei välitä job-UUID:ta vastaanottajan idempotenssiavaimena.
+Toimitus on at-least-once: vastaanottajan onnistumisen ja paikallisen commitin
+välissä tapahtuva virhe voi johtaa uusintaan ja kaksoistoimitukseen.
+Vastaanottajan deduplikointia tai exactly-once-toimitusta ei oleteta.
+
+`HelsinkiAsyncApprovalIT` tarkistaa HTTP-hyväksynnän, oikean PostgreSQL:n,
+PDF-snapshotit, db-schedulerin, adapterin ja paikallisen Siilo-HTTP-vastaanottajan.
+Se kattaa EL/EHL/YEK-valmistumisen, sopimuksen, koejakson arvion sekä väliaikaisen
+ja pysyvän vastaanottovirheen. Tarkistuksiin kuuluvat ZIP:n sisältö, SHA-256,
+alkuperäiset XML-tunnisteet ja ajastusrivin poistuminen onnistumisen jälkeen.
+Testit eivät lähetä oikeaan yliopiston arkistoon. Vastaanottajan hyväksyntä ja
+pakettikokojen/aikarajojen sopivuus varmistetaan ympäristökohtaisessa käyttöönotossa.
+
+### Cypress: hyväksynnästä taustakäsittelyn loppuun
+
+Disposable-stack (`infra/docker-compose-cicd.yml`) käyttää profiileja
+`dev,e2e-archive`. Worker on käytössä, mutta `E2eArchiveConfiguration` korvaa
+Helsingin ja Tampereen toimitusadapterit yhteisellä testitoteutuksella. Myös
+olemassa olevan YEK-testin UEF-job käsitellään testiadapterilla. Tampereen testiadapterin
+rekisteröinti ei tarkoita Tampereen Cypress UI -kattavuutta: nämä UI-skenaariot
+käyttävät Helsinkiä ja UEF:ää. Profiili ei
+salli käynnistystä `prod`- tai `replica`-profiilin kanssa. Lisäksi vaaditaan
+`application.e2e.archive-stub-enabled=true`, joka asetetaan vain disposable-stackin
+`infra/application-e2e.yml`-tiedostossa. Ilman vahvistusta `e2e-archive` estää
+käynnistyksen; oikeisiin toimitusadaptereihin ei siirrytä automaattisesti.
+
+Nykyiset valmistumisen, koulutussopimuksen ja koejakson arvion UI-testit käyttävät
+samaa `assertArchiveProcessed`-apuria. Se odottaa kyseisen liiketoiminta-avaimen
+jobille tilan `LAHETETTY`, testiadapterin job- ja yliopistokohtaisen kuittauksen
+sekä ajastusrivin poistumisen. Lisäksi tarkistetaan yksi job, tallennettu payload,
+asiakirjojen manifesti, alkuperäiset tunnisteet ja snapshotien tarkistussummat.
+Oikea processor ja JDBC-loader suoritetaan; ulkoista lähetystä ei tehdä.
+Siilo/Louhi-protokollan ja ZIP/XML-sisällön tarkistukset kuuluvat IT-testeihin.

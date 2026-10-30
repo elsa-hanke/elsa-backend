@@ -1,4 +1,4 @@
-import { cleanupArchiveForStudyRights } from './archive-cleanup'
+import { cleanupArchiveForKayttaja } from './archive-cleanup'
 import { randomUUID } from 'node:crypto'
 import type { Client } from 'pg'
 
@@ -91,11 +91,7 @@ export async function cleanupUser(
   linkCleanupFn?: (client: Client, kayttajaId: number) => Promise<void>
 ): Promise<void> {
   if (kayttajaId) {
-    const rights = await client.query(
-      `SELECT o.id FROM opintooikeus o JOIN erikoistuva_laakari el ON el.id = o.erikoistuva_laakari_id
-       WHERE el.kayttaja_id = $1`, [kayttajaId]
-    )
-    await cleanupArchiveForStudyRights(rights.rows.map((row) => Number(row.id)))
+    await cleanupArchiveForKayttaja(client, kayttajaId)
     if (linkCleanupFn) {
       await linkCleanupFn(client, kayttajaId)
     }
