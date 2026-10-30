@@ -71,7 +71,7 @@ function visitResponsible(id: number) {
   cy.visit(`/koejakso/vastuuhenkilon-arvio/${id}`)
   return cy.wait('@responsibleReview').then(({ response }) => {
     expect(response?.statusCode).to.eq(200)
-    expect(response?.body.arkistoitava, 'external archiving disabled in E2E').to.eq(false)
+    expect(response?.body.arkistoitava, 'async archiving enabled; E2E uses a test delivery adapter').to.eq(true)
     expect(response?.body.vastuuhenkilo?.sopimusHyvaksytty ?? false).to.eq(false)
     return response?.body
   })
@@ -107,10 +107,13 @@ function checkNewPdf() {
         id: number
         nimi: string
         tyyppi: string
+        archive_snapshot: boolean
       }[]
       const created = current.filter((doc) => !previous.some((old) => old.id === doc.id))
-      expect(created).to.have.length(1)
-      expect(created[0].tyyppi).to.eq('application/pdf')
+      expect(created).to.have.length(2)
+      expect(created.filter((doc) => doc.archive_snapshot)).to.have.length(1)
+      expect(created.filter((doc) => !doc.archive_snapshot)).to.have.length(1)
+      created.forEach((doc) => expect(doc.tyyppi).to.eq('application/pdf'))
     })
   })
 }
