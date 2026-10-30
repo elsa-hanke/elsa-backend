@@ -301,6 +301,9 @@ application:
       alert-after-attempts: 3
     tre:
       kaytossa: false
+      transfer:
+        operation-timeout: 30s
+        transfer-timeout: 2m
       host:
       port:
       user:

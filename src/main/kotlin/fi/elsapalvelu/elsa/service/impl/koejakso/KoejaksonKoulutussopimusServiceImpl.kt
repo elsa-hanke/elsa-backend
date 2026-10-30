@@ -135,70 +135,63 @@ class KoejaksonKoulutussopimusServiceImpl(
 
     @Transactional(rollbackFor = [Exception::class])
     override fun update(koulutussopimusDTO: KoejaksonKoulutussopimusDTO, userId: String): KoejaksonKoulutussopimusDTO {
-        try {
-            var koulutussopimus = loadForUpdate(koulutussopimusDTO.id.required())
-            val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
-            val updatedKoulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koulutussopimusDTO)
-            val onSopimuksenErikoistuja = kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == koulutussopimus.opintooikeus?.erikoistuvaLaakari
+        var koulutussopimus = loadForUpdate(koulutussopimusDTO.id.required())
+        val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        val updatedKoulutussopimus = koejaksonKoulutussopimusMapper.toEntity(koulutussopimusDTO)
+        val onSopimuksenErikoistuja = kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == koulutussopimus.opintooikeus?.erikoistuvaLaakari
 
-            // Validate every field this caller can persist before changing data or sending notifications.
-            val vastuuhenkilo = kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(listOf(VASTUUHENKILO),
-                koulutussopimus.opintooikeus?.yliopisto?.id, koulutussopimus.opintooikeus?.erikoisala?.id, KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN)
-            if (onSopimuksenErikoistuja) {
-                koulutussopimusPdfTextValidator.validateErikoistujanKentat(koulutussopimusDTO)
-            }
-            koulutussopimus.kouluttajat?.filter { it.kouluttaja?.user?.id == userId }?.forEach {
-                koulutussopimusPdfTextValidator.validateKouluttajanKentat(koulutussopimusDTO, it.id, userId)
-            }
-            if (vastuuhenkilo?.user?.id == userId) {
-                if (arkistointiService.isAsyncEnabled(koulutussopimus.opintooikeus?.yliopisto?.nimi.required(), CaseType.SOPIMUS)) {
-                    validatePreviousApprovals(koulutussopimus)
-                }
-                koulutussopimusPdfTextValidator.validateVastuuhenkilonKentat(koulutussopimusDTO)
-            }
-
-            if (onSopimuksenErikoistuja) {
-                koulutussopimus = handleErikoistuva(koulutussopimus, updatedKoulutussopimus)
-                koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
-                    user.email = koulutussopimusDTO.erikoistuvanSahkoposti
-                    user.phoneNumber = koulutussopimusDTO.erikoistuvanPuhelinnumero
-                    userRepository.save(user)
-                }
-            }
-
-            koulutussopimus.kouluttajat?.toTypedArray()?.forEach {
-                if (it.kouluttaja?.user?.id == userId) {
-                    koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
-                    updateKouluttajaContact(it, koulutussopimusDTO, userId)
-                }
-            }
-
-            if (vastuuhenkilo?.user?.id == userId) {
-                koulutussopimus = handleVastuuhenkilo(
-                    koulutussopimus, updatedKoulutussopimus, vastuuhenkilo, koulutussopimusDTO, userId
-                )
-            }
-
-            koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
-            logger.info("Kasitelty kouluttaja paivitys kantaan KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-
-            val dto = koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
-            if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
-                logger.info("Kasitellaan sopimus hyvaksytty KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
-                val asiakirja = luoPdf(dto, koulutussopimus)
-                logger.info("Luotu koulutussopimuksesta pdf [asiakirjaId={}]", asiakirja.id)
-                arkistointiService.archive(koulutussopimus, asiakirja)
-            }
-            if (vastuuhenkilo?.user?.id == userId) {
-                ilmoitaVastuuhenkilonKasittelysta(koulutussopimus)
-            }
-            return dto
+        // Validate every field this caller can persist before changing data or sending notifications.
+        val vastuuhenkilo = kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(listOf(VASTUUHENKILO),
+            koulutussopimus.opintooikeus?.yliopisto?.id, koulutussopimus.opintooikeus?.erikoisala?.id, KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN)
+        if (onSopimuksenErikoistuja) {
+            koulutussopimusPdfTextValidator.validateErikoistujanKentat(koulutussopimusDTO)
         }
-        catch(e: Exception) {
-            // The HTTP advice classifies document errors without exposing filenames or causes.
-            logger.debug("Koulutussopimuksen paivitys epaonnistui")
-            throw e
+        koulutussopimus.kouluttajat?.filter { it.kouluttaja?.user?.id == userId }?.forEach {
+            koulutussopimusPdfTextValidator.validateKouluttajanKentat(koulutussopimusDTO, it.id, userId)
         }
+        if (vastuuhenkilo?.user?.id == userId) {
+            if (arkistointiService.isAsyncEnabled(koulutussopimus.opintooikeus?.yliopisto?.nimi.required(), CaseType.SOPIMUS)) {
+                validatePreviousApprovals(koulutussopimus)
+            }
+            koulutussopimusPdfTextValidator.validateVastuuhenkilonKentat(koulutussopimusDTO)
+        }
+
+        if (onSopimuksenErikoistuja) {
+            koulutussopimus = handleErikoistuva(koulutussopimus, updatedKoulutussopimus)
+            koulutussopimus.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
+                user.email = koulutussopimusDTO.erikoistuvanSahkoposti
+                user.phoneNumber = koulutussopimusDTO.erikoistuvanPuhelinnumero
+                userRepository.save(user)
+            }
+        }
+
+        koulutussopimus.kouluttajat?.toTypedArray()?.forEach {
+            if (it.kouluttaja?.user?.id == userId) {
+                koulutussopimus = handleKouluttaja(koulutussopimus, it, updatedKoulutussopimus)
+                updateKouluttajaContact(it, koulutussopimusDTO, userId)
+            }
+        }
+
+        if (vastuuhenkilo?.user?.id == userId) {
+            koulutussopimus = handleVastuuhenkilo(
+                koulutussopimus, updatedKoulutussopimus, vastuuhenkilo, koulutussopimusDTO, userId
+            )
+        }
+
+        koulutussopimus = koejaksonKoulutussopimusRepository.save(koulutussopimus)
+        logger.info("Kasitelty kouluttaja paivitys kantaan KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
+
+        val dto = koejaksonKoulutussopimusMapper.toDto(koulutussopimus)
+        if (dto.vastuuhenkilo?.sopimusHyvaksytty == true) {
+            logger.info("Kasitellaan sopimus hyvaksytty KoejaksonKoulutussopimus id: ${koulutussopimus.id}, userId: $userId")
+            val asiakirja = luoPdf(dto, koulutussopimus)
+            logger.info("Luotu koulutussopimuksesta pdf [asiakirjaId={}]", asiakirja.id)
+            arkistointiService.archive(koulutussopimus, asiakirja)
+        }
+        if (vastuuhenkilo?.user?.id == userId) {
+            ilmoitaVastuuhenkilonKasittelysta(koulutussopimus)
+        }
+        return dto
     }
 
     private fun loadForUpdate(id: Long): KoejaksonKoulutussopimus {
