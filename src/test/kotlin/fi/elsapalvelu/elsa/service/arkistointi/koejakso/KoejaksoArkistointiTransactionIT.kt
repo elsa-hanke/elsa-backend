@@ -83,6 +83,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.test.context.bean.override.convention.TestBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
@@ -126,7 +127,9 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
     @MockitoSpyBean private lateinit var creator: ArkistointiJobCreator
     @MockitoSpyBean private lateinit var legacy: SynchronousArkistointiService
     @MockitoBean private lateinit var mail: MailService
-    @Autowired private lateinit var adapter: TestAdapter
+    @TestBean(name = "louhiAsyncArkistointiAdapter", methodName = "createArchiveAdapter")
+    private lateinit var testArchiveAdapter: ArkistointiAdapter
+    private val adapter: TestAdapter get() = testArchiveAdapter as TestAdapter
 
     @BeforeEach
     fun configure() {
@@ -687,9 +690,6 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
     @TestConfiguration(proxyBeanMethods = false)
     class TestConfig {
         @Bean
-        fun archiveTestAdapter() = TestAdapter()
-
-        @Bean
         fun isolatedCache(customizer: JCacheManagerCustomizer): javax.cache.CacheManager =
             (Caching.getCachingProvider() as EhcacheCachingProvider).getCacheManager(
                 URI("urn:elsa:koejakso-archive-it"), DefaultConfiguration(javaClass.classLoader)
@@ -701,5 +701,10 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         override val supportedCaseTypes = setOf(CaseType.SOPIMUS, CaseType.KOEJAKSO)
         var behavior: (ArkistointiSubmission) -> ArkistointiResult = { ArkistointiResult.Success("external-koejakso") }
         override fun arkistoi(pyynto: ArkistointiSubmission) = behavior(pyynto)
+    }
+
+    companion object {
+        @JvmStatic
+        fun createArchiveAdapter(): ArkistointiAdapter = TestAdapter()
     }
 }
