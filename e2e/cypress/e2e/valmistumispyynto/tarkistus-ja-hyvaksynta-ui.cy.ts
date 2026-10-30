@@ -4,6 +4,7 @@ import {
   VASTUUHENKILO_EMAIL
 } from '../../support/commands/credentials'
 import { downloadPdfPages, expectTextInOrder } from '../../support/pdf'
+import { assertArchiveAbsent, assertArchiveProcessed } from '../../support/async-archive'
 import {
   acceptRequirements,
   fillContactInformation,
@@ -76,20 +77,23 @@ const finnishDate = (date: string) => {
 
 // Separate actor tests: setup requests advance earlier stages only. Every review/approval
 // protected by these tests goes through the actual form and an unstubbed backend response.
-for (const yek of [false, true]) {
-  describe(`${
-    yek ? 'YEK' : 'EL'
-  } valmistumispyynnön tarkistus ja hyväksyntä käyttöliittymässä`, () => {
-    const traineeApi = `/api/${yek ? 'yek-koulutettava' : 'erikoistuva-laakari'}/valmistumispyynto`
+for (const degree of ['EL', 'EHL', 'YEK'] as const) {
+  const yek = degree === 'YEK'
+  describe(`${degree} valmistumispyynnön tarkistus ja hyväksyntä käyttöliittymässä`, () => {
+    const traineeApi = `/api/${
+      yek ? 'yek-koulutettava' : 'erikoistuva-laakari'
+    }/valmistumispyynto`
     const traineePage = yek ? '/yekvalmistumispyynto' : '/valmistumispyynto'
     const reviewPage = (id: number) => `/valmistumispyynnon-tarkistus${yek ? '-yek' : ''}/${id}`
-    const approvalPage = (id: number) => `/valmistumispyynnon-hyvaksynta${yek ? '-yek' : ''}/${id}`
+    const approvalPage = (id: number) =>
+      `/valmistumispyynnon-hyvaksynta${yek ? '-yek' : ''}/${id}`
     const approveLabel = yek ? 'Hyväksy valmistumispyyntö' : 'Hyväksy'
     const summaryLabel = yek
       ? 'YEK-koulutuksen valmistumisen yhteenveto'
       : 'Erikoistumiskoulutuksen valmistumisen yhteenveto'
     const checkFields = yek ? CHECKS : [...CHECKS, 'teoriakoulutusTarkistettu']
     let original: Graduation
+    let ehlSpecialtyId: number | undefined
     let traineeCookies: Cypress.Cookie[]
 
     const loginClerk = () =>
@@ -199,6 +203,15 @@ for (const yek of [false, true]) {
           seedVirkailija: true,
           storeTokens: true
         })
+        if (degree === 'EHL') {
+          cy.task<{ specialtyId: number }>(
+            'archive:prepareEhl',
+            { email: E2E_ERIKOISTUVA_EMAIL, approverEmail: VASTUUHENKILO_EMAIL },
+            { log: false }
+          ).then(({ specialtyId }) => {
+            ehlSpecialtyId = specialtyId
+          })
+        }
         cy.task('db:ensureLoppukeskusteluHyvaksytty', {
           erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL,
           kouluttajaEmail: KOULUTTAJA_EMAIL
@@ -303,13 +316,19 @@ for (const yek of [false, true]) {
       cy.then(() => cy.apiRequest({ method: 'GET', url: `${REVIEW_API}/${original.id}` })).then(
         ({ body }) => {
           expect(body.valmistumispyynto).to.deep.eq(before.valmistumispyynto)
-          for (const key of [...checkFields, 'kommentitVirkailijoille', 'virkailijanYhteenveto']) {
+          for (const key of [
+            ...checkFields,
+            'kommentitVirkailijoille',
+            'virkailijanYhteenveto'
+          ]) {
             expect(body[key], `unchanged ${key} after cancellation`).to.deep.eq(before[key])
           }
         }
       )
       reviewButton().click()
-      field('Lisätiedot vastuuhenkilölle', MODAL).find('textarea').should('have.value', COVER_NOTE)
+      field('Lisätiedot vastuuhenkilölle', MODAL)
+        .find('textarea')
+        .should('have.value', COVER_NOTE)
       button('Hyväksy ja lähetä', MODAL).click()
       cy.wait('@reviewPut').then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200)
@@ -338,7 +357,11 @@ for (const yek of [false, true]) {
           expect(persistedRequest(body.valmistumispyynto)).to.deep.eq(
             persistedRequest(saved.valmistumispyynto)
           )
-          for (const key of [...checkFields, 'kommentitVirkailijoille', 'virkailijanYhteenveto'])
+          for (const key of [
+            ...checkFields,
+            'kommentitVirkailijoille',
+            'virkailijanYhteenveto'
+          ])
             expect(body[key], key).to.deep.eq(saved[key])
           saved = body
         }
@@ -367,6 +390,8 @@ for (const yek of [false, true]) {
       const submittedBodies: unknown[] = []
       let saved: Graduation
       let expectedContacts: { sahkoposti: string; puhelinnumero: string | null }
+      const university = yek ? 'ITA_SUOMEN_YLIOPISTO' : 'HELSINGIN_YLIOPISTO'
+      cy.then(() => assertArchiveAbsent('valmistuminen', university, original.id))
       // Clerk review is setup in this actor-specific test; the preceding test protects its UI.
       cy.then(() =>
         cy.apiRequest({
@@ -429,7 +454,7 @@ for (const yek of [false, true]) {
           'contain.text',
           yek
             ? 'Hyväksymällä vahvistat koulutettavan valmistumisen.'
-            : 'Vahvistuksen jälkeen valmistumispyyntö on hyväksytty kaikkien osapuolien toimesta.'
+            : 'Vahvistuksen jälkeen valmistumispyyntö on hyväksytty ja lähetetään arkistoitavaksi.'
         )
       cy.get('@approvalPut.all').should('have.length', 0)
       button('Peruuta', MODAL).click()
@@ -444,7 +469,8 @@ for (const yek of [false, true]) {
         button(approveLabel, MODAL).click()
         cy.wait('@failedApproval').then(({ request, response, error }) => {
           expect(request.body).to.deep.eq({ id: original.id, ...expectedContacts })
-          if (failure === 'network') expect(error, 'network failure without HTTP response').to.exist
+          if (failure === 'network')
+            expect(error, 'network failure without HTTP response').to.exist
           else expect(response?.statusCode).to.eq(500)
         })
         cy.contains('.toast-body', 'Valmistumispyynnön hyväksynnän lähetys epäonnistui')
@@ -461,26 +487,49 @@ for (const yek of [false, true]) {
           field('Matkapuhelinnumero').find('input').should('have.value', '+358501234567')
         }
         // A fresh read must still show the pending request and no generated approval documents.
-        cy.then(() => cy.apiRequest({ method: 'GET', url: `${APPROVAL_API}/${original.id}` })).then(
-          ({ status, body }) => {
-            expect(status).to.eq(200)
-            pendingApproval(body.valmistumispyynto)
-            expect(body.valmistumispyynto).to.deep.eq(original)
-            expect(submittedBodies).to.have.length(1)
-          }
-        )
+        cy.then(() =>
+          cy.apiRequest({ method: 'GET', url: `${APPROVAL_API}/${original.id}` })
+        ).then(({ status, body }) => {
+          expect(status).to.eq(200)
+          pendingApproval(body.valmistumispyynto)
+          expect(body.valmistumispyynto).to.deep.eq(original)
+          expect(submittedBodies).to.have.length(1)
+        })
         cy.apiRequest({ method: 'GET', url: '/api/kayttaja' })
           .its('body.activeAuthority')
           .should('eq', 'ROLE_VASTUUHENKILO')
       }
       button(approveLabel).click()
       button(approveLabel, MODAL).click()
-      cy.wait('@successfulApproval', { responseTimeout: 120000 }).then(({ request, response }) => {
-        expect(request.body).to.deep.eq({ id: original.id, ...expectedContacts })
-        expect(response?.statusCode).to.eq(200)
-        saved = response?.body.valmistumispyynto
-        approved(saved)
-      })
+      cy.wait('@successfulApproval', { responseTimeout: 120000 }).then(
+        ({ request, response }) => {
+          expect(request.body).to.deep.eq({ id: original.id, ...expectedContacts })
+          expect(response?.statusCode).to.eq(200)
+          saved = response?.body.valmistumispyynto
+          approved(saved)
+          assertArchiveProcessed({
+            prefix: 'valmistuminen',
+            university,
+            caseId: original.id,
+            caseType: 'VALMISTUMINEN',
+            types: yek ? ['YHTEENVETO', 'LIITE'] : ['YHTEENVETO'],
+            metadata: {
+              valmistumispyyntoId: original.id,
+              opintooikeusId: original.opintooikeusId,
+              yek,
+              approver: 'Mia Ålands',
+              reviewer: 'Daniel Siekkinen',
+              ...(degree === 'EHL' ? { specialtyId: ehlSpecialtyId } : {}),
+              approvalDate: saved.vastuuhenkiloHyvaksyjaKuittausaika,
+              reviewDate: saved.virkailijanKuittausaika
+            },
+            sourceIds: {
+              YHTEENVETO: saved.yhteenvetoAsiakirjaId!,
+              LIITE: saved.liitteetAsiakirjaId!
+            }
+          })
+        }
+      )
       cy.location('pathname').should('eq', '/valmistumispyynnot')
       cy.get('@approvalPut.all').should('have.length', failure ? 2 : 1)
       cy.then(() => {

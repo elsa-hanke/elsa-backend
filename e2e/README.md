@@ -87,6 +87,60 @@ before another run; in-memory restoration state is lost on process termination.
 The existing shard discovery includes the new specs automatically; no explicit
 spec list or additional GHA job is required.
 
+## Approval → completed archive job
+
+The existing approval UI specs verify asynchronous processing for Helsinki
+training contracts, positive and negative trial-period decisions, and EL/EHL
+graduation. The YEK graduation fixture uses UEF. After the real Approve response,
+`assertArchiveProcessed` polls the exact operation business key until one committed
+job reaches `LAHETETTY` and its `arkistointi-job` scheduler row has been removed.
+It checks a completion timestamp and the test-adapter receipt
+`e2e:<university>:<job UUID>`, approval metadata, document order, nonempty snapshots,
+SHA-256 and source/snapshot equality.
+
+The Compose stack mounts `infra/application-e2e.yml` and runs with profiles
+`dev,e2e-archive` plus `application.e2e.archive-stub-enabled=true`. The real
+worker, processor and snapshot loader run; test adapters replace external delivery,
+so no external archive system is contacted. The test profile without the explicit
+flag, or combined with `prod`/`replica`, prevents application startup.
+HKI graduation archives its configured summary only; the UEF YEK fixture explicitly
+configures summary and attachments. No separate archive specs, JAR, CI phase or
+per-spec stack restart is needed.
+
+The test configuration also registers a Tampere adapter, but registration alone
+does not provide Tampere Cypress coverage: the UI scenarios above use Helsinki
+and UEF. Real transport and ZIP/XML compatibility are covered separately by
+`HelsinkiAsyncApprovalIT` (HTTP) and `TampereAsyncApprovalIT` (SFTP).
+
+The shared cleanup removes only archive data belonging to the selected fixture's
+study rights before deleting the parent records. Its own connection and transaction
+use `SET LOCAL session_replication_role = replica` to bypass immutable triggers in
+the disposable test DB. Scheduler rows, document links, jobs, snapshots and snapshot
+bytes are deleted explicitly because FK checks and cascades are disabled too.
+COMMIT/ROLLBACK restores the setting before ordinary cleanup continues. Production
+migrations and protections remain unchanged. Specs run serially within each shard's
+DB, with one ordinary stack per shard.
+
+Archive cleanup requires the Cypress database role to be allowed to `SET
+session_replication_role`. An ordinary application role or database ownership
+alone does not necessarily provide that permission. The disposable PostgreSQL
+16 Compose service creates its `POSTGRES_USER` as a superuser; a separately
+managed test database may instead use a dedicated test role explicitly granted
+`SET` privilege on this parameter, in addition to the table permissions needed
+for cleanup. This privilege is powerful because it bypasses database protections.
+Use it only in the disposable test database, never on a production application
+role. Do not change production triggers or migrations to make test cleanup work.
+
+For local runs, verify `CYPRESS_DB_HOST`, `CYPRESS_DB_PORT`, `CYPRESS_DB_NAME`,
+`CYPRESS_DB_USER` and `CYPRESS_DB_PASSWORD` target the disposable Compose database.
+If PostgreSQL rejects the `SET LOCAL` operation with insufficient privilege,
+cleanup rolls back before deleting archive records and reports a specific E2E
+permission error. Other database failures retain their original error.
+
+EHL is a variant of the ordinary graduation spec. Its SQL fixture selects a dental
+specialty and clones the active study guide. Hibernate caches are disabled in the
+external E2E configuration because the fixture changes the study right after login.
+
 ## Parallel GitHub Actions runs
 
 `.github/workflows/e2e.yml` runs three shards on separate runners. Each shard
