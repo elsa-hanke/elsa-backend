@@ -1,4 +1,22 @@
+import type { Client } from 'pg'
 import { dbClient, withDb } from './db-client'
+
+/** Read through the caller's connection, then use the existing isolated cleanup transaction. */
+export async function cleanupArchiveForKayttaja(client: Client, kayttajaId: number): Promise<void> {
+  const rights = await client.query<{ id: string | number }>(
+    `SELECT o.id FROM opintooikeus o JOIN erikoistuva_laakari el ON el.id = o.erikoistuva_laakari_id
+     WHERE el.kayttaja_id = $1`, [kayttajaId]
+  )
+  await cleanupArchiveForStudyRights(rights.rows.map((row) => Number(row.id)))
+}
+
+/** erikoistuvaId identifies erikoistuva_laakari, not kayttaja or jhi_user. */
+export async function cleanupArchiveForErikoistuva(client: Client, erikoistuvaId: number): Promise<void> {
+  const rights = await client.query<{ id: string | number }>(
+    'SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1', [erikoistuvaId]
+  )
+  await cleanupArchiveForStudyRights(rights.rows.map((row) => Number(row.id)))
+}
 
 /** Remove only the selected E2E study rights' archive data from the disposable DB. */
 export async function cleanupArchiveForStudyRights(studyRightIds: number[]): Promise<void> {
