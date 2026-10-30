@@ -100,6 +100,7 @@ import java.util.zip.ZipInputStream
     "application.arkistointi.hki.kaytossa=true",
     "application.arkistointi.tre.kaytossa=false",
     "application.arkistointi.hki.api-key=integration-test",
+    "application.arkistointi.hki.async-allow-loopback-http-for-tests=true",
     "application.arkistointi.hki.metadata.zip-metadata=true",
     "application.arkistointi.hki.metadata.organisation=Helsingin yliopisto",
     "application.arkistointi.hki.metadata.cases.valmistuminen.async-enabled=true",
@@ -393,7 +394,7 @@ class HelsinkiAsyncApprovalIT : ResourceIntegrationTestBase() {
         private val server = MockWebServer().apply { start() }
         @JvmStatic @DynamicPropertySource
         fun transport(registry: DynamicPropertyRegistry) {
-            registry.add("application.arkistointi.hki.host") { server.url("/").toString().trimEnd('/') }
+            registry.add("application.arkistointi.hki.host") { server.url("/").newBuilder().host("127.0.0.1").build().toString().trimEnd('/') }
         }
         @JvmStatic @AfterAll fun stopServer() = server.shutdown()
     }

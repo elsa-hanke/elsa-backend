@@ -215,6 +215,8 @@ class ApplicationProperties {
             var kaytossa: Boolean = false
             var host: String? = null
             var apiKey: String? = null
+            // Restricted to literal loopback addresses; opt-in for local HTTP test receivers only.
+            var asyncAllowLoopbackHttpForTests: Boolean = false
             var asyncTransferTimeout: java.time.Duration = java.time.Duration.ofMinutes(2)
             var metadata: Metadata? = null
         }

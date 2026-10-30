@@ -32,7 +32,9 @@ class HelsinkiSiiloService(
         val key = properties.apiKey.orEmpty()
         val timeout = properties.asyncTransferTimeout
         requireAsyncConfiguration(code.isNotBlank() && code.all { it.isLetterOrDigit() || it in "-_" })
-        requireAsyncConfiguration(host.toHttpUrlOrNull() != null)
+        val endpoint = host.toHttpUrlOrNull()
+        requireAsyncConfiguration(endpoint != null && (endpoint.isHttps ||
+            (properties.asyncAllowLoopbackHttpForTests && endpoint.host in setOf("127.0.0.1", "::1"))))
         requireAsyncConfiguration(key.isNotBlank() && key.none { it.isISOControl() })
         requireAsyncConfiguration(!timeout.isNegative && !timeout.isZero && timeout.toMillis() in 1..Int.MAX_VALUE.toLong())
         val file = File(zipFilePath)

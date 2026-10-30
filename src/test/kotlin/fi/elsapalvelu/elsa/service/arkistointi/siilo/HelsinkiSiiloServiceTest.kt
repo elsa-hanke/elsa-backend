@@ -31,7 +31,8 @@ class HelsinkiSiiloServiceTest {
 
         properties = ApplicationProperties()
         properties.getArkistointi().getHki().apply {
-            host = server.url("/").toString().removeSuffix("/")
+            host = server.url("/").newBuilder().host("127.0.0.1").build().toString().removeSuffix("/")
+            asyncAllowLoopbackHttpForTests = true
             apiKey = "test-api-key"
             metadata = ApplicationProperties.Arkistointi.Metadata().apply {
                 cases = mapOf(
@@ -182,6 +183,32 @@ class HelsinkiSiiloServiceTest {
                 assertThat(it.cause).isNull()
             }
         assertThat(server.requestCount).isZero()
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["default", "remote", "hostname", "lookalike"])
+    fun `async rejects HTTP outside explicit literal loopback tests before sending`(scenario: String) {
+        val settings = properties.getArkistointi().getHki()
+        when (scenario) {
+            "default" -> settings.asyncAllowLoopbackHttpForTests = false
+            "remote" -> settings.host = "http://192.0.2.1"
+            "hostname" -> settings.host = "http://localhost"
+            "lookalike" -> settings.host = "http://127.0.0.1.example.invalid"
+        }
+        val file = createTemporaryZip("must-not-send")
+        assertThatThrownBy { service.lahetaAsync(file.toString(), CaseType.VALMISTUMINEN) }
+            .isInstanceOfSatisfying(SiiloTransferException::class.java) {
+                assertThat(it.code).isEqualTo("SIILO_CONFIGURATION_INVALID")
+                assertThat(it.retryable).isFalse()
+                assertThat(it.cause).isNull()
+                assertThat(it.message).doesNotContain(settings.host!!, "test-api-key")
+            }
+        assertThat(server.requestCount).isZero()
+    }
+
+    @Test
+    fun `loopback HTTP exception is disabled by default`() {
+        assertThat(ApplicationProperties().getArkistointi().getHki().asyncAllowLoopbackHttpForTests).isFalse()
     }
 
     @Test

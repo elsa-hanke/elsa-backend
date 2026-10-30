@@ -590,6 +590,13 @@ Toimitus käyttää nykyistä `HelsinkiSiiloService`-palvelua ja samaa multipart
 `file`-kenttää, `X-Api-Key`-otsaketta sekä `/unisign/elsa/archive/<siilo-koodi>`-polkua.
 Synkronisen metodin aikarajat ja vastausten käsittely säilyvät ennallaan.
 
+Async Siilo vaatii HTTPS-osoitteen. Vain paikalliset testivastaanottajat voivat
+käyttää HTTP:tä asetuksella
+`application.arkistointi.hki.async-allow-loopback-http-for-tests=true`
+(oletus false), ja silloinkin vain kirjaimellisilla osoitteilla `127.0.0.1` tai
+`::1`. Hostnameja tai muita HTTP-osoitteita ei hyväksytä edes tällä asetuksella.
+Testipoikkeus ei muuta synkronista asiakasta eikä TLS-varmenteiden tarkistusta.
+
 Async-kutsun kokonaiskestoa rajaa `application.arkistointi.hki.async-transfer-timeout`
 (oletus 2 minuuttia). OkHttp peruu varsinaisen HTTP-kutsun aikarajan täyttyessä.
 Async ei seuraa redirecteja eikä tee HTTP-clientin sisäisiä yhteysuusintoja.
