@@ -1,0 +1,48 @@
+# Configuration for the disposable Cypress stack using the candidate image.
+# EHL setup changes a study right after login with SQL. Bypass Hibernate caches
+# so the application reads the new specialty and study guide on its next request.
+spring:
+  main:
+    # Cypress DB tasks run before the first application request. Initialize
+    # Liquibase during startup instead of inheriting dev's lazy initialization.
+    lazy-initialization: false
+  liquibase:
+    enabled: true
+  jpa:
+    properties:
+      hibernate.cache.use_second_level_cache: false
+      hibernate.cache.use_query_cache: false
+
+# Keep queued jobs available for assertions; never call external archive systems.
+db-scheduler:
+  enabled: false
+
+application:
+  arkistointi:
+    # The adapter registry can construct the Louhi client even with the worker off.
+    # Constructor-only placeholders; TRE archiving stays disabled.
+    tre:
+      kaytossa: false
+      host: 127.0.0.1
+      user: unused-e2e
+    hki:
+      kaytossa: true
+      metadata:
+        cases:
+          valmistuminen:
+            async-enabled: true
+          koejakso:
+            async-enabled: true
+          sopimus:
+            async-enabled: true
+    uef:
+      kaytossa: true
+      metadata:
+        cases:
+          valmistuminen:
+            async-enabled: true
+            documents:
+              yhteenveto:
+                retention-period: "20"
+              liite:
+                retention-period: "10"

@@ -45,6 +45,7 @@ services:
       - POSTGRES_HOST=db
       - POSTGRES_USER=elsaBackend
       - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/application-e2e.yml
       - POSTGRES_PASSWORD=
       - APPLICATION_SECURITY_ENCODED_KEY
       - SAML_PRIVATE_KEY_LOCATION=file:/run/secrets/private_key
@@ -52,6 +53,8 @@ services:
       - SISUHY_PRIVATE_KEY_LOCATION=file:/run/secrets/hy_sisu_key
       - SISUHY_CERT_LOCATION=file:/run/secrets/hy_sisu_crt
       - SERVER_SERVLET_SESSION_COOKIE_SECURE
+    volumes:
+      - ./application-e2e.yml:/app/application-e2e.yml:ro
     ports:
       - 9080:8080
     depends_on:

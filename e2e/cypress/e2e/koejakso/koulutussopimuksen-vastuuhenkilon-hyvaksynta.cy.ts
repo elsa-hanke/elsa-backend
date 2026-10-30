@@ -3,6 +3,7 @@ import {
   KOULUTTAJA_EMAIL,
   VASTUUHENKILO_EMAIL
 } from '../../support/commands/credentials'
+import { assertArchiveAbsent, assertArchiveScheduled } from '../../support/async-archive'
 
 const KOULUTTAJA_NIMI = 'Lassekalevi Hummaamistes'
 const VASTUUHENKILO_NIMI = 'Mia Ålands'
@@ -47,7 +48,9 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
       sopimusId = id
 
       // Trainer approval is setup; this spec exercises the responsible person's UI.
-      cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
+      cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) =>
+        cy.loginAsKouluttaja(token ?? undefined)
+      )
       cy.apiRequest({
         method: 'GET',
         url: `/api/kouluttaja/koejakso/koulutussopimus/${id}`
@@ -82,7 +85,9 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
         })
       })
 
-      cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
+      cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) =>
+        cy.loginAsVastuuhenkilo(token ?? undefined)
+      )
       // Observe real approval requests without stubbing their responses.
       const hyvaksyntapyynto = cy.spy().as('hyvaksyntapyynto')
       cy.intercept('PUT', HYVAKSYNTA_URL, (request) => {
@@ -141,6 +146,7 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
 
   it('hyväksyy vasta vahvistuksesta ja näyttää hyväksytyn sopimuksen myös erikoistuvalle', () => {
     let vastuuhenkilonKuittausaika: string
+    cy.then(() => assertArchiveAbsent('koejakso-sopimus', 'HELSINGIN_YLIOPISTO', sopimusId))
 
     taytaVastuuhenkilonTiedot()
     hyvaksyPainike().click()
@@ -178,6 +184,19 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
       expect(response?.body.vastuuhenkilo.sopimusHyvaksytty).to.eq(true)
       expect(response?.body.vastuuhenkilo.kuittausaika).to.match(/^\d{4}-\d{2}-\d{2}$/)
       vastuuhenkilonKuittausaika = response?.body.vastuuhenkilo.kuittausaika
+      assertArchiveScheduled({
+        prefix: 'koejakso-sopimus',
+        university: 'HELSINGIN_YLIOPISTO',
+        caseId: sopimusId,
+        caseType: 'SOPIMUS',
+        types: ['SOPIMUS'],
+        metadata: {
+          caseId: sopimusId,
+          yek: false,
+          approver: VASTUUHENKILO_NIMI,
+          approvalDate: vastuuhenkilonKuittausaika
+        }
+      })
     })
     cy.get('@hyvaksyntapyynto').should('have.been.calledOnce')
     cy.location('pathname').should('eq', '/koejakso')
@@ -195,6 +214,17 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
       })
       expect(response?.body.kouluttajat[0].sopimusHyvaksytty).to.eq(true)
       expect(response?.body.kouluttajat[0].kuittausaika).to.eq(kouluttajanKuittausaika)
+      cy.apiRequest({
+        method: 'PUT',
+        url: '/api/vastuuhenkilo/koejakso/koulutussopimus',
+        body: response?.body,
+        failOnStatusCode: false
+      }).its('status').should('eq', 400)
+      assertArchiveScheduled({
+        prefix: 'koejakso-sopimus', university: 'HELSINGIN_YLIOPISTO',
+        caseId: sopimusId, caseType: 'SOPIMUS', types: ['SOPIMUS'],
+        metadata: { caseId: sopimusId, approvalDate: vastuuhenkilonKuittausaika }
+      })
     })
     cy.get(LOMAKE).contains('.alert-success', HYVAKSYTTY_TEKSTI).should('be.visible')
     VASTUUHENKILON_TIEDOT.forEach(({ value }) => {
