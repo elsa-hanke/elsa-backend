@@ -1,4 +1,5 @@
-package fi.elsapalvelu.elsa.service.arkistointi.louhi
+package fi.elsapalvelu.elsa.service.arkistointi.sahke
+
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -12,8 +13,8 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.time.LocalDate
 import java.util.stream.Stream
 
-class LouhiPayloadReaderTest {
-    private val reader = LouhiPayloadReader(jacksonObjectMapper())
+class SahkePayloadReaderTest {
+    private val reader = SahkePayloadReader(jacksonObjectMapper())
 
     @ParameterizedTest
     @EnumSource(CaseType::class)
@@ -38,7 +39,7 @@ class LouhiPayloadReaderTest {
         assertThat(payload.documents.single().snapshotDocumentId).isEqualTo(61L)
         assertThat(payload.documents.single().recordType).isEqualTo(RecordType.YHTEENVETO)
         assertThat(payload.documents.single().jarjestysnumero).isZero()
-        assertThat(payload.toString()).isEqualTo("LouhiArchivePayload")
+        assertThat(payload.toString()).isEqualTo("SahkeArchivePayload")
     }
 
     @Test
@@ -60,9 +61,9 @@ class LouhiPayloadReaderTest {
     @MethodSource("invalidPayloads")
     fun `rejects malformed values without coercion or exposing payload`(json: String) {
         assertThatThrownBy { reader.read(json, CaseType.VALMISTUMINEN) }
-            .isInstanceOfSatisfying(LouhiPackageException::class.java) {
-                assertThat(it.failure).isEqualTo(LouhiPackageFailure.PAYLOAD_INVALID)
-                assertThat(it.message).isEqualTo("LOUHI_PAYLOAD_INVALID")
+            .isInstanceOfSatisfying(SahkePackageException::class.java) {
+                assertThat(it.failure).isEqualTo(SahkePackageFailure.PAYLOAD_INVALID)
+                assertThat(it.message).isEqualTo("SAHKE_PAYLOAD_INVALID")
                 assertThat(it.cause).isNull()
                 assertThat(it.suppressed).isEmpty()
             }

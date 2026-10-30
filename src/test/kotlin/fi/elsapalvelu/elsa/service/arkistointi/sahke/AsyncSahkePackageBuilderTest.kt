@@ -1,4 +1,5 @@
-package fi.elsapalvelu.elsa.service.arkistointi.louhi
+package fi.elsapalvelu.elsa.service.arkistointi.sahke
+
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -9,8 +10,6 @@ import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiServiceImpl
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
-import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
-import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePakettiBuilder
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import org.apache.commons.codec.digest.DigestUtils
 import org.assertj.core.api.Assertions.assertThat
@@ -30,17 +29,19 @@ import java.util.UUID
 import java.util.MissingResourceException
 import java.util.zip.ZipFile
 
-class LouhiAsyncPackageBuilderTest {
+class AsyncSahkePackageBuilderTest {
     @TempDir lateinit var directory: Path
     private val mapper = jacksonObjectMapper()
     private val properties = ArkistointiTestData.createApplicationProperties()
     private val configuration = ArkistointiConfigurationProvider(properties)
-    private val builder = LouhiAsyncPackageBuilder(LouhiPayloadReader(mapper), configuration, SahkeMetadataBuilder(), SahkePakettiBuilder())
+    private val builder = AsyncSahkePackageBuilder(SahkePayloadReader(mapper), configuration, SahkeMetadataBuilder(), SahkePakettiBuilder())
 
     @ParameterizedTest
-    @CsvSource("VALMISTUMINEN,false", "VALMISTUMINEN,true", "KOEJAKSO,false")
-    fun `saved submission produces exactly the legacy XML and PDF entries`(caseType: CaseType, yek: Boolean) {
-        val scenario = ArkistointiTestData.tamperePackageScenarios.single { it.caseType == caseType }
+    @CsvSource("VALMISTUMINEN,false,false", "VALMISTUMINEN,true,false", "KOEJAKSO,false,false",
+        "VALMISTUMINEN,false,true", "VALMISTUMINEN,true,true", "KOEJAKSO,false,true", "SOPIMUS,false,true")
+    fun `saved submission produces exactly the legacy XML and PDF entries`(caseType: CaseType, yek: Boolean, helsinki: Boolean) {
+        val scenarios = if (helsinki) ArkistointiTestData.helsinkiScenarios else ArkistointiTestData.tamperePackageScenarios
+        val scenario = scenarios.single { it.caseType == caseType }
         val input = ArkistointiTestData.createInput(scenario)
         val studyRight = input.opintooikeus
         val user = studyRight.erikoistuvaLaakari!!.kayttaja!!.user!!
@@ -94,7 +95,7 @@ class LouhiAsyncPackageBuilderTest {
         }
     }
 
-    private fun buildIn(submission: ArkistointiSubmission, folder: String): PreparedLouhiPackage =
+    private fun buildIn(submission: ArkistointiSubmission, folder: String): PreparedSahkePackage =
         builder.build(submission, Files.createDirectory(directory.resolve(folder)))
 
     @Test
@@ -131,8 +132,8 @@ class LouhiAsyncPackageBuilderTest {
             "document" -> metadata.getCaseMetadata(submission.caseType)!!.documents = emptyMap()
         }
         assertThatThrownBy { builder.build(submission, directory) }
-            .isInstanceOfSatisfying(LouhiPackageException::class.java) {
-                assertThat(it.failure).isEqualTo(LouhiPackageFailure.CONFIGURATION_INVALID)
+            .isInstanceOfSatisfying(SahkePackageException::class.java) {
+                assertThat(it.failure).isEqualTo(SahkePackageFailure.CONFIGURATION_INVALID)
                 assertThat(it.cause).isNull()
             }
         Files.list(directory).use { assertThat(it.count()).isZero() }
@@ -150,8 +151,8 @@ class LouhiAsyncPackageBuilderTest {
             else -> valid.copy(payload = invalid)
         }
         assertThatThrownBy { builder.build(submission, directory) }
-            .isInstanceOfSatisfying(LouhiPackageException::class.java) {
-                assertThat(it.failure).isEqualTo(LouhiPackageFailure.PAYLOAD_INVALID)
+            .isInstanceOfSatisfying(SahkePackageException::class.java) {
+                assertThat(it.failure).isEqualTo(SahkePackageFailure.PAYLOAD_INVALID)
                 assertThat(it.message).doesNotContain("private")
                 assertThat(it.cause).isNull()
             }
@@ -164,11 +165,11 @@ class LouhiAsyncPackageBuilderTest {
         val packages = SahkePakettiBuilder()
         whenever(metadata.build(any(), any()))
             .thenThrow(MissingResourceException("private resource details", "private", "private"))
-        val subject = LouhiAsyncPackageBuilder(LouhiPayloadReader(mapper), configuration, metadata, packages)
+        val subject = AsyncSahkePackageBuilder(SahkePayloadReader(mapper), configuration, metadata, packages)
 
         assertThatThrownBy { subject.build(validSubmission(), directory) }
-            .isInstanceOfSatisfying(LouhiPackageException::class.java) {
-                assertThat(it.failure).isEqualTo(LouhiPackageFailure.LOCALIZATION_MISSING)
+            .isInstanceOfSatisfying(SahkePackageException::class.java) {
+                assertThat(it.failure).isEqualTo(SahkePackageFailure.LOCALIZATION_MISSING)
                 assertThat(it.message).doesNotContain("private")
                 assertThat(it.cause).isNull()
             }
@@ -196,8 +197,8 @@ class LouhiAsyncPackageBuilderTest {
         }.copy(payload = payload.toString())
 
         assertThatThrownBy { builder.build(submission, directory) }
-            .isInstanceOfSatisfying(LouhiPackageException::class.java) {
-                assertThat(it.failure).isEqualTo(LouhiPackageFailure.PAYLOAD_INVALID)
+            .isInstanceOfSatisfying(SahkePackageException::class.java) {
+                assertThat(it.failure).isEqualTo(SahkePackageFailure.PAYLOAD_INVALID)
                 assertThat(it.message).doesNotContain("private")
                 assertThat(it.cause).isNull()
             }

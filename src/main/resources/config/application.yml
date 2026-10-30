@@ -342,6 +342,10 @@ application:
       kaytossa: false
       host:
       api-key:
+      # Applies only to the asynchronous Siilo call; legacy sync timeouts stay unchanged.
+      async-transfer-timeout: 2m
+      # Async requires HTTPS. HTTP opt-in is limited to literal loopback test receivers.
+      async-allow-loopback-http-for-tests: false
       metadata:
         zip-metadata: true
         contact:

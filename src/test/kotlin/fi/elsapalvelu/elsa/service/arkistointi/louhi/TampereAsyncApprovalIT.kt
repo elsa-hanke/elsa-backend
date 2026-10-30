@@ -1,27 +1,21 @@
 package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkeDelivery
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkePackageBuilder
+
+import fi.elsapalvelu.elsa.service.arkistointi.support.AsyncArchiveItSupport
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.boot.autoconfigure.DbSchedulerAutoConfiguration
+import com.github.kagkarlsson.scheduler.event.AbstractSchedulerListener
+import com.github.kagkarlsson.scheduler.event.SchedulerListener.SchedulerEventType
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiDbSchedulerConfiguration
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
-import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
-import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
-import fi.elsapalvelu.elsa.domain.kayttaja.Authority
-import fi.elsapalvelu.elsa.domain.kayttaja.KayttajaYliopistoErikoisala
-import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
-import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
-import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
-import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppi
-import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepository
-import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
@@ -37,23 +31,13 @@ import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksynta
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonVastuuhenkilonArvioMapper
 import fi.elsapalvelu.elsa.service.pdf.PdfTestData
-import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
-import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
-import fi.elsapalvelu.elsa.web.rest.findAll
-import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.KoejaksonVaiheetHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.OpintoopasHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.ValmistumispyynnonTarkistusHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.ValmistumispyyntoHelper
-import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.ehcache.core.config.DefaultConfiguration
 import org.ehcache.jsr107.EhcacheCachingProvider
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -66,7 +50,6 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DelegatingDataSource
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.annotation.DirtiesContext
@@ -74,24 +57,21 @@ import org.springframework.test.context.bean.override.convention.TestBean
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.transaction.support.TransactionTemplate
 import java.net.URI
 import java.nio.file.Files
 import java.time.Duration
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Supplier
-import java.util.zip.ZipFile
 import javax.cache.Caching
 import javax.sql.DataSource
-import javax.xml.parsers.DocumentBuilderFactory
 import org.apache.sshd.server.session.ServerSession
 import org.apache.sshd.sftp.server.FileHandle
 import org.apache.sshd.sftp.server.SftpEventListener
@@ -114,32 +94,37 @@ import org.apache.sshd.sftp.server.SftpEventListener
     "application.arkistointi.tre.metadata.cases.koejakso.type=Koejakson arviointi",
     "application.arkistointi.tre.metadata.cases.koejakso.function=04.01.04",
     "application.arkistointi.tre.metadata.cases.koejakso.documents.arviointi.retention-period=-1",
-    "application.arkistointi.tre.metadata.cases.sopimus.async-enabled=false",
-    "db-scheduler.enabled=true",
-    "db-scheduler.polling-interval=1h",
-    "db-scheduler.threads=1"
+    "application.arkistointi.tre.metadata.cases.sopimus.async-enabled=false"
 ])
 @Import(TampereAsyncApprovalIT.CacheConfig::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class TampereAsyncApprovalIT : ResourceIntegrationTestBase() {
-    @Autowired private lateinit var transactions: TransactionTemplate
-    @Autowired private lateinit var jobs: ArkistointiJobRepository
+class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
     @Autowired private lateinit var scheduler: Scheduler
-    @Autowired private lateinit var jdbc: JdbcTemplate
     @Autowired private lateinit var assessments: KoejaksonVastuuhenkilonArvioRepository
     @Autowired private lateinit var assessmentMapper: KoejaksonVastuuhenkilonArvioMapper
     @Autowired private lateinit var properties: ApplicationProperties
     @Autowired private lateinit var configuration: ArkistointiConfigurationProvider
-    @Autowired private lateinit var packageBuilder: LouhiAsyncPackageBuilder
+    @Autowired private lateinit var packageBuilder: AsyncSahkePackageBuilder
     @Autowired private lateinit var failureHandler: ArkistointiJobFailureHandler
     @Autowired private lateinit var dataSource: DataSource
     @MockitoBean lateinit var mail: MailService
     @TestBean(methodName = "createTransport") lateinit var tampereLouhiService: TampereLouhiService
 
+    private val pollCount = AtomicInteger()
+
+    @BeforeEach
+    fun observeSchedulerPolls() {
+        scheduler.registerSchedulerListener(object : AbstractSchedulerListener() {
+            override fun onSchedulerEvent(type: SchedulerEventType) {
+                if (type == SchedulerEventType.RAN_EXECUTE_DUE) pollCount.incrementAndGet()
+            }
+        })
+    }
+
     @ParameterizedTest
     @ValueSource(strings = ["EL", "EHL", "YEK"])
     fun `graduation approval sends exactly its saved documents to Louhi`(kind: String) {
-        val fixture = graduationFixture(kind)
+        val fixture = graduationFixture(kind, YliopistoEnum.TAMPEREEN_YLIOPISTO, false)
         setSecurityContext(fixture.second, VASTUUHENKILO)
         testMockMvc.perform(put("/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${fixture.first}")
             .contentType(MediaType.APPLICATION_JSON)
@@ -151,26 +136,8 @@ class TampereAsyncApprovalIT : ResourceIntegrationTestBase() {
 
     @Test
     fun `koejakso approval sends its saved assessment to Louhi`() {
-        val fixture = transactions.execute { _ ->
-            val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO)).also(em::persist)
-            val university = YliopistoHelper.createReferenceData(em, YliopistoEnum.TAMPEREEN_YLIOPISTO)
-            val traineeUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI)).also(em::persist)
-            val trainee = ErikoistuvaLaakariHelper.createEntity(em, user = traineeUser, yliopisto = university)
-            val approver = createVastuuhenkiloForKoejakso(trainee, user = user)
-            val trainer = KayttajaHelper.createEntity(em).also(em::persist)
-            val supervisor = KayttajaHelper.createEntity(em).also(em::persist)
-            KoejaksonVaiheetHelper.persistKoejaksoVaiheet(em, trainee, trainer, supervisor, approver, university)
-            val reviewer = KayttajaHelper.createEntity(em).also(em::persist)
-            val assessment = KoejaksonVaiheetHelper.createVastuuhenkilonArvio(trainee, approver).apply {
-                erikoistuvanKuittausaika = LocalDate.now()
-                virkailija = reviewer
-                virkailijaHyvaksynyt = true
-                virkailijanKuittausaika = LocalDate.now()
-            }
-            em.persist(assessment)
-            em.flush()
-            assessment.id!! to user.id!!
-        }
+        val prepared = koejaksoFixture(YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.KOEJAKSO)
+        val fixture = prepared.second to prepared.third
         setSecurityContext(fixture.second, VASTUUHENKILO)
         val dto = transactions.execute { _ ->
             assessmentMapper.toDto(assessments.findById(fixture.first).orElseThrow()).apply { koejaksoHyvaksytty = true }
@@ -200,10 +167,10 @@ class TampereAsyncApprovalIT : ResourceIntegrationTestBase() {
             ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(DbSchedulerAutoConfiguration::class.java))
                 .withUserConfiguration(ArkistointiDbSchedulerConfiguration::class.java,
-                    ArkistointiAdapterRegistry::class.java, LouhiAsyncArkistointiAdapter::class.java)
+                    ArkistointiAdapterRegistry::class.java, AsyncSahkeDelivery::class.java, LouhiAsyncArkistointiAdapter::class.java)
                 .withBean(ApplicationProperties::class.java, Supplier { properties })
                 .withBean(ArkistointiConfigurationProvider::class.java, Supplier { configuration })
-                .withBean(LouhiAsyncPackageBuilder::class.java, Supplier { packageBuilder })
+                .withBean(AsyncSahkePackageBuilder::class.java, Supplier { packageBuilder })
                 .withBean(ArkistointiJobFailureHandler::class.java, Supplier { failureHandler })
                 .withBean(DataSource::class.java, Supplier { DelegatingDataSource(dataSource) })
                 .withBean(TampereLouhiService::class.java, Supplier { receiver.client { destroyed.set(true) } },
@@ -265,80 +232,22 @@ class TampereAsyncApprovalIT : ResourceIntegrationTestBase() {
             job.id!!
         }
         scheduler.triggerCheckForDueExecutions()
-        await().atMost(Duration.ofSeconds(30)).untilAsserted {
-            assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
-            assertThat(taskCount(jobId)).isZero()
-        }
+        awaitDelivered(jobId)
         val finished = server.remote.resolve(if (yek) "Finished/YEK" else "Finished/ELSA")
         val zipPath = Files.list(finished).use { paths -> paths.filter { it.toString().endsWith(".zip") }.toList().single() }
-        transactions.executeWithoutResult { _ ->
-            val job = jobs.findById(jobId).orElseThrow()
-            val identities = objectMapper.readTree(job.payload)["documents"]
-            ZipFile(zipPath.toFile()).use { zip ->
-                assertThat(zip.entries().asSequence().map { it.name }.toList())
-                    .containsExactlyInAnyOrderElementsOf(listOf("sahke.xml") + job.asiakirjat.map { "pdf/${it.filename}" })
-                val xml = zip.getInputStream(zip.getEntry("sahke.xml")).use {
-                    DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }.newDocumentBuilder().parse(it)
-                }
-                val records = xml.getElementsByTagNameNS("*", "Record")
-                assertThat(records.length).isEqualTo(types.size)
-                val nativeIds = (0 until records.length).map { index ->
-                    val record = records.item(index) as org.w3c.dom.Element
-                    record.getElementsByTagNameNS("*", "NativeId").item(0).textContent
-                }
-                assertThat(nativeIds).containsExactlyElementsOf(identities.map { it["sourceDocumentId"].asText() })
-                job.asiakirjat.forEach { document ->
-                    val identity = identities.single { it["snapshotDocumentId"].longValue() == document.asiakirja!!.id }
-                    assertThat(identity["sourceDocumentId"].longValue()).isNotEqualTo(document.asiakirja!!.id)
-                    val bytes = zip.getInputStream(zip.getEntry("pdf/${document.filename}")).use { it.readBytes() }
-                    assertThat(ArkistointiChecksum.sha256(bytes)).isEqualTo(document.sha256)
-                }
-            }
-        }
+        assertSavedPackage(jobId, zipEntries(Files.readAllBytes(zipPath)))
         // An extra poll after completion must not send the job again.
         val published = Files.getLastModifiedTime(zipPath)
-        scheduler.triggerCheckForDueExecutions()
+        pollAndAwait()
         assertThat(taskCount(jobId)).isZero()
         assertThat(Files.getLastModifiedTime(zipPath)).isEqualTo(published)
         Files.delete(zipPath)
     }
 
-    private fun taskCount(id: UUID) = jdbc.queryForObject(
-        "select count(*) from scheduled_tasks where task_instance = ?", Int::class.javaObjectType, id.toString()
-    )!!
-
-    private fun graduationFixture(kind: String): Pair<Long, String> = transactions.execute { _ ->
-        val university = YliopistoHelper.createReferenceData(em, YliopistoEnum.TAMPEREEN_YLIOPISTO)
-        val specialty = em.findAll(Erikoisala::class).first {
-            when (kind) {
-                "YEK" -> it.id == YEK_ERIKOISALA_ID
-                "EHL" -> it.tyyppi == ErikoisalaTyyppi.HAMMASLAAKETIEDE
-                else -> it.tyyppi == ErikoisalaTyyppi.LAAKETIEDE && it.id != YEK_ERIKOISALA_ID
-            }
-        }
-        val guide = OpintoopasHelper.createEntity(em, erikoisala = specialty).also(em::persist)
-        val trainee = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = university, erikoisala = specialty, opintoopas = guide)
-        trainee.laillistamistodistus = null
-        em.persist(trainee)
-        val studyRight = trainee.getOpintooikeusKaytossa()!!
-        em.persist(Koulutussuunnitelma(opintooikeus = studyRight))
-        val period = TyoskentelyjaksoHelper.createEntity(em).apply { opintooikeus = studyRight }.also(em::persist)
-        val attachment = Asiakirja(nimi = "approval-attachment.pdf", tyyppi = "application/pdf", lisattypvm = LocalDateTime.now(),
-            opintooikeus = studyRight, tyoskentelyjakso = period, asiakirjaData = AsiakirjaData(data = PdfTestData.certificate()))
-        em.persist(attachment)
-        period.asiakirjat.add(attachment)
-        val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO)).also(em::persist)
-        val approver = KayttajaHelper.createEntity(em, user)
-        val task = if (kind == "YEK") VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN
-            else VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
-        approver.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(kayttaja = approver, yliopisto = university,
-            erikoisala = specialty, vastuuhenkilonTehtavat = em.findAll(VastuuhenkilonTehtavatyyppi::class)
-                .filter { it.nimi == task }.toMutableSet()))
-        em.persist(approver)
-        val request = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(studyRight, approver, approver).also(em::persist)
-        em.persist(ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(request))
-        em.flush()
-        request.id!! to user.id!!
+    private fun pollAndAwait() {
+        val before = pollCount.get()
+        scheduler.triggerCheckForDueExecutions()
+        await().atMost(Duration.ofSeconds(30)).until { pollCount.get() > before }
     }
 
     @TestConfiguration(proxyBeanMethods = false)
