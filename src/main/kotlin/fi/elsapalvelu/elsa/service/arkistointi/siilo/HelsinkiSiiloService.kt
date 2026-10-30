@@ -42,6 +42,8 @@ class HelsinkiSiiloService(
             .addHeader("X-Api-Key", key).post(body).build()
         // OkHttp's call timeout cancels the actual exchange, including connect/upload/response wait.
         val client = okHttpClient.newBuilder().callTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
+            // Siilo may process the uploaded ZIP longer than the legacy 15-second read timeout.
+            .readTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
             .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).build()
         try {
             client.newCall(request).execute().use { response ->

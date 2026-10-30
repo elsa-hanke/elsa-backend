@@ -133,6 +133,18 @@ class HelsinkiSiiloServiceTest {
     }
 
     @Test
+    fun `async accepts a response after the legacy fifteen second read timeout`() {
+        properties.getArkistointi().getHki().asyncTransferTimeout = Duration.ofSeconds(40)
+        server.enqueue(MockResponse().setResponseCode(200).setHeadersDelay(16, TimeUnit.SECONDS))
+        val file = createTemporaryZip("slow-archive")
+
+        service.lahetaAsync(file.toString(), CaseType.VALMISTUMINEN)
+
+        assertThat(server.requestCount).isEqualTo(1)
+        assertThat(file).exists()
+    }
+
+    @Test
     fun `async total timeout cancels the exchange without changing sync timeout policy`() {
         properties.getArkistointi().getHki().asyncTransferTimeout = Duration.ofMillis(100)
         server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.NO_RESPONSE))

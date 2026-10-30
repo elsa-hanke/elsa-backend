@@ -1,5 +1,16 @@
 package fi.elsapalvelu.elsa.service.arkistointi.siilo
 
+import com.github.kagkarlsson.scheduler.event.AbstractSchedulerListener
+import com.github.kagkarlsson.scheduler.event.SchedulerListener.SchedulerEventType
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.Semaphore
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.whenever
+import org.mockito.kotlin.any
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessorImpl
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
+import java.time.Instant
 import com.github.kagkarlsson.scheduler.Scheduler
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -106,10 +117,11 @@ import java.util.zip.ZipInputStream
     "application.arkistointi.hki.metadata.cases.sopimus.type=Sopimus",
     "application.arkistointi.hki.metadata.cases.sopimus.siilo-koodi=contract",
     "application.arkistointi.hki.metadata.cases.sopimus.documents.sopimus.retention-period=20",
-    "application.arkistointi.retry.initial-delay=1s",
-    "application.arkistointi.retry.max-delay=1s",
+    "application.arkistointi.retry.initial-delay=3s",
+    "application.arkistointi.retry.max-delay=3s",
     "db-scheduler.enabled=true",
-    "db-scheduler.polling-interval=1s",
+    "application.arkistointi.retry.jitter-factor=0",
+    "db-scheduler.polling-interval=1h",
     "db-scheduler.threads=1"
 ])
 @Import(HelsinkiAsyncApprovalIT.CacheConfig::class)
@@ -123,10 +135,26 @@ class HelsinkiAsyncApprovalIT : ResourceIntegrationTestBase() {
     @Autowired private lateinit var assessmentMapper: KoejaksonVastuuhenkilonArvioMapper
     @Autowired private lateinit var contracts: KoejaksonKoulutussopimusRepository
     @Autowired private lateinit var contractMapper: KoejaksonKoulutussopimusMapper
+    @MockitoSpyBean private lateinit var processor: ArkistointiJobProcessorImpl
     @MockitoBean lateinit var mail: MailService
+
+    private val pollCount = AtomicInteger()
+    private val attemptPermits = Semaphore(0)
 
     @BeforeEach
     fun resetReceiver() {
+        scheduler.registerSchedulerListener(object : AbstractSchedulerListener() {
+            override fun onSchedulerEvent(type: SchedulerEventType) {
+                if (type == SchedulerEventType.RAN_EXECUTE_DUE) pollCount.incrementAndGet()
+            }
+        })
+        // A poll may pick a task, but only the test may let it enter the real processor.
+        doAnswer { invocation ->
+            check(attemptPermits.tryAcquire(30, TimeUnit.SECONDS)) { "Test did not authorize archive attempt" }
+            invocation.callRealMethod()
+        }.whenever(processor).process(any<ArkistointiJobExecution>())
+        pollAndAwait()
+
         server.dispatcher = QueueDispatcher()
         while (server.takeRequest(1, TimeUnit.MILLISECONDS) != null) {
             // Remove requests left by a failed previous assertion.
@@ -135,6 +163,8 @@ class HelsinkiAsyncApprovalIT : ResourceIntegrationTestBase() {
 
     @AfterEach
     fun clearPendingExecutions() {
+        server.enqueue(MockResponse().setResponseCode(400))
+        attemptPermits.release(10)
         await().atMost(Duration.ofSeconds(30)).until { scheduler.currentlyExecuting.isEmpty() }
         jdbc.queryForList("select task_instance from scheduled_tasks where task_name = 'arkistointi-job'", String::class.java)
             .forEach { scheduler.cancel(TaskInstanceId.of("arkistointi-job", it)) }
@@ -167,15 +197,23 @@ class HelsinkiAsyncApprovalIT : ResourceIntegrationTestBase() {
         val id = approveKoejakso(CaseType.KOEJAKSO)
         val job = jobs.findByKey("koejakso-arvio:HELSINGIN_YLIOPISTO:$id")!!
         server.enqueue(MockResponse().setResponseCode(503).setBody("private response"))
-        scheduler.triggerCheckForDueExecutions()
+        startAttempt()
         await().atMost(Duration.ofSeconds(30)).untilAsserted {
             assertThat(jdbc.queryForObject("select consecutive_failures from scheduled_tasks where task_instance = ?",
                 Int::class.javaObjectType, job.id.toString())).isEqualTo(1)
         }
+        pollAndAwait()
         assertThat(jobs.findById(job.id!!).orElseThrow().status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
         assertThat(assessments.findById(id).orElseThrow().vastuuhenkiloHyvaksynyt).isTrue()
         val first = zipEntries(receivedZip(server.takeRequest(5, TimeUnit.SECONDS)!!))
         server.enqueue(MockResponse().setResponseCode(200))
+        val nextExecution = jdbc.queryForObject(
+            "select execution_time from scheduled_tasks where task_instance = ?",
+            java.time.OffsetDateTime::class.java, job.id.toString()
+        )!!.toInstant()
+        // Let the library's saved retry become due; never rewrite scheduler state with SQL.
+        await().atMost(Duration.ofSeconds(10)).until { !Instant.now().isBefore(nextExecution) }
+        startAttempt()
         awaitDelivered(job.id!!)
         val retried = zipEntries(receivedZip(server.takeRequest(5, TimeUnit.SECONDS)!!))
         assertThat(retried.keys).isEqualTo(first.keys)
@@ -187,7 +225,7 @@ class HelsinkiAsyncApprovalIT : ResourceIntegrationTestBase() {
         val id = approveKoejakso(CaseType.KOEJAKSO)
         val job = jobs.findByKey("koejakso-arvio:HELSINGIN_YLIOPISTO:$id")!!
         server.enqueue(MockResponse().setResponseCode(400).setBody("private response"))
-        scheduler.triggerCheckForDueExecutions()
+        startAttempt()
         await().atMost(Duration.ofSeconds(30)).untilAsserted {
             assertThat(jobs.findById(job.id!!).orElseThrow().status).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
             assertThat(taskCount(job.id!!)).isZero()
@@ -243,7 +281,7 @@ class HelsinkiAsyncApprovalIT : ResourceIntegrationTestBase() {
             job.id!!
         }
         server.enqueue(MockResponse().setResponseCode(200).setBody("archived"))
-        scheduler.triggerCheckForDueExecutions()
+        startAttempt()
         awaitDelivered(jobId)
         val request = server.takeRequest(5, TimeUnit.SECONDS)!!
         assertThat(request.method).isEqualTo("POST")
@@ -266,9 +304,20 @@ class HelsinkiAsyncApprovalIT : ResourceIntegrationTestBase() {
             }
         }
         val requests = server.requestCount
-        scheduler.triggerCheckForDueExecutions()
+        pollAndAwait()
         assertThat(taskCount(jobId)).isZero()
         assertThat(server.requestCount).isEqualTo(requests)
+    }
+
+    private fun startAttempt() {
+        attemptPermits.release()
+        scheduler.triggerCheckForDueExecutions()
+    }
+
+    private fun pollAndAwait() {
+        val before = pollCount.get()
+        scheduler.triggerCheckForDueExecutions()
+        await().atMost(Duration.ofSeconds(30)).until { pollCount.get() > before }
     }
 
     private fun receivedZip(request: RecordedRequest): ByteArray {
