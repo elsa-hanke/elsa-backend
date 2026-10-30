@@ -15,6 +15,10 @@ import fi.elsapalvelu.elsa.service.arkistointi.louhi.TampereLouhiService
 import fi.elsapalvelu.elsa.service.arkistointi.siilo.SiiloAsyncArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.siilo.HelsinkiSiiloService
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkePackageBuilder
+import fi.elsapalvelu.elsa.config.ApplicationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer
+import org.springframework.context.annotation.Configuration
 import org.mockito.kotlin.mock
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import java.util.UUID
@@ -26,6 +30,32 @@ class E2eArchiveConfigurationTest {
         .withBean(HelsinkiSiiloService::class.java, { mock() })
         .withUserConfiguration(E2eArchiveConfiguration::class.java,
             LouhiAsyncArkistointiAdapter::class.java, SiiloAsyncArkistointiAdapter::class.java)
+
+    @Test
+    fun `disposable YAML binds to strict application properties and enables test adapters`() {
+        context.withInitializer(ConfigDataApplicationContextInitializer())
+            .withUserConfiguration(BindingConfiguration::class.java)
+            .withPropertyValues(
+                "spring.config.location=file:infra/application-e2e.yml",
+                "spring.profiles.active=dev,e2e-archive"
+            ).run {
+                assertThat(it).hasNotFailed()
+                assertThat(it.getBean(ApplicationProperties::class.java).getE2e().archiveStubEnabled).isTrue()
+                assertThat(it.getBeansOfType(ArkistointiAdapter::class.java)).hasSize(3)
+            }
+    }
+
+    @Test
+    fun `strict application properties default to disabled test delivery`() {
+        context.withUserConfiguration(BindingConfiguration::class.java).run {
+            assertThat(it).hasNotFailed()
+            assertThat(it.getBean(ApplicationProperties::class.java).getE2e().archiveStubEnabled).isFalse()
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @EnableConfigurationProperties(ApplicationProperties::class)
+    class BindingConfiguration
 
     @ParameterizedTest
     @CsvSource("dev,false", "prod,false", "replica,false", "dev,true", "prod,true", "replica,true")

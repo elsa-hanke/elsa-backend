@@ -22,8 +22,9 @@ application:
   e2e:
     archive-stub-enabled: true
   arkistointi:
-    # The adapter registry can construct the Louhi client even with the worker off.
-    # Constructor-only placeholders; TRE archiving stays disabled.
+    # Placeholder connection settings for beans used elsewhere in the application.
+    # The E2E profile replaces async delivery adapters; TRE job creation stays disabled.
+    # Registering its test adapter does not add Tampere Cypress UI scenarios.
     tre:
       kaytossa: false
       host: 127.0.0.1

@@ -617,7 +617,9 @@ pakettikokojen/aikarajojen sopivuus varmistetaan ympäristökohtaisessa käyttö
 Disposable-stack (`infra/docker-compose-cicd.yml`) käyttää profiileja
 `dev,e2e-archive`. Worker on käytössä, mutta `E2eArchiveConfiguration` korvaa
 Helsingin ja Tampereen toimitusadapterit yhteisellä testitoteutuksella. Myös
-olemassa olevan YEK-testin UEF-job käsitellään testiadapterilla. Profiili ei
+olemassa olevan YEK-testin UEF-job käsitellään testiadapterilla. Tampereen testiadapterin
+rekisteröinti ei tarkoita Tampereen Cypress UI -kattavuutta: nämä UI-skenaariot
+käyttävät Helsinkiä ja UEF:ää. Profiili ei
 salli käynnistystä `prod`- tai `replica`-profiilin kanssa. Lisäksi vaaditaan
 `application.e2e.archive-stub-enabled=true`, joka asetetaan vain disposable-stackin
 `infra/application-e2e.yml`-tiedostossa. Ilman vahvistusta `e2e-archive` estää

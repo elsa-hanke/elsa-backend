@@ -8,7 +8,18 @@ export async function cleanupArchiveForStudyRights(studyRightIds: number[]): Pro
   await withDb(dbClient, async (client) => {
     await client.query('BEGIN')
     try {
-      await client.query('SET LOCAL session_replication_role = replica')
+      try {
+        await client.query('SET LOCAL session_replication_role = replica')
+      } catch (error) {
+        if (error && typeof error === 'object' && 'code' in error && error.code === '42501') {
+          throw new Error(
+            'E2E archive cleanup requires permission to SET session_replication_role in the disposable PostgreSQL database. ' +
+            'Check CYPRESS_DB_* and use the disposable Compose DB role, or a dedicated test role with SET permission ' +
+            'on this parameter. See e2e/README.md. Do not grant this permission to a production application role.'
+          )
+        }
+        throw error
+      }
       // Replica mode disables FK checks and CASCADE too; delete every dependent row explicitly.
       await client.query(
         `WITH snapshots AS (

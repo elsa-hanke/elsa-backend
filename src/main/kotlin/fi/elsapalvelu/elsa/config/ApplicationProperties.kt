@@ -14,6 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  */
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
 class ApplicationProperties {
+    private val e2e = E2e()
     private val csrf = Csrf()
     private val security = Security()
     private val feedback = Feedback()
@@ -22,6 +23,13 @@ class ApplicationProperties {
     private val alert = Alert()
     private val scheduling = Scheduling()
     private val studyDataIntegrations = StudyDataIntegrations()
+
+    fun getE2e(): E2e = e2e
+
+    /** Explicit opt-in for disposable E2E delivery stubs; disabled by default. */
+    class E2e {
+        var archiveStubEnabled: Boolean = false
+    }
 
     fun getCsrf(): Csrf {
         return csrf
