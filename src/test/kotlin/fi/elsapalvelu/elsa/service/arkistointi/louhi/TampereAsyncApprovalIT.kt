@@ -6,6 +6,8 @@ import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkePackageBuilder
 import fi.elsapalvelu.elsa.service.arkistointi.support.AsyncArchiveItSupport
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.boot.autoconfigure.DbSchedulerAutoConfiguration
+import com.github.kagkarlsson.scheduler.event.AbstractSchedulerListener
+import com.github.kagkarlsson.scheduler.event.SchedulerListener.SchedulerEventType
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
@@ -35,6 +37,7 @@ import org.awaitility.Awaitility.await
 import org.ehcache.core.config.DefaultConfiguration
 import org.ehcache.jsr107.EhcacheCachingProvider
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -64,6 +67,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Supplier
 import javax.cache.Caching
@@ -105,6 +109,17 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
     @Autowired private lateinit var dataSource: DataSource
     @MockitoBean lateinit var mail: MailService
     @TestBean(methodName = "createTransport") lateinit var tampereLouhiService: TampereLouhiService
+
+    private val pollCount = AtomicInteger()
+
+    @BeforeEach
+    fun observeSchedulerPolls() {
+        scheduler.registerSchedulerListener(object : AbstractSchedulerListener() {
+            override fun onSchedulerEvent(type: SchedulerEventType) {
+                if (type == SchedulerEventType.RAN_EXECUTE_DUE) pollCount.incrementAndGet()
+            }
+        })
+    }
 
     @ParameterizedTest
     @ValueSource(strings = ["EL", "EHL", "YEK"])
@@ -223,10 +238,16 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
         assertSavedPackage(jobId, zipEntries(Files.readAllBytes(zipPath)))
         // An extra poll after completion must not send the job again.
         val published = Files.getLastModifiedTime(zipPath)
-        scheduler.triggerCheckForDueExecutions()
+        pollAndAwait()
         assertThat(taskCount(jobId)).isZero()
         assertThat(Files.getLastModifiedTime(zipPath)).isEqualTo(published)
         Files.delete(zipPath)
+    }
+
+    private fun pollAndAwait() {
+        val before = pollCount.get()
+        scheduler.triggerCheckForDueExecutions()
+        await().atMost(Duration.ofSeconds(30)).until { pollCount.get() > before }
     }
 
     @TestConfiguration(proxyBeanMethods = false)
