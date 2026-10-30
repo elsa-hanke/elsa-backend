@@ -113,7 +113,7 @@ export const pdfTextTasks = {
       ).rows
       state.asiakirjat = (
         await client.query(
-          `SELECT id, nimi, tyyppi FROM asiakirja WHERE opintooikeus_id = $1 ORDER BY id`,
+          `SELECT id, nimi, tyyppi, archive_snapshot FROM asiakirja WHERE opintooikeus_id = $1 ORDER BY id`,
           [oid]
         )
       ).rows

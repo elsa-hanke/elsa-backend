@@ -3,6 +3,7 @@ import {
   KOULUTTAJA_EMAIL,
   VASTUUHENKILO_EMAIL
 } from '../../support/commands/credentials'
+import { assertArchiveAbsent, assertArchiveScheduled } from '../../support/async-archive'
 
 const SIVU = 'main[role="main"]'
 const VAHVISTUS = '#confirm-sign'
@@ -140,10 +141,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
     cy.visit(`/koejakso/vastuuhenkilon-arvio/${arvio.id}`)
     return cy.wait(`@${alias}`).then(({ response }) => {
       expect(response?.statusCode).to.eq(200)
-      // External archiving, including Helsinki integration tests, is outside this spec.
-      expect(response?.body.arkistoitava, 'ulkoinen arkistointi pois käytöstä E2E-testissä').to.eq(
-        false
-      )
+      expect(response?.body.arkistoitava, 'async archiving enabled in E2E').to.eq(true)
       return response?.body
     })
   }
@@ -180,7 +178,9 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
       expect(body.erikoistuvanKuittausaika).to.match(/^\d{4}-\d{2}-\d{2}$/)
       arvio = body
     })
-    cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
+    cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) =>
+      cy.loginAsVirkailija(token ?? undefined)
+    )
     cy.then(() => cy.apiRequest({ method: 'GET', url: `${VIRKAILIJAN_API}/${arvio.id}` }))
       .then(({ status, body }) => {
         expect(status).to.eq(200)
@@ -203,7 +203,9 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
         arvio = body
         tarkistaOdottaaPaatosta(arvio)
       })
-    cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
+    cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) =>
+      cy.loginAsVastuuhenkilo(token ?? undefined)
+    )
     const arviointipyynto = cy.spy().as('arviointipyynto')
     cy.intercept('PUT', `**${API}`, (request) => {
       arviointipyynto(request.body)
@@ -237,7 +239,9 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
     hyvaksyPainike().click()
     sahkoposti().should('have.class', 'is-invalid')
     puhelin().should('have.class', 'is-invalid')
-    kentta('Sähköpostiosoite').contains('Sähköpostiosoite ei ole kelvollinen').should('be.visible')
+    kentta('Sähköpostiosoite')
+      .contains('Sähköpostiosoite ei ole kelvollinen')
+      .should('be.visible')
     kentta('Matkapuhelinnumero')
       .contains('Tarkista, että puhelinnumero on muodossa +358501234567')
       .should('be.visible')
@@ -286,6 +290,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
   paatokset.forEach(({ nimi, hyvaksytty }) => {
     it(nimi, () => {
       let kuittausaika: string
+      cy.then(() => assertArchiveAbsent('koejakso-arvio', 'HELSINGIN_YLIOPISTO', arvio.id))
       taytaYhteystiedot()
       valitsePaatos(hyvaksytty)
       if (!hyvaksytty) {
@@ -301,7 +306,9 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
       tarkistaEtteiLahetetty()
       sahkoposti().should('have.value', VASTUUHENKILO_EMAIL)
       puhelin().should('have.value', VASTUUHENKILON_PUHELIN)
-      kentta(PAATOS).find('input[type="radio"]:checked').should('have.value', String(hyvaksytty))
+      kentta(PAATOS)
+        .find('input[type="radio"]:checked')
+        .should('have.value', String(hyvaksytty))
       if (!hyvaksytty) {
         kentta(PERUSTELU).find('textarea').should('have.value', HYLKAYKSEN_PERUSTELU)
         keskusteluvalinta().should('be.checked')
@@ -330,6 +337,22 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
         expect(response?.body.vastuuhenkilo.kuittausaika).to.match(/^\d{4}-\d{2}-\d{2}$/)
         kuittausaika = response?.body.vastuuhenkilo.kuittausaika
         tarkistaTallennettuPaatos(response?.body, hyvaksytty, kuittausaika)
+        assertArchiveScheduled({
+          prefix: 'koejakso-arvio',
+          university: 'HELSINGIN_YLIOPISTO',
+          caseId: arvio.id,
+          caseType: 'KOEJAKSO',
+          types: ['ARVIOINTI'],
+          metadata: {
+            caseId: arvio.id,
+            yek: false,
+            koejaksoHyvaksytty: hyvaksytty,
+            approver: VASTUUHENKILON_NIMI,
+            reviewer: 'Daniel Siekkinen',
+            approvalDate: kuittausaika,
+            reviewDate: arvio.virkailija.kuittausaika
+          }
+        })
       })
       cy.get('@arviointipyynto').should('have.been.calledOnce')
       cy.location('pathname').should('eq', '/koejakso')
@@ -338,6 +361,14 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
         tarkistaTallennettuPaatos(tallennettu, hyvaksytty, kuittausaika)
         // HYVAKSYTTY describes the signed form; koejaksoHyvaksytty holds the actual decision.
         expect(tallennettu.tila).to.eq('HYVAKSYTTY')
+        cy.apiRequest({
+          method: 'PUT', url: API, body: tallennettu, failOnStatusCode: false
+        }).its('status').should('eq', 400)
+        assertArchiveScheduled({
+          prefix: 'koejakso-arvio', university: 'HELSINGIN_YLIOPISTO',
+          caseId: arvio.id, caseType: 'KOEJAKSO', types: ['ARVIOINTI'],
+          metadata: { caseId: arvio.id, koejaksoHyvaksytty: hyvaksytty, approvalDate: kuittausaika }
+        })
       })
       tarkistaPaatosNakyvissa(hyvaksytty)
       cy.get(SIVU).contains('p', VASTUUHENKILO_EMAIL).should('be.visible')
@@ -359,7 +390,9 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
       cy.get(SIVU)
         .contains('button', /^\s*Lähetä\s*$/)
         .should('not.exist')
-      cy.get(SIVU).contains('.alert-dark', 'Odottaa vastuuhenkilön arviointia.').should('not.exist')
+      cy.get(SIVU)
+        .contains('.alert-dark', 'Odottaa vastuuhenkilön arviointia.')
+        .should('not.exist')
     })
   })
 })

@@ -29,7 +29,8 @@ data class KoejaksonVastuuhenkilonArvio(
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var opintooikeus: Opintooikeus? = null,
 
-    @ManyToOne(optional = false)
+    // Assigned on final approval; pending assessments have no approver yet.
+    @ManyToOne
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var vastuuhenkilo: Kayttaja? = null,
 

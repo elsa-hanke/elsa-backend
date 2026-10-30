@@ -87,6 +87,35 @@ before another run; in-memory restoration state is lost on process termination.
 The existing shard discovery includes the new specs automatically; no explicit
 spec list or additional GHA job is required.
 
+## Approval → scheduled archive job
+
+The existing approval UI specs also verify asynchronous archive scheduling for
+training contracts, positive and negative trial-period decisions, and EL/EHL/YEK
+graduation. After the real Approve response, `assertArchiveScheduled` reads the
+exact operation business key and checks one committed `ODOTTAA` job, approval
+metadata, document order, nonempty snapshots, SHA-256 and source/snapshot equality.
+One unpicked `arkistointi-job` scheduler task must reference the job UUID.
+
+The ordinary Compose stack mounts `infra/application-e2e.yml`. It enables async
+job creation for HKI/UEF while keeping the worker disabled, so no external archive
+system is contacted. HKI graduation archives its configured summary only; the UEF
+YEK fixture explicitly configures summary and attachments. No separate archive
+specs, JAR, CI phase or per-spec stack restart is needed. Full Tampere backend
+delivery through ZIP/SFTP remains covered by `TampereAsyncApprovalIT`.
+
+The shared cleanup removes only archive data belonging to the selected fixture's
+study rights before deleting the parent records. Its own connection and transaction
+use `SET LOCAL session_replication_role = replica` to bypass immutable triggers in
+the disposable test DB. Scheduler rows, document links, jobs, snapshots and snapshot
+bytes are deleted explicitly because FK checks and cascades are disabled too.
+COMMIT/ROLLBACK restores the setting before ordinary cleanup continues. Production
+migrations and protections remain unchanged. Specs run serially within each shard's
+DB, with one ordinary stack per shard.
+
+EHL is a variant of the ordinary graduation spec. Its SQL fixture selects a dental
+specialty and clones the active study guide. Hibernate caches are disabled in the
+external E2E configuration because the fixture changes the study right after login.
+
 ## Parallel GitHub Actions runs
 
 `.github/workflows/e2e.yml` runs three shards on separate runners. Each shard

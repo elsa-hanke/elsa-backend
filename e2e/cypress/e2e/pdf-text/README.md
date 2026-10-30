@@ -31,8 +31,10 @@ resubmits as the trainee, and corrects the summary as the officer through the re
 API before retrying approval. No cached review is repaired with direct SQL.
 
 Setup and cleanup use the existing shared test users and koejakso DB tasks.
-The final-review PDF cases assert that external archiving is disabled, as in the
-existing approval test setup.
+The final-review PDF cases run with async job creation enabled and the archive
+worker disabled. A successful approval creates the source PDF and one immutable
+snapshot. Rejected requests must leave all document records, including snapshots,
+unchanged.
 
 To select only these specs in a configured E2E environment:
 
