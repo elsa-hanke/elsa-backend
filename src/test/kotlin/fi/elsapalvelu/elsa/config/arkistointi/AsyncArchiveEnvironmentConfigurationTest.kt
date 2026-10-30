@@ -25,6 +25,8 @@ class AsyncArchiveEnvironmentConfigurationTest {
             if (university == YliopistoEnum.TURUN_YLIOPISTO || university == YliopistoEnum.ITA_SUOMEN_YLIOPISTO) {
                 val settings = provider.getConfiguration(university, CaseType.VALMISTUMINEN)
                 assertThat(settings.case.documents?.keys).containsExactlyInAnyOrder("yhteenveto", "liite", "laillistamistodistus")
+                assertThat(provider.getConfiguration(university, CaseType.KOEJAKSO).case.documents?.keys)
+                    .containsExactly("arviointi")
             }
             flows.getValue(university).forEach { caseType ->
                 assertThat(provider.getConfiguration(university, caseType).case.asyncEnabled)
@@ -78,8 +80,8 @@ class AsyncArchiveEnvironmentConfigurationTest {
 
     companion object {
         private val flows = mapOf(
-            YliopistoEnum.TURUN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN),
-            YliopistoEnum.ITA_SUOMEN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN),
+            YliopistoEnum.TURUN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO),
+            YliopistoEnum.ITA_SUOMEN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO),
             YliopistoEnum.TAMPEREEN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO),
             YliopistoEnum.HELSINGIN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO, CaseType.SOPIMUS)
         )

@@ -654,3 +654,16 @@ retention-period-arvot ovat sitoutumisen mahdollistavia paikkamerkkejä,
 eivät sovittuja säilytysaikoja. Dynasty-kohtaiset metatiedot, asiakas ja adapterit
 sekä vastaanottajan tiedostorajat toteutetaan integraatiotehtävissä.
 Koulutussopimuksen arkistointipäätöstä ei muuteta tässä tehtävässä.
+
+### Turun ja Itä-Suomen koejakson arvio
+
+Molemmille yliopistoille on määritelty oletuksena pois käytöstä oleva
+`KOEJAKSO`-async-polku, jonka asiakirjatyyppi on `ARVIOINTI`.
+Vastuuhenkilön lopullinen päätös arkistoidaan myös silloin, kun koejakso hylätään.
+Korjattavaksi palauttaminen ei luo arkistointijobia. Päätös ja hyväksymishetken
+PDF tallennetaan samaan transaktioon jobin ja ajastuksen kanssa.
+
+`DynastyKoejaksoApprovalIT` tarkistaa HTTP-käsittelyn, snapshotin, tallennetun
+päätöksen ja oikean db-schedulerin suorituksen testiadapteriin asti sekä rollbackin.
+Tämä ei vielä sisällä Dynasty-lähetystä: oikeat adapterit ja arkiston metatiedot
+toteutetaan integraatiotehtävissä. Koulutussopimuksen asetuksia ei muuteta.

@@ -391,6 +391,12 @@ application:
       kaytossa: false
       metadata:
         cases:
+          koejakso:
+            async-enabled: false
+            # Dynasty-specific metadata will be configured with its adapter.
+            documents:
+              arviointi:
+                retention-period: ""
           valmistuminen:
             async-enabled: false
             # Document selection only; Dynasty-specific metadata will be configured with its adapter.
@@ -405,6 +411,12 @@ application:
       kaytossa: false
       metadata:
         cases:
+          koejakso:
+            async-enabled: false
+            # Dynasty-specific metadata will be configured with its adapter.
+            documents:
+              arviointi:
+                retention-period: ""
           valmistuminen:
             async-enabled: false
             # Document selection only; Dynasty-specific metadata will be configured with its adapter.
