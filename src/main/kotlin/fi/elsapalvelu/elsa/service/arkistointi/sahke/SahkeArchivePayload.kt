@@ -1,10 +1,10 @@
-package fi.elsapalvelu.elsa.service.arkistointi.louhi
+package fi.elsapalvelu.elsa.service.arkistointi.sahke
 
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import java.time.LocalDate
 
 /** Approval-time values read from the immutable job payload. Never include personal data in diagnostics. */
-data class LouhiArchivePayload(
+data class SahkeArchivePayload(
     val university: String,
     val studyRightId: Long,
     val caseId: Long,
@@ -21,5 +21,5 @@ data class LouhiArchivePayload(
     val studentNumber: String?,
     val documents: List<ArkistointiDocumentIdentity>
 ) {
-    override fun toString() = "LouhiArchivePayload"
+    override fun toString() = "SahkeArchivePayload"
 }
