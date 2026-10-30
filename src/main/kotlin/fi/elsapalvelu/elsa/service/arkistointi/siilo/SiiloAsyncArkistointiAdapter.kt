@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 import java.nio.file.Files
 
 @Component
-@Profile("!e2e-archive | prod | replica")
+@Profile("!e2e-archive")
 class SiiloAsyncArkistointiAdapter(
     private val packageBuilder: AsyncSahkePackageBuilder,
     private val siilo: HelsinkiSiiloService

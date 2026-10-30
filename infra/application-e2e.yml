@@ -19,6 +19,8 @@ db-scheduler:
   polling-interval: 1s
 
 application:
+  e2e:
+    archive-stub-enabled: true
   arkistointi:
     # The adapter registry can construct the Louhi client even with the worker off.
     # Constructor-only placeholders; TRE archiving stays disabled.

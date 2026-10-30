@@ -16,7 +16,7 @@ import java.nio.file.Files
 import org.springframework.web.server.ResponseStatusException
 
 @Component
-@Profile("!e2e-archive | prod | replica")
+@Profile("!e2e-archive")
 class LouhiAsyncArkistointiAdapter(
     private val packageBuilder: AsyncSahkePackageBuilder,
     private val louhi: TampereLouhiService

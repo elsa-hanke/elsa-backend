@@ -618,7 +618,10 @@ Disposable-stack (`infra/docker-compose-cicd.yml`) käyttää profiileja
 `dev,e2e-archive`. Worker on käytössä, mutta `E2eArchiveConfiguration` korvaa
 Helsingin ja Tampereen toimitusadapterit yhteisellä testitoteutuksella. Myös
 olemassa olevan YEK-testin UEF-job käsitellään testiadapterilla. Profiili ei
-rekisteröi testiadaptereita `prod`- tai `replica`-profiilin kanssa.
+salli käynnistystä `prod`- tai `replica`-profiilin kanssa. Lisäksi vaaditaan
+`application.e2e.archive-stub-enabled=true`, joka asetetaan vain disposable-stackin
+`infra/application-e2e.yml`-tiedostossa. Ilman vahvistusta `e2e-archive` estää
+käynnistyksen; oikeisiin toimitusadaptereihin ei siirrytä automaattisesti.
 
 Nykyiset valmistumisen, koulutussopimuksen ja koejakson arvion UI-testit käyttävät
 samaa `assertArchiveProcessed`-apuria. Se odottaa kyseisen liiketoiminta-avaimen
