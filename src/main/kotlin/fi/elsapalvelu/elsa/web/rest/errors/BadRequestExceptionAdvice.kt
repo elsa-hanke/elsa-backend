@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.web.rest.errors
 
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaErrorCategory
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
+import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiTransferException
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import jakarta.servlet.ServletException
 import org.slf4j.LoggerFactory
@@ -42,7 +43,11 @@ class BadRequestExceptionAdvice {
 
     @ExceptionHandler(BadRequestAlertException::class)
     fun handleBadRequestException(e: BadRequestAlertException): ProblemDetail {
-        log.warn(e.message ?: e.defaultMessage, e)
+        if (e is InvalidPdfAttachmentException || e is UnsupportedPdfCharactersException) {
+            log.warn("PDF input rejected [code={}]", e.errorKey)
+        } else {
+            log.warn(e.message ?: e.defaultMessage, e)
+        }
         val body = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.defaultMessage)
         body.setProperty("message", "error.${e.errorKey}")
         body.setProperty("params", e.entityName)
@@ -122,6 +127,13 @@ class BadRequestExceptionAdvice {
             log.error(e.message, e)
         }
         return ProblemDetail.forStatusAndDetail(e.statusCode, e.message)
+    }
+
+    @ExceptionHandler(LouhiTransferException::class)
+    fun handleLouhiTransferException(e: LouhiTransferException): ProblemDetail {
+        log.error("Louhi request failed [code={}, stage={}, reason={}, status={}]",
+            e.failure.code, e.stage, e.reason, e.sftpStatus)
+        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Arkistointitiedoston lähetys epäonnistui.")
     }
 
     @ExceptionHandler(Exception::class)

@@ -118,5 +118,5 @@ management:
           hikaricp.connections.active,hikaricp.connections.pending,hikaricp.connections.timeout,
           http.sessions.active,http.sessions.total,
           pdf.generation.active,pdf.generation.requests.total,pdf.generation.errors.total,
-          arkistointi.active,arkistointi.requests.total,arkistointi.errors.total
+          arkistointi.active,arkistointi.requests.total,arkistointi.errors.total,arkistointi.async.attempts.total
 

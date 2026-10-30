@@ -24,7 +24,7 @@ class ArkistointiJobObserver(
             metrics.recordAsyncAttempt(event.university, event.caseType, event.outcome.name)
             if (event.outcome == ArkistointiAttemptCompleted.Outcome.SUCCESS) {
                 metrics.recordSuccess(event.university, event.caseType)
-            } else {
+            } else if (event.outcome == ArkistointiAttemptCompleted.Outcome.TERMINAL_FAILURE) {
                 metrics.recordError(event.university, event.caseType)
             }
         } catch (_: Exception) {

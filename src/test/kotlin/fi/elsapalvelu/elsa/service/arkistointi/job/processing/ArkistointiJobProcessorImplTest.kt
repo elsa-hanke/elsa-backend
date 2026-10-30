@@ -24,6 +24,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -142,5 +143,25 @@ class ArkistointiJobProcessorImplTest {
         assertThat(exception.error.code).isEqualTo("ARCHIVE_PROCESSING_FAILED")
         assertThat(exception.cause).isNull()
         assertThat(exception.message).doesNotContain("private")
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["io", "state", "argument"])
+    fun `unknown adapter exception stays retryable and loses unsafe diagnostic details`(kind: String) {
+        doAnswer {
+            throw when (kind) {
+                "io" -> java.io.IOException("private disk details")
+                "state" -> IllegalStateException("private state details")
+                else -> IllegalArgumentException("private library details")
+            }
+        }.whenever(adapter).arkistoi(submission)
+
+        val exception = assertThrows<ArkistointiProcessingException> { processor.process(execution) }
+
+        assertThat(exception.retryable).isTrue()
+        assertThat(exception.error.code).isEqualTo("ARCHIVE_PROCESSING_FAILED")
+        assertThat(exception.cause).isNull()
+        assertThat(exception.stackTraceToString()).doesNotContain("private")
+        verify(state, never()).succeed(any(), anyOrNull())
     }
 }

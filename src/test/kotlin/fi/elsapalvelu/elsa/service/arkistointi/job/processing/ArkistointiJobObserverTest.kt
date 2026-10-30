@@ -30,7 +30,7 @@ class ArkistointiJobObserverTest {
     fun `ordinary retry failures record metrics without alerts`(attempt: Int) {
         observer.onCompleted(event(attempt))
         verifyNoInteractions(alerts)
-        assertThat(registry.get("arkistointi.errors.total").counter().count()).isEqualTo(1.0)
+        assertThat(registry.find("arkistointi.errors.total").counter()).isNull()
         assertThat(registry.get("arkistointi.async.attempts.total").tag("outcome", "RETRYABLE_FAILURE").counter().count()).isEqualTo(1.0)
     }
 
@@ -41,6 +41,7 @@ class ArkistointiJobObserverTest {
         val message = argumentCaptor<String>()
         verify(alerts).publishAlert(any(), message.capture())
         assertThat(message.firstValue).contains("Automaattiset yritykset jatkuvat", event.jobId.toString(), "attempt=3", "UNAVAILABLE")
+        assertThat(registry.find("arkistointi.errors.total").counter()).isNull()
     }
 
     @ParameterizedTest
@@ -50,6 +51,8 @@ class ArkistointiJobObserverTest {
         val message = argumentCaptor<String>()
         verify(alerts).publishAlert(any(), message.capture())
         assertThat(message.firstValue).contains("Automaattiset yritykset on lopetettu")
+        assertThat(registry.get("arkistointi.errors.total").counter().count()).isEqualTo(1.0)
+        assertThat(registry.get("arkistointi.async.attempts.total").tag("outcome", "TERMINAL_FAILURE").counter().count()).isEqualTo(1.0)
     }
 
     @Test
@@ -58,6 +61,24 @@ class ArkistointiJobObserverTest {
         verifyNoInteractions(alerts)
         assertThat(registry.get("arkistointi.requests.total").counter().count()).isEqualTo(1.0)
         assertThat(registry.find("arkistointi.errors.total").counter()).isNull()
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `retries count as attempts while only the final failure counts as a failed operation`(succeeds: Boolean) {
+        val first = event(1)
+        observer.onCompleted(first)
+        observer.onCompleted(first.copy(attempt = 2))
+        observer.onCompleted(first.copy(attempt = 3))
+        observer.onCompleted(first.copy(attempt = 4,
+            outcome = if (succeeds) ArkistointiAttemptCompleted.Outcome.SUCCESS
+                else ArkistointiAttemptCompleted.Outcome.TERMINAL_FAILURE,
+            errorCode = if (succeeds) null else first.errorCode))
+
+        assertThat(registry.get("arkistointi.async.attempts.total").tag("outcome", "RETRYABLE_FAILURE").counter().count()).isEqualTo(3.0)
+        assertThat(registry.find("arkistointi.errors.total").counter()?.count() ?: 0.0).isEqualTo(if (succeeds) 0.0 else 1.0)
+        assertThat(registry.find("arkistointi.requests.total").counter()?.count() ?: 0.0).isEqualTo(if (succeeds) 1.0 else 0.0)
+        assertThat(registry.find("arkistointi.async.attempts.total").counters().sumOf { it.count() }).isEqualTo(4.0)
     }
 
     @Test
