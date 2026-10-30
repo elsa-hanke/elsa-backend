@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkeDelivery
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkePackageBuilder
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePackageException
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePackageFailure
@@ -29,7 +30,7 @@ import java.util.UUID
 class LouhiAsyncArkistointiAdapterTest {
     private val builder = mock<AsyncSahkePackageBuilder>()
     private val louhi = mock<TampereLouhiService>()
-    private val adapter = LouhiAsyncArkistointiAdapter(builder, louhi)
+    private val adapter = LouhiAsyncArkistointiAdapter(AsyncSahkeDelivery(builder), louhi)
     private val submission = ArkistointiSubmission(UUID.randomUUID(), YliopistoEnum.TAMPEREEN_YLIOPISTO,
         CaseType.VALMISTUMINEN, "{}", emptyList())
 

@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.arkistointi.siilo
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkeDelivery
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkePackageBuilder
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.PreparedSahkePackage
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePackageException
@@ -25,7 +26,7 @@ import java.util.UUID
 class SiiloAsyncArkistointiAdapterTest {
     private val builder = mock<AsyncSahkePackageBuilder>()
     private val siilo = mock<HelsinkiSiiloService>()
-    private val adapter = SiiloAsyncArkistointiAdapter(builder, siilo)
+    private val adapter = SiiloAsyncArkistointiAdapter(AsyncSahkeDelivery(builder), siilo)
     private val submission = ArkistointiSubmission(UUID.randomUUID(), YliopistoEnum.HELSINGIN_YLIOPISTO,
         CaseType.KOEJAKSO, "{}", emptyList())
 

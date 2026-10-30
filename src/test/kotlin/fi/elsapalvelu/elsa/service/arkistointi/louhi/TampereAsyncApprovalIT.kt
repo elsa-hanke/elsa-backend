@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkeDelivery
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkePackageBuilder
 
 import com.github.kagkarlsson.scheduler.Scheduler
@@ -202,7 +203,7 @@ class TampereAsyncApprovalIT : ResourceIntegrationTestBase() {
             ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(DbSchedulerAutoConfiguration::class.java))
                 .withUserConfiguration(ArkistointiDbSchedulerConfiguration::class.java,
-                    ArkistointiAdapterRegistry::class.java, LouhiAsyncArkistointiAdapter::class.java)
+                    ArkistointiAdapterRegistry::class.java, AsyncSahkeDelivery::class.java, LouhiAsyncArkistointiAdapter::class.java)
                 .withBean(ApplicationProperties::class.java, Supplier { properties })
                 .withBean(ArkistointiConfigurationProvider::class.java, Supplier { configuration })
                 .withBean(AsyncSahkePackageBuilder::class.java, Supplier { packageBuilder })

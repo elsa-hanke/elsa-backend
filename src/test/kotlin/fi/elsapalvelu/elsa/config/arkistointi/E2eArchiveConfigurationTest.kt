@@ -19,6 +19,7 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer
 import org.springframework.context.annotation.Configuration
+import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkeDelivery
 import org.mockito.kotlin.mock
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import java.util.UUID
@@ -28,7 +29,7 @@ class E2eArchiveConfigurationTest {
         .withBean(AsyncSahkePackageBuilder::class.java, { mock() })
         .withBean(TampereLouhiService::class.java, { mock() })
         .withBean(HelsinkiSiiloService::class.java, { mock() })
-        .withUserConfiguration(E2eArchiveConfiguration::class.java,
+        .withUserConfiguration(AsyncSahkeDelivery::class.java, E2eArchiveConfiguration::class.java,
             LouhiAsyncArkistointiAdapter::class.java, SiiloAsyncArkistointiAdapter::class.java)
 
     @Test
