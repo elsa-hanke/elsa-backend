@@ -90,10 +90,7 @@ import org.apache.sshd.sftp.server.SftpEventListener
     "application.arkistointi.tre.metadata.cases.koejakso.type=Koejakson arviointi",
     "application.arkistointi.tre.metadata.cases.koejakso.function=04.01.04",
     "application.arkistointi.tre.metadata.cases.koejakso.documents.arviointi.retention-period=-1",
-    "application.arkistointi.tre.metadata.cases.sopimus.async-enabled=false",
-    "db-scheduler.enabled=true",
-    "db-scheduler.polling-interval=1h",
-    "db-scheduler.threads=1"
+    "application.arkistointi.tre.metadata.cases.sopimus.async-enabled=false"
 ])
 @Import(TampereAsyncApprovalIT.CacheConfig::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

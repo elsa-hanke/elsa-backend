@@ -34,6 +34,7 @@ import org.awaitility.Awaitility.await
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.test.context.TestPropertySource
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -43,6 +44,13 @@ import java.io.ByteArrayInputStream
 import java.util.zip.ZipInputStream
 
 /** Shared persisted fixtures and content assertions; transport and scheduler controls stay in each IT. */
+// Both approval ITs explicitly trigger due checks and use one scheduler worker.
+// Retry delays and transport-specific barriers are configured by each concrete test.
+@TestPropertySource(properties = [
+    "db-scheduler.enabled=true",
+    "db-scheduler.polling-interval=1h",
+    "db-scheduler.threads=1"
+])
 open class AsyncArchiveItSupport : ResourceIntegrationTestBase() {
     @Autowired protected lateinit var transactions: TransactionTemplate
     @Autowired protected lateinit var jobs: ArkistointiJobRepository

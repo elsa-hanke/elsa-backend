@@ -88,10 +88,7 @@ import okhttp3.mockwebserver.RecordedRequest
     "application.arkistointi.hki.metadata.cases.sopimus.documents.sopimus.retention-period=20",
     "application.arkistointi.retry.initial-delay=3s",
     "application.arkistointi.retry.max-delay=3s",
-    "db-scheduler.enabled=true",
-    "application.arkistointi.retry.jitter-factor=0",
-    "db-scheduler.polling-interval=1h",
-    "db-scheduler.threads=1"
+    "application.arkistointi.retry.jitter-factor=0"
 ])
 @Import(HelsinkiAsyncApprovalIT.CacheConfig::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
