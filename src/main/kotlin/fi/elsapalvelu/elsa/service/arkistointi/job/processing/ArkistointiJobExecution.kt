@@ -15,3 +15,6 @@ data class ArkistointiJobExecution(val taskName: String, val taskInstanceId: Str
 
 /** Control flow: another execution owns this task, or it has already been acknowledged. */
 internal class StaleArkistointiExecutionException : RuntimeException("Archive execution is no longer current")
+
+/** Control flow: preserve the failed task for an explicit technical retry. */
+internal class ParkArkistointiExecutionException : RuntimeException("Archive execution requires intervention")

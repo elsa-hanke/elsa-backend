@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.arkistointi.job.processing
 import com.github.kagkarlsson.scheduler.task.ExecutionComplete
 import com.github.kagkarlsson.scheduler.task.ExecutionOperations
 import com.github.kagkarlsson.scheduler.task.FailureHandler
+import com.github.kagkarlsson.scheduler.task.schedule.Schedule
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import org.springframework.stereotype.Component
 
@@ -47,7 +48,12 @@ class ArkistointiJobFailureHandler(
         if (retry) {
             operations.reschedule(completed, completed.timeDone.plus(policy.delay(execution.consecutiveFailures)))
         } else {
-            operations.remove()
+            try {
+                if (state.requiresIntervention(identity)) operations.reschedule(completed, Schedule.NEVER)
+                else operations.remove()
+            } catch (_: StaleArkistointiExecutionException) {
+                // A newer execution owns the row.
+            }
         }
     }
 }

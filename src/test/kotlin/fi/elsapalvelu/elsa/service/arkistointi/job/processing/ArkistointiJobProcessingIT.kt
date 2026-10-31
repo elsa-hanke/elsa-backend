@@ -148,8 +148,7 @@ class ArkistointiJobProcessingIT {
         val originalExecution = execution(jobId)
         adapter.behavior = { retryable() }
         val scheduler = scheduler()
-        runUntil(scheduler) { assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA) }
-        runUntil(scheduler) { assertThat(taskCount(jobId)).isZero() }
+        runUntil(scheduler) { assertParked(jobId) }
         assertThat(adapter.submissions).hasSize(3)
         assertThat(jobs.findById(jobId).orElseThrow().errorCode).isEqualTo("ARCHIVE_RETRIES_EXHAUSTED")
         assertThat(jobs.findById(jobId).orElseThrow().lastError).contains("UNAVAILABLE", "Palvelu ei vastaa")
@@ -179,7 +178,7 @@ class ArkistointiJobProcessingIT {
         val jobId = fixture()
         val originalExecution = execution(jobId)
         val scheduler = scheduler()
-        runUntil(scheduler) { assertThat(taskCount(jobId)).isZero() }
+        runUntil(scheduler) { if (valid) assertThat(taskCount(jobId)).isZero() else assertParked(jobId) }
         val stored = jobs.findById(jobId).orElseThrow()
         if (valid) {
             assertThat(stored.status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
@@ -250,7 +249,7 @@ class ArkistointiJobProcessingIT {
                 java.sql.Timestamp.from(Instant.now().minusSeconds(60)), jobId.toString())
         }
         val recoveryScheduler = scheduler(observingRecoveryTask(recovered))
-        runUntil(recoveryScheduler) { assertThat(taskCount(jobId)).isZero() }
+        runUntil(recoveryScheduler) { assertParked(jobId) }
         assertThat(recovered).hasSize(1)
         assertThat(recovered.single().cause).isEmpty()
         assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
@@ -689,9 +688,17 @@ class ArkistointiJobProcessingIT {
                 .execute { instance, context -> delegate.executeOnce(instance, context) }
     }
 
+    private fun assertParked(jobId: UUID) {
+        assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
+        val row = schedulerState(jobId)
+        assertThat(row["picked"]).isEqualTo(false)
+        assertThat((row["execution_time"] as java.sql.Timestamp).toInstant())
+            .isEqualTo(com.github.kagkarlsson.scheduler.task.schedule.Schedule.NEVER)
+    }
+
     private fun assertTerminal(jobId: UUID, errorCode: String) {
         val scheduler = scheduler()
-        runUntil(scheduler) { assertThat(taskCount(jobId)).isZero() }
+        runUntil(scheduler) { assertParked(jobId) }
         assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
         assertThat(jobs.findById(jobId).orElseThrow().errorCode).isEqualTo(errorCode)
     }

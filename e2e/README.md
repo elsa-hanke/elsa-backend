@@ -104,7 +104,7 @@ worker, processor and snapshot loader run; test adapters replace external delive
 so no external archive system is contacted. The test profile without the explicit
 flag, or combined with `prod`/`replica`, prevents application startup.
 HKI graduation archives its configured summary only; the UEF YEK fixture explicitly
-configures summary and attachments. No separate archive specs, JAR, CI phase or
+configures summary, attachments and licensing certificate. No separate archive specs, JAR, CI phase or
 per-spec stack restart is needed.
 
 The test configuration also registers a Tampere adapter, but registration alone

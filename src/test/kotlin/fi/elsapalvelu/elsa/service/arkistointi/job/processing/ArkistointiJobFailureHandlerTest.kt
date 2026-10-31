@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.processing
 
+import com.github.kagkarlsson.scheduler.task.schedule.Schedule
 import com.github.kagkarlsson.scheduler.task.Execution
 import com.github.kagkarlsson.scheduler.task.ExecutionComplete
 import com.github.kagkarlsson.scheduler.task.ExecutionOperations
@@ -32,6 +33,8 @@ class ArkistointiJobFailureHandlerTest {
     })
     private val handler = ArkistointiJobFailureHandler(state, policy)
 
+    init { whenever(state.requiresIntervention(any())).thenReturn(true) }
+
     @Test
     fun `scheduler counter determines delay and last allowed attempt terminates`() {
         val failure = failure(1)
@@ -45,7 +48,7 @@ class ArkistointiJobFailureHandlerTest {
             "ARCHIVE_RETRIES_EXHAUSTED",
             "Arkistoinnin enimmainen yritysmaara saavutettiin. ARCHIVE_PROCESSING_FAILED: Arkistoinnin kasittely epaonnistui"
         ), true)
-        verify(operations).remove()
+        verify(operations).reschedule(any(), eq(Schedule.NEVER))
     }
 
     @Test
@@ -73,8 +76,7 @@ class ArkistointiJobFailureHandlerTest {
         val completed = failure(previousFailures, ArkistointiProcessingException(error, retryable = false))
         handler.onFailure(completed, operations)
         verify(state).fail(ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, jobId.toString(), 1L), error, true)
-        verify(operations).remove()
-        verify(operations, never()).reschedule(any(), any())
+        verify(operations).reschedule(any(), eq(Schedule.NEVER))
     }
 
     @Test
@@ -88,8 +90,8 @@ class ArkistointiJobFailureHandlerTest {
         assertThat(exception.cause).isNull()
         verifyNoInteractions(operations)
         handler.onFailure(completed, operations)
-        verify(operations).remove()
-        verify(operations, never()).reschedule(any(), any())
+        verify(operations).reschedule(any(), eq(Schedule.NEVER))
+        verify(operations, never()).remove()
     }
 
     @Test
