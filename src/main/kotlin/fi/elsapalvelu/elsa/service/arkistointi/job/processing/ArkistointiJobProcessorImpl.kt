@@ -23,6 +23,8 @@ class ArkistointiJobProcessorImpl(
     override fun process(execution: ArkistointiJobExecution) {
         try {
             processSubmission(execution)
+        } catch (exception: ParkArkistointiExecutionException) {
+            throw exception
         } catch (exception: StaleArkistointiExecutionException) {
             throw exception
         } catch (exception: ArkistointiProcessingException) {

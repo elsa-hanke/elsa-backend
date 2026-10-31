@@ -34,6 +34,7 @@ class ArkistointiJobStateService(
             log.warn("Archive job missing [jobId={}]", jobId)
             return null
         }
+        if (job.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA) throw ParkArkistointiExecutionException()
         if (job.isFinished()) return null
         job.startProcessing()
         val payload = job.payload.required()
@@ -58,6 +59,7 @@ class ArkistointiJobStateService(
     fun checkBeforeSend(execution: ArkistointiJobExecution): Boolean {
         lockExecution(execution)
         val job = jobs.findByIdForStateChange(execution.jobId) ?: return false
+        if (job.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA) throw ParkArkistointiExecutionException()
         if (job.isFinished()) return false
         // A recovery handler may have committed ODOTTAA before rescheduling this same version.
         // Do not acknowledge that execution while its retry is still being arranged.
@@ -68,6 +70,7 @@ class ArkistointiJobStateService(
     fun succeed(execution: ArkistointiJobExecution, externalId: String?) {
         val attempt = lockExecution(execution)
         val job = requireNotNull(jobs.findByIdForStateChange(execution.jobId))
+        if (job.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA) throw ParkArkistointiExecutionException()
         if (job.isFinished()) return
         ArkistointiExternalId.validate(externalId)
         job.startProcessing()
@@ -88,6 +91,11 @@ class ArkistointiJobStateService(
         publishOutcome(job, attempt, if (stopRetrying) ArkistointiAttemptCompleted.Outcome.TERMINAL_FAILURE
             else ArkistointiAttemptCompleted.Outcome.RETRYABLE_FAILURE, error.code)
         return retry
+    }
+
+    fun requiresIntervention(execution: ArkistointiJobExecution): Boolean {
+        lockExecution(execution)
+        return jobs.findByIdForStateChange(execution.jobId)?.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA
     }
 
     private fun lockExecution(execution: ArkistointiJobExecution): Int {
