@@ -29,7 +29,13 @@ data class KoejaksoArkistointiPayload(
     @get:JsonFormat(shape = JsonFormat.Shape.STRING)
     val approvalDate: LocalDate?,
     val koejaksoHyvaksytty: Boolean?,
-    val documents: List<ArkistointiDocumentIdentity>
+    val documents: List<ArkistointiDocumentIdentity>,
+    val specialtyType: fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi? = null,
+    @get:JsonFormat(shape = JsonFormat.Shape.STRING)
+    val studyRightStartDate: LocalDate? = null,
+    val degreeRegulation: String? = null,
+    @get:JsonFormat(shape = JsonFormat.Shape.STRING)
+    val licensingDate: LocalDate? = null
 ) {
     override fun toString() = "KoejaksoArkistointiPayload(caseId=$caseId)"
 
@@ -51,7 +57,9 @@ data class KoejaksoArkistointiPayload(
                 studyRight.erikoisala?.id == YEK_ERIKOISALA_ID,
                 user?.getName(), user?.firstName, user?.lastName, trainee?.syntymaaika,
                 studyRight.erikoisala?.id, studyRight.erikoisala?.nimi, studyRight.opiskelijatunnus,
-                reviewer, reviewDate, approver, approvalDate, koejaksoHyvaksytty, documents.toList()
+                reviewer, reviewDate, approver, approvalDate, koejaksoHyvaksytty, documents.toList(),
+                studyRight.erikoisala?.tyyppi, studyRight.opintooikeudenMyontamispaiva,
+                studyRight.asetus?.nimi, trainee?.laillistamispaiva
             )
         }
     }

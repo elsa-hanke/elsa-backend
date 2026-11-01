@@ -50,6 +50,7 @@ import javax.imageio.ImageIO
     "application.arkistointi.turku.metadata.cases.valmistuminen.async-enabled=true",
     "application.arkistointi.uef.metadata.cases.valmistuminen.async-enabled=true"
 ])
+@org.springframework.test.context.ActiveProfiles("dynasty-approval-test")
 @Import(DynastyGraduationApprovalIT.Adapters::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {

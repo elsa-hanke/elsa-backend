@@ -28,7 +28,13 @@ data class ValmistuminenArkistointiPayload(
     val approver: String?,
     @get:JsonFormat(shape = JsonFormat.Shape.STRING)
     val approvalDate: LocalDate?,
-    val documents: List<ArkistointiDocumentIdentity>
+    val documents: List<ArkistointiDocumentIdentity>,
+    val specialtyType: fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi? = null,
+    @get:JsonFormat(shape = JsonFormat.Shape.STRING)
+    val studyRightStartDate: LocalDate? = null,
+    val degreeRegulation: String? = null,
+    @get:JsonFormat(shape = JsonFormat.Shape.STRING)
+    val licensingDate: LocalDate? = null
 ) {
     override fun toString() = "ValmistuminenArkistointiPayload(valmistumispyyntoId=$valmistumispyyntoId)"
 
@@ -57,7 +63,11 @@ data class ValmistuminenArkistointiPayload(
                 reviewDate = request.virkailijanKuittausaika,
                 approver = request.vastuuhenkiloHyvaksyja?.user?.getName(),
                 approvalDate = request.vastuuhenkiloHyvaksyjaKuittausaika,
-                documents = documents.toList()
+                documents = documents.toList(),
+                specialtyType = studyRight.erikoisala?.tyyppi,
+                studyRightStartDate = studyRight.opintooikeudenMyontamispaiva,
+                degreeRegulation = studyRight.asetus?.nimi,
+                licensingDate = trainee?.laillistamispaiva
             )
         }
     }

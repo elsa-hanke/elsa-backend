@@ -232,6 +232,7 @@ class ApplicationProperties {
         }
 
         class Turku {
+            val dynasty = fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyProperties()
             var kaytossa: Boolean = false
             var metadata: Metadata? = null
         }

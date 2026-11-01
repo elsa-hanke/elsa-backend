@@ -50,6 +50,7 @@ import java.util.concurrent.ConcurrentHashMap
     "application.arkistointi.turku.metadata.cases.koejakso.documents.arviointi.retention-period=20",
     "application.arkistointi.uef.metadata.cases.koejakso.documents.arviointi.retention-period=20"
 ])
+@org.springframework.test.context.ActiveProfiles("dynasty-approval-test")
 @Import(DynastyKoejaksoApprovalIT.Adapters::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {

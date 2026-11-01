@@ -700,3 +700,44 @@ Ennen uusintaa selvitä, onko arkisto jo vastaanottanut epävarmaksi jääneen
 lähetyksen. Sama UUID säilyy, mutta vastaanottajan deduplikointi ratkaisee,
 voiko uusinta tuottaa kaksoistoimituksen. Älä muuta immutable payloadia tai
 snapshotteja palautuksen yhteydessä. Yliopiston pääkäyttäjärooli ei hallitse uusintaa.
+
+### Turku Dynasty REST delivery
+
+Turku uses independent REST calls (case, task, main document, attachments, archive state),
+not the Helsinki/Tampere ZIP transport. It remains disabled by default. UEF has no
+production adapter until its university-specific mapping is supplied; SOPIMUS is unsupported.
+
+Configure `application.arkistointi.turku.dynasty` (URLs, client credentials, Organization,
+case/document schema UUIDs) before enabling the university and individual async case types.
+Credentials must come from secrets/environment. Test case/document schemas:
+`30e1cd27-54f9-44c1-9853-401cbdc871de` / `b11af6ae-afc6-42e8-b09b-6b37d3f29397`;
+production: `80cdec85-07fa-455b-9d7d-6c08ac1e2863` / `f9352666-327a-4262-b888-9c4c847590b6`.
+The configured `tutkintoasetukset` map must contain the customer-approved text for each
+regulation encountered. KOEJAKSO additionally requires vendor-confirmed
+`koejakso-publicity-class-id` and three `koejakso-secrecy-fields` entries (reason,
+100-year duration and date calculation basis). Do not enable it with guessed field names.
+Metadata validation completes before the first external create.
+
+Every mutation is preceded by a committed intent in `arkistointi_dynasty_step`.
+Completed steps are skipped on retry; external case ID becomes the job external ID.
+A stale scheduler execution cannot begin another step. A late successful response can
+complete only its original intent. An incomplete intent is never automatically replayed:
+recent intents wait; old or ambiguous outcomes require operator intervention.
+This avoids automatic duplicate creates at the cost of manual reconciliation. It cannot
+provide receiver-side exactly-once semantics. Even HTTP 429/503 and ambiguous final state
+changes are parked until replay guarantees are confirmed by Dynasty. Only definite
+connection/DNS failure or rejected authentication permits automatic retry of a create.
+
+For `DYNASTY_DELIVERY_UNCONFIRMED`/`DYNASTY_RESPONSE_INVALID`, inspect the Dynasty UI.
+Use `ops/arkistointi/dynasty-resolve-step.sql` to confirm a discovered remote ID, or discard
+an intent only after establishing that nothing was created. Stop/drain the old worker
+before discard so an in-flight request cannot create an object after reconciliation.
+Then use the existing `retry-job.sql`; never create another job to retry a delivery.
+Do not alter completed steps. The SQL scripts are operator procedures, not application retries.
+
+Before enabling Turku, check legacy jobs whose snapshots may lack Dynasty metadata:
+```sql
+select id, case_type, status from arkistointi_job
+where university = 'TURUN_YLIOPISTO' and status <> 'LAHETETTY';
+```
+Do not reconstruct missing approval metadata from subsequently modified live records.

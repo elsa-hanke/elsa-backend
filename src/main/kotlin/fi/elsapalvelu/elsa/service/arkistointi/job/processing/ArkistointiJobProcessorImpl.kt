@@ -57,7 +57,7 @@ class ArkistointiJobProcessorImpl(
         }
         val submission = ArkistointiSubmission(
             prepared.jobId, prepared.university, prepared.caseType, prepared.payload,
-            prepared.asiakirjat.map(loader::load)
+            prepared.asiakirjat.map(loader::load), execution
         )
         // This narrows the stale-send window; adapters must still deduplicate concurrent deliveries.
         if (!state.checkBeforeSend(execution)) return
