@@ -645,8 +645,9 @@ Siilo/Louhi-protokollan ja ZIP/XML-sisällön tarkistukset kuuluvat IT-testeihin
 Turun ja Itä-Suomen async-valmistumisen hyväksyntä kokoaa EL-, EHL- ja
 YEK-tapauksissa yhteenvedon, liitteet ja laillistamistodistuksen. Todistus
 kopioidaan hyväksymishetken tiedostosta alkuperäisine tavuineen ja metatietoineen.
-Sille luodaan oma Asiakirja ja muuttumaton snapshot; payloadin lähdetunniste on
-Asiakirjan tunniste, ei AsiakirjaData-tunniste. Puuttuva tai tyhjä todistus tai
+Sille luodaan suoraan yksi piilotettu, muuttumaton Asiakirja-snapshot ilman erillistä
+näkyvää kopiota. Todistuksen `sourceDocumentId` ja `snapshotDocumentId` ovat sama
+snapshotin Asiakirja-tunniste, eivät AsiakirjaData-tunnisteita. Puuttuva tai tyhjä todistus tai
 puutteelliset tiedostometatiedot peruuttavat async-hyväksymistransaktion.
 
 Molemmat integraatiot ja async ovat oletuksena pois käytöstä. Tyhjät

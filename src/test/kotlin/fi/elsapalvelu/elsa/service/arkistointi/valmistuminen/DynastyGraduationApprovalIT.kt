@@ -48,6 +48,7 @@ import javax.imageio.ImageIO
 @Import(DynastyGraduationApprovalIT.Adapters::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
+    @Autowired private lateinit var documents: fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 
     @Autowired private lateinit var properties: ApplicationProperties
     @MockitoBean lateinit var mail: MailService
@@ -161,16 +162,25 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
                 val reference = job.asiakirjat.single { it.jarjestysnumero == identity.jarjestysnumero }
                 assertThat(identity.snapshotDocumentId).isEqualTo(reference.asiakirja!!.id)
                 assertThat(identity.recordType).isEqualTo(reference.asiakirjatyyppi)
-                assertThat(identity.sourceDocumentId).isNotEqualTo(identity.snapshotDocumentId)
                 val source = em.find(fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja::class.java, identity.sourceDocumentId)
                 assertThat(source).isNotNull()
-                assertThat(source.archiveSnapshot).isFalse()
                 assertThat(reference.asiakirja!!.archiveSnapshot).isTrue()
                 if (identity.recordType == RecordType.LAILLISTAMISTODISTUS) {
+                    assertThat(identity.sourceDocumentId).isEqualTo(identity.snapshotDocumentId)
+                    assertThat(source.archiveSnapshot).isTrue()
+                    val studyRightId = source.opintooikeus!!.id!!
+                    // No visible certificate copy and no second snapshot created by prepareDocuments/job creator.
+                    assertThat(jdbc.queryForList("select id from asiakirja where opintooikeus_id=? and nimi=?",
+                        Long::class.javaObjectType, studyRightId, filename)).containsExactly(identity.snapshotDocumentId)
+                    assertThat(documents.findAllByOpintooikeusId(studyRightId).map { it.id })
+                        .doesNotContain(identity.snapshotDocumentId)
                     assertThat(reference.filename).isEqualTo(filename)
                     assertThat(reference.contentType).isEqualTo(contentType)
                     assertThat(source.nimi).isEqualTo(filename)
                     assertThat(source.tyyppi).isEqualTo(contentType)
+                } else {
+                    assertThat(identity.sourceDocumentId).isNotEqualTo(identity.snapshotDocumentId)
+                    assertThat(source.archiveSnapshot).isFalse()
                 }
             }
         }
