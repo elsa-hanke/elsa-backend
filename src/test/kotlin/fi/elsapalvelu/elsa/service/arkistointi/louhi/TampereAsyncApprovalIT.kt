@@ -26,7 +26,6 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.pdf.PdfTestData
-import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import java.nio.file.Files
 import java.time.Duration
 import java.time.Instant
@@ -58,13 +57,10 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.http.MediaType
 import org.springframework.jdbc.datasource.DelegatingDataSource
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.bean.override.convention.TestBean
 import org.springframework.test.context.bean.override.mockito.MockitoBean
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 

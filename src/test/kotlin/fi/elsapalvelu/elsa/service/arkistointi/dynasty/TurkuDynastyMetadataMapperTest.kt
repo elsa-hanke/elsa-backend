@@ -95,7 +95,11 @@ class TurkuDynastyMetadataMapperTest {
                 }
             ))
             val execution = ArkistointiJobExecution("archive",UUID.randomUUID().toString(),1)
-            val submission = ArkistointiSubmission(execution.jobId,YliopistoEnum.TURUN_YLIOPISTO,if (koejakso) CaseType.KOEJAKSO else CaseType.VALMISTUMINEN,payload,documents,execution)
+            val submission = ArkistointiSubmission(
+                execution.jobId, YliopistoEnum.TURUN_YLIOPISTO,
+                if (koejakso) CaseType.KOEJAKSO else CaseType.VALMISTUMINEN,
+                payload, documents, execution
+            )
         TurkuDynastyMetadataMapper(properties,mapper,SahkePayloadReader(mapper)).plan(submission)
     }
 }
