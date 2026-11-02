@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.arkistointi.dynasty
+package fi.elsapalvelu.elsa.config.arkistointi
 
 import java.time.Duration
 
