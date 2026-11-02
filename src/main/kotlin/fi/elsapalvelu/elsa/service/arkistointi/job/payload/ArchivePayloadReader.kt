@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.service.arkistointi.sahke
+package fi.elsapalvelu.elsa.service.arkistointi.job.payload
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonNode
@@ -11,18 +11,18 @@ import java.time.format.DateTimeParseException
 
 /** Explicit JSON type checks preserve the saved payload contract without scalar coercion. */
 @Component
-class SahkePayloadReader(private val mapper: ObjectMapper) {
-    fun read(json: String, caseType: CaseType): SahkeArchivePayload {
+class ArchivePayloadReader(private val mapper: ObjectMapper) {
+    fun read(json: String, caseType: CaseType): ArchivePayload {
         val root = try {
             requirePayloadValue(mapper.readTree(json))
         } catch (_: JsonProcessingException) {
-            throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
+            throw ArchivePayloadException()
         }
         requireValidPayload(root.isObject)
         val caseIdField = if (caseType == CaseType.VALMISTUMINEN) "valmistumispyyntoId" else "caseId"
         val yek = root.path("yek")
         requireValidPayload(yek.isBoolean)
-        return SahkeArchivePayload(
+        return ArchivePayload(
             university = requirePayloadValue(text(root, "university")),
             studyRightId = identifier(root, "opintooikeusId"),
             caseId = identifier(root, caseIdField),
@@ -37,7 +37,11 @@ class SahkePayloadReader(private val mapper: ObjectMapper) {
             birthDate = date(root, "birthDate"),
             specialtyName = text(root, "specialtyName"),
             studentNumber = text(root, "studentNumber"),
-            documents = documentIdentities(root)
+            documents = documentIdentities(root),
+            specialtyType = text(root, "specialtyType"),
+            studyRightStartDate = date(root, "studyRightStartDate"),
+            degreeRegulation = text(root, "degreeRegulation"),
+            licensingDate = date(root, "licensingDate")
         )
     }
 
@@ -50,7 +54,7 @@ class SahkePayloadReader(private val mapper: ObjectMapper) {
     private fun date(root: JsonNode, field: String): LocalDate? = try {
         text(root, field)?.let(LocalDate::parse)
     } catch (_: DateTimeParseException) {
-        throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
+        throw ArchivePayloadException()
     }
 
     private fun identifier(root: JsonNode, field: String): Long {
@@ -65,14 +69,14 @@ class SahkePayloadReader(private val mapper: ObjectMapper) {
         return try {
             mapper.treeToValue(manifest, Array<ArkistointiDocumentIdentity>::class.java).toList()
         } catch (_: JsonProcessingException) {
-            throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
+            throw ArchivePayloadException()
         }
     }
 
     private fun requireValidPayload(valid: Boolean) {
-        if (!valid) throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
+        if (!valid) throw ArchivePayloadException()
     }
 
     private fun <T : Any> requirePayloadValue(value: T?): T =
-        value ?: throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
+        value ?: throw ArchivePayloadException()
 }

@@ -4,11 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
-import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePayloadReader
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.springframework.stereotype.Component
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /** Build and serialize the entire delivery before creating anything in Dynasty. */
@@ -16,7 +15,7 @@ import java.time.format.DateTimeFormatter
 class TurkuDynastyMetadataMapper(
     private val properties: ApplicationProperties,
     private val mapper: ObjectMapper,
-    private val reader: SahkePayloadReader
+    private val reader: ArchivePayloadReader
 ) {
     data class Plan(val tosClass: String, val caseJson: String, val task: String, val documents: List<String>) {
         override fun toString() = "DynastyPlan(documents=${documents.size})"
@@ -64,10 +63,7 @@ class TurkuDynastyMetadataMapper(
         val graduation = submission.caseType == CaseType.VALMISTUMINEN
         require(if (graduation) docs.map { it.asiakirjatyyppi } == listOf(RecordType.YHTEENVETO,RecordType.LIITE,RecordType.LAILLISTAMISTODISTUS)
             else submission.caseType == CaseType.KOEJAKSO && docs.map { it.asiakirjatyyppi } == listOf(RecordType.ARVIOINTI))
-        val root = mapper.readTree(submission.payload)
-        fun text(key: String): String? = root[key]?.takeUnless { it.isNull }?.let { require(it.isTextual); it.textValue() }
-        fun date(key: String): String? = text(key)?.let { LocalDate.parse(it).toString() }
-        val specialtyType = text("specialtyType")
+        val specialtyType = p.specialtyType
         require(specialtyType in setOf("LAAKETIEDE", "HAMMASLAAKETIEDE"))
         require(!p.firstName.isNullOrBlank() && !p.lastName.isNullOrBlank() && !p.specialtyName.isNullOrBlank())
         val prefix = if (p.yek) "YEK" else if (specialtyType == "HAMMASLAAKETIEDE") "EHL" else "EL"
@@ -86,13 +82,13 @@ class TurkuDynastyMetadataMapper(
             val ad = common.toMutableMap()
             if (main) {
                 p.birthDate?.let { ad["UTUsyntymaaika"] = it.toString() }
-                date("studyRightStartDate")?.let { ad["UTUalkamispaiva"] = it }
+                p.studyRightStartDate?.let { ad["UTUalkamispaiva"] = it.toString() }
                 ad[if (graduation) "UTUvalmistumispaiva" else "UTUhyvaksymispaiva"] = p.approvalDate.toString()
-                text("degreeRegulation")?.let { regulation ->
+                p.degreeRegulation?.let { regulation ->
                     ad["UTUtutkintoasetus"] = c.tutkintoasetukset[regulation] ?: throw DynastyFailure("DYNASTY_REGULATION_UNCONFIGURED")
                 }
             }
-            if (graduation && doc.asiakirjatyyppi != RecordType.LIITE) date("licensingDate")?.let { ad["UTUlaillistamispaiva"] = it }
+            if (graduation && doc.asiakirjatyyppi != RecordType.LIITE) p.licensingDate?.let { ad["UTUlaillistamispaiva"] = it.toString() }
             val retention = metadata?.getDocumentMetadata(doc.asiakirjatyyppi, metadata.getCaseMetadata(submission.caseType))?.retentionPeriod?.toIntOrNull()
                 ?: throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
             val documentTitle = when(doc.asiakirjatyyppi) {

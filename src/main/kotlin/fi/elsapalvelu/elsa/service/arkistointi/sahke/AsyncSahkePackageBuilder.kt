@@ -1,5 +1,9 @@
 package fi.elsapalvelu.elsa.service.arkistointi.sahke
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayload
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadException
+
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
@@ -19,13 +23,17 @@ data class PreparedSahkePackage(val path: Path, val yek: Boolean) {
 /** Reuses the production SÄHKE serializer, but takes all person/document data from the saved submission. */
 @Component
 class AsyncSahkePackageBuilder(
-    private val payloadReader: SahkePayloadReader,
+    private val payloadReader: ArchivePayloadReader,
     private val configurationProvider: ArkistointiConfigurationProvider,
     private val metadataBuilder: SahkeMetadataBuilder,
     private val packageBuilder: SahkePakettiBuilder
 ) {
     fun build(submission: ArkistointiSubmission, directory: Path): PreparedSahkePackage {
-        val payload = payloadReader.read(submission.payload, submission.caseType)
+        val payload = try {
+            payloadReader.read(submission.payload, submission.caseType)
+        } catch (_: ArchivePayloadException) {
+            throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
+        }
         requireValidPayload(payload.university == submission.university.name)
         val configuration = requireConfiguration(submission)
         val identities = validateDocumentManifest(payload.documents, submission.asiakirjat)
@@ -94,7 +102,7 @@ class AsyncSahkePackageBuilder(
     }
 
     private fun createMetadataRequest(
-        payload: SahkeArchivePayload,
+        payload: ArchivePayload,
         records: List<RecordProperties>,
         submission: ArkistointiSubmission
     ) = SahkeMetadataRequest(
@@ -120,7 +128,7 @@ class AsyncSahkePackageBuilder(
 
     private fun resolvePackagePath(
         directory: Path,
-        payload: SahkeArchivePayload,
+        payload: ArchivePayload,
         configuration: ArkistointiConfiguration
     ): Path {
         val filename = packageBuilder.filename(configuration.case.type, payload.firstName, payload.lastName)

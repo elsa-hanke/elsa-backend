@@ -6,7 +6,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
-import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePayloadReader
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import okhttp3.mockwebserver.MockWebServer
@@ -100,6 +100,6 @@ class TurkuDynastyMetadataMapperTest {
                 if (koejakso) CaseType.KOEJAKSO else CaseType.VALMISTUMINEN,
                 payload, documents, execution
             )
-        TurkuDynastyMetadataMapper(properties,mapper,SahkePayloadReader(mapper)).plan(submission)
+        TurkuDynastyMetadataMapper(properties,mapper,ArchivePayloadReader(mapper)).plan(submission)
     }
 }

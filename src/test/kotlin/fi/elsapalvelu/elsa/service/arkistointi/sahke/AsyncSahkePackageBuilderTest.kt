@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.sahke
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
+
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -34,7 +36,7 @@ class AsyncSahkePackageBuilderTest {
     private val mapper = jacksonObjectMapper()
     private val properties = ArkistointiTestData.createApplicationProperties()
     private val configuration = ArkistointiConfigurationProvider(properties)
-    private val builder = AsyncSahkePackageBuilder(SahkePayloadReader(mapper), configuration, SahkeMetadataBuilder(), SahkePakettiBuilder())
+    private val builder = AsyncSahkePackageBuilder(ArchivePayloadReader(mapper), configuration, SahkeMetadataBuilder(), SahkePakettiBuilder())
 
     @ParameterizedTest
     @CsvSource("VALMISTUMINEN,false,false", "VALMISTUMINEN,true,false", "KOEJAKSO,false,false",
@@ -165,7 +167,7 @@ class AsyncSahkePackageBuilderTest {
         val packages = SahkePakettiBuilder()
         whenever(metadata.build(any(), any()))
             .thenThrow(MissingResourceException("private resource details", "private", "private"))
-        val subject = AsyncSahkePackageBuilder(SahkePayloadReader(mapper), configuration, metadata, packages)
+        val subject = AsyncSahkePackageBuilder(ArchivePayloadReader(mapper), configuration, metadata, packages)
 
         assertThatThrownBy { subject.build(validSubmission(), directory) }
             .isInstanceOfSatisfying(SahkePackageException::class.java) {

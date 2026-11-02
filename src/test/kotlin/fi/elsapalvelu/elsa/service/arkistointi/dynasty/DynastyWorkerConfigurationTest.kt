@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
-import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePayloadReader
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -17,7 +17,7 @@ class DynastyWorkerConfigurationTest {
     private val settings = turku.dynasty
     private val mapper = jacksonObjectMapper()
     private val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
-        DynastyClient(properties, mapper), TurkuDynastyMetadataMapper(properties, mapper, SahkePayloadReader(mapper)),
+        DynastyClient(properties, mapper), TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
         mock<DynastyStepLedger>(), mapper
     )))
     private val provider = ArkistointiConfigurationProvider(properties)

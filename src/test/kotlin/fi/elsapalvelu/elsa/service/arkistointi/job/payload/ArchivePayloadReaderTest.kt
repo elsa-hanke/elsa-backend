@@ -1,4 +1,5 @@
-package fi.elsapalvelu.elsa.service.arkistointi.sahke
+package fi.elsapalvelu.elsa.service.arkistointi.job.payload
+
 
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -13,8 +14,8 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.time.LocalDate
 import java.util.stream.Stream
 
-class SahkePayloadReaderTest {
-    private val reader = SahkePayloadReader(jacksonObjectMapper())
+class ArchivePayloadReaderTest {
+    private val reader = ArchivePayloadReader(jacksonObjectMapper())
 
     @ParameterizedTest
     @EnumSource(CaseType::class)
@@ -39,7 +40,7 @@ class SahkePayloadReaderTest {
         assertThat(payload.documents.single().snapshotDocumentId).isEqualTo(61L)
         assertThat(payload.documents.single().recordType).isEqualTo(RecordType.YHTEENVETO)
         assertThat(payload.documents.single().jarjestysnumero).isZero()
-        assertThat(payload.toString()).isEqualTo("SahkeArchivePayload")
+        assertThat(payload.toString()).isEqualTo("ArchivePayload")
     }
 
     @Test
@@ -61,12 +62,48 @@ class SahkePayloadReaderTest {
     @MethodSource("invalidPayloads")
     fun `rejects malformed values without coercion or exposing payload`(json: String) {
         assertThatThrownBy { reader.read(json, CaseType.VALMISTUMINEN) }
-            .isInstanceOfSatisfying(SahkePackageException::class.java) {
-                assertThat(it.failure).isEqualTo(SahkePackageFailure.PAYLOAD_INVALID)
-                assertThat(it.message).isEqualTo("SAHKE_PAYLOAD_INVALID")
+            .isInstanceOfSatisfying(ArchivePayloadException::class.java) {
+                assertThat(it.message).isEqualTo("ARCHIVE_PAYLOAD_INVALID")
                 assertThat(it.cause).isNull()
                 assertThat(it.suppressed).isEmpty()
             }
+    }
+
+    @Test
+    fun `reads typed Dynasty fields without requiring them in older snapshots`() {
+        val root = jacksonObjectMapper().readTree(MINIMAL_PAYLOAD) as com.fasterxml.jackson.databind.node.ObjectNode
+        root.put("specialtyType", "HAMMASLAAKETIEDE")
+        root.put("studyRightStartDate", "2020-01-01")
+        root.put("degreeRegulation", "56/2015")
+        root.put("licensingDate", "2019-01-01")
+        val payload = reader.read(root.toString(), CaseType.VALMISTUMINEN)
+        assertThat(payload.specialtyType).isEqualTo("HAMMASLAAKETIEDE")
+        assertThat(payload.studyRightStartDate).isEqualTo(LocalDate.of(2020, 1, 1))
+        assertThat(payload.degreeRegulation).isEqualTo("56/2015")
+        assertThat(payload.licensingDate).isEqualTo(LocalDate.of(2019, 1, 1))
+        val oldPayload = reader.read(MINIMAL_PAYLOAD, CaseType.VALMISTUMINEN)
+        assertThat(oldPayload.specialtyType).isNull()
+        assertThat(oldPayload.studyRightStartDate).isNull()
+        assertThat(oldPayload.degreeRegulation).isNull()
+        assertThat(oldPayload.licensingDate).isNull()
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = ["specialtyType", "studyRightStartDate", "degreeRegulation", "licensingDate"])
+    fun `rejects nontextual Dynasty fields without scalar coercion`(field: String) {
+        val root = jacksonObjectMapper().readTree(MINIMAL_PAYLOAD) as com.fasterxml.jackson.databind.node.ObjectNode
+        root.put(field, 123)
+        assertThatThrownBy { reader.read(root.toString(), CaseType.VALMISTUMINEN) }
+            .isInstanceOf(ArchivePayloadException::class.java).hasMessage("ARCHIVE_PAYLOAD_INVALID").hasNoCause()
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = ["studyRightStartDate", "licensingDate"])
+    fun `rejects malformed Dynasty dates without retaining private values`(field: String) {
+        val root = jacksonObjectMapper().readTree(MINIMAL_PAYLOAD) as com.fasterxml.jackson.databind.node.ObjectNode
+        root.put(field, "Private invalid date")
+        assertThatThrownBy { reader.read(root.toString(), CaseType.VALMISTUMINEN) }
+            .isInstanceOf(ArchivePayloadException::class.java).hasMessage("ARCHIVE_PAYLOAD_INVALID").hasNoCause()
     }
 
     companion object {
