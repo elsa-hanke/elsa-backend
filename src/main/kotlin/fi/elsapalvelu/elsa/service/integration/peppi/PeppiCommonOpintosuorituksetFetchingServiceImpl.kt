@@ -52,43 +52,7 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
                     )
                     return null
                 }
-                if (body.isNullOrBlank()) {
-                    log.warn(
-                        "Peppi: tyhjä vastausrunko vastaanotettu osoitteesta " +
-                            "$endpointUrl${currentUserIdLogField()}"
-                    )
-                    return null
-                }
-                val rootNode = try {
-                    objectMapper.readTree(body)
-                } catch (e: JsonProcessingException) {
-                    log.error(
-                        "$JSON_DATA_PROSESSING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}. " +
-                            "Vastaus: ${summarizeBodyForLog(body, hetu)}",
-                        e
-                    )
-                    throw e
-                }
-                if (!rootNode.isArray) {
-                    val message = "$JSON_DATA_PROSESSING_ERROR: $endpointUrl${currentUserIdLogField()} " +
-                        "Vastaanotettiin ${rootNode.nodeType} JSON-taulukon sijaan: " +
-                        summarizeNonArrayNodeForLog(body, rootNode, hetu)
-                    if (rootNode.isObject && rootNode.isEmpty) {
-                        log.warn(message)
-                    } else {
-                        log.error(message)
-                    }
-                    return null
-                }
-                val accomplishments: List<StudyAccomplishment> = try {
-                    objectMapper.readValue(objectMapper.treeAsTokens(rootNode), ACCOMPLISHMENTS_TYPE_REF)
-                } catch (e: JsonProcessingException) {
-                    log.error(
-                        "$JSON_DATA_PROSESSING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}",
-                        e
-                    )
-                    throw e
-                }
+                val accomplishments = parseAccomplishments(body, endpointUrl, hetu) ?: return null
                 OpintosuorituksetPersistenceDTO(
                     yliopisto = yliopistoEnum,
                     items = toOpintosuoritusDtos(accomplishments, yliopistoEnum),
@@ -100,6 +64,50 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
             throw e
         } catch (e: IOException) {
             log.error("$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}", e)
+            throw e
+        }
+    }
+
+    private fun parseAccomplishments(
+        body: String?,
+        endpointUrl: String,
+        hetu: String
+    ): List<StudyAccomplishment>? {
+        if (body.isNullOrBlank()) {
+            log.warn(
+                "Peppi: tyhjä vastausrunko vastaanotettu osoitteesta " +
+                    "$endpointUrl${currentUserIdLogField()}"
+            )
+            return null
+        }
+        val rootNode = try {
+            objectMapper.readTree(body)
+        } catch (e: JsonProcessingException) {
+            log.error(
+                "$JSON_DATA_PROSESSING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}. " +
+                    "Vastaus: ${summarizeBodyForLog(body, hetu)}",
+                e
+            )
+            throw e
+        }
+        if (!rootNode.isArray) {
+            val message = "$JSON_DATA_PROSESSING_ERROR: $endpointUrl${currentUserIdLogField()} " +
+                "Vastaanotettiin ${rootNode.nodeType} JSON-taulukon sijaan: " +
+                summarizeNonArrayNodeForLog(body, rootNode, hetu)
+            if (rootNode.isObject && rootNode.isEmpty) {
+                log.warn(message)
+            } else {
+                log.error(message)
+            }
+            return null
+        }
+        return try {
+            objectMapper.readValue(objectMapper.treeAsTokens(rootNode), ACCOMPLISHMENTS_TYPE_REF)
+        } catch (e: JsonProcessingException) {
+            log.error(
+                "$JSON_DATA_PROSESSING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}",
+                e
+            )
             throw e
         }
     }
