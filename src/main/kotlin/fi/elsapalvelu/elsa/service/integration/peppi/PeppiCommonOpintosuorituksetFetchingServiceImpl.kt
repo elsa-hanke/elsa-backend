@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.integration.peppi
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.extensions.tryParseToLocalDate
@@ -43,32 +44,70 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
 
         try {
             return client.newCall(request).execute().use { response ->
+                val body = response.body?.string()
                 if (!response.isSuccessful) {
                     log.error(
                         "$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} " +
-                            response.body?.string()
+                            summarizeBodyForLog(body, hetu)
                     )
                     return null
                 }
-                response.body?.string().let { body ->
-                    objectMapper.readValue(body, object : TypeReference<List<StudyAccomplishment>>() {})
-                        ?.let { accomplishments ->
-                            OpintosuorituksetPersistenceDTO(
-                                yliopisto = yliopistoEnum,
-                                items = toOpintosuoritusDtos(accomplishments, yliopistoEnum),
-                                replaceOsakokonaisuudet = true
-                            )
-                        }
-                }
+                val accomplishments = parseAccomplishments(body, endpointUrl, hetu) ?: return null
+                OpintosuorituksetPersistenceDTO(
+                    yliopisto = yliopistoEnum,
+                    items = toOpintosuoritusDtos(accomplishments, yliopistoEnum),
+                    replaceOsakokonaisuudet = true
+                )
             }
+        } catch (e: JsonProcessingException) {
+            // Rethrow so JsonProcessingException is not caught and logged a second time by the IOException branch below.
+            throw e
+        } catch (e: IOException) {
+            log.error("$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}", e)
+            throw e
+        }
+    }
+
+    private fun parseAccomplishments(
+        body: String?,
+        endpointUrl: String,
+        hetu: String
+    ): List<StudyAccomplishment>? {
+        if (body.isNullOrBlank()) {
+            log.warn(
+                "Peppi: tyhjä vastausrunko vastaanotettu osoitteesta " +
+                    "$endpointUrl${currentUserIdLogField()}"
+            )
+            return null
+        }
+        val rootNode = try {
+            objectMapper.readTree(body)
+        } catch (e: JsonProcessingException) {
+            log.error(
+                "$JSON_DATA_PROSESSING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}. " +
+                    "Vastaus: ${summarizeBodyForLog(body, hetu)}",
+                e
+            )
+            throw e
+        }
+        if (!rootNode.isArray) {
+            val message = "$JSON_DATA_PROSESSING_ERROR: $endpointUrl${currentUserIdLogField()} " +
+                "Vastaanotettiin ${rootNode.nodeType} JSON-taulukon sijaan: " +
+                summarizeNonArrayNodeForLog(body, rootNode, hetu)
+            if (rootNode.isObject && rootNode.isEmpty) {
+                log.warn(message)
+            } else {
+                log.error(message)
+            }
+            return null
+        }
+        return try {
+            objectMapper.readValue(objectMapper.treeAsTokens(rootNode), ACCOMPLISHMENTS_TYPE_REF)
         } catch (e: JsonProcessingException) {
             log.error(
                 "$JSON_DATA_PROSESSING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}",
                 e
             )
-            throw e
-        } catch (e: IOException) {
-            log.error("$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} ${e.message}", e)
             throw e
         }
     }
@@ -183,6 +222,33 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
 
     private companion object {
         val NAME_WHITESPACE = Regex("(?U)[\\s\\u00A0]+")
+        val HETU_REGEX = Regex("""\b\d{6}[-+ABCDEFYXWVU]\d{3}[0-9A-Z]\b""")
+        val ACCOMPLISHMENTS_TYPE_REF = object : TypeReference<List<StudyAccomplishment>>() {}
+        const val MAX_SUMMARY_SNIPPET_LENGTH = 200
+
+        fun summarizeBodyForLog(body: String?, hetu: String): String {
+            if (body.isNullOrBlank()) return "(tyhjä)"
+            var sanitized = body.replace("\r", " ").replace("\n", " ").trim()
+            if (hetu.isNotBlank()) {
+                sanitized = sanitized.replace(hetu, "[REDACTED_HETU]")
+            }
+            sanitized = sanitized.replace(HETU_REGEX, "[REDACTED_HETU]")
+            return if (sanitized.length > MAX_SUMMARY_SNIPPET_LENGTH) {
+                sanitized.take(MAX_SUMMARY_SNIPPET_LENGTH) + "... [truncated]"
+            } else {
+                sanitized
+            }
+        }
+
+        fun summarizeNonArrayNodeForLog(body: String?, node: JsonNode, hetu: String): String {
+            val snippet = summarizeBodyForLog(body, hetu)
+            return if (node.isObject) {
+                val keys = node.fieldNames().asSequence().toList()
+                "avaimet=$keys, alku='$snippet'"
+            } else {
+                "alku='$snippet'"
+            }
+        }
         // Observed main titles, scoped above to each university's exam codes. A title containing
         // "kuulustelu" alone could also describe an individual component of an exam.
         val MAIN_EXAM_NAMES = setOf(
