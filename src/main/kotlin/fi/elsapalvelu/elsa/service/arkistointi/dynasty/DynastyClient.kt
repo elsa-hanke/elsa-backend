@@ -43,12 +43,15 @@ class DynastyClient(private val properties: ApplicationProperties, private val m
     }
 
     private fun validateUrl(value: String?) {
-        val uri = try { java.net.URI(value ?: "") } catch (_: Exception) { throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID") }
+        val uri = try { java.net.URI(value.orEmpty()) } catch (_: Exception) { throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID") }
         val local = settings.allowLoopbackHttpForTests && uri.scheme == "http" && uri.host in setOf("127.0.0.1", "[::1]", "::1")
         val invalidAddress = (!local && uri.scheme != "https") || uri.host.isNullOrBlank()
         val invalidParts = uri.rawUserInfo != null || uri.rawFragment != null || uri.rawQuery != null
         if (invalidAddress || invalidParts) throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
     }
+
+    private fun requireSetting(value: String?): String =
+        value?.takeIf { it.isNotBlank() } ?: throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
 
     private fun readId(raw: String, guid: Boolean): String {
         if (raw.length > 1024) throw DynastyFailure("DYNASTY_RESPONSE_INVALID")
@@ -61,10 +64,11 @@ class DynastyClient(private val properties: ApplicationProperties, private val m
 
     @Synchronized
     private fun accessToken(): String {
-        if (token != null && expires.isAfter(Instant.now().plusSeconds(60))) return token!!
-        val body = FormBody.Builder().add("grant_type", "client_credentials").add("client_id", settings.clientId!!)
-            .add("client_secret", settings.clientSecret!!).add("scope", settings.scope).build()
-        val request = Request.Builder().url(settings.tokenUrl!!).header("Organization", settings.organization!!).post(body).build()
+        val cachedToken = token
+        if (cachedToken != null && expires.isAfter(Instant.now().plusSeconds(60))) return cachedToken
+        val body = FormBody.Builder().add("grant_type", "client_credentials").add("client_id", requireSetting(settings.clientId))
+            .add("client_secret", requireSetting(settings.clientSecret)).add("scope", settings.scope).build()
+        val request = Request.Builder().url(requireSetting(settings.tokenUrl)).header("Organization", requireSetting(settings.organization)).post(body).build()
         try {
             client().newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw DynastyFailure("DYNASTY_AUTH_FAILED", response.code >= 500 || response.code == 429, true)
@@ -99,8 +103,8 @@ class DynastyClient(private val properties: ApplicationProperties, private val m
     private fun post(path: String, body: RequestBody, guid: Boolean, empty: Boolean = false): String {
         repeat(2) { attempt ->
             val bearer = accessToken() // Token failure cannot have created the requested object.
-            val request = Request.Builder().url(settings.baseUrl!!.trimEnd('/') + path)
-                .header("Organization", settings.organization!!).header("Authorization", "Bearer $bearer")
+            val request = Request.Builder().url(requireSetting(settings.baseUrl).trimEnd('/') + path)
+                .header("Organization", requireSetting(settings.organization)).header("Authorization", "Bearer $bearer")
                 .header("Accept", if (empty) "application/json" else "text/plain").post(body).build()
             try {
                 client().newCall(request).execute().use { response ->

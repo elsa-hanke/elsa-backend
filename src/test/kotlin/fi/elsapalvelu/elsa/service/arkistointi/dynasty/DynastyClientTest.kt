@@ -7,9 +7,11 @@ import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 class DynastyClientTest {
-    private fun client(server: MockWebServer): DynastyClient {
+    private fun client(server: MockWebServer, configure: DynastyProperties.() -> Unit = {}): DynastyClient {
         val p = ApplicationProperties()
         p.getArkistointi().getTurku().dynasty.apply {
             baseUrl = server.url("/").newBuilder().host("127.0.0.1").build().toString().trimEnd('/')
@@ -20,10 +22,33 @@ class DynastyClientTest {
             caseSchemaId = "case"
             documentSchemaId = "document"
             allowLoopbackHttpForTests = true
+            configure()
         }
         return DynastyClient(p,jacksonObjectMapper())
     }
     private fun token() = MockResponse().setBody("""{"access_token":"test-token","expires_in":900}""")
+
+    @ParameterizedTest
+    @ValueSource(strings = ["clientId", "clientSecret", "tokenUrl", "organization"])
+    fun `missing authentication setting produces a safe configuration failure without HTTP`(setting: String) {
+        MockWebServer().use { server ->
+            server.start()
+            val client = client(server) {
+                when (setting) {
+                    "clientId" -> clientId = null
+                    "clientSecret" -> clientSecret = null
+                    "tokenUrl" -> tokenUrl = null
+                    "organization" -> organization = null
+                }
+            }
+            assertThatThrownBy { client.createCase("x", "{}") }
+                .isInstanceOfSatisfying(DynastyFailure::class.java) {
+                    assertThat(it.code).isEqualTo("DYNASTY_CONFIGURATION_INVALID")
+                    assertThat(it.cause).isNull()
+                }
+            assertThat(server.requestCount).isZero()
+        }
+    }
 
     @Test
     fun `token is cached and organization accompanies every request`() {
