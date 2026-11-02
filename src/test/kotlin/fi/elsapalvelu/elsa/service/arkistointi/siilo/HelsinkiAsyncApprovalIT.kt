@@ -191,10 +191,23 @@ class HelsinkiAsyncApprovalIT : AsyncArchiveItSupport() {
         startAttempt()
         await().atMost(Duration.ofSeconds(30)).untilAsserted {
             assertThat(jobs.findById(job.id!!).orElseThrow().status).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
-            assertThat(taskCount(job.id!!)).isZero()
+            assertThat(taskCount(job.id!!)).isEqualTo(1)
+            val task = jdbc.queryForMap(
+                "select picked, execution_time from scheduled_tasks where task_name = 'arkistointi-job' and task_instance = ?",
+                job.id.toString()
+            )
+            assertThat(task["picked"]).isEqualTo(false)
+            assertThat((task["execution_time"] as java.sql.Timestamp).toInstant())
+                .isEqualTo(com.github.kagkarlsson.scheduler.task.schedule.Schedule.NEVER)
         }
         assertThat(assessments.findById(id).orElseThrow().vastuuhenkiloHyvaksynyt).isTrue()
         server.takeRequest(5, TimeUnit.SECONDS)!!
+        val requests = server.requestCount
+        val attempts = org.mockito.Mockito.mockingDetails(processor).invocations.size
+        pollAndAwait()
+        assertThat(server.requestCount).isEqualTo(requests)
+        assertThat(org.mockito.Mockito.mockingDetails(processor).invocations.size).isEqualTo(attempts)
+        assertThat(taskCount(job.id!!)).isEqualTo(1)
     }
 
     private fun approveKoejakso(type: CaseType): Long {
