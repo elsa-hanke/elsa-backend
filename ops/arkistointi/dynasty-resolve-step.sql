@@ -76,7 +76,7 @@ BEGIN
 
     IF input.action = 'confirm' THEN
         UPDATE arkistointi_dynasty_step SET status = 'VALMIS',
-            remote_id = NULLIF(input.remote_id, ''), completed_at = CURRENT_TIMESTAMP
+            remote_id = NULLIF(input.remote_id, ''), completed_at = clock_timestamp()
         WHERE job_id = input.job_id AND step_key = input.step_key AND status = 'ALOITETTU';
     ELSE
         DELETE FROM arkistointi_dynasty_step

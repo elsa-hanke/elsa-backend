@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 import java.util.UUID
 
 /** Commit intent before the request; a crash never silently authorizes another create. */
@@ -30,21 +29,25 @@ class DynastyStepLedger(
         executionLock.lock(execution)
         val job = jdbc.queryForList("select status from arkistointi_job where id=? for update", execution.jobId).singleOrNull()
         if (job?.get("status") != "KASITTELYSSA") throw StaleArkistointiExecutionException()
-        val rows = jdbc.queryForList("select status, remote_id, started_at from arkistointi_dynasty_step where job_id=? and step_key=?", execution.jobId, key)
+        // Use the database wall clock after acquiring locks, not JVM time or transaction start time.
+        val rows = jdbc.queryForList(
+            "select status, remote_id, started_at + (?::bigint * interval '1 millisecond') > clock_timestamp() as in_progress " +
+                "from arkistointi_dynasty_step where job_id=? and step_key=?",
+            properties.getArkistointi().getTurku().dynasty.inProgressGrace.toMillis(), execution.jobId, key
+        )
         if (rows.isNotEmpty()) {
             val row = rows.single()
             if (row["status"] == "VALMIS") return Decision.Done(row["remote_id"] as String?)
-            val started = (row["started_at"] as java.sql.Timestamp).toInstant()
-            return if (started.plus(properties.getArkistointi().getTurku().dynasty.inProgressGrace).isAfter(Instant.now())) Decision.InProgress else Decision.Unconfirmed
+            return if (row["in_progress"] == true) Decision.InProgress else Decision.Unconfirmed
         }
-        jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) values (?,?,'ALOITETTU',?,CURRENT_TIMESTAMP)",
+        jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) values (?,?,'ALOITETTU',?,clock_timestamp())",
             execution.jobId, key, execution.version)
         return Decision.Proceed
     }
 
     /** A late response still records a fact, but only for the attempt which started this step. */
     fun complete(jobId: UUID, key: String, version: Long, remoteId: String?): Boolean = jdbc.update(
-        "update arkistointi_dynasty_step set status='VALMIS',remote_id=?,completed_at=CURRENT_TIMESTAMP where job_id=? and " +
+        "update arkistointi_dynasty_step set status='VALMIS',remote_id=?,completed_at=clock_timestamp() where job_id=? and " +
             "step_key=? and execution_version=? and status='ALOITETTU'",
         remoteId, jobId, key, version
     ) == 1

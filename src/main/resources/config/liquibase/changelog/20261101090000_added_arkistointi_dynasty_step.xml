@@ -9,8 +9,9 @@ CREATE TABLE arkistointi_dynasty_step (
     status varchar(20) NOT NULL CHECK (status IN ('ALOITETTU','VALMIS')),
     remote_id varchar(255),
     execution_version bigint NOT NULL,
-    started_at timestamp NOT NULL,
-    completed_at timestamp,
+    -- Absolute UTC instants; PostgreSQL displays them in the session time zone.
+    started_at timestamptz NOT NULL,
+    completed_at timestamptz,
     UNIQUE(job_id,step_key),
     CHECK ((status='VALMIS') = (completed_at IS NOT NULL)),
     CHECK (status <> 'VALMIS' OR remote_id IS NOT NULL OR step_key='ARCHIVE_CASE')

@@ -740,6 +740,9 @@ the job must require intervention, and the selected step must still be `ALOITETT
 Invalid input or a state mismatch aborts the transaction; exactly one step must change.
 Then use the existing `retry-job.sql` after successful commit; never create another job to retry a delivery.
 Do not alter completed steps. The SQL scripts are operator procedures, not application retries.
+Ledger `started_at` and `completed_at` are PostgreSQL `timestamptz` values (absolute UTC instants).
+Intent age is evaluated against the database wall clock after locks are acquired; session time zones
+and the JVM clock do not participate in the decision.
 
 Before enabling Turku, check legacy jobs whose snapshots may lack Dynasty metadata:
 ```sql
