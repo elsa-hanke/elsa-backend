@@ -59,6 +59,7 @@ import org.springframework.transaction.support.TransactionTemplate
     "application.arkistointi.retry.max-delay=2s",
     "application.arkistointi.retry.max-attempts=3"
 ])
+@org.springframework.test.context.ActiveProfiles("dynasty-approval-test")
 @Import(ArkistointiJobProcessingIT.TestConfig::class)
 class ArkistointiLoadingRecoveryIT {
     @Autowired private lateinit var creator: ArkistointiJobCreator
