@@ -68,13 +68,7 @@ class TurkuDynastyArkistointiAdapter(
 
     private fun validatedSavedId(key: String, id: String?): String? {
         if (key == "ARCHIVE_CASE") return null
-        val valid = if (key == "TASK") {
-            runCatching { java.util.UUID.fromString(id).toString().equals(id,true) }.getOrDefault(false)
-        } else {
-            id != null && id.all { it.isDigit() } && (id.toLongOrNull() ?: 0) > 0
-        }
-        if (!valid) throw DynastyFailure("DYNASTY_RESPONSE_INVALID")
-        return id
+        return DynastyId.requireValid(id, guid = key == "TASK")
     }
 
     private fun failure(code: String, retryable: Boolean = false): ArkistointiResult {

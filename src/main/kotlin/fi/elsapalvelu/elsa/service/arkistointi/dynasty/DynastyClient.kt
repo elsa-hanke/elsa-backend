@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component
 import java.net.ConnectException
 import java.net.UnknownHostException
 import java.time.Instant
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 internal class DynastyFailure(val code: String, val retryable: Boolean = false, val definitelyNotProcessed: Boolean = false) :
@@ -58,10 +57,7 @@ class DynastyClient(private val properties: ApplicationProperties, private val m
     private fun readId(raw: String, guid: Boolean): String {
         if (raw.length > 1024) throw DynastyFailure("DYNASTY_RESPONSE_INVALID")
         val id = raw.trim().removeSurrounding("\"")
-        val valid = if (guid) runCatching { UUID.fromString(id).toString().equals(id, true) }.getOrDefault(false)
-            else id.toLongOrNull()?.let { it > 0 } == true && id.all { it.isDigit() }
-        if (!valid) throw DynastyFailure("DYNASTY_RESPONSE_INVALID")
-        return id
+        return DynastyId.requireValid(id, guid)
     }
 
     @Synchronized
