@@ -7,12 +7,12 @@
           v-model="form.koulutuksenNimi"
           :state="validateState('koulutuksenNimi')"
           :aria-describedby="`${uid}-feedback`"
-          @blur="$v.form.koulutuksenNimi.$touch()"
+          @blur="touchField('koulutuksenNimi')"
           @input="$emit('skipRouteExitConfirm', false)"
         ></b-form-input>
         <b-form-invalid-feedback :id="`${uid}-feedback`">
           {{
-            $v.form.koulutuksenNimi.maxLength === false
+            koulutuksenNimiTooLong
               ? $t('tieto-on-liian-pitka-enintaan-255-merkkia')
               : $t('pakollinen-tieto')
           }}
@@ -26,12 +26,12 @@
           v-model="form.koulutuksenPaikka"
           :state="validateState('koulutuksenPaikka')"
           :aria-describedby="`${uid}-feedback`"
-          @blur="$v.form.koulutuksenPaikka.$touch()"
+          @blur="touchField('koulutuksenPaikka')"
           @input="$emit('skipRouteExitConfirm', false)"
         ></b-form-input>
         <b-form-invalid-feedback :id="`${uid}-feedback`">
           {{
-            $v.form.koulutuksenPaikka.maxLength === false
+            koulutuksenPaikkaTooLong
               ? $t('tieto-on-liian-pitka-enintaan-255-merkkia')
               : $t('pakollinen-tieto')
           }}
@@ -222,6 +222,18 @@
     validateState(name: string) {
       const { $dirty, $error } = this.$v.form[name] as any
       return $dirty ? ($error ? false : null) : null
+    }
+
+    touchField(name: 'koulutuksenNimi' | 'koulutuksenPaikka') {
+      this.$v.form[name]?.$touch()
+    }
+
+    get koulutuksenNimiTooLong(): boolean {
+      return this.$v.form.koulutuksenNimi?.maxLength === false
+    }
+
+    get koulutuksenPaikkaTooLong(): boolean {
+      return this.$v.form.koulutuksenPaikka?.maxLength === false
     }
 
     onErikoistumiseenHyvaksyttavaTuntimaaraInput(value: string) {
