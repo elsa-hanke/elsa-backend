@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
@@ -71,8 +70,6 @@ class TurkuDynastyArkistointiAdapter(
         return DynastyId.requireValid(id, guid = key == "TASK")
     }
 
-    private fun failure(code: String, retryable: Boolean = false): ArkistointiResult {
-        val error = ArkistointiError.create(code,"Dynasty-arkistoinnin tila tai asetukset on tarkistettava")
-        return if (retryable) ArkistointiResult.RetryableFailure(error) else ArkistointiResult.PermanentFailure(error)
-    }
+    private fun failure(code: String, retryable: Boolean = false): ArkistointiResult =
+        ArkistointiResult.failure(code, "Dynasty-arkistoinnin tila tai asetukset on tarkistettava", retryable)
 }

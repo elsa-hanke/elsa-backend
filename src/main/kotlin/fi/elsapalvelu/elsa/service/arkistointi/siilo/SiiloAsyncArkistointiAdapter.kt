@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.siilo
 
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
@@ -33,8 +32,6 @@ class SiiloAsyncArkistointiAdapter(
             failure(exception.code, exception.retryable, exception.httpStatus, exception.category)
         }
 
-    private fun failure(code: String, retryable: Boolean, status: Int? = null, category: String? = null): ArkistointiResult {
-        val error = ArkistointiError.create(code, "Siilo-toimitus epaonnistui [status=$status, category=$category]")
-        return if (retryable) ArkistointiResult.RetryableFailure(error) else ArkistointiResult.PermanentFailure(error)
-    }
+    private fun failure(code: String, retryable: Boolean, status: Int? = null, category: String? = null): ArkistointiResult =
+        ArkistointiResult.failure(code, "Siilo-toimitus epaonnistui [status=$status, category=$category]", retryable)
 }
