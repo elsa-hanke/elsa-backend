@@ -103,7 +103,7 @@ jobs:
             -v "${{ github.workspace }}/e2e:/e2e" \
             -v "${{ github.workspace }}/src/test/resources/security:/src/test/resources/security:ro" \
             -w /e2e \
-            cypress/included:16.1.1 \
+            cypress/included:16.2.1 \
             -c 'npm install && npx cypress run --browser chrome --config baseUrl=http://localhost:8080 --spec "$CYPRESS_SPECS"'
 
       - name: Upload Cypress videos
