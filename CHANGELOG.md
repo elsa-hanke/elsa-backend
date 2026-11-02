@@ -2,6 +2,12 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.0...HEAD)
 
+- Bump postcss-selector-parser from 6.0.8 to 6.1.5 in /frontend [`#804`](https://github.com/elsa-hanke/elsa-backend/pull/804)(30 October 2026)
+- Bump systeminformation from 5.31.17 to 5.33.19 in /e2e [`#803`](https://github.com/elsa-hanke/elsa-backend/pull/803)(30 October 2026)
+- Dynasty - Vaihe 3, task 3 — Helsingin Siilo-integraation liittäminen arkistointijonoon [`#800`](https://github.com/elsa-hanke/elsa-backend/pull/800)(30 October 2026)
+- Dynasty - Vaihe 3, task 4 — Tampereen Louhi-integraation liittäminen arkistointijonoon (PR2) [`#799`](https://github.com/elsa-hanke/elsa-backend/pull/799)(30 October 2026)
+- Bump fast-uri from 3.1.7 to 3.1.9 in /frontend [`#801`](https://github.com/elsa-hanke/elsa-backend/pull/801)(30 October 2026)
+- Dynasty - Vaihe 3, task 4 — Tampereen Louhi-integraation liittäminen arkistointijonoon (PR1) [`#798`](https://github.com/elsa-hanke/elsa-backend/pull/798)(30 October 2026)
 - Dynasty - Vaihe 2, task 4 — Koejakson asiakirjojen siirtäminen arkistointijonoon [`#795`](https://github.com/elsa-hanke/elsa-backend/pull/795)(29 October 2026)
 - Dynasty - Vaihe 2, task 3 — Ajastettu arkistointiprosessi ja automaattiset uudelleenyritykset [`#786`](https://github.com/elsa-hanke/elsa-backend/pull/786)(29 October 2026)
 - Dynasty - Vaihe 2, task 2 — Valmistumisen hyväksynnän siirtäminen arkistointijonoon [`#784`](https://github.com/elsa-hanke/elsa-backend/pull/784)(28 October 2026)

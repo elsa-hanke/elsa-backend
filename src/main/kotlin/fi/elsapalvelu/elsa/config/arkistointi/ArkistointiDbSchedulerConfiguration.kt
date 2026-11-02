@@ -6,6 +6,8 @@ import com.github.kagkarlsson.scheduler.task.ExecutionContext
 import com.github.kagkarlsson.scheduler.task.TaskDescriptor
 import com.github.kagkarlsson.scheduler.task.TaskInstance
 import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
+import com.github.kagkarlsson.scheduler.task.schedule.Schedule
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ParkArkistointiExecutionException
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
@@ -59,6 +61,8 @@ class ArkistointiDbSchedulerConfiguration {
             override fun execute(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext): CompletionHandler<Unit> =
                 try {
                     super.execute(taskInstance, executionContext)
+                } catch (_: ParkArkistointiExecutionException) {
+                    CompletionHandler { completed, operations -> operations.reschedule(completed, Schedule.NEVER) }
                 } catch (_: StaleArkistointiExecutionException) {
                     // Returning normally from executeOnce would acknowledge the replaced execution.
                     // Do not touch its scheduler row; normal completions still use version-checked removal.
