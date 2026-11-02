@@ -43,7 +43,7 @@ class ArkistointiJobProcessorImplTest {
     private val descriptor = ArkistointiDocumentDescriptor(1L, RecordType.LIITE, 0, "private.pdf", "application/pdf", "a".repeat(64))
     private val document = LoadedArkistointiAsiakirja(1L, RecordType.LIITE, 0, descriptor.filename,
         descriptor.contentType, descriptor.sha256, byteArrayOf(1))
-    private val submission = ArkistointiSubmission(jobId, YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}", listOf(document))
+    private val submission = ArkistointiSubmission(jobId, YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}", listOf(document), execution)
 
     @BeforeEach
     fun prepareSubmission() {
