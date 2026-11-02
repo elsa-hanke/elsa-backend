@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.koejakso
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.itextpdf.kernel.pdf.PdfDocument
@@ -166,10 +167,10 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         assertThat(job.caseType).isEqualTo(type)
         assertThat(job.expectedDocumentCount).isEqualTo(1)
         assertThat(taskCount(job.id!!)).isEqualTo(1)
-        val payload = objectMapper.readValue(job.payload, KoejaksoArkistointiPayload::class.java)
+        val payload = ArchivePayloadReader(objectMapper).read(job.payload!!, job.caseType!!)
         assertThat(payload.approvalDate).isEqualTo(LocalDate.now())
         assertThat(payload.caseId).isEqualTo(fixture.caseId(type))
-        assertThat(payload.opintooikeusId).isEqualTo(fixture.studyRightId)
+        assertThat(payload.studyRightId).isEqualTo(fixture.studyRightId)
         transactions.executeWithoutResult {
             val reference = jobs.findById(job.id!!).orElseThrow().asiakirjat.single()
             assertThat(reference.asiakirjatyyppi).isEqualTo(if (type == CaseType.SOPIMUS) RecordType.SOPIMUS else RecordType.ARVIOINTI)
@@ -236,8 +237,8 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
     fun `negative final assessment is archived but return for correction is not`() {
         val rejected = fixture()
         approve(rejected, CaseType.KOEJAKSO, accepted = false).andExpect(status().isOk)
-        val payload = objectMapper.readValue(job(rejected, CaseType.KOEJAKSO).payload, KoejaksoArkistointiPayload::class.java)
-        assertThat(payload.koejaksoHyvaksytty).isFalse()
+        val payload = objectMapper.readTree(job(rejected, CaseType.KOEJAKSO).payload)
+        assertThat(payload.path("koejaksoHyvaksytty").booleanValue()).isFalse()
         val returned = fixture()
         approve(returned, CaseType.KOEJAKSO, correction = "Korjattava").andExpect(status().isOk)
         assertNoJob(returned, CaseType.KOEJAKSO)
@@ -525,7 +526,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         val fixture = fixture()
         approve(fixture, type).andExpect(status().isOk)
         val saved = job(fixture, type)
-        val identity = objectMapper.readValue(saved.payload, KoejaksoArkistointiPayload::class.java).documents.single()
+        val identity = ArchivePayloadReader(objectMapper).read(saved.payload!!, saved.caseType!!).documents.single()
         transactions.executeWithoutResult {
             val studyRight = opintooikeusRepository.findById(fixture.studyRightId).orElseThrow()
             studyRight.opiskelijatunnus = "changed-after-approval"
@@ -549,7 +550,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         assertThat(delivered.key).isEqualTo(saved.id)
         assertThat(delivered.caseType).isEqualTo(type)
         assertThat(delivered.payload).isEqualTo(saved.payload)
-        assertThat(objectMapper.readValue(delivered.payload, KoejaksoArkistointiPayload::class.java).documents).containsExactly(identity)
+        assertThat(ArchivePayloadReader(objectMapper).read(delivered.payload, delivered.caseType).documents).containsExactly(identity)
         assertThat(delivered.asiakirjat).hasSize(1)
         assertThat(delivered.asiakirjat.single().asiakirjaId).isEqualTo(identity.snapshotDocumentId)
         assertThat(ArkistointiChecksum.sha256(delivered.asiakirjat.single().sisalto))

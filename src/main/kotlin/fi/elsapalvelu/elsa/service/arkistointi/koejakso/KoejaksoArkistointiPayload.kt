@@ -1,27 +1,18 @@
 package fi.elsapalvelu.elsa.service.arkistointi.koejakso
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import com.fasterxml.jackson.annotation.JsonUnwrapped
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
-import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchiveStudyRightPayload
 import java.time.LocalDate
 
 /** Frozen metadata for SOPIMUS and KOEJAKSO; no domain entities are needed during delivery. */
 data class KoejaksoArkistointiPayload(
     val caseId: Long,
-    val opintooikeusId: Long,
-    val university: YliopistoEnum,
-    val yek: Boolean,
-    val traineeName: String?,
-    val firstName: String?,
-    val lastName: String?,
-    @get:JsonFormat(shape = JsonFormat.Shape.STRING)
-    val birthDate: LocalDate?,
-    val specialtyId: Long?,
-    val specialtyName: String?,
-    val studentNumber: String?,
+    @get:JsonUnwrapped
+    val studyRight: ArchiveStudyRightPayload,
     val reviewer: String?,
     @get:JsonFormat(shape = JsonFormat.Shape.STRING)
     val reviewDate: LocalDate?,
@@ -29,11 +20,7 @@ data class KoejaksoArkistointiPayload(
     @get:JsonFormat(shape = JsonFormat.Shape.STRING)
     val approvalDate: LocalDate?,
     val koejaksoHyvaksytty: Boolean?,
-    val documents: List<ArkistointiDocumentIdentity>,
-    val specialtyType: fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi? = null,
-    @get:JsonFormat(shape = JsonFormat.Shape.STRING)
-    val studyRightStartDate: LocalDate? = null,
-    val degreeRegulation: String? = null
+    val documents: List<ArkistointiDocumentIdentity>
 ) {
     override fun toString() = "KoejaksoArkistointiPayload(caseId=$caseId)"
 
@@ -48,16 +35,15 @@ data class KoejaksoArkistointiPayload(
             approvalDate: LocalDate?,
             koejaksoHyvaksytty: Boolean? = null
         ): KoejaksoArkistointiPayload {
-            val trainee = studyRight.erikoistuvaLaakari
-            val user = trainee?.kayttaja?.user
             return KoejaksoArkistointiPayload(
-                caseId, studyRight.id.required(), studyRight.yliopisto?.nimi.required(),
-                studyRight.erikoisala?.id == YEK_ERIKOISALA_ID,
-                user?.getName(), user?.firstName, user?.lastName, trainee?.syntymaaika,
-                studyRight.erikoisala?.id, studyRight.erikoisala?.nimi, studyRight.opiskelijatunnus,
-                reviewer, reviewDate, approver, approvalDate, koejaksoHyvaksytty, documents.toList(),
-                studyRight.erikoisala?.tyyppi, studyRight.opintooikeudenMyontamispaiva,
-                studyRight.asetus?.nimi
+                caseId = caseId,
+                studyRight = ArchiveStudyRightPayload.create(studyRight, studyRight.yliopisto?.nimi.required()),
+                reviewer = reviewer,
+                reviewDate = reviewDate,
+                approver = approver,
+                approvalDate = approvalDate,
+                koejaksoHyvaksytty = koejaksoHyvaksytty,
+                documents = documents.toList()
             )
         }
     }

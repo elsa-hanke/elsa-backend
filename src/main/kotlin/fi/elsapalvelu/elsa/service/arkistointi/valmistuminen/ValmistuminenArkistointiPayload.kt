@@ -1,27 +1,19 @@
 package fi.elsapalvelu.elsa.service.arkistointi.valmistuminen
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonUnwrapped
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
-import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchiveStudyRightPayload
 import java.time.LocalDate
 
 /** Approval-time metadata; the worker must not reconstruct it from mutable domain entities. */
 data class ValmistuminenArkistointiPayload(
     val valmistumispyyntoId: Long,
-    val opintooikeusId: Long,
-    val university: YliopistoEnum,
-    val yek: Boolean,
-    val traineeName: String?,
-    val firstName: String?,
-    val lastName: String?,
-    @get:JsonFormat(shape = JsonFormat.Shape.STRING)
-    val birthDate: LocalDate?,
-    val specialtyId: Long?,
-    val specialtyName: String?,
-    val studentNumber: String?,
+    @get:JsonUnwrapped
+    val studyRight: ArchiveStudyRightPayload,
     val reviewer: String?,
     @get:JsonFormat(shape = JsonFormat.Shape.STRING)
     val reviewDate: LocalDate?,
@@ -29,10 +21,6 @@ data class ValmistuminenArkistointiPayload(
     @get:JsonFormat(shape = JsonFormat.Shape.STRING)
     val approvalDate: LocalDate?,
     val documents: List<ArkistointiDocumentIdentity>,
-    val specialtyType: fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi? = null,
-    @get:JsonFormat(shape = JsonFormat.Shape.STRING)
-    val studyRightStartDate: LocalDate? = null,
-    val degreeRegulation: String? = null,
     @get:JsonFormat(shape = JsonFormat.Shape.STRING)
     val licensingDate: LocalDate? = null
 ) {
@@ -45,29 +33,15 @@ data class ValmistuminenArkistointiPayload(
             documents: List<ArkistointiDocumentIdentity>
         ): ValmistuminenArkistointiPayload {
             val studyRight = request.opintooikeus.required()
-            val trainee = studyRight.erikoistuvaLaakari
-            val user = trainee?.kayttaja?.user
             return ValmistuminenArkistointiPayload(
                 valmistumispyyntoId = request.id.required(),
-                opintooikeusId = studyRight.id.required(),
-                university = university,
-                yek = request.isYek(),
-                traineeName = user?.getName(),
-                firstName = user?.firstName,
-                lastName = user?.lastName,
-                birthDate = trainee?.syntymaaika,
-                specialtyId = studyRight.erikoisala?.id,
-                specialtyName = studyRight.erikoisala?.nimi,
-                studentNumber = studyRight.opiskelijatunnus,
+                studyRight = ArchiveStudyRightPayload.create(studyRight, university),
                 reviewer = request.virkailija?.user?.getName(),
                 reviewDate = request.virkailijanKuittausaika,
                 approver = request.vastuuhenkiloHyvaksyja?.user?.getName(),
                 approvalDate = request.vastuuhenkiloHyvaksyjaKuittausaika,
                 documents = documents.toList(),
-                specialtyType = studyRight.erikoisala?.tyyppi,
-                studyRightStartDate = studyRight.opintooikeudenMyontamispaiva,
-                degreeRegulation = studyRight.asetus?.nimi,
-                licensingDate = trainee?.laillistamispaiva
+                licensingDate = studyRight.erikoistuvaLaakari?.laillistamispaiva
             )
         }
     }

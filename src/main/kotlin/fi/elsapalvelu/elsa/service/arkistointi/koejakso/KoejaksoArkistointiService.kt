@@ -111,7 +111,7 @@ class KoejaksoArkistointiService(
         )))
         creator.create(
             CreateArkistointiJobRequest(
-                university = payload.university,
+                university = payload.studyRight.university,
                 caseType = caseType,
                 payload = mapper.writeValueAsString(payload),
                 key = key,

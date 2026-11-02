@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.valmistuminen
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
@@ -156,7 +157,7 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
     private fun assertManifest(jobId: java.util.UUID, filename: String, contentType: String) {
         transactions.executeWithoutResult { _ ->
             val job = jobs.findById(jobId).orElseThrow()
-            val payload = objectMapper.readValue(job.payload, ValmistuminenArkistointiPayload::class.java)
+            val payload = ArchivePayloadReader(objectMapper).read(job.payload!!, job.caseType!!)
             assertThat(payload.documents).hasSize(job.asiakirjat.size)
             payload.documents.forEach { identity ->
                 val reference = job.asiakirjat.single { it.jarjestysnumero == identity.jarjestysnumero }

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.koejakso
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
@@ -59,10 +60,10 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
         val fixture = koejaksoFixture(university, CaseType.KOEJAKSO)
         approve(fixture, accepted).andExpect(status().isOk)
         val job = jobs.findByKey(key(university, fixture.second))!!
-        val payload = objectMapper.readValue(job.payload, KoejaksoArkistointiPayload::class.java)
-        assertThat(payload.university).isEqualTo(university)
+        val payload = ArchivePayloadReader(objectMapper).read(job.payload!!, job.caseType!!)
+        assertThat(payload.university).isEqualTo(university.name)
         assertThat(payload.caseId).isEqualTo(fixture.second)
-        assertThat(payload.koejaksoHyvaksytty).isEqualTo(accepted)
+        assertThat(objectMapper.readTree(job.payload).path("koejaksoHyvaksytty").booleanValue()).isEqualTo(accepted)
         val identity = payload.documents.single()
         assertThat(identity.recordType).isEqualTo(RecordType.ARVIOINTI)
         assertThat(identity.sourceDocumentId).isNotEqualTo(identity.snapshotDocumentId)

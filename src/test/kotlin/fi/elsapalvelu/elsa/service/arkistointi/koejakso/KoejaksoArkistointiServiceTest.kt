@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.koejakso
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
@@ -75,16 +76,17 @@ class KoejaksoArkistointiServiceTest {
         assertThat(request.firstValue.asiakirjat).containsExactly(reference)
         val prefix = if (type == CaseType.SOPIMUS) "koejakso-sopimus" else "koejakso-arvio"
         assertThat(request.firstValue.key).isEqualTo("$prefix:${university.name}:7")
-        val payload = mapper.readValue(request.firstValue.payload, KoejaksoArkistointiPayload::class.java)
+        val payload = ArchivePayloadReader(mapper).read(request.firstValue.payload, type)
         val json = mapper.readTree(request.firstValue.payload)
         assertThat(json.has("licensingDate")).isFalse()
+        assertThat(json.has("studyRight")).isFalse()
         assertThat(payload.caseId).isEqualTo(7)
-        assertThat(payload.opintooikeusId).isEqualTo(12)
+        assertThat(payload.studyRightId).isEqualTo(12)
         assertThat(payload.documents).containsExactly(ArkistointiDocumentIdentity(22, 33, recordType, 0))
         assertThat(payload.approvalDate).isEqualTo(LocalDate.of(2026, 10, 24))
-        assertThat(payload.koejaksoHyvaksytty).isEqualTo(if (type == CaseType.KOEJAKSO) false else null)
+        assertThat(json["koejaksoHyvaksytty"].takeUnless { it.isNull }?.booleanValue()).isEqualTo(if (type == CaseType.KOEJAKSO) false else null)
         assertThat(payload.reviewer).isEqualTo(if (type == CaseType.SOPIMUS) "" else null)
-        assertThat(payload.toString()).isEqualTo("KoejaksoArkistointiPayload(caseId=7)")
+        assertThat(payload.toString()).isEqualTo("ArchivePayload")
         verify(synchronous, never()).muodostaSahke(
             anyOrNull(), any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any()
         )
