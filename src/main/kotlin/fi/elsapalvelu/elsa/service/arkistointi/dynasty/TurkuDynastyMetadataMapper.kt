@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePayloadReader
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -20,6 +21,31 @@ class TurkuDynastyMetadataMapper(
     data class Plan(val tosClass: String, val caseJson: String, val task: String, val documents: List<String>) {
         override fun toString() = "DynastyPlan(documents=${documents.size})"
     }
+
+    /** Validate static settings only; snapshot values are checked by plan(). */
+    fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {
+        val c = properties.getArkistointi().getTurku().dynasty
+        val graduation = caseType == CaseType.VALMISTUMINEN
+        val types = if (graduation) listOf(RecordType.YHTEENVETO, RecordType.LIITE, RecordType.LAILLISTAMISTODISTUS)
+            else listOf(RecordType.ARVIOINTI)
+        if (types.any {
+                configuration.metadata.getDocumentMetadata(it, configuration.case)?.retentionPeriod?.toIntOrNull() == null
+            } || c.tutkintoasetukset.isEmpty() || c.tutkintoasetukset.any { (key, value) -> key.isBlank() || value.isBlank() }) {
+            throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
+        }
+        if (!graduation) validateSecrecyConfiguration()
+    }
+
+    private fun validateSecrecyConfiguration() {
+        val c = properties.getArkistointi().getTurku().dynasty
+        if (c.koejaksoPublicityClassId.isNullOrBlank() || c.koejaksoSecrecyFields.size != 3 ||
+            c.koejaksoSecrecyFields.any { (key, value) -> key.isBlank() || value.isBlank() || key in documentFields }) {
+            throw DynastyFailure("DYNASTY_SECRECY_UNCONFIGURED")
+        }
+    }
+
+    private val documentFields = setOf("title", "schemaId", "publicityClassId", "publicityClassName", "personalData",
+        "documentType", "state", "retentionPeriodRule", "retentionPeriodLength", "AD")
 
     @Suppress("CyclomaticComplexMethod", "LongMethod") // Explicit field-by-field customer mapping; validate all before delivery.
     fun plan(submission: ArkistointiSubmission): Plan {
@@ -84,8 +110,7 @@ class TurkuDynastyMetadataMapper(
                 "documentType" to documentType,"state" to 3,"retentionPeriodRule" to "Asian lopullinen ratkaisu",
                 "retentionPeriodLength" to retention,"AD" to ad)
             if (!graduation) {
-                if (c.koejaksoPublicityClassId.isNullOrBlank() || c.koejaksoSecrecyFields.size != 3) throw DynastyFailure("DYNASTY_SECRECY_UNCONFIGURED")
-                require(c.koejaksoSecrecyFields.keys.none { it in result })
+                validateSecrecyConfiguration()
                 result["publicityClassId"] = c.koejaksoPublicityClassId
                 result["publicityClassName"] = "Osittain salassa pidettävä"
                 result["retentionPeriodRule"] = "Asiakirjan päivämäärä"

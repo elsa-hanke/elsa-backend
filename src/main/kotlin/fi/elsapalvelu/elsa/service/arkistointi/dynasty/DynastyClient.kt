@@ -36,7 +36,7 @@ class DynastyClient(private val properties: ApplicationProperties, private val m
         listOf(c.baseUrl, c.tokenUrl).forEach { value ->
             validateUrl(value)
         }
-        if (listOf(c.clientId,c.clientSecret,c.organization,c.caseSchemaId,c.documentSchemaId).any { it.isNullOrBlank() } ||
+        if (listOf(c.clientId,c.clientSecret,c.organization,c.scope,c.caseSchemaId,c.documentSchemaId).any { it.isNullOrBlank() } ||
             c.callTimeout.isZero || c.callTimeout.isNegative || c.inProgressGrace < c.callTimeout.multipliedBy(2).plusMinutes(1)) {
             throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
         }

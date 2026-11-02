@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
@@ -20,6 +21,11 @@ class TurkuDynastyArkistointiAdapter(
 ) : ArkistointiAdapter {
     override val university = YliopistoEnum.TURUN_YLIOPISTO
     override val supportedCaseTypes = setOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO)
+
+    override fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {
+        client.validateConfiguration()
+        metadata.validateConfiguration(caseType, configuration)
+    }
 
     @Suppress("CyclomaticComplexMethod") // Keep the ordered resumable protocol visible in one place.
     override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult {

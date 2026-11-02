@@ -25,6 +25,7 @@ class ArkistointiAdapterRegistry(adapters: List<ArkistointiAdapter>) {
                     "Async archiving is enabled for ${university.name} / ${caseType.value}, " +
                         "but the asynchronous ArkistointiAdapter does not support this case type"
                 }
+                adapter.validateConfiguration(caseType, configuration.getConfiguration(university, caseType))
             }
         }
     }
