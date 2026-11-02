@@ -732,7 +732,13 @@ For `DYNASTY_DELIVERY_UNCONFIRMED`/`DYNASTY_RESPONSE_INVALID`, inspect the Dynas
 Use `ops/arkistointi/dynasty-resolve-step.sql` to confirm a discovered remote ID, or discard
 an intent only after establishing that nothing was created. Stop/drain the old worker
 before discard so an in-flight request cannot create an object after reconciliation.
-Then use the existing `retry-job.sql`; never create another job to retry a delivery.
+The resolution script requires all four psql variables: `job_id`, `step_key`, `remote_id`, and `action`.
+Allowed steps are `CASE`, `TASK`, `DOCUMENT:<manifest order>`, and `ARCHIVE_CASE`.
+For `confirm`, use a canonical UUID for `TASK` or a positive bigint ID for `CASE`/`DOCUMENT`.
+Pass `remote_id=''` for `ARCHIVE_CASE` or `action=discard`. The task must be parked and unpicked,
+the job must require intervention, and the selected step must still be `ALOITETTU`.
+Invalid input or a state mismatch aborts the transaction; exactly one step must change.
+Then use the existing `retry-job.sql` after successful commit; never create another job to retry a delivery.
 Do not alter completed steps. The SQL scripts are operator procedures, not application retries.
 
 Before enabling Turku, check legacy jobs whose snapshots may lack Dynasty metadata:
