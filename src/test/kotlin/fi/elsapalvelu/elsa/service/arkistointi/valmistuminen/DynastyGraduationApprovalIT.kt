@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.arkistointi.valmistuminen
 
-import com.github.kagkarlsson.scheduler.Scheduler
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
@@ -13,9 +12,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
 import fi.elsapalvelu.elsa.service.arkistointi.support.AsyncArchiveItSupport
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
-import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksyntaFormDTO
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
-import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import org.assertj.core.api.Assertions.assertThat
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mockingDetails
@@ -27,11 +24,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.http.MediaType
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.bean.override.mockito.MockitoBean
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import java.awt.image.BufferedImage
@@ -54,7 +48,7 @@ import javax.imageio.ImageIO
 @Import(DynastyGraduationApprovalIT.Adapters::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
-    @Autowired private lateinit var scheduler: Scheduler
+
     @Autowired private lateinit var properties: ApplicationProperties
     @MockitoBean lateinit var mail: MailService
 
@@ -182,9 +176,7 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
         }
     }
 
-    private fun approve(id: Long) = testMockMvc.perform(put("/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id")
-        .contentType(MediaType.APPLICATION_JSON).with(csrf())
-        .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null))))
+    private fun approve(id: Long) = approveGraduation(id)
 
     companion object {
         private val certificateImage = ByteArrayOutputStream().use { output ->
@@ -198,9 +190,7 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
     class Adapters {
         @Bean
         fun isolatedCache(customizer: org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer): javax.cache.CacheManager =
-            (javax.cache.Caching.getCachingProvider() as org.ehcache.jsr107.EhcacheCachingProvider).getCacheManager(
-                java.net.URI("urn:elsa:dynasty-graduation-it"), org.ehcache.core.config.DefaultConfiguration(javaClass.classLoader)
-            ).also(customizer::customize)
+            AsyncArchiveItSupport.isolatedArchiveCache("urn:elsa:dynasty-graduation-it", javaClass.classLoader, customizer)
 
         @Bean fun turku(): ArkistointiAdapter = adapter(YliopistoEnum.TURUN_YLIOPISTO)
         @Bean fun uef(): ArkistointiAdapter = adapter(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
