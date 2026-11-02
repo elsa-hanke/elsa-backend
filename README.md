@@ -713,11 +713,13 @@ psql -v ON_ERROR_STOP=1 -v job_id=<UUID> -f ops/arkistointi/retry-job.sql
 ```
 
 Skripti lukitsee ensin ajastusrivin ja sitten jobin. Vain pysäköity,
-`VAATII_TOIMENPITEITA`-tilassa oleva tehtävä voidaan palauttaa. Sama SQL-lause
+`VAATII_TOIMENPITEITA`-tilassa oleva tehtävä voidaan palauttaa. Sama transaktio
 palauttaa tilaksi `ODOTTAA`, nollaa schedulerin virhelaskurin ja kasvattaa version.
 UUID, payload ja asiakirjat säilyvät; aiempi jobin virhe säilyy diagnoosia varten
-seuraavaan tulokseen asti. Yksi palautettu rivi tarkoittaa onnistunutta uusintaa;
-nolla riviä tarkoittaa, ettei tehtävä ollut uusittavissa. Worker poimii tehtävän
+onnistumiseen tai seuraavaan virheeseen asti. Onnistunut transaktio palauttaa
+rivin ja `retry scheduled`-tuloksen. Puuttuva ajastusrivi tai job, aktiivinen tai
+pysäköimätön tehtävä ja väärä jobin tila aiheuttavat selkeän virheen;
+transaktion muutokset perutaan. Worker poimii tehtävän
 normaalissa pollingissa, kun kapasiteettia on. Erillistä API-kutsua ei tarvita.
 
 Skripti ei luo puuttuvaa ajastusriviä. Ennen tätä muutosta poistettujen rivien

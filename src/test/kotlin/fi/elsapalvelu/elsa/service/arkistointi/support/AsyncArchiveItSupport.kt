@@ -126,8 +126,10 @@ open class AsyncArchiveItSupport : ResourceIntegrationTestBase() {
 
     protected fun retryParkedJob(id: UUID) {
         val sql = Files.readString(Path.of("ops/arkistointi/retry-job.sql"))
-            .replace(":'job_id'", "?")
-        assertThat(transactions.execute { jdbc.queryForList(sql, id.toString()) }).hasSize(1)
+            .lineSequence().filterNot { it.startsWith("\\") || it == "BEGIN;" || it == "COMMIT;" }
+            .joinToString("\n").replace(":'job_id'", "'$id'")
+        transactions.executeWithoutResult { jdbc.execute(sql) }
+        assertThat(jobs.findById(id).orElseThrow().status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
     }
 
     protected fun graduationFixture(kind: String, universityType: YliopistoEnum, withCertificate: Boolean): Pair<Long, String> = transactions.execute { _ ->
