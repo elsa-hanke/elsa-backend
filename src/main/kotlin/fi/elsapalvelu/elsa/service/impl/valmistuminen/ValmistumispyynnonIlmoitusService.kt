@@ -13,8 +13,7 @@ import org.springframework.stereotype.Service
 @Service
 class ValmistumispyynnonIlmoitusService(
     private val transactionalMailService: TransactionalMailService,
-    private val applicationProperties: ApplicationProperties,
-    private val osapuoliService: ValmistumispyynnonOsapuoliService
+    private val applicationProperties: ApplicationProperties
 ) {
 
     fun lahetaIlmoitusUudestaValmistumispyynnosta(
@@ -48,28 +47,6 @@ class ValmistumispyynnonIlmoitusService(
                 "email.valmistumispyyntoTarkastettavissa.title"
             },
             properties = mapOf(MailProperty.ID to valmistumispyynto.id.required().toString())
-        )
-    }
-
-    fun lahetaIlmoitusHyvaksyjalle(valmistumispyynto: Valmistumispyynto) {
-        val yek = valmistumispyynto.isYek()
-        val opintooikeus = valmistumispyynto.opintooikeus.required()
-        transactionalMailService.sendEmailFromTemplate(
-            osapuoliService.haeHyvaksyja(
-                opintooikeus.yliopisto?.id.required(),
-                opintooikeus.erikoisala?.id.required()
-            ).user.required(),
-            templateName = if (yek) {
-                "valmistumispyyntoTarkastettavissaYek.html"
-            } else {
-                "valmistumispyyntoTarkastettavissaVastuuhenkilo.html"
-            },
-            titleKey = if (yek) {
-                "email.yekValmistumispyyntoTarkastettavissa.title"
-            } else {
-                "email.valmistumispyyntoTarkastettavissaVastuuhenkilo.title"
-            },
-            properties = mapOf(MailProperty.ID to valmistumispyynto.id.toString())
         )
     }
 
