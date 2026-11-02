@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.0...HEAD)
 
+- LAILLISTAMISTODISTUS -&gt; turku/uef dynasty arkistointi [`#805`](https://github.com/elsa-hanke/elsa-backend/pull/805)(2 November 2026)
 - Bump postcss-selector-parser from 6.0.8 to 6.1.5 in /frontend [`#804`](https://github.com/elsa-hanke/elsa-backend/pull/804)(30 October 2026)
 - Bump systeminformation from 5.31.17 to 5.33.19 in /e2e [`#803`](https://github.com/elsa-hanke/elsa-backend/pull/803)(30 October 2026)
 - Dynasty - Vaihe 3, task 3 — Helsingin Siilo-integraation liittäminen arkistointijonoon [`#800`](https://github.com/elsa-hanke/elsa-backend/pull/800)(30 October 2026)
