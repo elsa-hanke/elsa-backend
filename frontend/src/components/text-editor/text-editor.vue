@@ -68,6 +68,8 @@
 
     get init() {
       return {
+        // Self-hosted TinyMCE 8 requires an explicit GPL or commercial license key.
+        license_key: 'gpl',
         statusbar: false,
         height: 500,
         menubar: false,
