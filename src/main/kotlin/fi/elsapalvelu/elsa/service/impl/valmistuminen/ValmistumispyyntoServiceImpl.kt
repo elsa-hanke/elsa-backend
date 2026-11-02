@@ -375,9 +375,6 @@ class ValmistumispyyntoServiceImpl(
                     it.valmistumispyynto?.vastuuhenkiloHyvaksyjaKorjausehdotus = null
                     it.valmistumispyynto?.vastuuhenkiloHyvaksyjaPalautusaika = null
                     it.valmistumispyynto?.virkailijanKorjausehdotus = null
-                    ilmoitusService.lahetaIlmoitusHyvaksyjalle(
-                        it.valmistumispyynto.required()
-                    )
                 }
 
                 it.valmistumispyynto?.let { pyynto -> valmistumispyyntoRepository.save(pyynto) }
