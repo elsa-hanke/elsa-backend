@@ -12,7 +12,13 @@ class ArkistointiJobFailureHandler(
     private val state: ArkistointiJobStateService,
     private val policy: ArkistointiRetryPolicy
 ) : FailureHandler<Unit> {
-    override fun onFailure(completed: ExecutionComplete, operations: ExecutionOperations<Unit>) {
+    override fun onFailure(completed: ExecutionComplete, operations: ExecutionOperations<Unit>) =
+        handle(completed, operations, deadExecution = false)
+
+    fun onDeadExecution(completed: ExecutionComplete, operations: ExecutionOperations<Unit>) =
+        handle(completed, operations, deadExecution = true)
+
+    private fun handle(completed: ExecutionComplete, operations: ExecutionOperations<Unit>, deadExecution: Boolean) {
         val execution = completed.execution
         val identity = try {
             ArkistointiJobExecution(execution.taskInstance.taskName, execution.taskInstance.id, execution.version)
@@ -32,12 +38,10 @@ class ArkistointiJobFailureHandler(
         } else {
             lastError
         }
-        // If this commit fails, do not acknowledge the scheduler row. Dead-execution recovery retries it.
+        // If this commit fails, do not acknowledge the scheduler row. Dead-execution recovery reconciles or parks it.
         val retry = try {
-            state.fail(
-                identity, error,
-                stopRetrying = stopRetrying
-            )
+            if (deadExecution) state.recoverDeadExecution(identity, error, stopRetrying)
+            else state.fail(identity, error, stopRetrying)
         } catch (_: StaleArkistointiExecutionException) {
             return
         } catch (_: Exception) {

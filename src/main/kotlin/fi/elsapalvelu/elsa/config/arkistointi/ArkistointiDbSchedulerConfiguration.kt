@@ -49,7 +49,7 @@ class ArkistointiDbSchedulerConfiguration {
         }
         return object : OneTimeTask<Unit>(
             ARKISTOINTI_JOB_TASK.taskName, Unit::class.java, failureHandler,
-            { completed, operations -> failureHandler.onFailure(completed, operations) }
+            { completed, operations -> failureHandler.onDeadExecution(completed, operations) }
         ) {
             override fun executeOnce(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext) {
                 val execution = ArkistointiJobExecution(taskInstance.taskName, taskInstance.id, executionContext.execution.version)

@@ -200,8 +200,8 @@ class ArkistointiJobProcessingIT {
     }
 
     @ParameterizedTest
-    @CsvSource("PERMANENT,false", "INVALID_SUCCESS,false", "PERMANENT,true", "INVALID_SUCCESS,true")
-    fun `scheduler recovers failed terminal commit with the same key and bounded attempts`(result: String, exhaust: Boolean) {
+    @ValueSource(strings = ["PERMANENT", "INVALID_SUCCESS"])
+    fun `lost uncommitted outcome parks without attempting another delivery`(result: String) {
         val expectedCode = if (result == "PERMANENT") "OLD_ERROR" else "ARCHIVE_ADAPTER_RESPONSE_INVALID"
         val jobId = fixture()
         val originalExecution = execution(jobId)
@@ -209,7 +209,7 @@ class ArkistointiJobProcessingIT {
         val attemptCounters = CopyOnWriteArrayList<Int>()
         adapter.behavior = {
             attemptCounters.add(failures(jobId))
-            if (exhaust && adapter.submissions.size > 1) retryable() else lateResult(result)
+            lateResult(result)
         }
         val failedCommit = CountDownLatch(1)
         val failure = AtomicReference<Throwable>()
@@ -255,11 +255,11 @@ class ArkistointiJobProcessingIT {
         assertThat(recovered.single().cause).isEmpty()
         assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
         assertThat(jobs.findById(jobId).orElseThrow().errorCode)
-            .isEqualTo(if (exhaust) "ARCHIVE_RETRIES_EXHAUSTED" else expectedCode)
-        assertThat(attemptCounters).containsExactlyElementsOf(if (exhaust) listOf(0, 1, 2) else listOf(0, 1))
+            .isEqualTo("ARCHIVE_EXECUTION_LOST")
+        assertThat(attemptCounters).containsExactly(0)
         assertThat(adapter.submissions.map { it.key }).containsOnly(originalKey)
         assertThrows<StaleArkistointiExecutionException> { processor.process(originalExecution) }
-        assertThat(adapter.submissions).hasSize(if (exhaust) 3 else 2)
+        assertThat(adapter.submissions).hasSize(1)
     }
 
     private fun observingRecoveryTask(recovered: MutableList<ExecutionComplete>): OneTimeTask<Unit> =
@@ -357,9 +357,9 @@ class ArkistointiJobProcessingIT {
     }
 
     @Test
-    fun `dead execution resumes processing with the original idempotency key`() {
+    fun `dead execution before processing resumes with the original idempotency key`() {
         val jobId = fixture()
-        simulateCrash(jobId)
+        simulateCrash(jobId, processingStarted = false)
         val scheduler = scheduler()
         runUntil(scheduler) { assertThat(taskCount(jobId)).isZero() }
         assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.LAHETETTY)
@@ -452,7 +452,7 @@ class ArkistointiJobProcessingIT {
     @ValueSource(booleans = [false, true])
     fun `stale recovery handler cannot change a newer running or successful job`(afterSuccess: Boolean) {
         val jobId = fixture()
-        simulateCrash(jobId)
+        simulateCrash(jobId, processingStarted = false)
         val recovery = RecoveryGate()
         val deliveryEntered = CountDownLatch(1)
         val releaseDelivery = CountDownLatch(1)
@@ -562,7 +562,7 @@ class ArkistointiJobProcessingIT {
     @ParameterizedTest
     @CsvSource("PERMANENT,false", "SUCCESS,false", "INVALID_SUCCESS,false", "RETRYABLE,false", "EXCEPTION,false",
         "PERMANENT,true", "SUCCESS,true", "INVALID_SUCCESS,true", "RETRYABLE,true", "EXCEPTION,true")
-    fun `late adapter result cannot overwrite a newer execution`(result: String, afterSuccess: Boolean) {
+    fun `late adapter result cannot overwrite an explicitly replaced execution`(result: String, afterSuccess: Boolean) {
         val firstEntered = CountDownLatch(1)
         val secondEntered = CountDownLatch(1)
         val releaseFirst = CountDownLatch(1)
@@ -584,10 +584,12 @@ class ArkistointiJobProcessingIT {
         val first = scheduler(observedTask(versions), Duration.ofHours(1))
         try {
             assertThat(firstEntered.await(10, TimeUnit.SECONDS)).isTrue()
-            // Lose the heartbeat without stopping or interrupting the original adapter call.
+            // Isolate version fencing from dead-execution policy by explicitly replacing this test execution.
+            // Production heartbeat recovery now parks it instead of authorizing a concurrent send.
             transactions.executeWithoutResult {
-                jdbc.update("update scheduled_tasks set last_heartbeat = ? where task_instance = ?",
-                    java.sql.Timestamp.from(Instant.now().minusSeconds(60)), jobId.toString())
+                jobs.findById(jobId).orElseThrow().transitionTo(ArkistointiJobStatus.ODOTTAA)
+                jdbc.update("update scheduled_tasks set picked=false,picked_by=null,last_heartbeat=null,version=version+1 " +
+                    "where task_instance=?", jobId.toString())
             }
             val second = scheduler(observedTask(versions))
             runUntil(second) { assertThat(secondEntered.count).isZero() }
@@ -673,12 +675,12 @@ class ArkistointiJobProcessingIT {
                     if (recovered.getAndIncrement() == 0) {
                         // Both schedulers must read the same dead execution before either reschedules it.
                         check(secondDetected.await(10, TimeUnit.SECONDS))
-                        handler.onFailure(completed, operations)
+                        handler.onDeadExecution(completed, operations)
                     } else {
                         secondDetected.countDown()
                         try {
                             check(releaseStale.await(10, TimeUnit.SECONDS))
-                            handler.onFailure(completed, operations)
+                            handler.onDeadExecution(completed, operations)
                         } catch (exception: Throwable) {
                             staleError.set(exception)
                         } finally {
@@ -704,9 +706,9 @@ class ArkistointiJobProcessingIT {
         assertThat(jobs.findById(jobId).orElseThrow().errorCode).isEqualTo(errorCode)
     }
 
-    private fun simulateCrash(jobId: UUID, completed: Boolean = false) {
+    private fun simulateCrash(jobId: UUID, completed: Boolean = false, processingStarted: Boolean = true) {
         transactions.executeWithoutResult {
-            if (!completed) jobs.findById(jobId).orElseThrow().transitionTo(ArkistointiJobStatus.KASITTELYSSA)
+            if (!completed && processingStarted) jobs.findById(jobId).orElseThrow().transitionTo(ArkistointiJobStatus.KASITTELYSSA)
             jdbc.update("update scheduled_tasks set picked = true, picked_by = 'dead-process', last_heartbeat = ? " +
                 "where task_instance = ?", java.sql.Timestamp.from(Instant.now().minusSeconds(60)), jobId.toString())
         }

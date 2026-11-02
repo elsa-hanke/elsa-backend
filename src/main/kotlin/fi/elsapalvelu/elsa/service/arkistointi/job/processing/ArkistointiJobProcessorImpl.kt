@@ -59,7 +59,7 @@ class ArkistointiJobProcessorImpl(
             prepared.jobId, prepared.university, prepared.caseType, prepared.payload,
             prepared.asiakirjat.map(loader::load), execution
         )
-        // This narrows the stale-send window; adapters must still deduplicate concurrent deliveries.
+        // This narrows the stale-send window. Lost active executions are parked: an in-flight send cannot be cancelled by fencing.
         if (!state.checkBeforeSend(execution)) return
         when (val result = adapter.arkistoi(submission)) {
             is ArkistointiResult.Success -> {

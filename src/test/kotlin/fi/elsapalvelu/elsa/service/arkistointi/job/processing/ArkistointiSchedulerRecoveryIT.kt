@@ -177,6 +177,53 @@ class ArkistointiSchedulerRecoveryIT {
         verify(loader, times(1)).load(any())
     }
 
+    @ParameterizedTest
+    @CsvSource("false,SUCCESS", "true,SUCCESS", "true,RETRYABLE", "true,PERMANENT", "true,EXCEPTION")
+    fun `lost heartbeat parks live execution and late result cannot resume delivery`(insideAdapter: Boolean, lateResult: String) {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        if (insideAdapter) {
+            adapter.behavior = {
+                entered.countDown()
+                check(release.await(30, TimeUnit.SECONDS))
+                when (lateResult) {
+                    "SUCCESS" -> ArkistointiResult.Success("late-id")
+                    "RETRYABLE" -> ArkistointiResult.RetryableFailure(ArkistointiError.create("LATE_RETRY", "Viivastynyt"))
+                    "PERMANENT" -> ArkistointiResult.PermanentFailure(ArkistointiError.create("LATE_REJECTED", "Hylatty"))
+                    else -> error("private late failure")
+                }
+            }
+        } else {
+            doAnswer { invocation ->
+                entered.countDown()
+                check(release.await(30, TimeUnit.SECONDS))
+                invocation.callRealMethod()
+            }.`when`(loader).load(any())
+        }
+        val jobId = fixture()
+        // First worker stays alive but sends no further heartbeats during this test.
+        val first = scheduler(heartbeat = Duration.ofHours(1))
+        try {
+            first.triggerCheckForDueExecutions()
+            assertThat(entered.await(10, TimeUnit.SECONDS)).isTrue()
+            val recovery = scheduler()
+            runUntil(recovery) { assertParked(jobId) }
+            val parked = jobState(jobId)
+            assertThat(jobs.findById(jobId).orElseThrow().errorCode).isEqualTo("ARCHIVE_EXECUTION_LOST")
+            assertThat(first.currentlyExecuting).isNotEmpty()
+            await().during(Duration.ofMillis(500)).atMost(Duration.ofSeconds(3)).untilAsserted {
+                recovery.triggerCheckForDueExecutions()
+                assertThat(adapter.submissions).hasSize(if (insideAdapter) 1 else 0)
+            }
+            release.countDown()
+            await().atMost(Duration.ofSeconds(10)).until { first.currentlyExecuting.isEmpty() }
+            runUntil(recovery) { assertParked(jobId) }
+            assertThat(jobState(jobId)).isEqualTo(parked)
+            assertThat(adapter.submissions).hasSize(if (insideAdapter) 1 else 0)
+            assertThat(jobs.findById(jobId).orElseThrow().externalId).isNull()
+        } finally { release.countDown() }
+    }
+
     @Test
     fun `independent operations with identical payloads deliver distinct persisted UUIDs`() {
         val firstId = fixture()
@@ -365,7 +412,7 @@ class ArkistointiSchedulerRecoveryIT {
     }
 
     private fun capturingTask(captured: AtomicReference<com.github.kagkarlsson.scheduler.task.Execution>): OneTimeTask<Unit> =
-        object : OneTimeTask<Unit>(ARKISTOINTI_JOB_TASK.taskName, Unit::class.java, failureHandler) {
+        object : OneTimeTask<Unit>(ARKISTOINTI_JOB_TASK.taskName, Unit::class.java, failureHandler, task.deadExecutionHandler) {
             override fun executeOnce(instance: com.github.kagkarlsson.scheduler.task.TaskInstance<Unit>,
                 context: com.github.kagkarlsson.scheduler.task.ExecutionContext) = task.executeOnce(instance, context)
 
@@ -414,13 +461,13 @@ class ArkistointiSchedulerRecoveryIT {
         )).id!!
     }
 
-    private fun scheduler(knownTask: OneTimeTask<Unit> = task): Scheduler {
+    private fun scheduler(knownTask: OneTimeTask<Unit> = task, heartbeat: Duration = Duration.ofSeconds(1)): Scheduler {
         val autoCommitDataSource = object : DelegatingDataSource(dataSource) {
             override fun getConnection(): Connection = super.getConnection().apply { autoCommit = true }
         }
         return Scheduler.create(autoCommitDataSource, knownTask)
             .schedulerName(SchedulerName.Fixed("archive-recovery-it-${UUID.randomUUID()}"))
-            .threads(1).pollingInterval(Duration.ofHours(1)).heartbeatInterval(Duration.ofSeconds(1))
+            .threads(1).pollingInterval(Duration.ofHours(1)).heartbeatInterval(heartbeat)
             .missedHeartbeatsLimit(4).shutdownMaxWait(Duration.ofSeconds(3)).build()
             .also { schedulers.add(it); it.start() }
     }
@@ -465,7 +512,7 @@ class ArkistointiSchedulerRecoveryIT {
                     versions.add(completed.execution.version)
                     try {
                         if (index == 1) check(firstPrepared.await(10, TimeUnit.SECONDS))
-                        handler.onFailure(completed, gatedOperations(operations, index))
+                        handler.onDeadExecution(completed, gatedOperations(operations, index))
                     } catch (exception: Throwable) {
                         (if (index == 0) firstError else secondError).set(exception)
                     } finally {

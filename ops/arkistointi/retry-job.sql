@@ -1,4 +1,5 @@
 -- psql -v ON_ERROR_STOP=1 -v job_id=<UUID> -f ops/arkistointi/retry-job.sql
+-- For ARCHIVE_EXECUTION_LOST, stop/drain the old sender and reconcile remote receipt before retrying.
 -- Only parked tasks are eligible. Never recreate a missing scheduler row here.
 WITH input AS MATERIALIZED (
     SELECT :'job_id'::uuid AS id

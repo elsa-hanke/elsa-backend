@@ -528,7 +528,7 @@ kaksi handleria voivat ehtiä tallentaa tilan ennen ajastuksen päivitystä.
 Ajastuksen päivityksessä kirjaston oma versiotarkistus sallii vain yhden onnistua;
 hävinnyt operaatio ei muuta uudempaa aikataulua tai kasvata laskuria uudelleen.
 
-Toimitus on at-least-once: jos ulkoinen arkisto hyväksyy aineiston mutta paikallinen onnistumisen tallennus keskeytyy, adapteria voidaan kutsua uudelleen samalla `ArkistointiSubmission.key`-avaimella. Adapterin ja vastaanottavan järjestelmän on estettävä kaksoistoimitus tällä avaimella atomisesti myös samanaikaisissa pyynnöissä: palautettavaksi tulkittu vanha suoritus voi edelleen olla verkkokutsussa uuden alkaessa. Pelkkä olemassaolon tarkistus ennen luontia ei riitä. Pelkkä db-scheduler ei takaa exactly-once-toimitusta. Adapterin virhekoodit ja kuvaukset eivät saa sisältää henkilötietoja, tiedostonimiä, tunnuksia tai HTTP-vastausten sisältöä.
+Toimitus on at-least-once: jos ulkoinen arkisto hyväksyy aineiston mutta paikallinen onnistumisen tallennus keskeytyy, adapteria voidaan kutsua uudelleen samalla `ArkistointiSubmission.key`-avaimella. Adapterin ja vastaanottavan järjestelmän on estettävä kaksoistoimitus tällä avaimella atomisesti myös samanaikaisissa pyynnöissä: heartbeat-katkossa vanha suoritus voi edelleen olla verkkokutsussa, joten aktiivinen job pysäköidään automaattisen uusinnan sijaan. Pelkkä olemassaolon tarkistus ennen luontia ei riitä. Pelkkä db-scheduler ei takaa exactly-once-toimitusta. Adapterin virhekoodit ja kuvaukset eivät saa sisältää henkilötietoja, tiedostonimiä, tunnuksia tai HTTP-vastausten sisältöä.
 
 Processor saa käynnistyksessä muuttumattoman suoritustunnisteen (`task_name`, `task_instance`, `version`). Sekä aloitus, onnistuminen että kaikki virhe- ja palautuskäsittelijän tilamuutokset lukitsevat ensin vastaavan poimitun `scheduled_tasks`-rivin ja sitten job-rivin samassa transaktiossa. Vanhentunut suoritus ei muuta jobia eikä uudempaa ajastusta; ennen lähetystä havaittu vanhentunut suoritus ei kutsu adapteria. Processorissa havaittu vanhentuminen päättyy ilman scheduler-rivin kuittausta, ja normaalissa kuittauksessa db-scheduler tarkistaa edelleen version. Lukitukset vapautuvat ennen verkkokutsua ja ennen db-schedulerin reschedule/remove-toimintoa. Versiotarkistus ei peruuta jo alkanutta ulkoista pyyntöä. Manuaalinen uusinta säilyttää pysäköidyn ajastusrivin ja kasvattaa sen versiota; riviä ei luoda uudelleen.
 
@@ -667,6 +667,29 @@ PDF tallennetaan samaan transaktioon jobin ja ajastuksen kanssa.
 päätöksen ja oikean db-schedulerin suorituksen testiadapteriin asti sekä rollbackin.
 Tämä ei vielä sisällä Dynasty-lähetystä: oikeat adapterit ja arkiston metatiedot
 toteutetaan integraatiotehtävissä. Koulutussopimuksen asetuksia ei muuteta.
+
+### Missing heartbeat during archive delivery
+
+A missing heartbeat does not mean that the old worker or its external request has stopped.
+The dedicated dead-execution handler uses the persisted job state under the scheduler/job locks:
+
+- `ODOTTAA`: no processing has started, or a retryable failure was already committed; bounded automatic recovery is allowed.
+- `KASITTELYSSA`: delivery may be in flight. Park at `Schedule.NEVER` with `ARCHIVE_EXECUTION_LOST`;
+  never start a second delivery automatically. This also conservatively parks a crash during document loading,
+  because this state does not distinguish loading from sending.
+- `LAHETETTY`: preserve success and remove the scheduler task without sending again.
+- `VAATII_TOIMENPITEITA`: preserve the existing error and park without sending again.
+
+| Transport | Recovery after `ARCHIVE_EXECUTION_LOST` |
+| --- | --- |
+| Helsinki / Siilo | Stop/drain the old worker, then reconcile receipt with Siilo before retrying. No receiver deduplication is assumed. |
+| Tampere / Louhi | Stop/drain the old worker, then reconcile the SFTP transfer and downstream receipt before retrying. File presence alone does not prove downstream processing. |
+| Turku / Dynasty | Stop/drain the old worker, reconcile unfinished ledger steps in Dynasty, and use `dynasty-resolve-step.sql` where needed. Completed steps remain reusable. |
+
+Only retry the same job after establishing that replay is safe. If Siilo/Louhi already accepted it,
+do not resend: reconcile the local outcome separately. A late response from the lost worker cannot
+replace the parked job outcome; Dynasty may still record a confirmed remote ID in the original ledger step.
+This policy applies to dead executions; normal, classified adapter failures retain their existing retry policy.
 
 ### Toimenpiteitä vaativan arkistoinnin uusinta
 

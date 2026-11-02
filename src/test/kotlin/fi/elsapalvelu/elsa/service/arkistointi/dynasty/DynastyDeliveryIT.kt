@@ -42,6 +42,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @SpringBootTest(classes = [ElsaBackendApp::class], properties = [
  "spring.datasource.url=jdbc:tc:postgresql:16.9:///dynastyDelivery?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true",
  "application.arkistointi.turku.kaytossa=true",
+ "db-scheduler.heartbeat-interval=1h",
  "application.arkistointi.turku.metadata.cases.koejakso.async-enabled=true",
  "application.arkistointi.turku.metadata.cases.koejakso.documents.arviointi.retention-period=-1",
  "application.arkistointi.turku.dynasty.client-id=test",
@@ -66,6 +67,8 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
 
  @Autowired private lateinit var properties: fi.elsapalvelu.elsa.config.ApplicationProperties
  @Autowired private lateinit var client: DynastyClient
+ @Autowired private lateinit var task: com.github.kagkarlsson.scheduler.task.helper.OneTimeTask<Unit>
+ @Autowired private lateinit var dataSource: javax.sql.DataSource
  @MockitoSpyBean private lateinit var processor: ArkistointiJobProcessorImpl
  @MockitoBean lateinit var mail: MailService
     private lateinit var schedulerControl: ArchiveSchedulerTestControl
@@ -146,7 +149,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         assertThat(server.requestCount).isEqualTo(before)
         assertThat(jdbc.queryForObject("select status from arkistointi_dynasty_step where job_id=? and step_key='CASE'", String::class.java, job.id)).isEqualTo("ALOITETTU")
     }
-    @Test fun `late response records original case but stale worker cannot start task`() {
+    @Test fun `lost heartbeat during HTTP send parks job and late case response is recorded without another step`() {
         val job = job()
         val entered = java.util.concurrent.CountDownLatch(1)
         val release = java.util.concurrent.CountDownLatch(1)
@@ -155,16 +158,30 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 if (request.path == "/token") return MockResponse().setBody(TOKEN_RESPONSE)
                 entered.countDown()
-                check(release.await(20, TimeUnit.SECONDS))
+                check(release.await(30, TimeUnit.SECONDS))
                 return MockResponse().setBody("415")
             }
         }
+        val recoveryDataSource = object : org.springframework.jdbc.datasource.DelegatingDataSource(dataSource) {
+            override fun getConnection(): java.sql.Connection = super.getConnection().apply { autoCommit = true }
+        }
+        val recovery = com.github.kagkarlsson.scheduler.Scheduler.create(recoveryDataSource, task)
+            .schedulerName(com.github.kagkarlsson.scheduler.SchedulerName.Fixed("dynasty-recovery-it"))
+            .threads(1).pollingInterval(Duration.ofHours(1)).heartbeatInterval(Duration.ofSeconds(1))
+            .missedHeartbeatsLimit(4).shutdownMaxWait(Duration.ofSeconds(3)).build()
         try {
             startAttempt()
             assertThat(entered.await(20, TimeUnit.SECONDS)).isTrue()
             val version = jdbc.queryForObject("select version from scheduled_tasks where task_instance=?", Long::class.javaObjectType, job.id.toString())!!
-            // Model ownership replacement while the old HTTP request is still running.
-            transactions.executeWithoutResult { jdbc.update("update scheduled_tasks set version=version+1 where task_instance=?",job.id.toString()) }
+            // A second real scheduler detects the missing heartbeat while the HTTP request remains blocked.
+            recovery.start()
+            await().atMost(Duration.ofSeconds(15)).untilAsserted {
+                val stored = jobs.findById(job.id!!).orElseThrow()
+                assertThat(stored.status).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
+                assertThat(stored.errorCode).isEqualTo("ARCHIVE_EXECUTION_LOST")
+                assertThat(jdbc.queryForObject("select picked from scheduled_tasks where task_instance=?",
+                    Boolean::class.javaObjectType, job.id.toString())).isFalse()
+            }
             assertThat(jdbc.queryForObject("select execution_version from arkistointi_dynasty_step where job_id=? and step_key='CASE'",Long::class.javaObjectType,job.id))
                 .isEqualTo(version)
             release.countDown()
@@ -177,7 +194,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
             assertThat(jdbc.queryForObject("select count(*) from arkistointi_dynasty_step where job_id=? and step_key='TASK'",Int::class.javaObjectType,job.id)).isZero()
         } finally {
             release.countDown()
-            transactions.executeWithoutResult { jdbc.update("update scheduled_tasks set picked=false where task_instance=?",job.id.toString()) }
+            recovery.stop()
         }
     }
     private fun approveKoejakso(type: CaseType): Long {

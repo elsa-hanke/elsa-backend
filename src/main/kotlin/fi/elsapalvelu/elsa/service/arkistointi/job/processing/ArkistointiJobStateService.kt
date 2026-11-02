@@ -82,13 +82,27 @@ class ArkistointiJobStateService(
     }
 
     /** Returns false once no further automatic execution is needed. */
-    fun fail(execution: ArkistointiJobExecution, error: ArkistointiError, stopRetrying: Boolean): Boolean {
+    fun fail(execution: ArkistointiJobExecution, error: ArkistointiError, stopRetrying: Boolean): Boolean =
+        failExecution(execution, error, stopRetrying, deadExecution = false)
+
+    /** A missing heartbeat does not prove that the old sender has stopped. */
+    fun recoverDeadExecution(execution: ArkistointiJobExecution, error: ArkistointiError, stopRetrying: Boolean): Boolean =
+        failExecution(execution, error, stopRetrying, deadExecution = true)
+
+    private fun failExecution(
+        execution: ArkistointiJobExecution, error: ArkistointiError, stopRetrying: Boolean, deadExecution: Boolean
+    ): Boolean {
         val attempt = executionLock.lock(execution)
         val job = jobs.findByIdForStateChange(execution.jobId) ?: return false
         if (job.isFinished()) return false
-        val retry = recordFailure(job, error, stopRetrying)
-        publishOutcome(job, attempt, if (stopRetrying) ArkistointiAttemptCompleted.Outcome.TERMINAL_FAILURE
-            else ArkistointiAttemptCompleted.Outcome.RETRYABLE_FAILURE, error.code)
+        val unknownDelivery = deadExecution && job.status == ArkistointiJobStatus.KASITTELYSSA
+        val recordedError = if (unknownDelivery) ArkistointiError.create(
+            "ARCHIVE_EXECUTION_LOST", "Arkistoinnin suorituksen yhteys katkesi; toimitus on tarkistettava ennen uusintaa"
+        ) else error
+        val terminal = stopRetrying || unknownDelivery
+        val retry = recordFailure(job, recordedError, terminal)
+        publishOutcome(job, attempt, if (terminal) ArkistointiAttemptCompleted.Outcome.TERMINAL_FAILURE
+            else ArkistointiAttemptCompleted.Outcome.RETRYABLE_FAILURE, recordedError.code)
         return retry
     }
 
