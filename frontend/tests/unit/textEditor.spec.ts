@@ -37,6 +37,12 @@ function parent(restricted = true, value: string | null = dirty) {
   )
 }
 
+it.each([false, true])('configures the self-hosted GPL license (restricted: %s)', (restricted) => {
+  const wrapper = parent(restricted)
+  expect(wrapper.findComponent(EditorStub).props('init')).toHaveProperty('license_key', 'gpl')
+  wrapper.destroy()
+})
+
 it('cleans initial, asynchronous and reset values without changing the parent model', async () => {
   const wrapper = parent()
   const editor = wrapper.findComponent(EditorStub)
