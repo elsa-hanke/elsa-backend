@@ -51,6 +51,16 @@ class ArkistointiDbSchedulerConfigurationTest {
     }
 
     @Test
+    fun `intervention completion parks instead of removing the scheduler task`() {
+        doThrow(fi.elsapalvelu.elsa.service.arkistointi.job.processing.ParkArkistointiExecutionException())
+            .whenever(processor).process(identity)
+        val completed = ExecutionComplete.success(execution, now, now)
+        task.execute(instance, context).complete(completed, operations)
+        verify(operations).reschedule(completed, com.github.kagkarlsson.scheduler.task.schedule.Schedule.NEVER)
+        org.mockito.kotlin.verify(operations, org.mockito.kotlin.never()).stop()
+    }
+
+    @Test
     fun `stale processor completion never acknowledges or reschedules a task`() {
         doThrow(StaleArkistointiExecutionException()).whenever(processor).process(identity)
         task.execute(instance, context).complete(ExecutionComplete.success(execution, now, now), operations)

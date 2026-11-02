@@ -512,7 +512,7 @@ for (const degree of ['EL', 'EHL', 'YEK'] as const) {
             university,
             caseId: original.id,
             caseType: 'VALMISTUMINEN',
-            types: yek ? ['YHTEENVETO', 'LIITE'] : ['YHTEENVETO'],
+            types: yek ? ['YHTEENVETO', 'LIITE', 'LAILLISTAMISTODISTUS'] : ['YHTEENVETO'],
             metadata: {
               valmistumispyyntoId: original.id,
               opintooikeusId: original.opintooikeusId,

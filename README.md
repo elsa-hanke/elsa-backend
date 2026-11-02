@@ -530,7 +530,7 @@ hävinnyt operaatio ei muuta uudempaa aikataulua tai kasvata laskuria uudelleen.
 
 Toimitus on at-least-once: jos ulkoinen arkisto hyväksyy aineiston mutta paikallinen onnistumisen tallennus keskeytyy, adapteria voidaan kutsua uudelleen samalla `ArkistointiSubmission.key`-avaimella. Adapterin ja vastaanottavan järjestelmän on estettävä kaksoistoimitus tällä avaimella atomisesti myös samanaikaisissa pyynnöissä: palautettavaksi tulkittu vanha suoritus voi edelleen olla verkkokutsussa uuden alkaessa. Pelkkä olemassaolon tarkistus ennen luontia ei riitä. Pelkkä db-scheduler ei takaa exactly-once-toimitusta. Adapterin virhekoodit ja kuvaukset eivät saa sisältää henkilötietoja, tiedostonimiä, tunnuksia tai HTTP-vastausten sisältöä.
 
-Processor saa käynnistyksessä muuttumattoman suoritustunnisteen (`task_name`, `task_instance`, `version`). Sekä aloitus, onnistuminen että kaikki virhe- ja palautuskäsittelijän tilamuutokset lukitsevat ensin vastaavan poimitun `scheduled_tasks`-rivin ja sitten job-rivin samassa transaktiossa. Vanhentunut suoritus ei muuta jobia eikä uudempaa ajastusta; ennen lähetystä havaittu vanhentunut suoritus ei kutsu adapteria. Processorissa havaittu vanhentuminen päättyy ilman scheduler-rivin kuittausta, ja normaalissa kuittauksessa db-scheduler tarkistaa edelleen version. Lukitukset vapautuvat ennen verkkokutsua ja ennen db-schedulerin reschedule/remove-toimintoa. Versiotarkistus ei peruuta jo alkanutta ulkoista pyyntöä. Manuaalisessa uusinnassa on huomioitava erikseen suorituksen identiteetti: samaan task-instanssiin poiston jälkeen luotavan rivin version ei oleteta kasvavan edellisestä.
+Processor saa käynnistyksessä muuttumattoman suoritustunnisteen (`task_name`, `task_instance`, `version`). Sekä aloitus, onnistuminen että kaikki virhe- ja palautuskäsittelijän tilamuutokset lukitsevat ensin vastaavan poimitun `scheduled_tasks`-rivin ja sitten job-rivin samassa transaktiossa. Vanhentunut suoritus ei muuta jobia eikä uudempaa ajastusta; ennen lähetystä havaittu vanhentunut suoritus ei kutsu adapteria. Processorissa havaittu vanhentuminen päättyy ilman scheduler-rivin kuittausta, ja normaalissa kuittauksessa db-scheduler tarkistaa edelleen version. Lukitukset vapautuvat ennen verkkokutsua ja ennen db-schedulerin reschedule/remove-toimintoa. Versiotarkistus ei peruuta jo alkanutta ulkoista pyyntöä. Manuaalinen uusinta säilyttää pysäköidyn ajastusrivin ja kasvattaa sen versiota; riviä ei luoda uudelleen.
 
 Adapterin `Success.externalId` on joko `null` tai ei-tyhjä, kelvollinen Unicode-merkkijono,
 jonka pituus on enintään 255 UTF-16-koodiyksikköä (sama mitta kuin entiteetin
@@ -639,3 +639,64 @@ sekä ajastusrivin poistumisen. Lisäksi tarkistetaan yksi job, tallennettu payl
 asiakirjojen manifesti, alkuperäiset tunnisteet ja snapshotien tarkistussummat.
 Oikea processor ja JDBC-loader suoritetaan; ulkoista lähetystä ei tehdä.
 Siilo/Louhi-protokollan ja ZIP/XML-sisällön tarkistukset kuuluvat IT-testeihin.
+
+### Turun ja Itä-Suomen valmistumisasiakirjat
+
+Turun ja Itä-Suomen async-valmistumisen hyväksyntä kokoaa EL-, EHL- ja
+YEK-tapauksissa yhteenvedon, liitteet ja laillistamistodistuksen. Todistus
+kopioidaan hyväksymishetken tiedostosta alkuperäisine tavuineen ja metatietoineen.
+Sille luodaan oma Asiakirja ja muuttumaton snapshot; payloadin lähdetunniste on
+Asiakirjan tunniste, ei AsiakirjaData-tunniste. Puuttuva tai tyhjä todistus tai
+puutteelliset tiedostometatiedot peruuttavat async-hyväksymistransaktion.
+
+Molemmat integraatiot ja async ovat oletuksena pois käytöstä. Tyhjät
+retention-period-arvot ovat sitoutumisen mahdollistavia paikkamerkkejä,
+eivät sovittuja säilytysaikoja. Dynasty-kohtaiset metatiedot, asiakas ja adapterit
+sekä vastaanottajan tiedostorajat toteutetaan integraatiotehtävissä.
+Koulutussopimuksen arkistointipäätöstä ei muuteta tässä tehtävässä.
+
+### Turun ja Itä-Suomen koejakson arvio
+
+Molemmille yliopistoille on määritelty oletuksena pois käytöstä oleva
+`KOEJAKSO`-async-polku, jonka asiakirjatyyppi on `ARVIOINTI`.
+Vastuuhenkilön lopullinen päätös arkistoidaan myös silloin, kun koejakso hylätään.
+Korjattavaksi palauttaminen ei luo arkistointijobia. Päätös ja hyväksymishetken
+PDF tallennetaan samaan transaktioon jobin ja ajastuksen kanssa.
+
+`DynastyKoejaksoApprovalIT` tarkistaa HTTP-käsittelyn, snapshotin, tallennetun
+päätöksen ja oikean db-schedulerin suorituksen testiadapteriin asti sekä rollbackin.
+Tämä ei vielä sisällä Dynasty-lähetystä: oikeat adapterit ja arkiston metatiedot
+toteutetaan integraatiotehtävissä. Koulutussopimuksen asetuksia ei muuteta.
+
+### Toimenpiteitä vaativan arkistoinnin uusinta
+
+`VAATII_TOIMENPITEITA` säilyttää ajastusrivin db-schedulerin `Schedule.NEVER`-ajassa
+(2500-01-01 klo 12 UTC). Onnistuneen toimituksen ajastusrivi poistetaan.
+Myös tilan tallennuksen ja ajastuksen päivityksen välisestä katkosta palautuva
+suoritus säilyttää epäonnistuneen tehtävän lähettämättä sitä uudelleen.
+
+Tekninen ylläpito voi korjata virheen syyn ja suorittaa
+[retry-job.sql](ops/arkistointi/retry-job.sql)-skriptin psql:llä:
+
+```sh
+psql -v ON_ERROR_STOP=1 -v job_id=<UUID> -f ops/arkistointi/retry-job.sql
+```
+
+Skripti lukitsee ensin ajastusrivin ja sitten jobin. Vain pysäköity,
+`VAATII_TOIMENPITEITA`-tilassa oleva tehtävä voidaan palauttaa. Sama SQL-lause
+palauttaa tilaksi `ODOTTAA`, nollaa schedulerin virhelaskurin ja kasvattaa version.
+UUID, payload ja asiakirjat säilyvät; aiempi jobin virhe säilyy diagnoosia varten
+seuraavaan tulokseen asti. Yksi palautettu rivi tarkoittaa onnistunutta uusintaa;
+nolla riviä tarkoittaa, ettei tehtävä ollut uusittavissa. Worker poimii tehtävän
+normaalissa pollingissa, kun kapasiteettia on. Erillistä API-kutsua ei tarvita.
+
+Skripti ei luo puuttuvaa ajastusriviä. Ennen tätä muutosta poistettujen rivien
+palautus vaatii erikseen suunnitellun menettelyn. Ajastusriviä ei saa poistaa ja
+luoda uudelleen samalla tunnisteella: version alkaminen alusta heikentäisi suojaa
+vanhaa suoritusta vastaan. Skripti on sidottu db-scheduler 16.12.0:n skeemaan;
+päivityksessä sen yhteensopivuus on tarkistettava IT-testillä.
+
+Ennen uusintaa selvitä, onko arkisto jo vastaanottanut epävarmaksi jääneen
+lähetyksen. Sama UUID säilyy, mutta vastaanottajan deduplikointi ratkaisee,
+voiko uusinta tuottaa kaksoistoimituksen. Älä muuta immutable payloadia tai
+snapshotteja palautuksen yhteydessä. Yliopiston pääkäyttäjärooli ei hallitse uusintaa.
