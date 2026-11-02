@@ -21,6 +21,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirja
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaLoader
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
+import fi.elsapalvelu.elsa.service.arkistointi.support.ArchiveRetryTestSupport
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.pdf.PdfTestData
@@ -39,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import javax.sql.DataSource
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -323,12 +325,12 @@ class ArkistointiSchedulerRecoveryIT {
         worker.stop()
         val parkedVersion = (schedulerState(jobId)["version"] as Number).toLong()
         val old = ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, jobId.toString(), parkedVersion - 1)
-        val sql = java.nio.file.Files.readString(java.nio.file.Path.of("ops/arkistointi/retry-job.sql"))
-            .replace(":'job_id'", "?")
-        val rows = transactions.execute { jdbc.queryForList(sql, jobId.toString()) }
-        assertThat(rows).hasSize(1)
-        assertThat((rows.single()["version"] as Number).toLong()).isGreaterThan(parkedVersion)
-        assertThat(transactions.execute { jdbc.queryForList(sql, jobId.toString()) }).isEmpty()
+        ArchiveRetryTestSupport.retry(jdbc, transactions, jobId)
+        val restartedSchedule = schedulerState(jobId)
+        assertThat((restartedSchedule["version"] as Number).toLong()).isGreaterThan(parkedVersion)
+        assertThatThrownBy { ArchiveRetryTestSupport.retry(jdbc, transactions, jobId) }
+            .rootCause().hasMessageContaining("scheduler task is not parked")
+        assertThat(schedulerState(jobId)).isEqualTo(restartedSchedule)
         assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
         assertThat(schedulerState(jobId)["consecutive_failures"]).isEqualTo(0)
         org.junit.jupiter.api.assertThrows<StaleArkistointiExecutionException> {
@@ -380,9 +382,7 @@ class ArkistointiSchedulerRecoveryIT {
             releaseRecovery.countDown()
             recovery.get(10, TimeUnit.SECONDS)
             worker.stop()
-            val sql = java.nio.file.Files.readString(java.nio.file.Path.of("ops/arkistointi/retry-job.sql"))
-                .replace(":'job_id'", "?")
-            assertThat(transactions.execute { jdbc.queryForList(sql, jobId.toString()) }).hasSize(1)
+            ArchiveRetryTestSupport.retry(jdbc, transactions, jobId)
             adapter.behavior = { ArkistointiResult.Success("recovered") }
             val resumed = scheduler()
             runUntil(resumed) { assertThat(taskCount(jobId)).isZero() }

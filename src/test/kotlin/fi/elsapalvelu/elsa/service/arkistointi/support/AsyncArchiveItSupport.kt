@@ -39,8 +39,6 @@ import fi.elsapalvelu.elsa.web.rest.helpers.ValmistumispyyntoHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
 import java.io.ByteArrayInputStream
 import java.net.URI
-import java.nio.file.Files
-import java.nio.file.Path
 import java.sql.Timestamp
 import java.time.Duration
 import java.time.LocalDate
@@ -125,10 +123,7 @@ open class AsyncArchiveItSupport : ResourceIntegrationTestBase() {
     }
 
     protected fun retryParkedJob(id: UUID) {
-        val sql = Files.readString(Path.of("ops/arkistointi/retry-job.sql"))
-            .lineSequence().filterNot { it.startsWith("\\") || it == "BEGIN;" || it == "COMMIT;" }
-            .joinToString("\n").replace(":'job_id'", "'$id'")
-        transactions.executeWithoutResult { jdbc.execute(sql) }
+        ArchiveRetryTestSupport.retry(jdbc, transactions, id)
         assertThat(jobs.findById(id).orElseThrow().status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
     }
 
