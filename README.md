@@ -696,7 +696,21 @@ The dedicated dead-execution handler uses the persisted job state under the sche
 Only retry the same job after establishing that replay is safe. If Siilo/Louhi already accepted it,
 do not resend: reconcile the local outcome separately. A late response from the lost worker cannot
 replace the parked job outcome; Dynasty may still record a confirmed remote ID in the original ledger step.
-This policy applies to dead executions; normal, classified adapter failures retain their existing retry policy.
+Normal failures use transport-specific rules, not a shared network retry classifier:
+
+| Transport / stage | Automatic retry |
+| --- | --- |
+| Siilo async, I/O failure before HTTP request headers start | Allowed for transient connection failures; TLS errors require intervention. |
+| Siilo async, I/O failure after request headers start | Not allowed (`SIILO_DELIVERY_UNCONFIRMED`); reconcile receipt first. |
+| Siilo async, received HTTP error | Existing status policy applies (408/425/429/5xx retryable). This assumes those receiver responses permit replay; it is not proof of receiver deduplication. |
+| Louhi, CONNECT/LIST/WRITE | Existing SFTP failure/status classification; transient failures before publication may retry. |
+| Louhi, RENAME | Unknown outcome requires intervention; explicit SFTP refusals retain their specific classification. |
+| Dynasty, token request | Failure cannot have created an archive object; transient authentication-service failures may retry. |
+| Dynasty, mutation POST | DNS/connect failures before connection may retry; unknown delivery outcomes park with the unfinished ledger step. |
+
+These rules do not change the synchronous Siilo flow. A received HTTP status and an I/O failure
+without a response are separate outcomes; changing a receiver's HTTP-status retry contract requires
+receiver-specific evidence.
 
 ### Toimenpiteitä vaativan arkistoinnin uusinta
 

@@ -134,6 +134,49 @@ class HelsinkiSiiloServiceTest {
     }
 
     @Test
+    fun `async connection refusal before request is retryable`() {
+        server.shutdown()
+        val file = createTemporaryZip("connection-failed")
+        assertThatThrownBy { service.lahetaAsync(file.toString(), CaseType.VALMISTUMINEN) }
+            .isInstanceOfSatisfying(SiiloTransferException::class.java) {
+                assertThat(it.code).isEqualTo("SIILO_CONNECTION_FAILED")
+                assertThat(it.retryable).isTrue()
+                assertThat(it.category).isEqualTo("CONNECT")
+            }
+    }
+
+    @Test
+    fun `async untrusted TLS certificate requires configuration repair before retry`() {
+        val certificate = okhttp3.tls.HeldCertificate.Builder().commonName("localhost").build()
+        val certificates = okhttp3.tls.HandshakeCertificates.Builder().heldCertificate(certificate).build()
+        server.useHttps(certificates.sslSocketFactory(), false)
+        properties.getArkistointi().getHki().host = server.url("/").toString().removeSuffix("/")
+        val file = createTemporaryZip("tls-failure")
+        assertThatThrownBy { service.lahetaAsync(file.toString(), CaseType.VALMISTUMINEN) }
+            .isInstanceOfSatisfying(SiiloTransferException::class.java) {
+                assertThat(it.code).isEqualTo("SIILO_CONNECTION_FAILED")
+                assertThat(it.retryable).isFalse()
+                assertThat(it.category).isEqualTo("TLS")
+                assertThat(it.cause).isNull()
+            }
+        assertThat(server.requestCount).isZero()
+    }
+
+    @Test
+    fun `async lost response after upload must not replay ZIP automatically`() {
+        server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST))
+        val file = createTemporaryZip("uploaded-zip")
+        assertThatThrownBy { service.lahetaAsync(file.toString(), CaseType.VALMISTUMINEN) }
+            .isInstanceOfSatisfying(SiiloTransferException::class.java) {
+                assertThat(it.code).isEqualTo("SIILO_DELIVERY_UNCONFIRMED")
+                assertThat(it.retryable).isFalse()
+                assertThat(it.cause).isNull()
+            }
+        assertThat(server.requestCount).isEqualTo(1)
+        assertThat(file).exists()
+    }
+
+    @Test
     fun `async accepts a response after the legacy fifteen second read timeout`() {
         properties.getArkistointi().getHki().asyncTransferTimeout = Duration.ofSeconds(40)
         server.enqueue(MockResponse().setResponseCode(200).setHeadersDelay(16, TimeUnit.SECONDS))
@@ -155,7 +198,7 @@ class HelsinkiSiiloServiceTest {
             .isInstanceOfSatisfying(SiiloTransferException::class.java) {
                 assertThat(it.code).isEqualTo("SIILO_DELIVERY_UNCONFIRMED")
                 assertThat(it.category).isEqualTo("TIMEOUT")
-                assertThat(it.retryable).isTrue()
+                assertThat(it.retryable).isFalse()
                 assertThat(it.cause).isNull()
             }
         assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofSeconds(3))

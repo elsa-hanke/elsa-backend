@@ -151,13 +151,17 @@ class HelsinkiAsyncApprovalIT : AsyncArchiveItSupport() {
         first.forEach { (name, bytes) -> assertThat(retried.getValue(name)).isEqualTo(bytes) }
     }
 
-    @Test
-    fun `permanent receiver rejection ends retries without rolling back approval`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `receiver rejection or lost response parks delivery without rolling back approval`(lostResponse: Boolean) {
         val id = approveKoejakso(CaseType.KOEJAKSO)
         val job = jobs.findByKey("koejakso-arvio:HELSINGIN_YLIOPISTO:$id")!!
-        server.enqueue(MockResponse().setResponseCode(400).setBody("private response"))
+        server.enqueue(if (lostResponse) MockResponse().setSocketPolicy(okhttp3.mockwebserver.SocketPolicy.DISCONNECT_AFTER_REQUEST)
+            else MockResponse().setResponseCode(400).setBody("private response"))
         startAttempt()
         awaitParked(job.id!!)
+        assertThat(jobs.findById(job.id!!).orElseThrow().errorCode)
+            .isEqualTo(if (lostResponse) "SIILO_DELIVERY_UNCONFIRMED" else "SIILO_HTTP_REJECTED")
         assertThat(assessments.findById(id).orElseThrow().vastuuhenkiloHyvaksynyt).isTrue()
         server.takeRequest(5, TimeUnit.SECONDS)!!
         val requests = server.requestCount

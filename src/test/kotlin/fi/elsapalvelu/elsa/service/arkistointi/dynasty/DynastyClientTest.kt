@@ -51,6 +51,23 @@ class DynastyClientTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `lost token response can retry but lost mutation response requires reconciliation`(duringMutation: Boolean) {
+        MockWebServer().use { server ->
+            server.start()
+            if (duringMutation) server.enqueue(token())
+            server.enqueue(MockResponse().setSocketPolicy(okhttp3.mockwebserver.SocketPolicy.DISCONNECT_AFTER_REQUEST))
+            assertThatThrownBy { client(server).createCase("x", "{}") }
+                .isInstanceOfSatisfying(DynastyFailure::class.java) {
+                    assertThat(it.retryable).isEqualTo(!duringMutation)
+                    assertThat(it.definitelyNotProcessed).isEqualTo(!duringMutation)
+                    assertThat(it.code).isEqualTo(if (duringMutation) "DYNASTY_DELIVERY_UNCONFIRMED" else "DYNASTY_AUTH_UNAVAILABLE")
+                }
+            assertThat(server.requestCount).isEqualTo(if (duringMutation) 2 else 1)
+        }
+    }
+
     @Test
     fun `token is cached and organization accompanies every request`() {
         MockWebServer().use { s ->
