@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiExecutionLock
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.StaleArkistointiExecutionException
 import org.assertj.core.api.Assertions.assertThat
@@ -29,13 +30,13 @@ class DynastyStepLedgerIT {
 
     @Configuration
     @EnableTransactionManagement
-    @Import(DynastyStepLedger::class)
+    @Import(DynastyStepLedger::class, ArkistointiExecutionLock::class)
     class Config {
         @Bean fun properties() = ApplicationProperties()
         @Bean fun dataSource() = DriverManagerDataSource("jdbc:tc:postgresql:16.9:///dynastyLedger?TC_DAEMON=true","test","test")
         @Bean fun transactionManager() = DataSourceTransactionManager(dataSource())
         @Bean fun jdbc(): JdbcTemplate = JdbcTemplate(dataSource()).also { j ->
-            j.execute("create table scheduled_tasks(task_name text,task_instance text,version bigint,picked boolean)")
+            j.execute("create table scheduled_tasks(task_name text,task_instance text,version bigint,picked boolean,consecutive_failures integer default 0)")
             j.execute("create table arkistointi_job(id uuid primary key,status text)")
             val xml = javaClass.getResourceAsStream("/config/liquibase/changelog/20261101090000_added_arkistointi_dynasty_step.xml")!!
             val sql = xml.use { DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(it).getElementsByTagName("sql").item(0).textContent }
@@ -45,7 +46,7 @@ class DynastyStepLedgerIT {
 
     private fun fixture(): ArkistointiJobExecution {
         val e = ArkistointiJobExecution("archive",UUID.randomUUID().toString(),1)
-        jdbc.update("insert into scheduled_tasks values (?,?,?,true)",e.taskName,e.taskInstanceId,e.version)
+        jdbc.update("insert into scheduled_tasks(task_name,task_instance,version,picked) values (?,?,?,true)",e.taskName,e.taskInstanceId,e.version)
         jdbc.update("insert into arkistointi_job values (?,'KASITTELYSSA')",e.jobId)
         return e
     }

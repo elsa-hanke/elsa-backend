@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiExecutionLock
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.StaleArkistointiExecutionException
 import org.springframework.jdbc.core.JdbcTemplate
@@ -13,7 +14,11 @@ import java.util.UUID
 /** Commit intent before the request; a crash never silently authorizes another create. */
 @Service
 @Transactional(propagation = Propagation.REQUIRES_NEW)
-class DynastyStepLedger(private val jdbc: JdbcTemplate, private val properties: ApplicationProperties) {
+class DynastyStepLedger(
+    private val jdbc: JdbcTemplate,
+    private val properties: ApplicationProperties,
+    private val executionLock: ArkistointiExecutionLock
+) {
     sealed interface Decision {
         data object Proceed : Decision
         data class Done(val remoteId: String?) : Decision
@@ -22,11 +27,7 @@ class DynastyStepLedger(private val jdbc: JdbcTemplate, private val properties: 
     }
 
     fun begin(execution: ArkistointiJobExecution, key: String): Decision {
-        val owned = jdbc.queryForList(
-            "select version from scheduled_tasks where task_name=? and task_instance=? and version=? and picked=true for update",
-            execution.taskName, execution.taskInstanceId, execution.version
-        )
-        if (owned.isEmpty()) throw StaleArkistointiExecutionException()
+        executionLock.lock(execution)
         val job = jdbc.queryForList("select status from arkistointi_job where id=? for update", execution.jobId).singleOrNull()
         if (job?.get("status") != "KASITTELYSSA") throw StaleArkistointiExecutionException()
         val rows = jdbc.queryForList("select status, remote_id, started_at from arkistointi_dynasty_step where job_id=? and step_key=?", execution.jobId, key)

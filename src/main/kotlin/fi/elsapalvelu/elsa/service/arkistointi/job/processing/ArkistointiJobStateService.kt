@@ -9,7 +9,6 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.toDescriptor
 import java.time.Instant
 import org.slf4j.LoggerFactory
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
@@ -21,13 +20,13 @@ import org.springframework.transaction.annotation.Transactional
 class ArkistointiJobStateService(
     private val jobs: ArkistointiJobRepository,
     private val mapper: ObjectMapper,
-    private val jdbc: JdbcTemplate,
+    private val executionLock: ArkistointiExecutionLock,
     private val events: ApplicationEventPublisher
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun prepare(execution: ArkistointiJobExecution): PreparedArkistointiJob? {
-        lockExecution(execution)
+        executionLock.lock(execution)
         val jobId = execution.jobId
         val job = jobs.findByIdForStateChange(jobId)
         if (job == null) {
@@ -57,7 +56,7 @@ class ArkistointiJobStateService(
 
     /** Recheck the original execution after loading; release both locks before the network call. */
     fun checkBeforeSend(execution: ArkistointiJobExecution): Boolean {
-        lockExecution(execution)
+        executionLock.lock(execution)
         val job = jobs.findByIdForStateChange(execution.jobId) ?: return false
         if (job.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA) throw ParkArkistointiExecutionException()
         if (job.isFinished()) return false
@@ -68,7 +67,7 @@ class ArkistointiJobStateService(
     }
 
     fun succeed(execution: ArkistointiJobExecution, externalId: String?) {
-        val attempt = lockExecution(execution)
+        val attempt = executionLock.lock(execution)
         val job = requireNotNull(jobs.findByIdForStateChange(execution.jobId))
         if (job.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA) throw ParkArkistointiExecutionException()
         if (job.isFinished()) return
@@ -84,7 +83,7 @@ class ArkistointiJobStateService(
 
     /** Returns false once no further automatic execution is needed. */
     fun fail(execution: ArkistointiJobExecution, error: ArkistointiError, stopRetrying: Boolean): Boolean {
-        val attempt = lockExecution(execution)
+        val attempt = executionLock.lock(execution)
         val job = jobs.findByIdForStateChange(execution.jobId) ?: return false
         if (job.isFinished()) return false
         val retry = recordFailure(job, error, stopRetrying)
@@ -94,19 +93,8 @@ class ArkistointiJobStateService(
     }
 
     fun requiresIntervention(execution: ArkistointiJobExecution): Boolean {
-        lockExecution(execution)
+        executionLock.lock(execution)
         return jobs.findByIdForStateChange(execution.jobId)?.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA
-    }
-
-    private fun lockExecution(execution: ArkistointiJobExecution): Int {
-        // Lock order: scheduled_tasks -> arkistointi_job. Keep the scheduler's version stable until
-        // the job update commits; a separate SELECT without FOR UPDATE would leave another race.
-        val current = jdbc.query(
-            "select consecutive_failures from scheduled_tasks where task_name = ? and task_instance = ? " +
-                "and version = ? and picked = true for update",
-            { row, _ -> row.getInt("consecutive_failures") + 1 }, execution.taskName, execution.taskInstanceId, execution.version
-        ).singleOrNull()
-        return current ?: throw StaleArkistointiExecutionException()
     }
 
     private fun publishOutcome(job: ArkistointiJob, attempt: Int, outcome: ArkistointiAttemptCompleted.Outcome, code: String? = null) {
