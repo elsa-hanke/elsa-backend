@@ -27,9 +27,11 @@ class DynastyClient(private val properties: ApplicationProperties, private val m
     private var token: String? = null
     private var expires = Instant.EPOCH
 
-    private fun client() = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS)
-        .callTimeout(settings.callTimeout).readTimeout(settings.callTimeout)
-        .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).build()
+    private val httpClient by lazy {
+        OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS)
+            .callTimeout(settings.callTimeout).readTimeout(settings.callTimeout)
+            .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).build()
+    }
 
     fun validateConfiguration() {
         val c = settings
@@ -70,7 +72,7 @@ class DynastyClient(private val properties: ApplicationProperties, private val m
             .add("client_secret", requireSetting(settings.clientSecret)).add("scope", settings.scope).build()
         val request = Request.Builder().url(requireSetting(settings.tokenUrl)).header("Organization", requireSetting(settings.organization)).post(body).build()
         try {
-            client().newCall(request).execute().use { response ->
+            httpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw DynastyFailure("DYNASTY_AUTH_FAILED", response.code >= 500 || response.code == 429, true)
                 val data = mapper.readTree(response.peekBody(16384).string())
                 val value = data.path("access_token").takeIf { it.isTextual }?.textValue()?.takeIf { it.isNotBlank() }
@@ -107,7 +109,7 @@ class DynastyClient(private val properties: ApplicationProperties, private val m
                 .header("Organization", requireSetting(settings.organization)).header("Authorization", "Bearer $bearer")
                 .header("Accept", if (empty) "application/json" else "text/plain").post(body).build()
             try {
-                client().newCall(request).execute().use { response ->
+                httpClient.newCall(request).execute().use { response ->
                     if (response.code == 401) {
                         invalidate()
                         if (attempt == 0) return@use
