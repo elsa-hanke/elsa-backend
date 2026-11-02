@@ -27,7 +27,6 @@ import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
 import jakarta.persistence.EntityManager
 import java.sql.Connection
 import java.time.Duration
-import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
@@ -40,7 +39,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
+import com.github.kagkarlsson.scheduler.task.schedule.Schedule
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.springframework.beans.factory.annotation.Autowired
@@ -90,15 +90,10 @@ class ArkistointiLoadingRecoveryIT {
     }
 
     @ParameterizedTest
-    @CsvSource("false,false", "true,false", "false,true", "true,true")
-    fun `recovery progresses while old document loading is paused and old attempt cannot send`(
-        afterSuccess: Boolean,
-        loadingFails: Boolean
-    ) {
+    @ValueSource(booleans = [false, true])
+    fun `heartbeat recovery parks paused loading and old attempt cannot send or overwrite recovery`(loadingFails: Boolean) {
         val loadingEntered = CountDownLatch(1)
         val releaseLoading = CountDownLatch(1)
-        val secondEntered = CountDownLatch(1)
-        val releaseSecond = CountDownLatch(1)
         val loads = AtomicInteger()
         val versions = CopyOnWriteArrayList<Long>()
         doAnswer { invocation ->
@@ -109,11 +104,6 @@ class ArkistointiLoadingRecoveryIT {
             }
             invocation.callRealMethod()
         }.`when`(loader).load(any())
-        adapter.behavior = {
-            secondEntered.countDown()
-            check(releaseSecond.await(30, TimeUnit.SECONDS))
-            ArkistointiResult.Success("new-external-id")
-        }
         val jobId = fixture()
         val first = scheduler(observedTask(versions), Duration.ofHours(1))
         try {
@@ -124,30 +114,32 @@ class ArkistointiLoadingRecoveryIT {
                 jdbc.queryForMap("select version from scheduled_tasks where task_instance = ? for update nowait", jobId.toString())
                 jdbc.queryForMap("select id from arkistointi_job where id = ? for update nowait", jobId)
                 assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.KASITTELYSSA)
-                jdbc.update("update scheduled_tasks set last_heartbeat = ? where task_instance = ?",
-                    java.sql.Timestamp.from(Instant.now().minusSeconds(60)), jobId.toString())
+                jdbc.update("update scheduled_tasks set last_heartbeat = clock_timestamp() - interval '60 seconds' " +
+                    "where task_instance = ?", jobId.toString())
             }
             val second = scheduler(observedTask(versions))
-            runUntil(second) { assertThat(secondEntered.count).isZero() }
-            assertThat(versions).hasSize(2)
-            assertThat(versions.last()).isGreaterThan(versions.first())
-            if (afterSuccess) {
-                releaseSecond.countDown()
-                runUntil(second) { assertThat(taskCount(jobId)).isZero() }
+            runUntil(second) {
+                val job = jobs.findById(jobId).orElseThrow()
+                assertThat(job.status).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
+                assertThat(job.errorCode).isEqualTo("ARCHIVE_EXECUTION_LOST")
+                val schedule = schedulerStateOrEmpty(jobId)
+                assertThat(schedule["picked"]).isEqualTo(false)
+                assertThat((schedule["execution_time"] as java.sql.Timestamp).toInstant()).isEqualTo(Schedule.NEVER)
             }
+            assertThat(versions).hasSize(1)
+            assertThat(loads.get()).isEqualTo(1)
+            assertThat(adapter.submissions).isEmpty()
             val beforeSchedule = schedulerStateOrEmpty(jobId)
             val beforeJob = jobState(jobId)
             releaseLoading.countDown()
             await().atMost(Duration.ofSeconds(10)).untilAsserted { assertThat(first.currentlyExecuting).isEmpty() }
-            assertThat(adapter.submissions).hasSize(1)
+            assertThat(adapter.submissions).isEmpty()
             assertThat(schedulerStateOrEmpty(jobId)).isEqualTo(beforeSchedule)
             assertThat(jobState(jobId)).isEqualTo(beforeJob)
-            releaseSecond.countDown()
-            runUntil(second) { assertThat(taskCount(jobId)).isZero() }
-            assertSuccess(jobId)
+            assertThat(versions).hasSize(1)
+            assertThat(loads.get()).isEqualTo(1)
         } finally {
             releaseLoading.countDown()
-            releaseSecond.countDown()
             schedulers.forEach(Scheduler::stop)
         }
     }
@@ -178,16 +170,6 @@ class ArkistointiLoadingRecoveryIT {
             release.countDown()
             first.stop()
         }
-    }
-
-    private fun assertSuccess(jobId: UUID) {
-        val stored = jobs.findById(jobId).orElseThrow()
-        assertThat(stored.status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
-        assertThat(stored.externalId).isEqualTo("new-external-id")
-        assertThat(stored.errorCode).isNull()
-        assertThat(stored.lastError).isNull()
-        assertThat(adapter.submissions).hasSize(1)
-        assertThat(adapter.submissions.single().key).isEqualTo(jobId)
     }
 
     private fun schedulerStateOrEmpty(jobId: UUID): Map<String, Any?> =

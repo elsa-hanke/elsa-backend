@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpEndpointPolicy
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import okhttp3.FormBody
@@ -45,8 +46,7 @@ class DynastyClient(private val properties: ApplicationProperties, private val m
 
     private fun validateUrl(value: String?) {
         val uri = try { java.net.URI(value.orEmpty()) } catch (_: Exception) { throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID") }
-        val local = settings.allowLoopbackHttpForTests && uri.scheme == "http" && uri.host in setOf("127.0.0.1", "[::1]", "::1")
-        val invalidAddress = (!local && uri.scheme != "https") || uri.host.isNullOrBlank()
+        val invalidAddress = !ArchiveHttpEndpointPolicy.isAllowed(uri.scheme, uri.host, settings.allowLoopbackHttpForTests)
         val invalidParts = uri.rawUserInfo != null || uri.rawFragment != null || uri.rawQuery != null
         if (invalidAddress || invalidParts) throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
     }

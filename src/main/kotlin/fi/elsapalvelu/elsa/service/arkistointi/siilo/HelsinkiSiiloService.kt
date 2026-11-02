@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.siilo
 
+import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpEndpointPolicy
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import okhttp3.MediaType.Companion.toMediaType
@@ -33,8 +34,9 @@ class HelsinkiSiiloService(
         val timeout = properties.asyncTransferTimeout
         requireAsyncConfiguration(code.isNotBlank() && code.all { it.isLetterOrDigit() || it in "-_" })
         val endpoint = host.toHttpUrlOrNull()
-        requireAsyncConfiguration(endpoint != null && (endpoint.isHttps ||
-            (properties.asyncAllowLoopbackHttpForTests && endpoint.host in setOf("127.0.0.1", "::1"))))
+        requireAsyncConfiguration(ArchiveHttpEndpointPolicy.isAllowed(
+            endpoint?.scheme, endpoint?.host, properties.asyncAllowLoopbackHttpForTests
+        ))
         requireAsyncConfiguration(key.isNotBlank() && key.none { it.isISOControl() })
         requireAsyncConfiguration(!timeout.isNegative && !timeout.isZero && timeout.toMillis() in 1..Int.MAX_VALUE.toLong())
         val file = File(zipFilePath)
