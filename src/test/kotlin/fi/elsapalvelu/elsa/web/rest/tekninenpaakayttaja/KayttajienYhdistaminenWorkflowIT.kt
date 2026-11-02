@@ -68,6 +68,8 @@ class KayttajienYhdistaminenWorkflowIT {
     private lateinit var otherTrainer: Kayttaja
     private lateinit var recordOwner: ErikoistuvaLaakari
 
+    @Autowired private lateinit var snapshots: fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
+
     @BeforeEach
     fun setup() {
         retained = createAccount(ERIKOISTUVA_LAAKARI)
@@ -82,6 +84,59 @@ class KayttajienYhdistaminenWorkflowIT {
             "test",
             listOf(SimpleGrantedAuthority(TEKNINEN_PAAKAYTTAJA))
         )
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [ERIKOISTUVA_LAAKARI, fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA])
+    fun `merge preserves retained and third party archive snapshots`(role: String) {
+        retained.user!!.activeAuthority = em.getReference(Authority::class.java, role)
+        retained.user!!.authorities.add(em.getReference(Authority::class.java, role))
+        val trainee = em.createQuery("select e from ErikoistuvaLaakari e where e.kayttaja.id=:id", ErikoistuvaLaakari::class.java)
+            .setParameter("id", retained.id).singleResult
+        createTrialPhases(recordOwner, source, source, true)
+        val references = listOf(archiveSnapshot(trainee), archiveSnapshot(recordOwner))
+        em.flush() // Immutable database triggers protect both snapshots before the merge starts.
+        mergeAccounts()
+        references.forEach(::assertSnapshotUnchanged)
+        assertThat(em.find(User::class.java, retained.user!!.id).authorities.map { it.name }).contains(role, KOULUTTAJA)
+    }
+
+    @Test
+    fun `deleting invited trainer preserves trainee archive snapshots`() {
+        source.tila = fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila.KUTSUTTU
+        val sourceId = source.id!!
+        val sourceUserId = source.user!!.id!!
+        val reference = archiveSnapshot(recordOwner)
+        em.flush()
+        em.clear()
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+            "/api/tekninen-paakayttaja/kayttajat/$sourceId")
+            .with(csrf()).contentType(MediaType.APPLICATION_JSON)
+            .content(convertObjectToJsonBytes(
+                fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaReassignedKouluttajaDTO(otherTrainer.id)
+            )))
+            .andExpect(status().isNoContent)
+        em.flush()
+        em.clear()
+        assertThat(em.find(Kayttaja::class.java, sourceId)).isNull()
+        assertThat(em.find(User::class.java, sourceUserId)).isNull()
+        assertSnapshotUnchanged(reference)
+    }
+
+    private fun archiveSnapshot(trainee: ErikoistuvaLaakari) = snapshots.createSnapshot(
+        trainee.getOpintooikeusKaytossa()!!, "archived.pdf", "application/pdf",
+        fi.elsapalvelu.elsa.service.pdf.PdfTestData.certificate(),
+        fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType.LIITE, 0
+    )
+
+    private fun assertSnapshotUnchanged(reference: fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference) {
+        val stored = em.find(fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja::class.java, reference.asiakirja.id)
+        assertThat(stored.archiveSnapshot).isTrue()
+        assertThat(stored.opintooikeus!!.id).isEqualTo(reference.asiakirja.opintooikeus!!.id)
+        assertThat(stored.nimi).isEqualTo(reference.filename)
+        assertThat(stored.tyyppi).isEqualTo(reference.contentType)
+        assertThat(fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum.sha256(stored.asiakirjaData!!.data!!))
+            .isEqualTo(reference.sha256)
     }
 
     @ParameterizedTest

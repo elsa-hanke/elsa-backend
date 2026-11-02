@@ -180,6 +180,32 @@ class ArkistointiJobCreatorIT {
         assertThat(exception.statusCode.value()).isEqualTo(409)
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    @Transactional
+    fun `deleting original document preserves queued snapshot and archived bytes`(bulk: Boolean) {
+        val source = AsiakirjaHelper.createEntity(entityManager)
+        entityManager.persist(source)
+        entityManager.flush()
+        val original = source.asiakirjaData!!.data!!.copyOf()
+        val sourceId = source.id!!
+        val studyRightId = source.opintooikeus!!.id!!
+        val reference = snapshotService.createReference(source, RecordType.LIITE, 0)
+        val job = creator.create(CreateArkistointiJobRequest(
+            YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}",
+            "source-delete-${UUID.randomUUID()}", listOf(reference)
+        ))
+        entityManager.flush()
+        if (bulk) asiakirjaService.delete(listOf(sourceId), studyRightId) else asiakirjaService.delete(sourceId, studyRightId)
+        entityManager.flush()
+        entityManager.clear()
+        assertThat(asiakirjaRepository.findById(sourceId)).isEmpty
+        val stored = jobRepository.findById(job.id!!).orElseThrow()
+        assertThat(stored.asiakirjat.single().asiakirja!!.id).isEqualTo(reference.asiakirja.id)
+        assertThat(stored.asiakirjat.single().asiakirja!!.archiveSnapshot).isTrue()
+        assertThat(loader.load(stored.asiakirjat.single().toDescriptor()).sisalto).containsExactly(*original)
+    }
+
     @Test
     @Transactional
     fun `database prevents changing archived contents`() {

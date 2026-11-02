@@ -11,6 +11,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -50,7 +51,22 @@ class TurkuDynastyMetadataMapperTest {
         assertThat(doc.path("AD").has("UTUvalmistumispaiva")).isFalse()
         assertThat(doc.path("AD").has("UTUlaillistamispaiva")).isFalse()
     }
-    private fun plan(kind: String, koejakso: Boolean): TurkuDynastyMetadataMapper.Plan = MockWebServer().use { server ->
+    @Test
+    fun `snapshot missing specialty type is rejected`() {
+        assertThatThrownBy { plan("EL", false) { it.remove("specialtyType") } }
+            .isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    @Test
+    fun `snapshot missing required person data is rejected`() {
+        assertThatThrownBy { plan("EL", true) { it.remove("firstName") } }
+            .isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    private fun plan(
+        kind: String, koejakso: Boolean,
+        changePayload: (com.fasterxml.jackson.databind.node.ObjectNode) -> Unit = {}
+    ): TurkuDynastyMetadataMapper.Plan = MockWebServer().use { server ->
         server.start()
             val mapper = jacksonObjectMapper()
             val properties = ApplicationProperties()
@@ -100,6 +116,8 @@ class TurkuDynastyMetadataMapperTest {
                 if (koejakso) CaseType.KOEJAKSO else CaseType.VALMISTUMINEN,
                 payload, documents, execution
             )
-        TurkuDynastyMetadataMapper(properties,mapper,ArchivePayloadReader(mapper)).plan(submission)
+        val root = mapper.readTree(payload) as com.fasterxml.jackson.databind.node.ObjectNode
+        changePayload(root)
+        TurkuDynastyMetadataMapper(properties,mapper,ArchivePayloadReader(mapper)).plan(submission.copy(payload = root.toString()))
     }
 }

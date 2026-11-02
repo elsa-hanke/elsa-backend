@@ -669,6 +669,12 @@ päätöksen ja oikean db-schedulerin suorituksen testiadapteriin asti sekä rol
 Tämä ei vielä sisällä Dynasty-lähetystä: oikeat adapterit ja arkiston metatiedot
 toteutetaan integraatiotehtävissä. Koulutussopimuksen asetuksia ei muuteta.
 
+### Archive payload validation
+
+Workers validate required snapshot fields and documents before delivery. An incomplete payload
+requires intervention: retrying the same job cannot supply missing historical data. Do not fill
+missing values from current student records or modify the immutable snapshot.
+
 ### Missing heartbeat during archive delivery
 
 A missing heartbeat does not mean that the old worker or its external request has stopped.
