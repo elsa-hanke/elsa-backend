@@ -13,6 +13,7 @@ import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaDTO
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KouluttajavaltuutusDTO
 import fi.elsapalvelu.elsa.service.mapper.kayttaja.KouluttajavaltuutusMapper
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -50,10 +51,12 @@ class KouluttajavaltuutusServiceImpl(
                 kouluttajavaltuutus.valtuutuksenLuontiaika = Instant.now()
             })
         } else {
-            kouluttajavaltuutusRepository.findById(kouluttajavaltuutus.id.required()).ifPresent {
-                kouluttajavaltuutus = it
-                kouluttajavaltuutus.paattymispaiva = kouluttajavaltuutusDTO.paattymispaiva
+            kouluttajavaltuutus = kouluttajavaltuutusRepository.findById(kouluttajavaltuutus.id.required())
+                .orElseThrow { AccessDeniedException("You do not have permission to update this authorization") }
+            if (opintooikeus == null || kouluttajavaltuutus.valtuuttajaOpintooikeus?.id != opintooikeus.id) {
+                throw AccessDeniedException("You do not have permission to update this authorization")
             }
+            kouluttajavaltuutus.paattymispaiva = kouluttajavaltuutusDTO.paattymispaiva
         }
         if (kouluttajavaltuutus.valtuuttajaOpintooikeus?.id == opintooikeus?.id) {
             kouluttajavaltuutus.valtuutuksenMuokkausaika = Instant.now()
