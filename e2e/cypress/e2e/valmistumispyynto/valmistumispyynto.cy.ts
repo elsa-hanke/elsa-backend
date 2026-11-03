@@ -31,6 +31,12 @@ const VIRKAILIJA_ETUNIMI     = 'Daniel'
 const VIRKAILIJA_SUKUNIMI    = 'Siekkinen'
 
 describe('Valmistumispyyntö', () => {
+  let historicalAssessment: { assessmentId: number; toolId: number } | undefined
+
+  after(() => {
+    if (historicalAssessment) cy.task('db:cleanupOwnerlessGraduationAssessment', historicalAssessment)
+  })
+
   // ── Esialustetaan tietokanta testisarjaa varten ──────────────────────────────
   before(() => {
     cy.prepareKoejaksoE2e({
@@ -305,16 +311,31 @@ describe('Valmistumispyyntö', () => {
         `/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`
       )
 
-      cy.apiRequest({
-        method: 'PUT',
-        url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
-        body: {},
-        timeout: 120000,
-      }).then(({ status, body }) => {
-        expect(status).to.eq(200)
+      // Seed just before approval so earlier API requests cannot warm Hibernate's cache.
+      cy.task<{ assessmentId: number; toolId: number }>('db:seedOwnerlessGraduationAssessment', {
+        valmistumispyyntoId,
+        reviewerEmail: KOULUTTAJA_EMAIL,
+      }).then((fixture) => { historicalAssessment = fixture })
+
+      cy.contains('.toast-body', APPROVAL_IN_PROGRESS_TOAST)
+        .closest('.toast').find('button.close').click()
+      cy.intercept('PUT', `**/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`)
+        .as('approveWithHistoricalAssessment')
+      cy.contains('button', 'Hyväksy').click()
+      cy.get('#confirm-send').should('be.visible').contains('button', 'Hyväksy').click()
+      cy.wait('@approveWithHistoricalAssessment', { responseTimeout: 120000 }).then(({ response }) => {
+        expect(response?.statusCode).to.eq(200)
+        const body = response!.body
         expect(body.valmistumispyynto.tila).to.eq('HYVAKSYTTY')
         expect(body.valmistumispyynto.yhteenvetoAsiakirjaId).to.be.a('number')
         expect(body.valmistumispyynto.liitteetAsiakirjaId).to.be.a('number')
+        expect(body.valmistumispyynto.erikoistujanTiedotAsiakirjaId).to.be.a('number')
+
+        downloadPdfPages(
+          `/api/vastuuhenkilo/valmistumispyynto/${valmistumispyyntoId}/asiakirja/${body.valmistumispyynto.erikoistujanTiedotAsiakirjaId}`
+        ).then((pages) => {
+          expect(pages.join(' ')).to.include('E2E historical ownerless assessment')
+        })
 
         // Regression guard for PDF generation: the summary keeps its sections and data.
         downloadPdfPages(
@@ -341,6 +362,20 @@ describe('Valmistumispyyntö', () => {
           `/api/vastuuhenkilo/valmistumispyynto/${valmistumispyyntoId}/asiakirja/${body.valmistumispyynto.liitteetAsiakirjaId}`
         ).its('length').should('be.greaterThan', 0)
       })
+
+      cy.location('pathname').should('eq', '/valmistumispyynnot')
+      cy.intercept('GET', `**/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`)
+        .as('getApprovedGraduation')
+      cy.visit(`/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`)
+      cy.wait('@getApprovedGraduation').then(({ response }) => {
+        expect(response?.statusCode).to.eq(200)
+        expect(response?.body.valmistumispyynto.tila).to.eq('HYVAKSYTTY')
+        expect(response?.body.valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika).to.not.be.null
+      })
+      cy.contains('Valmistumispyyntö on hyväksytty vastuuhenkilön toimesta.').should('be.visible')
+      cy.reload()
+      cy.wait('@getApprovedGraduation').its('response.body.valmistumispyynto.tila').should('eq', 'HYVAKSYTTY')
+      cy.contains('Valmistumispyyntö on hyväksytty vastuuhenkilön toimesta.').should('be.visible')
     })
   })
 })
