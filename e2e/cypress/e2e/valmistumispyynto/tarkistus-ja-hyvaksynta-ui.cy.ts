@@ -447,15 +447,19 @@ for (const degree of ['EL', 'EHL', 'YEK'] as const) {
         })
       }
       button(approveLabel).should('be.visible').and('not.be.disabled').click()
-      cy.get(MODAL)
-        .should('be.visible')
-        .and('contain.text', 'Vahvista lomakkeen lähetys')
-        .and(
-          'contain.text',
-          yek
-            ? 'Hyväksymällä vahvistat koulutettavan valmistumisen.'
-            : 'Vahvistuksen jälkeen valmistumispyyntö on hyväksytty ja lähetetään arkistoitavaksi.'
-        )
+      cy.then(() => {
+        cy.get(MODAL)
+          .should('be.visible')
+          .and('contain.text', 'Vahvista lomakkeen lähetys')
+          .and(
+            'contain.text',
+            yek
+              ? 'Hyväksymällä vahvistat koulutettavan valmistumisen.'
+              : original.arkistoitava
+                ? 'Vahvistuksen jälkeen valmistumispyyntö on hyväksytty ja lähetetään arkistoitavaksi.'
+                : 'Vahvistuksen jälkeen valmistumispyyntö on hyväksytty kaikkien osapuolien toimesta.'
+          )
+      })
       cy.get('@approvalPut.all').should('have.length', 0)
       button('Peruuta', MODAL).click()
       cy.get('body').find(`${MODAL}:visible`).should('have.length', 0)
