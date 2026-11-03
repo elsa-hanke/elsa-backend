@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobKey
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
@@ -46,7 +47,7 @@ class ValmistumispyynnonViimeistelyService(
         val archiveEnabled = onkoArkistointiKaytossa(yliopisto)
         val asyncEnabled = archiveEnabled &&
             arkistointiConfigurationProvider.isAsyncEnabled(yliopisto.required(), CaseType.VALMISTUMINEN)
-        val jobKey = "valmistuminen:${yliopisto.required().name}:$valmistumispyyntoId"
+        val jobKey = ArkistointiJobKey.create(yliopisto.required(), CaseType.VALMISTUMINEN, valmistumispyyntoId)
         if (asyncEnabled && arkistointiJobRepository.findByKey(jobKey) != null) {
             // Approval holds the request row lock; the creator keeps its final key check as well.
             log.info("Arkistointi-job on jo olemassa [valmistumispyyntoId=$valmistumispyyntoId]")
@@ -124,12 +125,7 @@ class ValmistumispyynnonViimeistelyService(
             // Apply the same university/case document selection as the synchronous SÄHKE builder.
             val sourceId = record.asiakirja.id.required()
             val reference = asiakirjaSnapshotService.createReference(record.asiakirja, record.type, index)
-            PreparedDocument(reference, ArkistointiDocumentIdentity(
-                sourceDocumentId = sourceId,
-                snapshotDocumentId = reference.asiakirja.id.required(),
-                recordType = reference.asiakirjatyyppi,
-                jarjestysnumero = reference.jarjestysnumero
-            ))
+            PreparedDocument(reference, reference.identity(sourceId))
         }
     }
 

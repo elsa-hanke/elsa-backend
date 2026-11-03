@@ -11,6 +11,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobKey
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
@@ -97,18 +98,12 @@ class KoejaksoArkistointiService(
         createPayload: (List<ArkistointiDocumentIdentity>) -> KoejaksoArkistointiPayload
     ) {
         val university = studyRight.yliopisto?.nimi.required()
-        val prefix = if (caseType == CaseType.SOPIMUS) "koejakso-sopimus" else "koejakso-arvio"
-        val key = "$prefix:${university.name}:$caseId"
+        val key = ArkistointiJobKey.create(university, caseType, caseId)
         // Approval callers lock the case row. Check before snapshot creation; creator still checks the key too.
         if (jobRepository.findByKey(key) != null) return
         val sourceId = document.id.required()
         val reference = snapshots.createReference(document, recordType, 0)
-        val payload = createPayload(listOf(ArkistointiDocumentIdentity(
-            sourceDocumentId = sourceId,
-            snapshotDocumentId = reference.asiakirja.id.required(),
-            recordType = reference.asiakirjatyyppi,
-            jarjestysnumero = reference.jarjestysnumero
-        )))
+        val payload = createPayload(listOf(reference.identity(sourceId)))
         creator.create(
             CreateArkistointiJobRequest(
                 university = payload.studyRight.university,
