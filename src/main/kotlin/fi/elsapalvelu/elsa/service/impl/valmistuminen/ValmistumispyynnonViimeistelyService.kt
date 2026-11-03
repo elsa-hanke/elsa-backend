@@ -33,7 +33,7 @@ class ValmistumispyynnonViimeistelyService(
     private val arkistointiJobRepository: ArkistointiJobRepository,
     private val asiakirjaSnapshotService: ArkistointiAsiakirjaSnapshotService,
     private val arkistointiConfigurationProvider: ArkistointiConfigurationProvider,
-    private val dynastyDocuments: DynastyValmistuminenDocuments,
+    private val archiveDocuments: ValmistuminenArkistointiDocuments,
     private val objectMapper: ObjectMapper
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -75,8 +75,8 @@ class ValmistumispyynnonViimeistelyService(
             archiveSynchronously(valmistumispyynto, yliopisto.required(), asiakirjat, yek)
             return
         }
-        val archiveDocuments = dynastyDocuments.complete(valmistumispyynto, yliopisto.required(), asiakirjat)
-        val documents = prepareDocuments(archiveDocuments, yliopisto.required())
+        val completedDocuments = archiveDocuments.complete(valmistumispyynto, yliopisto.required(), asiakirjat)
+        val documents = prepareDocuments(completedDocuments, yliopisto.required())
         val valmistuminenArkistointiPayload = ValmistuminenArkistointiPayload.create(valmistumispyynto, yliopisto.required(), documents.map { it.identity })
         arkistointiJobCreator.create(
             CreateArkistointiJobRequest(

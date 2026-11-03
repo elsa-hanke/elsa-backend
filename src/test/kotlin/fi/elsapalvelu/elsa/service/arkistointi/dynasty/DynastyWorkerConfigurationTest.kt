@@ -93,6 +93,22 @@ class DynastyWorkerConfigurationTest {
     }
 
     @Test
+    fun `Turku requires certificate configuration and UEF cannot reuse Turku adapter`() {
+        configure()
+        val case = turku.metadata!!.getCaseMetadata(CaseType.VALMISTUMINEN)!!
+        case.documents = case.documents!! - "laillistamistodistus"
+        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }.hasMessageContaining("DYNASTY_CONFIGURATION_INVALID")
+        configure()
+        turku.kaytossa = false
+        properties.getArkistointi().getUef().apply {
+            kaytossa = true
+            metadata = turku.metadata
+        }
+        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }
+            .hasMessageContaining("ITA_SUOMEN_YLIOPISTO").hasMessageContaining("no asynchronous ArkistointiAdapter")
+    }
+
+    @Test
     fun `koejakso requires nonblank nonconflicting secrecy fields`() {
         configure(CaseType.KOEJAKSO)
         assertThatThrownBy { registry.validateWorkerConfiguration(provider) }.hasMessageContaining("DYNASTY_SECRECY_UNCONFIGURED")

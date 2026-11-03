@@ -12,21 +12,23 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
-/** Supplements async graduation only; YEK requires the same certificate as EL/EHL. */
+/** Supplements the configured async graduation document set, independently of transport or university. */
 @Service
 @Transactional(propagation = Propagation.MANDATORY)
-class DynastyValmistuminenDocuments(
+class ValmistuminenArkistointiDocuments(
     private val configuration: ArkistointiConfigurationProvider,
     private val snapshots: ArkistointiAsiakirjaSnapshotService
 ) {
     fun complete(request: Valmistumispyynto, university: YliopistoEnum, generated: List<RecordProperties>): List<RecordProperties> {
-        if (university !in setOf(YliopistoEnum.TURUN_YLIOPISTO, YliopistoEnum.ITA_SUOMEN_YLIOPISTO)) return generated
         val settings = configuration.getConfiguration(university, CaseType.VALMISTUMINEN)
-        check(requiredTypes.all { settings.metadata.getDocumentMetadata(it, settings.case) != null }) {
-            "Dynasty graduation document configuration is incomplete"
+        val includeCertificate = settings.metadata.getDocumentMetadata(RecordType.LAILLISTAMISTODISTUS, settings.case) != null
+        val available = generated.map { it.type } + if (includeCertificate) listOf(RecordType.LAILLISTAMISTODISTUS) else emptyList()
+        check(settings.case.documents.orEmpty().keys.all { key -> available.any { it.name.lowercase() == key } }) {
+            "Configured graduation document is missing"
         }
-        check(generated.map { it.type } == listOf(RecordType.YHTEENVETO, RecordType.LIITE)) {
-            "Dynasty graduation document set is incomplete"
+        if (!includeCertificate) return generated
+        check(generated.none { it.type == RecordType.LAILLISTAMISTODISTUS }) {
+            "Graduation certificate must be added only once"
         }
         val studyRight = request.opintooikeus.required()
         val trainee = studyRight.erikoistuvaLaakari.required()
@@ -39,7 +41,4 @@ class DynastyValmistuminenDocuments(
         return generated + RecordProperties(snapshot.asiakirja, RecordType.LAILLISTAMISTODISTUS)
     }
 
-    private companion object {
-        val requiredTypes = listOf(RecordType.YHTEENVETO, RecordType.LIITE, RecordType.LAILLISTAMISTODISTUS)
-    }
 }
