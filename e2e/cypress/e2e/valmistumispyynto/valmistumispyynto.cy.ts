@@ -31,7 +31,7 @@ const VIRKAILIJA_ETUNIMI     = 'Daniel'
 const VIRKAILIJA_SUKUNIMI    = 'Siekkinen'
 
 describe('Valmistumispyyntö', () => {
-  let historicalAssessment: { assessmentId: number; toolId: number } | undefined
+  let historicalAssessment: { assessmentId: number; toolId: number; blockId: number; categoryId: number } | undefined
 
   after(() => {
     if (historicalAssessment) cy.task('db:cleanupOwnerlessGraduationAssessment', historicalAssessment)
@@ -69,6 +69,11 @@ describe('Valmistumispyyntö', () => {
       erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL,
       kouluttajaEmail: KOULUTTAJA_EMAIL,
     })
+
+    // The koejakso fixture approves forms but does not create a working period.
+    cy.task<{ tyoskentelyjaksoId: number } | null>('db:seedTyoskentelyjakso', {
+      email: E2E_ERIKOISTUVA_EMAIL,
+    }).should('not.be.null')
 
     const today = new Date()
     const dd = String(today.getDate()).padStart(2, '0')
@@ -311,14 +316,16 @@ describe('Valmistumispyyntö', () => {
         `/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`
       )
 
+      cy.contains('.toast-body', APPROVAL_IN_PROGRESS_TOAST)
+        .closest('.toast').find('button.close').click()
+      cy.get('.toast-body').should('not.exist')
+
       // Seed just before approval so earlier API requests cannot warm Hibernate's cache.
-      cy.task<{ assessmentId: number; toolId: number }>('db:seedOwnerlessGraduationAssessment', {
+      cy.task<{ assessmentId: number; toolId: number; blockId: number; categoryId: number }>('db:seedOwnerlessGraduationAssessment', {
         valmistumispyyntoId,
         reviewerEmail: KOULUTTAJA_EMAIL,
       }).then((fixture) => { historicalAssessment = fixture })
 
-      cy.contains('.toast-body', APPROVAL_IN_PROGRESS_TOAST)
-        .closest('.toast').find('button.close').click()
       cy.intercept('PUT', `**/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`)
         .as('approveWithHistoricalAssessment')
       cy.contains('button', 'Hyväksy').click()
@@ -331,11 +338,13 @@ describe('Valmistumispyyntö', () => {
         expect(body.valmistumispyynto.liitteetAsiakirjaId).to.be.a('number')
         expect(body.valmistumispyynto.erikoistujanTiedotAsiakirjaId).to.be.a('number')
 
-        downloadPdfPages(
-          `/api/vastuuhenkilo/valmistumispyynto/${valmistumispyyntoId}/asiakirja/${body.valmistumispyynto.erikoistujanTiedotAsiakirjaId}`
-        ).then((pages) => {
-          expect(pages.join(' ')).to.include('E2E historical ownerless assessment')
-        })
+        // The assessment archive PDF is internal; the approver API exposes only
+        // the summary and attachments. Read this document from the test DB.
+        cy.task<string>('db:readGraduationAssessmentPdf', { valmistumispyyntoId })
+          .then((base64) => cy.task<string[]>('pdfPages', { base64 }))
+          .then((pages) => {
+            expect(pages.join(' ')).to.include('E2E historical ownerless assessment')
+          })
 
         // Regression guard for PDF generation: the summary keeps its sections and data.
         downloadPdfPages(
