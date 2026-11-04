@@ -23,6 +23,9 @@
   import { restrictedRichTextEditorOptions, sanitizeRichText } from '@/utils/richText'
 
   @Component({
+    // Forward attributes only to the editor. An inherited id on this wrapper's
+    // div makes TinyMCE's selector initialize both the div and the textarea.
+    inheritAttrs: false,
     components: {
       Editor
     }

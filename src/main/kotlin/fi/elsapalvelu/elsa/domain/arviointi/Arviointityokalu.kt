@@ -34,7 +34,6 @@ data class Arviointityokalu(
     @Column(name = "ohjeteksti", nullable = true)
     var ohjeteksti: String? = null,
 
-    @NotNull
     @ManyToOne(optional = true)
     var kayttaja: Kayttaja? = null,
 

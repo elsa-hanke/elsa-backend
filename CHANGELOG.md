@@ -1,7 +1,14 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.0...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.1...HEAD)
 
+- Bump brace-expansion from 1.1.11 to 1.1.21 in /frontend [`#813`](https://github.com/elsa-hanke/elsa-backend/pull/813)(2 November 2026)
+- upgrade Cypress to version 16.2.1, spring boot 4.1.2, gradle 9.8.2 [`#812`](https://github.com/elsa-hanke/elsa-backend/pull/812)(2 November 2026)
+- Lisää teoriakoulutuksen nimi- ja paikkakenttiin pituusvalidointi ja selkeät virheilmoitukset (koulutuksenNimi, koulutuksenPaikka maxlength 255) [`#810`](https://github.com/elsa-hanke/elsa-backend/pull/810)(2 November 2026)
+- Bump node-forge from 1.4.0 to 1.4.2 in /frontend [`#809`](https://github.com/elsa-hanke/elsa-backend/pull/809)(2 November 2026)
+- Bump follow-redirects from 1.16.1 to 1.16.2 in /frontend [`#808`](https://github.com/elsa-hanke/elsa-backend/pull/808)(2 November 2026)
+-  Peppi opintosuoritusten ei-taulukkovastausten käsittely ja lokituksen parantaminen [`#806`](https://github.com/elsa-hanke/elsa-backend/pull/806)(2 November 2026)
+- Bump tinymce from 7.9.3 to 8.9.3 in /frontend [`#802`](https://github.com/elsa-hanke/elsa-backend/pull/802)(2 November 2026)
 - LAILLISTAMISTODISTUS -&gt; turku/uef dynasty arkistointi [`#805`](https://github.com/elsa-hanke/elsa-backend/pull/805)(2 November 2026)
 - Bump postcss-selector-parser from 6.0.8 to 6.1.5 in /frontend [`#804`](https://github.com/elsa-hanke/elsa-backend/pull/804)(30 October 2026)
 - Bump systeminformation from 5.31.17 to 5.33.19 in /e2e [`#803`](https://github.com/elsa-hanke/elsa-backend/pull/803)(30 October 2026)
@@ -16,6 +23,11 @@
 - Korjaa hyväksyntöjen transaktionaalisuus ja sähköposti-ilmoitusten ajoitus [`#796`](https://github.com/elsa-hanke/elsa-backend/pull/796)(26 October 2026)
 - Dynasty - Vaihe 2, task 1 — Arkistoitavien asiakirjojen muuttumaton tallennus [`#783`](https://github.com/elsa-hanke/elsa-backend/pull/783)(26 October 2026)
 - Dynasty - Vaihe 1 - Asynkronisen arkistoinnin tietomalli ja db-scheduler-integraatio [`#782`](https://github.com/elsa-hanke/elsa-backend/pull/782)(24 October 2026)
+
+## [v2.5.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.0...v2.5.1) - 4 November 2026
+
+- arviointityokalut-paakayttaja.cy.ts cypress test [`#816`](https://github.com/elsa-hanke/elsa-backend/pull/816)(4 November 2026)
+- Korjaa valmistumispyynnön hyväksynnän virhe omistajattomilla arviointityökaluilla [`#815`](https://github.com/elsa-hanke/elsa-backend/pull/815)(3 November 2026)
 
 ## [v2.5.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...v2.5.0) - 23 October 2026
 
