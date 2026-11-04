@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 
 @Component
-@Profile("!e2e-archive & !dynasty-approval-test")
+@Profile("!e2e-archive")
 class TurkuDynastyArkistointiAdapter(
     @Qualifier("turkuDynastyClient") private val client: DynastyClient,
     private val metadata: TurkuDynastyMetadataMapper,

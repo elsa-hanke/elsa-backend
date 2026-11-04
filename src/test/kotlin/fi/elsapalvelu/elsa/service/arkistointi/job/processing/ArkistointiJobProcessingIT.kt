@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.processing
 
+import fi.elsapalvelu.elsa.service.arkistointi.support.ArchiveProcessingTestSupport
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.SchedulerName
 import com.github.kagkarlsson.scheduler.task.CompletionHandler
@@ -20,9 +21,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobScheduler
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
-import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
-import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaLoader
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -67,7 +66,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DelegatingDataSource
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
-import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate
 
 /** All SQL writes, including simulated crashes, target this isolated disposable test database. */
@@ -78,9 +76,8 @@ import org.springframework.transaction.support.TransactionTemplate
     "application.arkistointi.retry.max-delay=2s",
     "application.arkistointi.retry.max-attempts=3"
 ])
-@org.springframework.test.context.ActiveProfiles("dynasty-approval-test")
 @Import(ArkistointiJobProcessingIT.TestConfig::class)
-class ArkistointiJobProcessingIT {
+class ArkistointiJobProcessingIT : ArchiveProcessingTestSupport() {
     @Autowired private lateinit var creator: ArkistointiJobCreator
     @Autowired private lateinit var jobScheduler: ArkistointiJobScheduler
     @Autowired private lateinit var snapshots: ArkistointiAsiakirjaSnapshotService
@@ -88,7 +85,6 @@ class ArkistointiJobProcessingIT {
     @Autowired private lateinit var em: EntityManager
     @Autowired private lateinit var transactions: TransactionTemplate
     @Autowired private lateinit var jdbc: JdbcTemplate
-    @Autowired private lateinit var adapter: TestAdapter
     @Autowired private lateinit var task: OneTimeTask<Unit>
     @Autowired private lateinit var dataSource: DataSource
     @Autowired private lateinit var processor: ArkistointiJobProcessor
@@ -772,21 +768,8 @@ class ArkistointiJobProcessingIT {
 
     private fun retryable() = ArkistointiResult.RetryableFailure(ArkistointiError.create("UNAVAILABLE", "Palvelu ei vastaa"))
 
-    class TestAdapter : ArkistointiAdapter {
-        override val university = YliopistoEnum.TURUN_YLIOPISTO
-        override val supportedCaseTypes = setOf(CaseType.VALMISTUMINEN)
-        val submissions = CopyOnWriteArrayList<ArkistointiSubmission>()
-        @Volatile var behavior: (ArkistointiSubmission) -> ArkistointiResult = { ArkistointiResult.Success(null) }
-        override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult {
-            check(!TransactionSynchronizationManager.isActualTransactionActive()) { "Network call inside transaction" }
-            submissions.add(pyynto)
-            return behavior(pyynto)
-        }
-    }
-
     @TestConfiguration(proxyBeanMethods = false)
     class TestConfig {
-        @Bean fun testAdapter() = TestAdapter()
         @Bean fun isolatedCache(customizer: JCacheManagerCustomizer): javax.cache.CacheManager =
             (Caching.getCachingProvider() as EhcacheCachingProvider).getCacheManager(
                 URI("urn:elsa:archive-processing-it"), DefaultConfiguration(javaClass.classLoader)
