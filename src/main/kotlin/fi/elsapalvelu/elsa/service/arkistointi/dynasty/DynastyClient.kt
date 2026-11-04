@@ -60,12 +60,6 @@ class DynastyClient internal constructor(
     private fun requireSetting(value: String?): String =
         value?.takeIf { it.isNotBlank() } ?: throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
 
-    private fun readId(raw: String, guid: Boolean): String {
-        if (raw.length > 1024) throw DynastyFailure("DYNASTY_RESPONSE_INVALID")
-        val id = raw.trim().removeSurrounding("\"")
-        return DynastyId.requireValid(id, guid)
-    }
-
     @Synchronized
     private fun accessToken(): String {
         val cachedToken = token
@@ -93,28 +87,28 @@ class DynastyClient internal constructor(
     @Synchronized
     private fun invalidate() { token = null; expires = Instant.EPOCH }
 
-    fun createCase(tosClass: String, metadata: String): String =
-        post(endpoint("api/v1/cases").addQueryParameter("tosClass", tosClass).build(), json(metadata), false)
-    fun createTask(caseId: String, title: String): String =
-        post(endpoint("api/v1/cases/$caseId/tasks").build(), json(mapper.writeValueAsString(mapOf("title" to title))), true)
-    fun createDocument(metadata: String, options: String, document: LoadedArkistointiAsiakirja): String {
+    fun createCase(tosClass: String, metadata: DynastyCaseRequest): DynastyCaseId =
+        post(endpoint("api/v1/cases").addQueryParameter("tosClass", tosClass).build(), json(metadata), DynastyResponseKind.CaseId)
+    fun createTask(caseId: DynastyCaseId, title: String): DynastyTaskId =
+        post(endpoint("api/v1/cases/$caseId/tasks").build(), json(DynastyTaskRequest(title)), DynastyResponseKind.TaskId)
+    fun createDocument(metadata: DynastyDocumentMetadata, options: DynastyDocumentOptions, document: LoadedArkistointiAsiakirja): DynastyDocumentId {
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
-            .addFormDataPart("MetaData", metadata).addFormDataPart("CaseAttachmentOptions", options)
+            .addFormDataPart("MetaData", mapper.writeValueAsString(metadata)).addFormDataPart("CaseAttachmentOptions", mapper.writeValueAsString(options))
             .addFormDataPart("File", document.filename, document.sisalto.toRequestBody(document.contentType.toMediaType())).build()
-        return post(endpoint("api/v1/documents").build(), body, false)
+        return post(endpoint("api/v1/documents").build(), body, DynastyResponseKind.DocumentId)
     }
-    fun archiveCase(caseId: String) { post(endpoint("api/v1/cases/$caseId/state/Archived").build(), ByteArray(0).toRequestBody(), false, true) }
-    private fun json(value: String) = value.toRequestBody("application/json".toMediaType())
+    fun archiveCase(caseId: DynastyCaseId) { post(endpoint("api/v1/cases/$caseId/state/Archived").build(), ByteArray(0).toRequestBody(), DynastyResponseKind.NoContent) }
+    private fun json(value: Any) = mapper.writeValueAsString(value).toRequestBody("application/json".toMediaType())
 
     private fun endpoint(path: String): HttpUrl.Builder =
         requireSetting(settings.baseUrl).trimEnd('/').toHttpUrl().newBuilder().addPathSegments(path)
 
-    private fun post(url: HttpUrl, body: RequestBody, guid: Boolean, empty: Boolean = false): String {
+    private fun <T> post(url: HttpUrl, body: RequestBody, responseKind: DynastyResponseKind<T>): T {
         repeat(2) { attempt ->
             val bearer = accessToken() // Token failure cannot have created the requested object.
             val request = Request.Builder().url(url)
                 .header("Organization", requireSetting(settings.organization)).header("Authorization", "Bearer $bearer")
-                .header("Accept", if (empty) "application/json" else "text/plain").post(body).build()
+                .header("Accept", responseKind.accept).post(body).build()
             val progress = ArchiveHttpRequestProgress()
             val client = httpClient.newBuilder().eventListener(progress).build()
             try {
@@ -129,8 +123,7 @@ class DynastyClient internal constructor(
                         if (response.code in 400..499 && response.code !in setOf(408,429)) throw DynastyFailure("DYNASTY_HTTP_REJECTED", false, true)
                         throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED")
                     }
-                    if (empty) return ""
-                    return readId(response.peekBody(1025).string(),guid)
+                    return responseKind.read(response)
                 }
             } catch (e: DynastyFailure) { throw e }
             catch (e: IOException) {

@@ -10,9 +10,9 @@ import java.time.Duration
  */
 @Component
 class DynastyStepExecutor(private val ledger: DynastyStepLedger) {
-    fun execute(execution: ArkistointiJobExecution, key: DynastyStepKey, inProgressGrace: Duration, send: () -> String?): String? {
+    fun <T> execute(execution: ArkistointiJobExecution, key: DynastyStepKey<T>, inProgressGrace: Duration, send: () -> T): T {
         when (val decision = ledger.begin(execution,key,inProgressGrace)) {
-            is DynastyStepLedger.Decision.Done -> return validatedSavedId(key,decision.remoteId)
+            is DynastyStepLedger.Decision.Done -> return key.responseKind.fromSaved(decision.remoteId)
             DynastyStepLedger.Decision.InProgress -> throw DynastyFailure("DYNASTY_STEP_IN_PROGRESS", true)
             DynastyStepLedger.Decision.Unconfirmed -> throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED")
             DynastyStepLedger.Decision.Proceed -> Unit
@@ -21,14 +21,8 @@ class DynastyStepExecutor(private val ledger: DynastyStepLedger) {
             if (e.definitelyNotProcessed) ledger.abandon(execution.jobId,key,execution.version)
             throw e
         }
-        if (!ledger.complete(execution.jobId,key,execution.version,id)) throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED")
+        if (!ledger.complete(execution.jobId,key,execution.version,key.responseKind.toSaved(id))) throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED")
         return id
-    }
-
-    private fun validatedSavedId(key: DynastyStepKey, id: String?): String? = when (key) {
-        DynastyStepKey.ArchiveCase -> null
-        DynastyStepKey.Task -> DynastyId.requireValid(id, guid = true)
-        DynastyStepKey.Case, is DynastyStepKey.Document -> DynastyId.requireValid(id, guid = false)
     }
 
 }

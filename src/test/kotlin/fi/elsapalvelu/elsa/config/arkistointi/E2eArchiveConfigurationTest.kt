@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.config.arkistointi
 
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -33,16 +34,34 @@ class E2eArchiveConfigurationTest {
             LouhiAsyncArkistointiAdapter::class.java, SiiloAsyncArkistointiAdapter::class.java)
 
     @Test
-    fun `disposable YAML binds to strict application properties and enables test adapters`() {
+    fun `merged disposable configuration supplies async routes for every enabled case`() {
         context.withInitializer(ConfigDataApplicationContextInitializer())
-            .withUserConfiguration(BindingConfiguration::class.java)
+            .withUserConfiguration(BindingConfiguration::class.java, ArkistointiConfigurationProvider::class.java,
+                ArkistointiRouteValidator::class.java, ArkistointiAdapterRegistry::class.java)
             .withPropertyValues(
-                "spring.config.location=file:infra/application-e2e.yml",
+                "spring.config.location=file:src/main/resources/config/",
+                "spring.config.additional-location=file:infra/application-e2e.yml",
                 "spring.profiles.active=dev,e2e-archive"
             ).run {
                 assertThat(it).hasNotFailed()
                 assertThat(it.getBean(ApplicationProperties::class.java).getE2e().archiveStubEnabled).isTrue()
                 assertThat(it.getBeansOfType(ArkistointiAdapter::class.java)).hasSize(3)
+                val provider = it.getBean(ArkistointiConfigurationProvider::class.java)
+                val routes = YliopistoEnum.entries.flatMap { university ->
+                    CaseType.entries.filter { caseType -> provider.onKaytossa(university, caseType) }
+                        .map { caseType -> university to caseType }
+                }
+                assertThat(routes).containsExactlyInAnyOrder(
+                    YliopistoEnum.HELSINGIN_YLIOPISTO to CaseType.VALMISTUMINEN,
+                    YliopistoEnum.HELSINGIN_YLIOPISTO to CaseType.KOEJAKSO,
+                    YliopistoEnum.HELSINGIN_YLIOPISTO to CaseType.SOPIMUS,
+                    YliopistoEnum.ITA_SUOMEN_YLIOPISTO to CaseType.VALMISTUMINEN,
+                    YliopistoEnum.ITA_SUOMEN_YLIOPISTO to CaseType.KOEJAKSO
+                )
+                routes.forEach { (university, caseType) ->
+                    assertThat(provider.isAsyncEnabled(university, caseType)).describedAs("$university / $caseType").isTrue()
+                }
+                it.getBean(ArkistointiAdapterRegistry::class.java).validateWorkerConfiguration(provider)
             }
     }
 

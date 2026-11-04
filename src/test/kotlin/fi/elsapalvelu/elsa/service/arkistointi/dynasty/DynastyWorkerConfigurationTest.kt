@@ -20,7 +20,7 @@ class DynastyWorkerConfigurationTest {
     private val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
         DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper),
         TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
-        DynastyStepExecutor(mock<DynastyStepLedger>()), mapper
+        DynastyStepExecutor(mock<DynastyStepLedger>())
     )))
     private val provider = ArkistointiConfigurationProvider(properties)
 

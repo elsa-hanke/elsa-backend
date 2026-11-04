@@ -4,6 +4,8 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiExecuti
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.StaleArkistointiExecutionException
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.RowMapper
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -24,34 +26,43 @@ class DynastyStepLedger(
         data object Unconfirmed : Decision
     }
 
-    fun begin(execution: ArkistointiJobExecution, key: DynastyStepKey, inProgressGrace: Duration): Decision {
+    fun begin(execution: ArkistointiJobExecution, key: DynastyStepKey<*>, inProgressGrace: Duration): Decision {
         executionLock.lock(execution)
-        val job = jdbc.queryForList("select status from arkistointi_job where id=? for update", execution.jobId).singleOrNull()
-        if (job?.get("status") != "KASITTELYSSA") throw StaleArkistointiExecutionException()
+        val jobStatus = jdbc.query("select status from arkistointi_job where id=? for update", jobStatusMapper, execution.jobId).singleOrNull()
+        if (jobStatus != ArkistointiJobStatus.KASITTELYSSA) throw StaleArkistointiExecutionException()
         // Use the database wall clock after acquiring locks, not JVM time or transaction start time.
-        val rows = jdbc.queryForList(
+        val rows = jdbc.query(
             "select status, remote_id, started_at + (?::bigint * interval '1 millisecond') > clock_timestamp() as in_progress " +
                 "from arkistointi_dynasty_step where job_id=? and step_key=?",
-            inProgressGrace.toMillis(), execution.jobId, key.databaseKey
+            stepRowMapper, inProgressGrace.toMillis(), execution.jobId, key.databaseKey
         )
         if (rows.isNotEmpty()) {
             val row = rows.single()
-            if (row["status"] == "VALMIS") return Decision.Done(row["remote_id"] as String?)
-            return if (row["in_progress"] == true) Decision.InProgress else Decision.Unconfirmed
+            if (row.status == DynastyStepStatus.VALMIS) return Decision.Done(row.remoteId)
+            return if (row.inProgress) Decision.InProgress else Decision.Unconfirmed
         }
-        jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) values (?,?,'ALOITETTU',?,clock_timestamp())",
-            execution.jobId, key.databaseKey, execution.version)
+        jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) values (?,?,?,?,clock_timestamp())",
+            execution.jobId, key.databaseKey, DynastyStepStatus.ALOITETTU.name, execution.version)
         return Decision.Proceed
     }
 
     /** A late response still records a fact, but only for the attempt which started this step. */
-    fun complete(jobId: UUID, key: DynastyStepKey, version: Long, remoteId: String?): Boolean = jdbc.update(
-        "update arkistointi_dynasty_step set status='VALMIS',remote_id=?,completed_at=clock_timestamp() where job_id=? and " +
-            "step_key=? and execution_version=? and status='ALOITETTU'",
-        remoteId, jobId, key.databaseKey, version
+    fun complete(jobId: UUID, key: DynastyStepKey<*>, version: Long, remoteId: String?): Boolean = jdbc.update(
+        "update arkistointi_dynasty_step set status=?,remote_id=?,completed_at=clock_timestamp() where job_id=? and " +
+            "step_key=? and execution_version=? and status=?",
+        DynastyStepStatus.VALMIS.name, remoteId, jobId, key.databaseKey, version, DynastyStepStatus.ALOITETTU.name
     ) == 1
 
-    fun abandon(jobId: UUID, key: DynastyStepKey, version: Long) {
-        jdbc.update("delete from arkistointi_dynasty_step where job_id=? and step_key=? and execution_version=? and status='ALOITETTU'", jobId, key.databaseKey, version)
+    fun abandon(jobId: UUID, key: DynastyStepKey<*>, version: Long) {
+        jdbc.update("delete from arkistointi_dynasty_step where job_id=? and step_key=? and execution_version=? and status=?",
+            jobId, key.databaseKey, version, DynastyStepStatus.ALOITETTU.name)
+    }
+    private data class StepRow(val status: DynastyStepStatus, val remoteId: String?, val inProgress: Boolean)
+
+    private val jobStatusMapper = RowMapper { row, _ -> ArkistointiJobStatus.valueOf(row.getString("status")) }
+    private val stepRowMapper = RowMapper { row, _ ->
+        StepRow(DynastyStepStatus.valueOf(row.getString("status")), row.getString("remote_id"), row.getBoolean("in_progress"))
     }
 }
+
+enum class DynastyStepStatus { ALOITETTU, VALMIS }

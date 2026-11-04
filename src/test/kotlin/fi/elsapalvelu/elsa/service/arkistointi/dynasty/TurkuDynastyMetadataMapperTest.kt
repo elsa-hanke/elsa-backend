@@ -21,9 +21,9 @@ class TurkuDynastyMetadataMapperTest {
     fun `graduation maps program regulation dates and document specific fields`(kind: String) {
         val plan = plan(kind, false)
         val mapper = jacksonObjectMapper()
-        val documents = plan.documents.map(mapper::readTree)
+        val documents = plan.documents.map { mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(it) }
         assertThat(plan.tosClass).isEqualTo("05.06.02.04")
-        assertThat(mapper.readTree(plan.caseJson).path("caseModel").path("title").asText()).startsWith(kind)
+        assertThat(mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(plan.caseRequest).path("caseModel").path("title").asText()).startsWith(kind)
         assertThat(documents[0].path("AD").path("UTUkoulutusohjelma").asText()).isEqualTo(when(kind) {
             "YEK" -> "Yleislääketieteen erityiskoulutus"
             "EHL" -> "Erikoishammaslääkärikoulutus"
@@ -41,7 +41,7 @@ class TurkuDynastyMetadataMapperTest {
     }
     @Test fun `koejakso maps secrecy approval and permanent retention`() {
         val plan = plan("EL", true)
-        val doc = jacksonObjectMapper().readTree(plan.documents.single())
+        val doc = jacksonObjectMapper().valueToTree<com.fasterxml.jackson.databind.JsonNode>(plan.documents.single())
         assertThat(plan.tosClass).isEqualTo("05.06.02.00")
         assertThat(doc.path("publicityClassName").asText()).isEqualTo("Osittain salassa pidettävä")
         assertThat(doc.path("publicityClassId").asText()).isEqualTo("test-secret")

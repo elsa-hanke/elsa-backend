@@ -18,7 +18,7 @@ class TurkuDynastyMetadataMapper(
     private val mapper: ObjectMapper,
     private val reader: ArchivePayloadReader
 ) {
-    data class Plan(val tosClass: String, val caseJson: String, val task: String, val documents: List<String>) {
+    data class Plan(val tosClass: String, val caseRequest: DynastyCaseRequest, val task: String, val documents: List<DynastyDocumentMetadata>) {
         override fun toString() = "DynastyPlan(documents=${documents.size})"
     }
 
@@ -71,24 +71,25 @@ class TurkuDynastyMetadataMapper(
         val name = "${p.firstName} ${p.lastName}"
         val date = p.approvalDate.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
         val title = "$prefix ${if (graduation) "Valmistumisen yhteenveto" else "Koejakson vastuuhenkilön arvio"} $name $date"
-        val common = linkedMapOf("UTUetunimi" to p.firstName, "UTUsukunimi" to p.lastName,
-            "UTUtiedekunta" to "Lääketieteellinen tiedekunta", "UTUkoulutusohjelma" to program, "UTUpaaaine" to p.specialtyName)
-        val caseAd = common.toMutableMap().apply { p.birthDate?.let { put("UTUsyntymaaika",it.toString()) } }
-        val caseJson = mapper.writeValueAsString(mapOf("caseModel" to mapOf("schemaid" to c.caseSchemaId,
-            "title" to title,"publicityClassId" to "J","publicityClassName" to "Julkinen","manner" to "M","AD" to caseAd)))
+        val caseRequest = DynastyCaseRequest(DynastyCaseModel(c.caseSchemaId, title, DynastyAdditionalData(
+            firstName = p.firstName, lastName = p.lastName, faculty = "Lääketieteellinen tiedekunta",
+            program = program, specialty = p.specialtyName, birthDate = p.birthDate?.toString()
+        )))
         val metadata = properties.getArkistointi().getTurku().metadata
         val documents = docs.map { doc ->
             val main = doc.asiakirjatyyppi in setOf(RecordType.YHTEENVETO,RecordType.ARVIOINTI)
-            val ad = common.toMutableMap()
-            if (main) {
-                p.birthDate?.let { ad["UTUsyntymaaika"] = it.toString() }
-                p.studyRightStartDate?.let { ad["UTUalkamispaiva"] = it.toString() }
-                ad[if (graduation) "UTUvalmistumispaiva" else "UTUhyvaksymispaiva"] = p.approvalDate.toString()
-                p.degreeRegulation?.let { regulation ->
-                    ad["UTUtutkintoasetus"] = c.tutkintoasetukset[regulation] ?: throw DynastyFailure("DYNASTY_REGULATION_UNCONFIGURED")
-                }
-            }
-            if (graduation && doc.asiakirjatyyppi != RecordType.LIITE) p.licensingDate?.let { ad["UTUlaillistamispaiva"] = it.toString() }
+            val ad = DynastyAdditionalData(
+                firstName = p.firstName, lastName = p.lastName, faculty = "Lääketieteellinen tiedekunta",
+                program = program, specialty = p.specialtyName,
+                birthDate = if (main) p.birthDate?.toString() else null,
+                studyRightStartDate = if (main) p.studyRightStartDate?.toString() else null,
+                graduationDate = if (main && graduation) p.approvalDate.toString() else null,
+                approvalDate = if (main && !graduation) p.approvalDate.toString() else null,
+                degreeRegulation = if (main) p.degreeRegulation?.let { regulation ->
+                    c.tutkintoasetukset[regulation] ?: throw DynastyFailure("DYNASTY_REGULATION_UNCONFIGURED")
+                } else null,
+                licensingDate = if (graduation && doc.asiakirjatyyppi != RecordType.LIITE) p.licensingDate?.toString() else null
+            )
             val retention = metadata?.getDocumentMetadata(doc.asiakirjatyyppi, metadata.getCaseMetadata(submission.caseType))?.retentionPeriod?.toIntOrNull()
                 ?: throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
             val documentTitle = when(doc.asiakirjatyyppi) {
@@ -101,19 +102,19 @@ class TurkuDynastyMetadataMapper(
                 main -> "Valmistumisen yhteenveto, EL, EHL tai YEK"
                 else -> "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK"
             }
-            val result = linkedMapOf<String,Any?>("title" to documentTitle,"schemaId" to c.documentSchemaId,
-                "publicityClassId" to "J","publicityClassName" to "Julkinen","personalData" to "Sisältää henkilötietoja",
-                "documentType" to documentType,"state" to 3,"retentionPeriodRule" to "Asian lopullinen ratkaisu",
-                "retentionPeriodLength" to retention,"AD" to ad)
-            if (!graduation) {
-                validateSecrecyConfiguration()
-                result["publicityClassId"] = c.koejaksoPublicityClassId
-                result["publicityClassName"] = "Osittain salassa pidettävä"
-                result["retentionPeriodRule"] = "Asiakirjan päivämäärä"
-                result.putAll(c.koejaksoSecrecyFields)
-            }
-            mapper.writeValueAsString(result)
+            if (!graduation) validateSecrecyConfiguration()
+            DynastyDocumentMetadata(
+                title = documentTitle, schemaId = c.documentSchemaId, documentType = documentType,
+                retentionPeriodLength = retention, additionalData = ad,
+                publicityClassId = if (graduation) "J" else requireNotNull(c.koejaksoPublicityClassId),
+                publicityClassName = if (graduation) "Julkinen" else "Osittain salassa pidettävä",
+                retentionPeriodRule = if (graduation) "Asian lopullinen ratkaisu" else "Asiakirjan päivämäärä",
+                secrecyFields = if (graduation) emptyMap() else c.koejaksoSecrecyFields.toMap()
+            )
         }
-        return Plan(if (graduation) "05.06.02.04" else "05.06.02.00",caseJson,if (graduation) "Hakeminen" else "Arviointi",documents)
+        // Validate serialization of the immutable plan before any external mutation.
+        mapper.writeValueAsString(caseRequest)
+        documents.forEach { mapper.writeValueAsString(it) }
+        return Plan(if (graduation) "05.06.02.04" else "05.06.02.00",caseRequest,if (graduation) "Hakeminen" else "Arviointi",documents)
     }
 }

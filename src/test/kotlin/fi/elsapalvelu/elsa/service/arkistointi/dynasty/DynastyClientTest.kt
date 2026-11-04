@@ -32,6 +32,8 @@ class DynastyClientTest {
         }
         return DynastyClient(settings,jacksonObjectMapper(),transport)
     }
+    private fun caseRequest() = DynastyCaseRequest(DynastyCaseModel("case-schema", "Test case", DynastyAdditionalData()))
+
     private fun token() = MockResponse().setBody("""{"access_token":"test-token","expires_in":900}""")
 
     @ParameterizedTest
@@ -44,7 +46,7 @@ class DynastyClientTest {
             val c = client(server) { baseUrl = requireNotNull(baseUrl).trimEnd('/') + basePath }
             val tosClass = "05.06 &other=value+plus#fragment?/% ä"
 
-            assertThat(c.createCase(tosClass, "{}")).isEqualTo("415")
+            assertThat(c.createCase(tosClass, caseRequest())).isEqualTo(DynastyCaseId(415))
 
             server.takeRequest() // OAuth request uses its separately configured URL.
             val url = requireNotNull(server.takeRequest().requestUrl)
@@ -93,7 +95,7 @@ class DynastyClientTest {
             val c = client(server, transport)
             assertThatThrownBy {
                 DynastyStepExecutor(ledger).execute(execution, DynastyStepKey.Case, c.inProgressGrace) {
-                    c.createCase("05.06.02.04", "{}")
+                    c.createCase("05.06.02.04", caseRequest())
                 }
             }.isInstanceOfSatisfying(DynastyFailure::class.java) {
                 assertThat(it.code).isEqualTo(if (beforeRequest) "DYNASTY_UNAVAILABLE" else "DYNASTY_DELIVERY_UNCONFIRMED")
@@ -126,7 +128,7 @@ class DynastyClientTest {
                     .thenReturn(DynastyStepLedger.Decision.Proceed)
                 assertThatThrownBy {
                     DynastyStepExecutor(ledger).execute(execution, DynastyStepKey.Case, c.inProgressGrace) {
-                        c.createCase("05.06.02.04", "{}")
+                        c.createCase("05.06.02.04", caseRequest())
                     }
                 }.isInstanceOfSatisfying(DynastyFailure::class.java) {
                     assertThat(it.code).isEqualTo("DYNASTY_UNAVAILABLE")
@@ -153,7 +155,7 @@ class DynastyClientTest {
                     "organization" -> organization = null
                 }
             }
-            assertThatThrownBy { client.createCase("x", "{}") }
+            assertThatThrownBy { client.createCase("x", caseRequest()) }
                 .isInstanceOfSatisfying(DynastyFailure::class.java) {
                     assertThat(it.code).isEqualTo("DYNASTY_CONFIGURATION_INVALID")
                     assertThat(it.cause).isNull()
@@ -169,7 +171,7 @@ class DynastyClientTest {
             server.start()
             if (duringMutation) server.enqueue(token())
             server.enqueue(MockResponse().setSocketPolicy(okhttp3.mockwebserver.SocketPolicy.DISCONNECT_AFTER_REQUEST))
-            assertThatThrownBy { client(server).createCase("x", "{}") }
+            assertThatThrownBy { client(server).createCase("x", caseRequest()) }
                 .isInstanceOfSatisfying(DynastyFailure::class.java) {
                     assertThat(it.retryable).isEqualTo(!duringMutation)
                     assertThat(it.definitelyNotProcessed).isEqualTo(!duringMutation)
@@ -186,8 +188,8 @@ class DynastyClientTest {
             s.enqueue(token()); s.enqueue(MockResponse().setBody("415")); s.enqueue(MockResponse().setBody("416"))
             val c = client(s)
             c.validateConfiguration()
-            assertThat(c.createCase("05.06.02.04","{}")).isEqualTo("415")
-            assertThat(c.createCase("05.06.02.04","{}")).isEqualTo("416")
+            assertThat(c.createCase("05.06.02.04",caseRequest())).isEqualTo(DynastyCaseId(415))
+            assertThat(c.createCase("05.06.02.04",caseRequest())).isEqualTo(DynastyCaseId(416))
             assertThat(s.requestCount).isEqualTo(3)
             val auth = s.takeRequest()
             assertThat(auth.getHeader("Organization")).isEqualTo("0")
@@ -212,10 +214,10 @@ class DynastyClientTest {
                 }
                 val a = client(first) { organization = "first"; clientSecret = "first-secret" }
                 val b = client(second) { organization = "second"; clientSecret = "second-secret" }
-                a.createCase("x", "{}")
-                b.createCase("x", "{}")
-                a.createCase("x", "{}")
-                b.createCase("x", "{}")
+                a.createCase("x", caseRequest())
+                b.createCase("x", caseRequest())
+                a.createCase("x", caseRequest())
+                b.createCase("x", caseRequest())
                 listOf(first to "first", second to "second").forEach { (server, destination) ->
                     val auth = server.takeRequest()
                     assertThat(auth.getHeader("Organization")).isEqualTo(destination)
@@ -235,7 +237,7 @@ class DynastyClientTest {
     fun `503 is ambiguous and is never transparently retried`() {
         MockWebServer().use { s ->
             s.start(); s.enqueue(token()); s.enqueue(MockResponse().setResponseCode(503).setBody("private details"))
-            assertThatThrownBy { client(s).createCase("x","{}") }.isInstanceOfSatisfying(DynastyFailure::class.java) {
+            assertThatThrownBy { client(s).createCase("x",caseRequest()) }.isInstanceOfSatisfying(DynastyFailure::class.java) {
                 assertThat(it.definitelyNotProcessed).isFalse()
                 assertThat(it.retryable).isFalse()
                 assertThat(it.message).doesNotContain("private details")
@@ -248,7 +250,7 @@ class DynastyClientTest {
     fun `401 renews token once before repeating rejected request`() {
         MockWebServer().use { s ->
             s.start(); s.enqueue(token()); s.enqueue(MockResponse().setResponseCode(401)); s.enqueue(token()); s.enqueue(MockResponse().setBody("415"))
-            assertThat(client(s).createCase("x","{}")).isEqualTo("415")
+            assertThat(client(s).createCase("x",caseRequest())).isEqualTo(DynastyCaseId(415))
             assertThat(s.requestCount).isEqualTo(4)
         }
     }
@@ -257,7 +259,7 @@ class DynastyClientTest {
     fun `invalid successful response requires reconciliation`() {
         MockWebServer().use { s ->
             s.start(); s.enqueue(token()); s.enqueue(MockResponse().setBody("not-an-id"))
-            assertThatThrownBy { client(s).createCase("x","{}") }.isInstanceOfSatisfying(DynastyFailure::class.java) {
+            assertThatThrownBy { client(s).createCase("x",caseRequest()) }.isInstanceOfSatisfying(DynastyFailure::class.java) {
                 assertThat(it.code).isEqualTo("DYNASTY_RESPONSE_INVALID")
                 assertThat(it.definitelyNotProcessed).isFalse()
             }

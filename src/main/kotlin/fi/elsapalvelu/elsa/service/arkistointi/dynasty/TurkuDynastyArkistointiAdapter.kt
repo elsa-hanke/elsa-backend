@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
@@ -16,8 +15,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 class TurkuDynastyArkistointiAdapter(
     @Qualifier("turkuDynastyClient") private val client: DynastyClient,
     private val metadata: TurkuDynastyMetadataMapper,
-    private val steps: DynastyStepExecutor,
-    private val mapper: ObjectMapper
+    private val steps: DynastyStepExecutor
 ) : ArkistointiAdapter {
     override val canResumeAfterSuccessPersistenceFailure = true
     override val university = YliopistoEnum.TURUN_YLIOPISTO
@@ -37,24 +35,24 @@ class TurkuDynastyArkistointiAdapter(
         } catch (e: DynastyFailure) { return failure(e.code) }
         catch (_: Exception) { return failure("DYNASTY_PAYLOAD_INVALID") }
         return try {
-            val caseId = requireNotNull(steps.execute(execution, DynastyStepKey.Case, client.inProgressGrace) {
-                client.createCase(plan.tosClass,plan.caseJson)
-            })
-            val taskId = requireNotNull(steps.execute(execution, DynastyStepKey.Task, client.inProgressGrace) {
+            val caseId = steps.execute(execution, DynastyStepKey.Case, client.inProgressGrace) {
+                client.createCase(plan.tosClass,plan.caseRequest)
+            }
+            val taskId = steps.execute(execution, DynastyStepKey.Task, client.inProgressGrace) {
                 client.createTask(caseId,plan.task)
-            })
-            var mainId: String? = null
+            }
+            var mainId: DynastyDocumentId? = null
             pyynto.asiakirjat.forEachIndexed { index, doc ->
-                val options = if (index == 0) mapOf("CaseSelector" to mapOf("Id" to caseId), "PhaseSelector" to mapOf("Id" to taskId))
-                    else mapOf("caseSelector" to mapOf("id" to caseId.toLong()), "parentDocumentSelector" to mapOf("id" to requireNotNull(mainId).toLong()))
+                val options = if (index == 0) DynastyMainDocumentOptions(caseId, taskId)
+                    else DynastyAttachmentOptions(caseId, requireNotNull(mainId))
                 val id = steps.execute(execution, DynastyStepKey.Document(doc.jarjestysnumero), client.inProgressGrace) {
-                    client.createDocument(plan.documents[index],mapper.writeValueAsString(options),doc)
+                    client.createDocument(plan.documents[index],options,doc)
                 }
                 if (index == 0) mainId = id
             }
             // Conservatively park an ambiguous state change too, until vendor confirms replay semantics.
-            steps.execute(execution, DynastyStepKey.ArchiveCase, client.inProgressGrace) { client.archiveCase(caseId); null }
-            ArkistointiResult.Success(caseId)
+            steps.execute(execution, DynastyStepKey.ArchiveCase, client.inProgressGrace) { client.archiveCase(caseId) }
+            ArkistointiResult.Success(caseId.toString())
         } catch (e: DynastyFailure) { failure(e.code,e.retryable) }
     }
 
