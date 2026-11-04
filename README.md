@@ -78,6 +78,11 @@ tarkistaa saman avaimen jo ennen PDF-tuotantoa, ilmoituksia ja snapshotien luont
 joten olemassa olevan jobin toistuva sisäinen käsittely ei luo ylimääräisiä kopioita.
 Hyväksynnän rivin lukitus ja creatorin lopullinen avaintarkistus säilyvät;
 pelkkä ennakkohaku ei korvaa niitä.
+`ArkistointiJobEnqueuer` kokoaa yhteisen ketjun: liiketoiminta-avain, ennakkohaku,
+snapshot-viitteet, payloadin sarjallistus ja creatorin kutsu. Sen `MANDATORY`-transaktio
+edellyttää hyväksynnän avointa transaktiota. Asiakirjat tuotetaan laiskasti vasta
+ennakkohaun jälkeen; valmistumisen yliopisto- ja asiatyyppikohtainen asiakirjavalinta
+tehdään ennen snapshot-viitteitä ja niiden järjestysnumeroita.
 Lisäykset lukitsevat saman job-rivin, joten rinnakkaiset viitelisäykset
 sarjallistuvat. Valmiiseen toimitukseen ei voi lisätä uusia viitteitä.
 Tarkistusten pakottaminen välittömiksi `SET CONSTRAINTS` -komennolla edellyttää,

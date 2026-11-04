@@ -37,7 +37,7 @@ class ValmistuminenArkistointiDocuments(
             trainee.laillistamistodistus?.data, RecordType.LAILLISTAMISTODISTUS, generated.size
         )
         // The certificate has no source Asiakirja: use the snapshot's own ID, never an AsiakirjaData ID.
-        // prepareDocuments/createReference recognizes this persisted snapshot and reuses it.
+        // The enqueuer's createReference recognizes this persisted snapshot and reuses it.
         return generated + RecordProperties(snapshot.asiakirja, RecordType.LAILLISTAMISTODISTUS)
     }
 

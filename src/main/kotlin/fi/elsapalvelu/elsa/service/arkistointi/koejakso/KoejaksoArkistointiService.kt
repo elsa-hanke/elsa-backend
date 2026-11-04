@@ -1,21 +1,14 @@
 package fi.elsapalvelu.elsa.service.arkistointi.koejakso
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
-import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.required
-import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobEnqueuer
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
-import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobKey
-import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
-import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
-import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
-import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -28,10 +21,7 @@ import org.springframework.transaction.annotation.Transactional
 class KoejaksoArkistointiService(
     private val configuration: ArkistointiConfigurationProvider,
     private val synchronousArchive: SynchronousArkistointiService,
-    private val snapshots: ArkistointiAsiakirjaSnapshotService,
-    private val creator: ArkistointiJobCreator,
-    private val mapper: ObjectMapper,
-    private val jobRepository: ArkistointiJobRepository
+    private val enqueuer: ArkistointiJobEnqueuer
 ) {
     fun isAsyncEnabled(university: YliopistoEnum, caseType: CaseType): Boolean =
         configuration.isAsyncEnabled(university, caseType)
@@ -41,7 +31,8 @@ class KoejaksoArkistointiService(
         val university = studyRight.yliopisto?.nimi.required()
         if (!synchronousArchive.onKaytossa(university, CaseType.SOPIMUS)) return
         if (isAsyncEnabled(university, CaseType.SOPIMUS)) {
-            archiveAsync(studyRight, document, CaseType.SOPIMUS, RecordType.SOPIMUS, sopimus.id.required()) { documents ->
+            enqueuer.enqueue(university, CaseType.SOPIMUS, sopimus.id.required(),
+                { listOf(RecordProperties(document, RecordType.SOPIMUS)) }) { documents ->
                 KoejaksoArkistointiPayload.create(
                     sopimus.id.required(), studyRight, documents, "", null,
                     sopimus.vastuuhenkilo?.user?.getName(), sopimus.vastuuhenkilonKuittausaika
@@ -81,7 +72,8 @@ class KoejaksoArkistointiService(
             return
         }
         if (!synchronousArchive.onKaytossa(university, CaseType.KOEJAKSO)) return
-        archiveAsync(studyRight, document, CaseType.KOEJAKSO, RecordType.ARVIOINTI, arvio.id.required()) { documents ->
+        enqueuer.enqueue(university, CaseType.KOEJAKSO, arvio.id.required(),
+            { listOf(RecordProperties(document, RecordType.ARVIOINTI)) }) { documents ->
             KoejaksoArkistointiPayload.create(
                 arvio.id.required(), studyRight, documents, arvio.virkailija?.user?.getName(), arvio.virkailijanKuittausaika,
                 arvio.vastuuhenkilo?.user?.getName(), arvio.vastuuhenkilonKuittausaika, arvio.koejaksoHyvaksytty
@@ -89,29 +81,4 @@ class KoejaksoArkistointiService(
         }
     }
 
-    private fun archiveAsync(
-        studyRight: Opintooikeus,
-        document: Asiakirja,
-        caseType: CaseType,
-        recordType: RecordType,
-        caseId: Long,
-        createPayload: (List<ArkistointiDocumentIdentity>) -> KoejaksoArkistointiPayload
-    ) {
-        val university = studyRight.yliopisto?.nimi.required()
-        val key = ArkistointiJobKey.create(university, caseType, caseId)
-        // Approval callers lock the case row. Check before snapshot creation; creator still checks the key too.
-        if (jobRepository.findByKey(key) != null) return
-        val sourceId = document.id.required()
-        val reference = snapshots.createReference(document, recordType, 0)
-        val payload = createPayload(listOf(reference.identity(sourceId)))
-        creator.create(
-            CreateArkistointiJobRequest(
-                university = payload.studyRight.university,
-                caseType = caseType,
-                payload = mapper.writeValueAsString(payload),
-                key = key,
-                asiakirjat = listOf(reference)
-            )
-        )
-    }
 }

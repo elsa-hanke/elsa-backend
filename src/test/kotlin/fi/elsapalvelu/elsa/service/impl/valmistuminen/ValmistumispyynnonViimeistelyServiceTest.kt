@@ -3,6 +3,8 @@ package fi.elsapalvelu.elsa.service.impl.valmistuminen
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
@@ -10,6 +12,7 @@ import fi.elsapalvelu.elsa.domain.valmistuminen.ValmistumispyynnonTarkistus
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobEnqueuer
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiPackage
@@ -21,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.*
 
 class ValmistumispyynnonViimeistelyServiceTest {
@@ -32,12 +36,25 @@ class ValmistumispyynnonViimeistelyServiceTest {
     private val snapshots = mock<ArkistointiAsiakirjaSnapshotService>()
     private val configuration = mock<ArkistointiConfigurationProvider>()
     private val archiveDocuments = mock<ValmistuminenArkistointiDocuments>()
+    private val jobs = mock<ArkistointiJobRepository>()
+    private val notifications = mock<ValmistumispyynnonIlmoitusService>()
     private val service = ValmistumispyynnonViimeistelyService(
-        documents, reviewService, reviewMapper, mock(), archive, creator, mock<ArkistointiJobRepository>(),
-        snapshots, configuration, archiveDocuments, jacksonObjectMapper()
+        documents, reviewService, reviewMapper, notifications, archive,
+        ArkistointiJobEnqueuer(jobs, snapshots, creator, jacksonObjectMapper()), configuration, archiveDocuments
     )
     private val university = YliopistoEnum.HELSINGIN_YLIOPISTO
     private val review = ValmistumispyynnonTarkistus()
+
+    @ParameterizedTest
+    @EnumSource(ArkistointiJobStatus::class)
+    fun `existing job skips PDF notifications completion and snapshots regardless of status`(status: ArkistointiJobStatus) {
+        whenever(configuration.isAsyncEnabled(university, CaseType.VALMISTUMINEN)).thenReturn(true)
+        whenever(jobs.findByKey("valmistuminen:${university.name}:7")).thenReturn(ArkistointiJob(status = status))
+
+        service.viimeistele(7, review, Valmistumispyynto(id = 7), university)
+
+        verifyNoInteractions(documents, reviewService, reviewMapper, notifications, archiveDocuments, snapshots, creator)
+    }
 
     @BeforeEach
     fun prepareApproval() {

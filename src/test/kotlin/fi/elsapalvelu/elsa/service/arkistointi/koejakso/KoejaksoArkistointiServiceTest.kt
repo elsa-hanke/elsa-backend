@@ -16,6 +16,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobEnqueuer
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference
@@ -48,7 +49,7 @@ class KoejaksoArkistointiServiceTest {
     private val creator = mock<ArkistointiJobCreator>()
     private val jobs = mock<ArkistointiJobRepository>()
     private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
-    private val service = KoejaksoArkistointiService(configuration, synchronous, snapshots, creator, mapper, jobs)
+    private val service = KoejaksoArkistointiService(configuration, synchronous, ArkistointiJobEnqueuer(jobs, snapshots, creator, mapper))
     private val university = YliopistoEnum.HELSINGIN_YLIOPISTO
     private val studyRight = Opintooikeus(id = 12, yliopisto = Yliopisto(nimi = university), erikoisala = Erikoisala(id = 1))
     private val document = Asiakirja(id = 22, nimi = "approval.pdf", tyyppi = "application/pdf")

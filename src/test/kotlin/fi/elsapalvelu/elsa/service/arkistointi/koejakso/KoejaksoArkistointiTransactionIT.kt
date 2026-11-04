@@ -96,6 +96,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.transaction.IllegalTransactionStateException
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobEnqueuer
 
 /** Commits to a disposable PostgreSQL DB, using real PDFs, snapshots, creator and transactional scheduling. */
 @SpringBootTest(classes = [ElsaBackendApp::class], properties = [
@@ -110,6 +112,18 @@ import org.springframework.transaction.support.TransactionTemplate
 ])
 @Import(KoejaksoArkistointiTransactionIT.TestConfig::class)
 class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
+    @Autowired private lateinit var enqueuer: ArkistointiJobEnqueuer
+
+    @Test
+    fun `enqueue requires the approval transaction before evaluating document creation`() {
+        assertThrows<IllegalTransactionStateException> {
+            enqueuer.enqueue(YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.KOEJAKSO, 1,
+                { error("Documents must not be generated without a transaction") }) {
+                error("Payload must not be created without a transaction")
+            }
+        }
+    }
+
     @Autowired private lateinit var transactions: TransactionTemplate
     @Autowired private lateinit var jdbc: JdbcTemplate
     @Autowired private lateinit var jobs: ArkistointiJobRepository

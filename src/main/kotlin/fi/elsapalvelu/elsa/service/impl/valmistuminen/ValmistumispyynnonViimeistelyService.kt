@@ -1,20 +1,13 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.ValmistumispyynnonTarkistus
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.required
-import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobEnqueuer
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
-import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobKey
-import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
-import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
-import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
-import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference
-import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import fi.elsapalvelu.elsa.service.arkistointi.valmistuminen.ValmistuminenArkistointiPayload
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
@@ -29,12 +22,9 @@ class ValmistumispyynnonViimeistelyService(
     private val tarkistusMapper: ValmistumispyynnonTarkistusMapper,
     private val ilmoitusService: ValmistumispyynnonIlmoitusService,
     private val arkistointiService: SynchronousArkistointiService,
-    private val arkistointiJobCreator: ArkistointiJobCreator,
-    private val arkistointiJobRepository: ArkistointiJobRepository,
-    private val asiakirjaSnapshotService: ArkistointiAsiakirjaSnapshotService,
+    private val enqueuer: ArkistointiJobEnqueuer,
     private val arkistointiConfigurationProvider: ArkistointiConfigurationProvider,
-    private val archiveDocuments: ValmistuminenArkistointiDocuments,
-    private val objectMapper: ObjectMapper
+    private val archiveDocuments: ValmistuminenArkistointiDocuments
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -47,19 +37,19 @@ class ValmistumispyynnonViimeistelyService(
         val archiveEnabled = onkoArkistointiKaytossa(yliopisto)
         val asyncEnabled = archiveEnabled &&
             arkistointiConfigurationProvider.isAsyncEnabled(yliopisto.required(), CaseType.VALMISTUMINEN)
-        val jobKey = ArkistointiJobKey.create(yliopisto.required(), CaseType.VALMISTUMINEN, valmistumispyyntoId)
-        if (asyncEnabled && arkistointiJobRepository.findByKey(jobKey) != null) {
-            // Approval holds the request row lock; the creator keeps its final key check as well.
-            log.info("Arkistointi-job on jo olemassa [valmistumispyyntoId=$valmistumispyyntoId]")
+        val university = yliopisto.required()
+        if (asyncEnabled) {
+            enqueuer.enqueue(university, CaseType.VALMISTUMINEN, valmistumispyyntoId, {
+                val documents = createDocuments(valmistumispyyntoId, tarkistus, valmistumispyynto)
+                valmistumispyynto.opintooikeus?.erikoisala.required()
+                val completed = archiveDocuments.complete(valmistumispyynto, university, documents)
+                selectConfiguredDocuments(completed, university)
+            }) { identities ->
+                ValmistuminenArkistointiPayload.create(valmistumispyynto, university, identities)
+            }
             return
         }
-
-        log.info("Luodaan PDF:t [valmistumispyyntoId=$valmistumispyyntoId]")
-        val tarkistusDTO = tarkistusService.taydenna(tarkistusMapper.toDto(tarkistus))
-        val asiakirjat = asiakirjojenLuontiService.luo(tarkistusDTO, valmistumispyynto)
-        log.info("PDF:t luotu [valmistumispyyntoId=$valmistumispyyntoId]")
-        ilmoitusService.lahetaIlmoitusHyvaksynnasta(valmistumispyynto)
-        log.info("Hyvaksynta-sahkoposti lahetetty [valmistumispyyntoId=$valmistumispyyntoId]")
+        val asiakirjat = createDocuments(valmistumispyyntoId, tarkistus, valmistumispyynto)
 
         log.info("Tarkistetaan arkistointi [valmistumispyyntoId=$valmistumispyyntoId, yliopisto=$yliopisto]")
         if (!archiveEnabled) {
@@ -72,23 +62,21 @@ class ValmistumispyynnonViimeistelyService(
 
         valmistumispyynto.opintooikeus?.erikoisala.required()
         val yek = valmistumispyynto.isYek()
-        if (!asyncEnabled) {
-            archiveSynchronously(valmistumispyynto, yliopisto.required(), asiakirjat, yek)
-            return
-        }
-        val completedDocuments = archiveDocuments.complete(valmistumispyynto, yliopisto.required(), asiakirjat)
-        val documents = prepareDocuments(completedDocuments, yliopisto.required())
-        val valmistuminenArkistointiPayload = ValmistuminenArkistointiPayload.create(valmistumispyynto, yliopisto.required(), documents.map { it.identity })
-        arkistointiJobCreator.create(
-            CreateArkistointiJobRequest(
-                university = yliopisto.required(),
-                caseType = CaseType.VALMISTUMINEN,
-                payload = objectMapper.writeValueAsString(valmistuminenArkistointiPayload),
-                key = jobKey,
-                asiakirjat = documents.map { it.reference }
-            )
-        )
-        log.info("Arkistointi-job luotu [valmistumispyyntoId=$valmistumispyyntoId, yek=$yek]")
+        archiveSynchronously(valmistumispyynto, university, asiakirjat, yek)
+    }
+
+    private fun createDocuments(
+        valmistumispyyntoId: Long,
+        tarkistus: ValmistumispyynnonTarkistus,
+        valmistumispyynto: Valmistumispyynto
+    ): List<RecordProperties> {
+        log.info("Luodaan PDF:t [valmistumispyyntoId=$valmistumispyyntoId]")
+        val tarkistusDTO = tarkistusService.taydenna(tarkistusMapper.toDto(tarkistus))
+        val documents = asiakirjojenLuontiService.luo(tarkistusDTO, valmistumispyynto)
+        log.info("PDF:t luotu [valmistumispyyntoId=$valmistumispyyntoId]")
+        ilmoitusService.lahetaIlmoitusHyvaksynnasta(valmistumispyynto)
+        log.info("Hyvaksynta-sahkoposti lahetetty [valmistumispyyntoId=$valmistumispyyntoId]")
+        return documents
     }
 
     private fun archiveSynchronously(
@@ -114,26 +102,15 @@ class ValmistumispyynnonViimeistelyService(
         )
     }
 
-    private fun prepareDocuments(
-        asiakirjat: List<RecordProperties>,
-        yliopisto: YliopistoEnum
-    ): List<PreparedDocument> {
-        val configuration = arkistointiConfigurationProvider.getConfiguration(yliopisto, CaseType.VALMISTUMINEN)
-        val configuredDocuments = asiakirjat.filter {
+    private fun selectConfiguredDocuments(
+        documents: List<RecordProperties>,
+        university: YliopistoEnum
+    ): List<RecordProperties> {
+        val configuration = arkistointiConfigurationProvider.getConfiguration(university, CaseType.VALMISTUMINEN)
+        return documents.filter {
             configuration.metadata.getDocumentMetadata(it.type, configuration.case) != null
         }
-        return configuredDocuments.mapIndexed { index, record ->
-            // Apply the same university/case document selection as the synchronous SÄHKE builder.
-            val sourceId = record.asiakirja.id.required()
-            val reference = asiakirjaSnapshotService.createReference(record.asiakirja, record.type, index)
-            PreparedDocument(reference, reference.identity(sourceId))
-        }
     }
-
-    private data class PreparedDocument(
-        val reference: ArkistointiAsiakirjaReference,
-        val identity: ArkistointiDocumentIdentity
-    )
 
     fun onkoArkistointiKaytossa(yliopisto: YliopistoEnum?): Boolean = arkistointiService.onKaytossa(yliopisto.required(), CaseType.VALMISTUMINEN)
 }
