@@ -6,6 +6,7 @@ import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.*
@@ -39,7 +40,6 @@ import fi.elsapalvelu.elsa.service.seuranta.*
 import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
-import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.service.arkistointi.koejakso.KoejaksoArkistointiService
 import fi.elsapalvelu.elsa.service.mail.TransactionalMailService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -85,7 +85,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val koulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val asiakirjaRepository: AsiakirjaRepository,
-    private val arkistointiService: SynchronousArkistointiService,
+    private val arkistointiConfigurationProvider: ArkistointiConfigurationProvider,
     private val koejaksoArkistointiService: KoejaksoArkistointiService,
     private val keskeytysaikaService: KeskeytysaikaService,
     private val pdfService: PdfService,
@@ -507,7 +507,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val koulutussopimus = koulutussopimusRepository.findByOpintooikeusId(opintoOikeusId)
         result.koulutussopimusHyvaksytty =
             koulutussopimus.isPresent && koulutussopimus.get().vastuuhenkiloHyvaksynyt == true
-        result.arkistoitava = arkistointiService.onKaytossa(vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi.required(), CaseType.KOEJAKSO)
+        result.arkistoitava = arkistointiConfigurationProvider.onKaytossa(vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi.required(), CaseType.KOEJAKSO)
         result.tila = KoejaksoTila.fromVastuuhenkilonArvio(
             vastuuhenkilonArvio,
             authentication.authorities.any { it.authority == OPINTOHALLINNON_VIRKAILIJA },
