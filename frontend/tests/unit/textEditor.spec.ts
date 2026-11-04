@@ -25,6 +25,55 @@ const EditorStub = Vue.extend({
 })
 const dirty = '<p onclick="alert(1)">Hyv&auml;</p><img src=x onerror=alert(1)>'
 
+it.each([null, '<p>Ohje</p>'])(
+  'initializes only the textarea through the real TinyMCE Vue adapter (value: %s)',
+  async (value) => {
+    const targets: Element[] = []
+    const setContent = jest.fn()
+    const tinymce = {
+      init: jest.fn((options) => {
+        // TinyMCE resolves the selector after mount. Use the real Vue adapter's
+        // setup/init callbacks so duplicate targets also exercise its shared state.
+        return Promise.resolve().then(() => {
+          document.querySelectorAll(options.selector).forEach((target) => {
+            targets.push(target)
+            const initHandlers: Array<() => void> = []
+            const editor = {
+              setContent,
+              getContent: () => '',
+              on: (event: string, handler: () => void) => {
+                if (event === 'init') initHandlers.push(handler)
+              }
+            }
+            options.setup(editor)
+            initHandlers.forEach((handler) => handler())
+          })
+        })
+      }),
+      remove: jest.fn()
+    }
+    const previous = Object.getOwnPropertyDescriptor(window, 'tinymce')
+    Object.defineProperty(window, 'tinymce', { configurable: true, value: tinymce })
+    const wrapper = mount(
+      Vue.extend({
+        components: { TextEditor },
+        data: () => ({ value }),
+        template: `<text-editor id="assessment-instructions" v-model="value" restricted-rich-text />`
+      }),
+      { attachTo: document.body }
+    )
+    try {
+      await Vue.nextTick()
+      expect(setContent.mock.calls).toEqual([[value || '']])
+      expect(targets.map((target) => target.tagName)).toEqual(['TEXTAREA'])
+    } finally {
+      wrapper.destroy()
+      if (previous) Object.defineProperty(window, 'tinymce', previous)
+      else Reflect.deleteProperty(window, 'tinymce')
+    }
+  }
+)
+
 function parent(restricted = true, value: string | null = dirty) {
   return mount(
     Vue.extend({
