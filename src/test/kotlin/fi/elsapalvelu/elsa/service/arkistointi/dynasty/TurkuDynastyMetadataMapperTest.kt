@@ -1,19 +1,13 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
-import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
-import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
-import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
-import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class TurkuDynastyMetadataMapperTest {
     @org.junit.jupiter.params.ParameterizedTest
@@ -66,58 +60,16 @@ class TurkuDynastyMetadataMapperTest {
     private fun plan(
         kind: String, koejakso: Boolean,
         changePayload: (com.fasterxml.jackson.databind.node.ObjectNode) -> Unit = {}
-    ): TurkuDynastyMetadataMapper.Plan = MockWebServer().use { server ->
-        server.start()
-            val mapper = jacksonObjectMapper()
-            val properties = ApplicationProperties()
-            properties.getArkistointi().getTurku().apply {
-                dynasty.apply {
-                    baseUrl = server.url("/").newBuilder().host("127.0.0.1").build().toString().trimEnd('/')
-                    tokenUrl = "$baseUrl/token"
-                    clientId = "client"; clientSecret = "secret"; organization = "0"
-                    caseSchemaId = "case-schema"; documentSchemaId = "document-schema"
-                    allowLoopbackHttpForTests = true
-                    tutkintoasetukset = mapOf("56/2015" to "Confirmed regulation")
-                }
-                metadata = ApplicationProperties.Arkistointi.Metadata().apply {
-                    cases = mapOf("valmistuminen" to ApplicationProperties.Arkistointi.Case().apply {
-                        documents = listOf("yhteenveto","liite","laillistamistodistus").associateWith {
-                            ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = if (it == "yhteenveto") "20" else "10" }
-                        }
-                    })
-                }
-            }
-            properties.getArkistointi().getTurku().apply {
-                dynasty.koejaksoPublicityClassId = "test-secret"
-                dynasty.koejaksoSecrecyFields = mapOf("reason" to "test-law", "duration" to "100", "start" to "approval")
-                val cases = metadata!!.cases!!.toMutableMap()
-                cases["koejakso"] = ApplicationProperties.Arkistointi.Case().apply {
-                    documents = mapOf("arviointi" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "-1" })
-                }
-                metadata!!.cases = cases
-            }
-            val types = if (koejakso) listOf(RecordType.ARVIOINTI) else listOf(RecordType.YHTEENVETO,RecordType.LIITE,RecordType.LAILLISTAMISTODISTUS)
-            val documents = types.mapIndexed { index, type ->
-                LoadedArkistointiAsiakirja(index.toLong()+1,type,index,"file$index.pdf","application/pdf","checksum",byteArrayOf(1,2,3))
-            }
-            val payload = mapper.writeValueAsString(mapOf(
-                "version" to 1,"caseId" to 1,"opintooikeusId" to 2,"university" to "TURUN_YLIOPISTO","yek" to (kind == "YEK"),
-                "firstName" to "Maija","lastName" to "Meikäläinen","specialtyName" to "Akuuttilääketiede",
-                "specialtyType" to if (kind == "EHL") "HAMMASLAAKETIEDE" else "LAAKETIEDE","approvalDate" to "2026-10-31","birthDate" to "1980-01-01",
-                "degreeRegulation" to "56/2015","studyRightStartDate" to "2020-01-01","licensingDate" to "2019-01-01",
-                "documents" to documents.map {
-                    mapOf("sourceDocumentId" to it.asiakirjaId,"snapshotDocumentId" to it.asiakirjaId,
-                        "recordType" to it.asiakirjatyyppi.name,"jarjestysnumero" to it.jarjestysnumero)
-                }
-            ))
-            val execution = ArkistointiJobExecution("archive",UUID.randomUUID().toString(),1)
-            val submission = ArkistointiSubmission(
-                execution.jobId, YliopistoEnum.TURUN_YLIOPISTO,
-                if (koejakso) CaseType.KOEJAKSO else CaseType.VALMISTUMINEN,
-                payload, documents, execution
-            )
-        val root = mapper.readTree(payload) as com.fasterxml.jackson.databind.node.ObjectNode
+    ): TurkuDynastyMetadataMapper.Plan {
+        val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
+        val properties = dynastyTestProperties("https://dynasty.example")
+        val submission = dynastySubmission(
+            mapper, caseType = if (koejakso) CaseType.KOEJAKSO else CaseType.VALMISTUMINEN,
+            specialtyType = if (kind == "EHL") ErikoisalaTyyppi.HAMMASLAAKETIEDE else ErikoisalaTyyppi.LAAKETIEDE,
+            yek = kind == "YEK"
+        )
+        val root = mapper.readTree(submission.payload) as com.fasterxml.jackson.databind.node.ObjectNode
         changePayload(root)
-        TurkuDynastyMetadataMapper(properties,mapper,ArchivePayloadReader(mapper)).plan(submission.copy(payload = root.toString()))
+        return TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)).plan(submission.copy(payload = root.toString()))
     }
 }

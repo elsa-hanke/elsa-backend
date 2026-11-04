@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiExecutionLock
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.StaleArkistointiExecutionException
@@ -18,8 +19,6 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.transaction.annotation.EnableTransactionManagement
-import java.util.UUID
-import javax.xml.parsers.DocumentBuilderFactory
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(classes = [DynastyStepLedgerIT.Config::class])
@@ -27,6 +26,7 @@ class DynastyStepLedgerIT {
     @Autowired private lateinit var ledger: DynastyStepLedger
     @Autowired private lateinit var properties: ApplicationProperties
     @Autowired private lateinit var jdbc: JdbcTemplate
+    private val stepFixture get() = DynastyStepJdbcFixture(jdbc)
     private val grace get() = properties.getArkistointi().getTurku().dynasty.inProgressGrace
 
     @Configuration
@@ -43,28 +43,20 @@ class DynastyStepLedgerIT {
         }
         @Bean fun transactionManager() = DataSourceTransactionManager(dataSource())
         @Bean fun jdbc(): JdbcTemplate = JdbcTemplate(dataSource()).also { j ->
-            j.execute("create table scheduled_tasks(task_name text,task_instance text,version bigint,picked boolean,consecutive_failures integer default 0)")
-            j.execute("create table arkistointi_job(id uuid primary key,status text)")
-            val xml = javaClass.getResourceAsStream("/config/liquibase/changelog/20261101090000_added_arkistointi_dynasty_step.xml")!!
-            val sql = xml.use { DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(it).getElementsByTagName("sql").item(0).textContent }
-            j.execute(sql)
+            DynastyStepJdbcFixture(j).createSchema()
         }
     }
 
-    private fun fixture(): ArkistointiJobExecution {
-        val e = ArkistointiJobExecution("archive",UUID.randomUUID().toString(),1)
-        jdbc.update("insert into scheduled_tasks(task_name,task_instance,version,picked) values (?,?,?,true)",e.taskName,e.taskInstanceId,e.version)
-        jdbc.update("insert into arkistointi_job values (?,'KASITTELYSSA')",e.jobId)
-        return e
-    }
+    private fun fixture(): ArkistointiJobExecution = stepFixture.execution(
+        jobStatus = ArkistointiJobStatus.KASITTELYSSA, picked = true, taskName = "archive"
+    )
 
     @Test
     fun `intent age uses the grace passed by its destination`() {
         val execution = fixture()
         val shortGrace = java.time.Duration.ofMinutes(1)
         val longGrace = java.time.Duration.ofMinutes(5)
-        jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) " +
-            "values (?,'CASE','ALOITETTU',?,clock_timestamp() - interval '2 minutes')", execution.jobId, execution.version)
+        stepFixture.startedStep(execution, "CASE", age = java.time.Duration.ofMinutes(2))
         assertThat(ledger.begin(execution, DynastyStepKey.Case, shortGrace)).isEqualTo(DynastyStepLedger.Decision.Unconfirmed)
         assertThat(ledger.begin(execution, DynastyStepKey.Case, longGrace)).isEqualTo(DynastyStepLedger.Decision.InProgress)
     }
@@ -104,10 +96,8 @@ class DynastyStepLedgerIT {
     fun `database age classifies fresh and expired intents in a non UTC session`() {
         assertThat(jdbc.queryForObject("show TimeZone", String::class.java)).isEqualTo("Pacific/Honolulu")
         val e = fixture()
-        jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) " +
-            "values (?,'CASE','ALOITETTU',?,clock_timestamp() - interval '6 minutes')", e.jobId, e.version)
-        jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) " +
-            "values (?,'TASK','ALOITETTU',?,clock_timestamp())", e.jobId, e.version)
+        stepFixture.startedStep(e, "CASE", age = java.time.Duration.ofMinutes(6))
+        stepFixture.startedStep(e, "TASK", age = java.time.Duration.ZERO)
         assertThat(ledger.begin(e, DynastyStepKey.Case, grace)).isEqualTo(DynastyStepLedger.Decision.Unconfirmed)
         assertThat(ledger.begin(e, DynastyStepKey.Task, grace)).isEqualTo(DynastyStepLedger.Decision.InProgress)
     }

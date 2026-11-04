@@ -14,26 +14,22 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.MountableFile
 import java.nio.file.Path
 import java.util.UUID
-import javax.xml.parsers.DocumentBuilderFactory
+import java.time.Instant
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 
 /** Execute the actual operator script with psql, including variable quoting and ON_ERROR_STOP. */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DynastyResolveStepIT {
     private val database = PostgreSQLContainer("postgres:16.9")
     private lateinit var jdbc: JdbcTemplate
+    private val stepFixture get() = DynastyStepJdbcFixture(jdbc)
 
     @BeforeAll
     fun startDatabase() {
         database.start()
         jdbc = JdbcTemplate(DriverManagerDataSource(database.jdbcUrl, database.username, database.password))
-        jdbc.execute("create table scheduled_tasks(task_name text,task_instance text,version bigint,picked boolean," +
-            "execution_time timestamptz,primary key(task_name,task_instance))")
-        jdbc.execute("create table arkistointi_job(id uuid primary key,status text)")
-        jdbc.execute("create table arkistointi_job_asiakirja(job_id uuid,jarjestys integer)")
-        val migration = javaClass.getResourceAsStream("/config/liquibase/changelog/20261101090000_added_arkistointi_dynasty_step.xml")!!
-        migration.use {
-            jdbc.execute(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(it).getElementsByTagName("sql").item(0).textContent)
-        }
+        stepFixture.createSchema()
         database.copyFileToContainer(
             MountableFile.forHostPath(Path.of("ops/arkistointi/dynasty-resolve-step.sql").toAbsolutePath().toString()),
             "/tmp/resolve.sql"
@@ -44,13 +40,13 @@ class DynastyResolveStepIT {
     fun stopDatabase() = database.stop()
 
     private fun fixture(step: String = "CASE"): UUID {
-        val id = UUID.randomUUID()
-        jdbc.update("insert into arkistointi_job values (?,'VAATII_TOIMENPITEITA')", id)
-        jdbc.update("insert into scheduled_tasks values ('arkistointi-job',?,1,false,'2500-01-01 12:00:00+00')", id.toString())
-        jdbc.update("insert into arkistointi_job_asiakirja values (?,0)", id)
-        jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) " +
-            "values (?,?,'ALOITETTU',1,CURRENT_TIMESTAMP)", id, step)
-        return id
+        val execution = stepFixture.execution(
+            jobStatus = ArkistointiJobStatus.VAATII_TOIMENPITEITA,
+            picked = false, executionTime = Instant.parse("2500-01-01T12:00:00Z")
+        )
+        jdbc.update("insert into arkistointi_job_asiakirja values (?,0)", execution.jobId)
+        stepFixture.startedStep(execution, step)
+        return execution.jobId
     }
 
     private fun resolve(id: UUID, step: String = "CASE", remote: String = "415", action: String = "confirm") =
@@ -63,10 +59,10 @@ class DynastyResolveStepIT {
         val id = fixture(step)
         val result = resolve(id, step, remote)
         assertThat(result.exitCode).describedAs(result.stderr).isZero()
-        val row = jdbc.queryForMap("select status,remote_id,completed_at from arkistointi_dynasty_step where job_id=?", id)
-        assertThat(row["status"]).isEqualTo("VALMIS")
-        assertThat(row["remote_id"]).isEqualTo(remote.ifEmpty { null })
-        assertThat(row["completed_at"]).isNotNull()
+        val row = requireNotNull(stepFixture.step(id, step))
+        assertThat(row.status).isEqualTo(DynastyStepStatus.VALMIS)
+        assertThat(row.remoteId).isEqualTo(remote.ifEmpty { null })
+        assertThat(row.completedAt).isNotNull()
         assertThat(resolve(id, step, remote).exitCode).isNotZero()
         assertThat(jdbc.queryForObject("select status from arkistointi_job where id=?", String::class.java, id))
             .isEqualTo("VAATII_TOIMENPITEITA")
@@ -75,11 +71,10 @@ class DynastyResolveStepIT {
     @Test
     fun `discard removes only the selected unfinished step`() {
         val id = fixture()
-        jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) " +
-            "values (?,'TASK','ALOITETTU',1,CURRENT_TIMESTAMP)", id)
+        stepFixture.startedStep(ArkistointiJobExecution("arkistointi-job", id.toString(), 1), "TASK")
         val result = resolve(id, remote = "", action = "discard")
         assertThat(result.exitCode).describedAs(result.stderr).isZero()
-        assertThat(jdbc.queryForList("select step_key from arkistointi_dynasty_step where job_id=?", String::class.java, id))
+        assertThat(stepFixture.steps(id).map { it.key })
             .containsExactly("TASK")
         assertThat(resolve(id, remote = "", action = "discard").exitCode).isNotZero()
     }
@@ -96,8 +91,9 @@ class DynastyResolveStepIT {
         val result = resolve(id, step, remote, action)
         assertThat(result.exitCode).isNotZero()
         assertThat(result.stderr).contains("Dynasty resolve:")
-        assertThat(jdbc.queryForMap("select status,remote_id from arkistointi_dynasty_step where job_id=?", id))
-            .containsEntry("status", "ALOITETTU").containsEntry("remote_id", null)
+        val intent = requireNotNull(stepFixture.step(id, step))
+        assertThat(intent.status).isEqualTo(DynastyStepStatus.ALOITETTU)
+        assertThat(intent.remoteId).isNull()
     }
 
     @ParameterizedTest
@@ -107,8 +103,7 @@ class DynastyResolveStepIT {
         // Assignments are fixed test literals, never operator input.
         jdbc.update("update scheduled_tasks set $assignment where task_instance=?", id.toString())
         assertThat(resolve(id).exitCode).isNotZero()
-        assertThat(jdbc.queryForObject("select status from arkistointi_dynasty_step where job_id=?", String::class.java, id))
-            .isEqualTo("ALOITETTU")
+        assertThat(stepFixture.step(id, "CASE")?.status).isEqualTo(DynastyStepStatus.ALOITETTU)
     }
 
     @Test
@@ -130,8 +125,7 @@ class DynastyResolveStepIT {
             val result = resolve(id)
             assertThat(result.exitCode).isNotZero()
             assertThat(result.stderr).contains("expected exactly one changed step, got 0")
-            assertThat(jdbc.queryForObject("select status from arkistointi_dynasty_step where job_id=?", String::class.java, id))
-                .isEqualTo("ALOITETTU")
+            assertThat(stepFixture.step(id, "CASE")?.status).isEqualTo(DynastyStepStatus.ALOITETTU)
         } finally {
             jdbc.execute("DROP TRIGGER suppress_resolution ON arkistointi_dynasty_step")
             jdbc.execute("DROP FUNCTION suppress_resolution()")

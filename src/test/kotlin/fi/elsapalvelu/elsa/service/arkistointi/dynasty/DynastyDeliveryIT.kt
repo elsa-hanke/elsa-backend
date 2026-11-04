@@ -71,6 +71,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
  @Autowired private lateinit var dataSource: javax.sql.DataSource
  @MockitoSpyBean private lateinit var processor: ArkistointiJobProcessorImpl
  @MockitoBean lateinit var mail: MailService
+    private val stepFixture get() = DynastyStepJdbcFixture(jdbc)
     private lateinit var schedulerControl: ArchiveSchedulerTestControl
 
     @BeforeEach
@@ -103,17 +104,17 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     private fun enqueue(vararg bodies: String) = bodies.forEach { server.enqueue(MockResponse().setBody(it)) }
     @Test fun `scheduler delivers through real adapter and commits every ledger step`() {
         val job = job()
-        enqueue(TOKEN_RESPONSE, "415", "\"${java.util.UUID.randomUUID()}\"", "1078", "")
+        server.enqueueDynastySuccess(documentIds = listOf(1078))
         startAttempt()
         awaitDelivered(job.id!!)
         assertThat(jobs.findById(job.id!!).orElseThrow().externalId).isEqualTo("415")
-        assertThat(jdbc.queryForList("select status from arkistointi_dynasty_step where job_id=?", String::class.java, job.id))
-            .containsExactlyInAnyOrder("VALMIS","VALMIS","VALMIS","VALMIS")
+        assertThat(stepFixture.steps(job.id!!).map { it.status })
+            .containsExactlyInAnyOrder(DynastyStepStatus.VALMIS, DynastyStepStatus.VALMIS, DynastyStepStatus.VALMIS, DynastyStepStatus.VALMIS)
     }
     @Test fun `success commit failure resumes completed ledger without another HTTP request`() {
         val job = job()
         withSuccessCommitFailure {
-            enqueue(TOKEN_RESPONSE, "415", "\"${java.util.UUID.randomUUID()}\"", "1078", "")
+            server.enqueueDynastySuccess(documentIds = listOf(1078))
             startAttempt()
             await().atMost(Duration.ofSeconds(30)).untilAsserted {
                 assertThat(scheduler.currentlyExecuting).isEmpty()
@@ -134,11 +135,11 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
 
     @Test fun `manual retry skips completed case and task after definite document rejection`() {
         val job = job()
-        enqueue(TOKEN_RESPONSE, "415", "\"${java.util.UUID.randomUUID()}\"")
+        enqueue(DYNASTY_TEST_TOKEN_RESPONSE, "415", "\"${java.util.UUID.randomUUID()}\"")
         server.enqueue(MockResponse().setResponseCode(403))
         startAttempt()
         awaitParked(job.id!!)
-        assertThat(jdbc.queryForList("select step_key from arkistointi_dynasty_step where job_id=? and status='VALMIS'", String::class.java,job.id))
+        assertThat(stepFixture.steps(job.id!!).filter { it.status == DynastyStepStatus.VALMIS }.map { it.key })
             .containsExactlyInAnyOrder("CASE","TASK")
         retryParkedJob(job.id!!)
         enqueue("1078", "")
@@ -146,7 +147,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         await().atMost(Duration.ofSeconds(30)).untilAsserted {
             val result = jobs.findById(job.id!!).orElseThrow()
             assertThat(result.status)
-                .describedAs("error=%s steps=%s",result.errorCode,jdbc.queryForList("select step_key,status,remote_id from arkistointi_dynasty_step where job_id=?",job.id))
+                .describedAs("error=%s steps=%s",result.errorCode,stepFixture.steps(job.id!!))
                 .isEqualTo(ArkistointiJobStatus.LAHETETTY)
         }
         val requests = (1..6).map { server.takeRequest(5, TimeUnit.SECONDS)!! }
@@ -155,7 +156,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     }
     @Test fun `lost case response parks job and retry never creates another case`() {
         val job = job()
-        enqueue(TOKEN_RESPONSE)
+        enqueue(DYNASTY_TEST_TOKEN_RESPONSE)
         server.enqueue(MockResponse().setSocketPolicy(okhttp3.mockwebserver.SocketPolicy.DISCONNECT_AFTER_REQUEST))
         startAttempt()
         awaitParked(job.id!!)
@@ -169,7 +170,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
             assertThat(jdbc.queryForObject("select picked from scheduled_tasks where task_instance=?", Boolean::class.javaObjectType, job.id.toString())).isFalse()
         }
         assertThat(server.requestCount).isEqualTo(before)
-        assertThat(jdbc.queryForObject("select status from arkistointi_dynasty_step where job_id=? and step_key='CASE'", String::class.java, job.id)).isEqualTo("ALOITETTU")
+        assertThat(stepFixture.step(job.id!!, "CASE")?.status).isEqualTo(DynastyStepStatus.ALOITETTU)
     }
     @Test fun `lost heartbeat during HTTP send parks job and late case response is recorded without another step`() {
         val job = job()
@@ -178,7 +179,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         val requestsBefore = server.requestCount
         server.dispatcher = object : okhttp3.mockwebserver.Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
-                if (request.path == "/token") return MockResponse().setBody(TOKEN_RESPONSE)
+                if (request.path == "/token") return MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE)
                 entered.countDown()
                 check(release.await(30, TimeUnit.SECONDS))
                 return MockResponse().setBody("415")
@@ -204,16 +205,17 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
                 assertThat(jdbc.queryForObject("select picked from scheduled_tasks where task_instance=?",
                     Boolean::class.javaObjectType, job.id.toString())).isFalse()
             }
-            assertThat(jdbc.queryForObject("select execution_version from arkistointi_dynasty_step where job_id=? and step_key='CASE'",Long::class.javaObjectType,job.id))
+            assertThat(stepFixture.step(job.id!!, "CASE")?.executionVersion)
                 .isEqualTo(version)
             release.countDown()
             await().atMost(Duration.ofSeconds(20)).untilAsserted {
-                assertThat(jdbc.queryForMap("select status,remote_id from arkistointi_dynasty_step where job_id=? and step_key='CASE'",job.id))
-                    .containsEntry("status","VALMIS").containsEntry("remote_id","415")
+                val step = requireNotNull(stepFixture.step(job.id!!, "CASE"))
+                assertThat(step.status).isEqualTo(DynastyStepStatus.VALMIS)
+                assertThat(step.remoteId).isEqualTo("415")
                 assertThat(scheduler.currentlyExecuting).isEmpty()
             }
             assertThat(server.requestCount).isEqualTo(requestsBefore + 2)
-            assertThat(jdbc.queryForObject("select count(*) from arkistointi_dynasty_step where job_id=? and step_key='TASK'",Int::class.javaObjectType,job.id)).isZero()
+            assertThat(stepFixture.steps(job.id!!).count { it.key == "TASK" }).isZero()
         } finally {
             release.countDown()
             recovery.stop()
@@ -242,7 +244,6 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     }
 
     companion object {
-        private const val TOKEN_RESPONSE = """{"access_token":"test","expires_in":900}"""
         private val server = MockWebServer().apply { start() }
         @JvmStatic @DynamicPropertySource
         fun transport(registry: DynamicPropertyRegistry) {
