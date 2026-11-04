@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiTestData
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiDispatcher
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiServiceImpl
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
+import fi.elsapalvelu.elsa.service.arkistointi.support.arkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -64,7 +65,7 @@ class AsyncSahkePackageBuilderTest {
             LoadedArkistointiAsiakirja(document.id!! + 10000, record.type, index, document.nimi!!, document.tyyppi!!,
                 DigestUtils.sha256Hex(document.asiakirjaData!!.data), document.asiakirjaData!!.data!!)
         }
-        val submission = ArkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, caseType, payload, documents)
+        val submission = arkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, caseType, payload, documents)
         val legacy = SynchronousArkistointiServiceImpl(configuration, SahkeMetadataBuilder(), SahkePakettiBuilder(), mock<SynchronousArkistointiDispatcher>())
             .muodostaSahke(studyRight, input.asiakirjat, "42", "Reviewer", LocalDate.now().minusDays(1),
                 "Approver", LocalDate.now(), scenario.yliopisto, caseType)
@@ -102,7 +103,7 @@ class AsyncSahkePackageBuilderTest {
 
     @Test
     fun `university mismatch is rejected before writing files`() {
-        val submission = ArkistointiSubmission(UUID.randomUUID(), ArkistointiTestData.tamperePackageScenarios.first().yliopisto,
+        val submission = arkistointiSubmission(UUID.randomUUID(), ArkistointiTestData.tamperePackageScenarios.first().yliopisto,
             CaseType.VALMISTUMINEN, "{\"university\":\"HELSINGIN_YLIOPISTO\"}", emptyList())
         assertThatThrownBy { builder.build(submission, directory.resolve("invalid.zip")) }
             .isInstanceOf(IllegalArgumentException::class.java)
@@ -223,6 +224,6 @@ class AsyncSahkePackageBuilderTest {
                 ArkistointiDocumentIdentity(it.asiakirjaId + 10000, it.asiakirjaId, it.asiakirjatyyppi, it.jarjestysnumero)
             }
         ))
-        return ArkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, scenario.caseType, payload, documents)
+        return arkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, scenario.caseType, payload, documents)
     }
 }

@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
+import fi.elsapalvelu.elsa.service.arkistointi.support.arkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
@@ -197,7 +198,7 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
             "firstName" to "Lifecycle", "lastName" to "Test",
             "documents" to listOf(ArkistointiDocumentIdentity(10, 20, RecordType.ARVIOINTI, 0))
         ))
-        return ArkistointiSubmission(UUID.randomUUID(), YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.KOEJAKSO, payload,
+        return arkistointiSubmission(UUID.randomUUID(), YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.KOEJAKSO, payload,
             listOf(LoadedArkistointiAsiakirja(20, RecordType.ARVIOINTI, 0, "assessment.pdf", "application/pdf",
                 ArkistointiChecksum.sha256(bytes), bytes)))
     }

@@ -27,7 +27,7 @@ class TurkuDynastyArkistointiAdapter(
     }
 
     override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult {
-        val execution = pyynto.execution ?: return failure("DYNASTY_CONFIGURATION_INVALID")
+        val execution = pyynto.execution
         if (execution.jobId != pyynto.jobId || pyynto.university != university || pyynto.caseType !in supportedCaseTypes) return failure("DYNASTY_PAYLOAD_INVALID")
         val plan = try {
             client.validateConfiguration()

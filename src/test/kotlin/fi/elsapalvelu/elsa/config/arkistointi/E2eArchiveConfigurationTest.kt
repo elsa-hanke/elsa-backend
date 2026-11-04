@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
-import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
+import fi.elsapalvelu.elsa.service.arkistointi.support.arkistointiSubmission
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -121,7 +121,7 @@ class E2eArchiveConfigurationTest {
             )
             adapters.forEach { adapter ->
                 val id = UUID.randomUUID()
-                val result = adapter.arkistoi(ArkistointiSubmission(id, adapter.university, CaseType.KOEJAKSO, "{}", listOf(mock())))
+                val result = adapter.arkistoi(arkistointiSubmission(id, adapter.university, CaseType.KOEJAKSO, "{}", listOf(mock())))
                 assertThat(result).isEqualTo(ArkistointiResult.Success("e2e:${adapter.university}:$id"))
             }
         }

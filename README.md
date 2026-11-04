@@ -41,6 +41,8 @@ Processor välittää tallennetun jobin ID:n arvona `ArkistointiSubmission.jobId
 Scheduler-rajapinta käyttää UUID:tä; db-schedulerin `task_instance` on sen kanoninen
 merkkijono. Processor saa `ArkistointiJobExecution`-olion, joka sisältää UUID:n
 sekä kyseisen scheduler-suorituksen version vanhentuneiden tulosten torjumiseksi.
+Sama execution-olio on pakollinen myös `ArkistointiSubmission`-pyynnössä;
+adapterit eivät saa toimitusta ilman suoritustunnistetta.
 Vastaanottajan idempotenssia käyttävä adapteri välittää UUID:n kanonisena
 merkkijonona sovitun deduplikointikäytännön mukaisesti. Tampereen Louhi-adapteri
 säilyttää nykyisen SFTP-protokollan: UUID on paikallinen toimitustunniste,

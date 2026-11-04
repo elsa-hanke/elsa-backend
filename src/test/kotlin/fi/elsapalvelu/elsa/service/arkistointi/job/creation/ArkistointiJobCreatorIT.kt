@@ -7,7 +7,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.ArchiveImageTestData
-import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
+import fi.elsapalvelu.elsa.service.arkistointi.support.arkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaErrorCategory
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaLoader
@@ -345,7 +345,7 @@ class ArkistointiJobCreatorIT {
             .isEqualTo(reference.asiakirja.id)
         assertThat(stored.asiakirjat.single().sha256).isEqualTo(reference.sha256)
         assertThat(scheduledTaskCount(job.id!!)).isEqualTo(1)
-        val submission = ArkistointiSubmission(
+        val submission = arkistointiSubmission(
             requireNotNull(stored.id), requireNotNull(stored.university), requireNotNull(stored.caseType),
             requireNotNull(stored.payload), stored.asiakirjat.map { loader.load(it.toDescriptor()) }
         )

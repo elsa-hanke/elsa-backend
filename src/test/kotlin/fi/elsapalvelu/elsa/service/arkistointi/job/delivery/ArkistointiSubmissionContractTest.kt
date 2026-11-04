@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.delivery
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.service.arkistointi.support.arkistointiSubmission
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
@@ -16,7 +17,7 @@ class ArkistointiSubmissionContractTest {
         val request = CreateArkistointiJobRequest(
             YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}", requireNotNull(job.key), emptyList()
         )
-        val submission = ArkistointiSubmission(
+        val submission = arkistointiSubmission(
             requireNotNull(job.id), request.university, request.caseType, request.payload, emptyList()
         )
 
@@ -24,12 +25,14 @@ class ArkistointiSubmissionContractTest {
         assertThat(submission.key).isEqualTo(job.id)
         assertThat(submission.copy().key).isEqualTo(submission.key)
         assertThat(submission.key.toString()).isNotEqualTo(request.key)
+        assertThat(submission.execution.jobId).isEqualTo(job.id)
+        assertThat(submission.copy().execution).isSameAs(submission.execution)
     }
 
     @Test
     fun `job and delivery UUID serialize as the same canonical string without payload in diagnostic text`() {
         val key = UUID.fromString("6a703cf8-9942-48a6-8321-3ed21e577e84")
-        val submission = ArkistointiSubmission(
+        val submission = arkistointiSubmission(
             key, YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.VALMISTUMINEN, "{\"private\":true}", emptyList()
         )
         val mapper = ObjectMapper()
@@ -37,15 +40,17 @@ class ArkistointiSubmissionContractTest {
 
         assertThat(json["key"].asText()).isEqualTo(key.toString())
         assertThat(json["jobId"].asText()).isEqualTo(key.toString())
+        assertThat(json["execution"]["jobId"].asText()).isEqualTo(key.toString())
         assertThat(submission.toString()).doesNotContain("private")
     }
 
     @Test
     fun `delivery key always follows job ID instead of retaining another identity`() {
-        val submission = ArkistointiSubmission(
+        val submission = arkistointiSubmission(
             UUID.randomUUID(), YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}", emptyList()
         )
-        val other = submission.copy(jobId = UUID.randomUUID())
+        val newJobId = UUID.randomUUID()
+        val other = submission.copy(jobId = newJobId, execution = submission.execution.copy(taskInstanceId = newJobId.toString()))
 
         assertThat(other.key).isEqualTo(other.jobId).isNotEqualTo(submission.key)
     }

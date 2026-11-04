@@ -22,6 +22,15 @@ class TurkuDynastyArkistointiAdapterTest {
     )
 
     @Test
+    fun `execution from another job is rejected before mapping or ledger access`() {
+        val otherExecution = execution.copy(taskInstanceId = UUID.randomUUID().toString())
+        val result = adapter.arkistoi(submission.copy(execution = otherExecution)) as ArkistointiResult.PermanentFailure
+
+        assertThat(result.error.code).isEqualTo("DYNASTY_PAYLOAD_INVALID")
+        verifyNoInteractions(client, metadata, ledger)
+    }
+
+    @Test
     fun `completed steps resume without repeating remote mutations`() {
         whenever(client.inProgressGrace).thenReturn(java.time.Duration.ofMinutes(5))
         whenever(metadata.plan(submission)).thenReturn(plan)
