@@ -771,8 +771,12 @@ complete only its original intent. An incomplete intent is never automatically r
 recent intents wait; old or ambiguous outcomes require operator intervention.
 This avoids automatic duplicate creates at the cost of manual reconciliation. It cannot
 provide receiver-side exactly-once semantics. Even HTTP 429/503 and ambiguous final state
-changes are parked until replay guarantees are confirmed by Dynasty. Only definite
-connection/DNS failure or rejected authentication permits automatic retry of a create.
+changes are parked until replay guarantees are confirmed by Dynasty. Network failures
+before request headers start (including connection and total-call timeouts) permit
+automatic retry of a create. TLS failures before that point require configuration repair
+and an explicit job retry, but no remote reconciliation: the unsent intent is removed.
+Once request headers start, network failures retain the intent for reconciliation.
+Token acquisition remains separate and cannot create an archive object.
 
 For `DYNASTY_DELIVERY_UNCONFIRMED`/`DYNASTY_RESPONSE_INVALID`, inspect the Dynasty UI.
 Use `ops/arkistointi/dynasty-resolve-step.sql` to confirm a discovered remote ID, or discard

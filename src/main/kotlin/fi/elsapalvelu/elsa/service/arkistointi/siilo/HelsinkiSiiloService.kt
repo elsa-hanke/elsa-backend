@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.siilo
 
 import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpEndpointPolicy
+import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpRequestProgress
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import okhttp3.MediaType.Companion.toMediaType
@@ -45,10 +46,9 @@ class HelsinkiSiiloService(
         val request = Request.Builder().url("${host.trimEnd('/')}/unisign/elsa/archive/$code")
             .addHeader("X-Api-Key", key).post(body).build()
         // OkHttp's call timeout cancels the actual exchange, including connect/upload/response wait.
-        val requestStarted = java.util.concurrent.atomic.AtomicBoolean()
-        val client = okHttpClient.newBuilder().eventListener(object : okhttp3.EventListener() {
-            override fun requestHeadersStart(call: okhttp3.Call) { requestStarted.set(true) }
-        }).callTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
+        val progress = ArchiveHttpRequestProgress()
+        val client = okHttpClient.newBuilder().eventListener(progress)
+            .callTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
             // Siilo may process the uploaded ZIP longer than the legacy 15-second read timeout.
             .readTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
             .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).build()
@@ -60,15 +60,12 @@ class HelsinkiSiiloService(
                 }
                 // Do not log or deserialize the remote body: it can contain personal data.
             }
-        } catch (_: javax.net.ssl.SSLException) {
-            val code = if (requestStarted.get()) "SIILO_DELIVERY_UNCONFIRMED" else "SIILO_CONNECTION_FAILED"
-            throw SiiloTransferException(code, false, category = "TLS")
         } catch (exception: java.io.IOException) {
             // Once headers may have been written, a missing response cannot prove rejection.
             // No receiver deduplication is assumed for replaying the ZIP.
-            val beforeRequest = !requestStarted.get()
-            val code = if (beforeRequest) "SIILO_CONNECTION_FAILED" else "SIILO_DELIVERY_UNCONFIRMED"
-            throw SiiloTransferException(code, beforeRequest, category = siiloIoCategory(exception))
+            val failure = progress.failure(exception)
+            val code = if (failure.definitelyNotSent) "SIILO_CONNECTION_FAILED" else "SIILO_DELIVERY_UNCONFIRMED"
+            throw SiiloTransferException(code, failure.retryable, category = siiloIoCategory(exception))
         }
     }
 

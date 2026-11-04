@@ -9,9 +9,16 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
+import okhttp3.OkHttpClient
+import org.mockito.kotlin.*
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 class DynastyClientTest {
-    private fun client(server: MockWebServer, configure: DynastyProperties.() -> Unit = {}): DynastyClient {
+    private fun client(server: MockWebServer, transport: OkHttpClient? = null, configure: DynastyProperties.() -> Unit = {}): DynastyClient {
         val settings = DynastyProperties().apply {
             baseUrl = server.url("/").newBuilder().host("127.0.0.1").build().toString().trimEnd('/')
             tokenUrl = server.url("/token").newBuilder().host("127.0.0.1").build().toString()
@@ -23,9 +30,93 @@ class DynastyClientTest {
             allowLoopbackHttpForTests = true
             configure()
         }
-        return DynastyClient(settings,jacksonObjectMapper())
+        return DynastyClient(settings,jacksonObjectMapper(),transport)
     }
     private fun token() = MockResponse().setBody("""{"access_token":"test-token","expires_in":900}""")
+
+    @ParameterizedTest
+    @ValueSource(strings = ["connect-timeout", "call-timeout", "tls", "response-timeout", "lost-response"])
+    fun `network failure only abandons intent when mutation has not started`(scenario: String) {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(token())
+            val beforeRequest = scenario in setOf("connect-timeout", "call-timeout", "tls")
+            val retryable = beforeRequest && scenario != "tls"
+            val transport = OkHttpClient.Builder()
+                .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false)
+                .callTimeout(500, TimeUnit.MILLISECONDS)
+                .addInterceptor { chain ->
+                    if (chain.request().url.encodedPath == "/token") return@addInterceptor chain.proceed(chain.request())
+                    when (scenario) {
+                        // Deterministic connect failure, before OkHttp can write any headers.
+                        "connect-timeout" -> throw SocketTimeoutException("private connection details")
+                        "call-timeout" -> {
+                            while (!chain.call().isCanceled()) Thread.sleep(5)
+                            throw IOException("private cancelled request")
+                        }
+                        "tls" -> throw javax.net.ssl.SSLHandshakeException("private certificate")
+                        else -> chain.proceed(chain.request())
+                    }
+                }.build()
+            if (scenario == "response-timeout") {
+                server.enqueue(MockResponse().setHeadersDelay(2, TimeUnit.SECONDS).setBody("415"))
+            }
+            if (scenario == "lost-response") {
+                server.enqueue(MockResponse().setSocketPolicy(okhttp3.mockwebserver.SocketPolicy.DISCONNECT_AFTER_REQUEST))
+            }
+            val ledger = mock<DynastyStepLedger>()
+            val execution = ArkistointiJobExecution("arkistointi-job", UUID.randomUUID().toString(), 1)
+            whenever(ledger.begin(eq(execution), eq(DynastyStepKey.Case), any()))
+                .thenReturn(DynastyStepLedger.Decision.Proceed)
+            val c = client(server, transport)
+            assertThatThrownBy {
+                DynastyStepExecutor(ledger).execute(execution, DynastyStepKey.Case, c.inProgressGrace) {
+                    c.createCase("05.06.02.04", "{}")
+                }
+            }.isInstanceOfSatisfying(DynastyFailure::class.java) {
+                assertThat(it.code).isEqualTo(if (beforeRequest) "DYNASTY_UNAVAILABLE" else "DYNASTY_DELIVERY_UNCONFIRMED")
+                assertThat(it.retryable).isEqualTo(retryable)
+                assertThat(it.definitelyNotProcessed).isEqualTo(beforeRequest)
+                assertThat(it.message).doesNotContain("private")
+                assertThat(it.cause).isNull()
+            }
+            verify(ledger, if (beforeRequest) times(1) else never())
+                .abandon(execution.jobId, DynastyStepKey.Case, execution.version)
+            verify(ledger, never()).complete(any(), any(), any(), anyOrNull())
+            assertThat(server.requestCount).isEqualTo(if (beforeRequest) 1 else 2)
+        }
+    }
+
+    @Test
+    fun `untrusted mutation TLS certificate abandons intent without automatic retry`() {
+        MockWebServer().use { auth ->
+            MockWebServer().use { remote ->
+                val certificate = okhttp3.tls.HeldCertificate.Builder().commonName("localhost").build()
+                val certificates = okhttp3.tls.HandshakeCertificates.Builder().heldCertificate(certificate).build()
+                remote.useHttps(certificates.sslSocketFactory(), false)
+                remote.start()
+                auth.start()
+                auth.enqueue(token())
+                val c = client(auth) { baseUrl = remote.url("/").toString().trimEnd('/') }
+                val ledger = mock<DynastyStepLedger>()
+                val execution = ArkistointiJobExecution("arkistointi-job", UUID.randomUUID().toString(), 1)
+                whenever(ledger.begin(eq(execution), eq(DynastyStepKey.Case), any()))
+                    .thenReturn(DynastyStepLedger.Decision.Proceed)
+                assertThatThrownBy {
+                    DynastyStepExecutor(ledger).execute(execution, DynastyStepKey.Case, c.inProgressGrace) {
+                        c.createCase("05.06.02.04", "{}")
+                    }
+                }.isInstanceOfSatisfying(DynastyFailure::class.java) {
+                    assertThat(it.code).isEqualTo("DYNASTY_UNAVAILABLE")
+                    assertThat(it.retryable).isFalse()
+                    assertThat(it.definitelyNotProcessed).isTrue()
+                    assertThat(it.cause).isNull()
+                }
+                verify(ledger).abandon(execution.jobId, DynastyStepKey.Case, execution.version)
+                assertThat(remote.requestCount).isZero()
+            }
+        }
+    }
 
     @ParameterizedTest
     @ValueSource(strings = ["clientId", "clientSecret", "tokenUrl", "organization"])

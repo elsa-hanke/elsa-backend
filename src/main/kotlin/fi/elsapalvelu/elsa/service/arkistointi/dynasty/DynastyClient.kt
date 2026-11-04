@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpEndpointPolicy
+import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpRequestProgress
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import okhttp3.FormBody
@@ -11,8 +12,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.net.ConnectException
-import java.net.UnknownHostException
+import java.io.IOException
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
@@ -20,13 +20,19 @@ internal class DynastyFailure(val code: String, val retryable: Boolean = false, 
     RuntimeException("Dynasty request failed [$code]")
 
 /** No redirects, HTTP logging, or transparent retries of non-idempotent POST requests. */
-class DynastyClient(private val settings: DynastyProperties, private val mapper: ObjectMapper) {
+class DynastyClient internal constructor(
+    private val settings: DynastyProperties,
+    private val mapper: ObjectMapper,
+    private val transport: OkHttpClient?
+) {
+    constructor(settings: DynastyProperties, mapper: ObjectMapper) : this(settings, mapper, null)
+
     val inProgressGrace get() = settings.inProgressGrace
     private var token: String? = null
     private var expires = Instant.EPOCH
 
     private val httpClient by lazy {
-        OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS)
+        transport ?: OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS)
             .callTimeout(settings.callTimeout).readTimeout(settings.callTimeout)
             .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).build()
     }
@@ -102,8 +108,10 @@ class DynastyClient(private val settings: DynastyProperties, private val mapper:
             val request = Request.Builder().url(requireSetting(settings.baseUrl).trimEnd('/') + path)
                 .header("Organization", requireSetting(settings.organization)).header("Authorization", "Bearer $bearer")
                 .header("Accept", if (empty) "application/json" else "text/plain").post(body).build()
+            val progress = ArchiveHttpRequestProgress()
+            val client = httpClient.newBuilder().eventListener(progress).build()
             try {
-                httpClient.newCall(request).execute().use { response ->
+                client.newCall(request).execute().use { response ->
                     if (response.code == 401) {
                         invalidate()
                         if (attempt == 0) return@use
@@ -118,8 +126,11 @@ class DynastyClient(private val settings: DynastyProperties, private val mapper:
                     return readId(response.peekBody(1025).string(),guid)
                 }
             } catch (e: DynastyFailure) { throw e }
-            catch (_: ConnectException) { throw DynastyFailure("DYNASTY_UNAVAILABLE", true, true) }
-            catch (_: UnknownHostException) { throw DynastyFailure("DYNASTY_UNAVAILABLE", true, true) }
+            catch (e: IOException) {
+                val failure = progress.failure(e)
+                val code = if (failure.definitelyNotSent) "DYNASTY_UNAVAILABLE" else "DYNASTY_DELIVERY_UNCONFIRMED"
+                throw DynastyFailure(code, failure.retryable, failure.definitelyNotSent)
+            }
             catch (_: Exception) { throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED") }
         }
         throw DynastyFailure("DYNASTY_AUTH_FAILED", false, true)
