@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import okhttp3.OkHttpClient
@@ -35,6 +36,35 @@ class DynastyClientTest {
     private fun caseRequest() = DynastyCaseRequest(DynastyCaseModel("case-schema", "Test case", DynastyAdditionalData()))
 
     private fun token() = MockResponse().setBody("""{"access_token":"test-token","expires_in":900}""")
+
+    @ParameterizedTest
+    @CsvSource("403, false", "429, true", "503, true")
+    fun `token rejection keeps intent removable but retries only temporary failures`(status: Int, retryable: Boolean) {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(MockResponse().setResponseCode(status).setBody("private authentication details"))
+            val ledger = mock<DynastyStepLedger>()
+            val execution = ArkistointiJobExecution("arkistointi-job", UUID.randomUUID().toString(), 1)
+            whenever(ledger.begin(eq(execution), eq(DynastyStepKey.Case), any()))
+                .thenReturn(DynastyStepLedger.Decision.Proceed)
+            val c = client(server)
+
+            assertThatThrownBy {
+                DynastyStepExecutor(ledger).execute(execution, DynastyStepKey.Case, c.inProgressGrace) {
+                    c.createCase("05.06.02.04", caseRequest())
+                }
+            }.isInstanceOfSatisfying(DynastyFailure::class.java) {
+                assertThat(it.code).isEqualTo("DYNASTY_AUTH_FAILED")
+                assertThat(it.retryable).isEqualTo(retryable)
+                assertThat(it.definitelyNotProcessed).isTrue()
+                assertThat(it.message).doesNotContain("private")
+                assertThat(it.cause).isNull()
+            }
+            verify(ledger).abandon(execution.jobId, DynastyStepKey.Case, execution.version)
+            verify(ledger, never()).complete(any(), any(), any(), anyOrNull())
+            assertThat(server.requestCount).isEqualTo(1)
+        }
+    }
 
     @ParameterizedTest
     @ValueSource(strings = ["/", "/dynasty", "/dynasty/"])

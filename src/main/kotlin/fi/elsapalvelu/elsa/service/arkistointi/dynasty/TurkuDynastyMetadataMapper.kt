@@ -31,7 +31,7 @@ class TurkuDynastyMetadataMapper(
         if (types.any {
                 configuration.metadata.getDocumentMetadata(it, configuration.case)?.retentionPeriod?.toIntOrNull() == null
             } || c.tutkintoasetukset.isEmpty() || c.tutkintoasetukset.any { (key, value) -> key.isBlank() || value.isBlank() }) {
-            throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
+            throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
         }
         if (!graduation) validateSecrecyConfiguration()
     }
@@ -40,7 +40,7 @@ class TurkuDynastyMetadataMapper(
         val c = properties.getArkistointi().getTurku().dynasty
         if (c.koejaksoPublicityClassId.isNullOrBlank() || c.koejaksoSecrecyFields.size != 3 ||
             c.koejaksoSecrecyFields.any { (key, value) -> key.isBlank() || value.isBlank() || key in documentFields }) {
-            throw DynastyFailure("DYNASTY_SECRECY_UNCONFIGURED")
+            throw DynastyFailure(DynastyFailureCategory.SECRECY_UNCONFIGURED)
         }
     }
 
@@ -86,12 +86,12 @@ class TurkuDynastyMetadataMapper(
                 graduationDate = if (main && graduation) p.approvalDate.toString() else null,
                 approvalDate = if (main && !graduation) p.approvalDate.toString() else null,
                 degreeRegulation = if (main) p.degreeRegulation?.let { regulation ->
-                    c.tutkintoasetukset[regulation] ?: throw DynastyFailure("DYNASTY_REGULATION_UNCONFIGURED")
+                    c.tutkintoasetukset[regulation] ?: throw DynastyFailure(DynastyFailureCategory.REGULATION_UNCONFIGURED)
                 } else null,
                 licensingDate = if (graduation && doc.asiakirjatyyppi != RecordType.LIITE) p.licensingDate?.toString() else null
             )
             val retention = metadata?.getDocumentMetadata(doc.asiakirjatyyppi, metadata.getCaseMetadata(submission.caseType))?.retentionPeriod?.toIntOrNull()
-                ?: throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
+                ?: throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
             val documentTitle = when(doc.asiakirjatyyppi) {
                 RecordType.LIITE -> "Valmistumisen yhteenvedon liitteet $name $date"
                 RecordType.LAILLISTAMISTODISTUS -> "Laillistustodistus $name"

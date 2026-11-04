@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpFailure
 import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpEndpointPolicy
 import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpRequestProgress
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
@@ -17,9 +18,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.time.Instant
 import java.util.concurrent.TimeUnit
-
-internal class DynastyFailure(val code: String, val retryable: Boolean = false, val definitelyNotProcessed: Boolean = false) :
-    RuntimeException("Dynasty request failed [$code]")
 
 /** No redirects, HTTP logging, or transparent retries of non-idempotent POST requests. */
 class DynastyClient internal constructor(
@@ -46,19 +44,19 @@ class DynastyClient internal constructor(
         }
         if (listOf(c.clientId,c.clientSecret,c.organization,c.scope,c.caseSchemaId,c.documentSchemaId).any { it.isNullOrBlank() } ||
             c.callTimeout.isZero || c.callTimeout.isNegative || c.inProgressGrace < c.callTimeout.multipliedBy(2).plusMinutes(1)) {
-            throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
+            throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
         }
     }
 
     private fun validateUrl(value: String?) {
-        val uri = try { java.net.URI(value.orEmpty()) } catch (_: Exception) { throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID") }
+        val uri = try { java.net.URI(value.orEmpty()) } catch (_: Exception) { throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID) }
         val invalidAddress = !ArchiveHttpEndpointPolicy.isAllowed(uri.scheme, uri.host, settings.allowLoopbackHttpForTests)
         val invalidParts = uri.rawUserInfo != null || uri.rawFragment != null || uri.rawQuery != null
-        if (invalidAddress || invalidParts) throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
+        if (invalidAddress || invalidParts) throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
     }
 
     private fun requireSetting(value: String?): String =
-        value?.takeIf { it.isNotBlank() } ?: throw DynastyFailure("DYNASTY_CONFIGURATION_INVALID")
+        value?.takeIf { it.isNotBlank() } ?: throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
 
     @Synchronized
     private fun accessToken(): String {
@@ -69,19 +67,22 @@ class DynastyClient internal constructor(
         val request = Request.Builder().url(requireSetting(settings.tokenUrl)).header("Organization", requireSetting(settings.organization)).post(body).build()
         try {
             httpClient.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw DynastyFailure("DYNASTY_AUTH_FAILED", response.code >= 500 || response.code == 429, true)
+                if (!response.isSuccessful) throw DynastyFailure(
+                    if (response.code >= 500 || response.code == 429) DynastyFailureCategory.AUTH_TEMPORARILY_REJECTED
+                    else DynastyFailureCategory.AUTH_FAILED
+                )
                 val data = mapper.readTree(response.peekBody(16384).string())
                 val value = data.path("access_token").takeIf { it.isTextual }?.textValue()?.takeIf { it.isNotBlank() }
-                    ?: throw DynastyFailure("DYNASTY_AUTH_FAILED", false, true)
+                    ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
                 val seconds = data.path("expires_in").takeIf { it.isIntegralNumber }?.longValue()
-                    ?: throw DynastyFailure("DYNASTY_AUTH_FAILED", false, true)
-                if (seconds <= 60 || seconds > 86400) throw DynastyFailure("DYNASTY_AUTH_FAILED", false, true)
+                    ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
+                if (seconds <= 60 || seconds > 86400) throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
                 token = value
                 expires = Instant.now().plusSeconds(seconds)
                 return value
             }
         } catch (e: DynastyFailure) { throw e }
-        catch (_: Exception) { throw DynastyFailure("DYNASTY_AUTH_UNAVAILABLE", true, true) }
+        catch (_: Exception) { throw DynastyFailure(DynastyFailureCategory.AUTH_UNAVAILABLE) }
     }
 
     @Synchronized
@@ -116,23 +117,27 @@ class DynastyClient internal constructor(
                     if (response.code == 401) {
                         invalidate()
                         if (attempt == 0) return@use
-                        throw DynastyFailure("DYNASTY_AUTH_FAILED", false, true)
+                        throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
                     }
                     if (!response.isSuccessful) {
                         // Even 503/429 can originate from a gateway after upstream processing.
-                        if (response.code in 400..499 && response.code !in setOf(408,429)) throw DynastyFailure("DYNASTY_HTTP_REJECTED", false, true)
-                        throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED")
+                        if (response.code in 400..499 && response.code !in setOf(408,429)) throw DynastyFailure(DynastyFailureCategory.HTTP_REJECTED)
+                        throw DynastyFailure(DynastyFailureCategory.DELIVERY_UNCONFIRMED)
                     }
                     return responseKind.read(response)
                 }
             } catch (e: DynastyFailure) { throw e }
             catch (e: IOException) {
                 val failure = progress.failure(e)
-                val code = if (failure.definitelyNotSent) "DYNASTY_UNAVAILABLE" else "DYNASTY_DELIVERY_UNCONFIRMED"
-                throw DynastyFailure(code, failure.retryable, failure.definitelyNotSent)
+                val category = when (failure) {
+                    ArchiveHttpFailure.CONNECTION_FAILED -> DynastyFailureCategory.CONNECTION_FAILED
+                    ArchiveHttpFailure.TLS_FAILED -> DynastyFailureCategory.TLS_FAILED
+                    ArchiveHttpFailure.DELIVERY_UNCONFIRMED -> DynastyFailureCategory.DELIVERY_UNCONFIRMED
+                }
+                throw DynastyFailure(category)
             }
-            catch (_: Exception) { throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED") }
+            catch (_: Exception) { throw DynastyFailure(DynastyFailureCategory.DELIVERY_UNCONFIRMED) }
         }
-        throw DynastyFailure("DYNASTY_AUTH_FAILED", false, true)
+        throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
     }
 }

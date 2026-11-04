@@ -13,15 +13,15 @@ class DynastyStepExecutor(private val ledger: DynastyStepLedger) {
     fun <T> execute(execution: ArkistointiJobExecution, key: DynastyStepKey<T>, inProgressGrace: Duration, send: () -> T): T {
         when (val decision = ledger.begin(execution,key,inProgressGrace)) {
             is DynastyStepLedger.Decision.Done -> return key.responseKind.fromSaved(decision.remoteId)
-            DynastyStepLedger.Decision.InProgress -> throw DynastyFailure("DYNASTY_STEP_IN_PROGRESS", true)
-            DynastyStepLedger.Decision.Unconfirmed -> throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED")
+            DynastyStepLedger.Decision.InProgress -> throw DynastyFailure(DynastyFailureCategory.STEP_IN_PROGRESS)
+            DynastyStepLedger.Decision.Unconfirmed -> throw DynastyFailure(DynastyFailureCategory.DELIVERY_UNCONFIRMED)
             DynastyStepLedger.Decision.Proceed -> Unit
         }
         val id = try { send() } catch (e: DynastyFailure) {
             if (e.definitelyNotProcessed) ledger.abandon(execution.jobId,key,execution.version)
             throw e
         }
-        if (!ledger.complete(execution.jobId,key,execution.version,key.responseKind.toSaved(id))) throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED")
+        if (!ledger.complete(execution.jobId,key,execution.version,key.responseKind.toSaved(id))) throw DynastyFailure(DynastyFailureCategory.DELIVERY_UNCONFIRMED)
         return id
     }
 

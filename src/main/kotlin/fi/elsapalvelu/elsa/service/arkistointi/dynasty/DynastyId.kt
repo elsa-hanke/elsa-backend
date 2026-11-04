@@ -23,15 +23,15 @@ value class DynastyDocumentId(val value: String) {
 value class DynastyTaskId(val value: String) {
     init {
         val uuid = runCatching { UUID.fromString(value) }.getOrNull()
-        if (uuid == null || !uuid.toString().equals(value, true)) throw DynastyFailure("DYNASTY_RESPONSE_INVALID")
+        if (uuid == null || !uuid.toString().equals(value, true)) throw DynastyFailure(DynastyFailureCategory.RESPONSE_INVALID)
     }
     constructor(value: UUID) : this(value.toString())
     override fun toString() = value
 }
 
 internal fun dynastyNumericId(id: String): Long {
-    if (id.isEmpty() || !id.all { it.isDigit() }) throw DynastyFailure("DYNASTY_RESPONSE_INVALID")
-    return id.toLongOrNull()?.takeIf { it > 0 } ?: throw DynastyFailure("DYNASTY_RESPONSE_INVALID")
+    if (id.isEmpty() || !id.all { it.isDigit() }) throw DynastyFailure(DynastyFailureCategory.RESPONSE_INVALID)
+    return id.toLongOrNull()?.takeIf { it > 0 } ?: throw DynastyFailure(DynastyFailureCategory.RESPONSE_INVALID)
 }
 
-internal fun requireDynastyId(id: String?): String = id ?: throw DynastyFailure("DYNASTY_RESPONSE_INVALID")
+internal fun requireDynastyId(id: String?): String = id ?: throw DynastyFailure(DynastyFailureCategory.RESPONSE_INVALID)

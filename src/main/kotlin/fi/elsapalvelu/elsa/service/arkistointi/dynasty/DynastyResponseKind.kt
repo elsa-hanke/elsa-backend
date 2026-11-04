@@ -9,7 +9,7 @@ sealed class DynastyResponseKind<T>(val accept: String = "text/plain") {
 
     open fun read(response: Response): T {
         val raw = response.peekBody(1025).string()
-        if (raw.length > 1024) throw DynastyFailure("DYNASTY_RESPONSE_INVALID")
+        if (raw.length > 1024) throw DynastyFailure(DynastyFailureCategory.RESPONSE_INVALID)
         return fromSaved(raw.trim().removeSurrounding("\""))
     }
 
