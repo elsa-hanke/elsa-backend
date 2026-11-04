@@ -1,3 +1,4 @@
+import { assessmentToolTasks } from './assessment-tool'
 import { terveyskeskusTasks } from './terveyskeskus'
 import { kouluttajaTasks } from './kouluttaja'
 import { erikoistuvaLaakariTasks } from './erikoistuva'
@@ -18,6 +19,7 @@ export { dbClient } from './db-client'
 
 export function registerDbTasks(on: Cypress.PluginEvents): void {
   on('task', {
+    ...assessmentToolTasks,
     ...kouluttajaTasks,
     ...erikoistuvaLaakariTasks,
     ...tyoskentelyjaksotTasks,
