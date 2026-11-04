@@ -6,6 +6,8 @@ import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpRequestProgress
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import okhttp3.FormBody
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -91,21 +93,26 @@ class DynastyClient internal constructor(
     @Synchronized
     private fun invalidate() { token = null; expires = Instant.EPOCH }
 
-    fun createCase(tosClass: String, metadata: String): String = post("/api/v1/cases?tosClass=$tosClass", json(metadata), false)
-    fun createTask(caseId: String, title: String): String = post("/api/v1/cases/$caseId/tasks", json(mapper.writeValueAsString(mapOf("title" to title))), true)
+    fun createCase(tosClass: String, metadata: String): String =
+        post(endpoint("api/v1/cases").addQueryParameter("tosClass", tosClass).build(), json(metadata), false)
+    fun createTask(caseId: String, title: String): String =
+        post(endpoint("api/v1/cases/$caseId/tasks").build(), json(mapper.writeValueAsString(mapOf("title" to title))), true)
     fun createDocument(metadata: String, options: String, document: LoadedArkistointiAsiakirja): String {
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
             .addFormDataPart("MetaData", metadata).addFormDataPart("CaseAttachmentOptions", options)
             .addFormDataPart("File", document.filename, document.sisalto.toRequestBody(document.contentType.toMediaType())).build()
-        return post("/api/v1/documents", body, false)
+        return post(endpoint("api/v1/documents").build(), body, false)
     }
-    fun archiveCase(caseId: String) { post("/api/v1/cases/$caseId/state/Archived", ByteArray(0).toRequestBody(), false, true) }
+    fun archiveCase(caseId: String) { post(endpoint("api/v1/cases/$caseId/state/Archived").build(), ByteArray(0).toRequestBody(), false, true) }
     private fun json(value: String) = value.toRequestBody("application/json".toMediaType())
 
-    private fun post(path: String, body: RequestBody, guid: Boolean, empty: Boolean = false): String {
+    private fun endpoint(path: String): HttpUrl.Builder =
+        requireSetting(settings.baseUrl).trimEnd('/').toHttpUrl().newBuilder().addPathSegments(path)
+
+    private fun post(url: HttpUrl, body: RequestBody, guid: Boolean, empty: Boolean = false): String {
         repeat(2) { attempt ->
             val bearer = accessToken() // Token failure cannot have created the requested object.
-            val request = Request.Builder().url(requireSetting(settings.baseUrl).trimEnd('/') + path)
+            val request = Request.Builder().url(url)
                 .header("Organization", requireSetting(settings.organization)).header("Authorization", "Bearer $bearer")
                 .header("Accept", if (empty) "application/json" else "text/plain").post(body).build()
             val progress = ArchiveHttpRequestProgress()

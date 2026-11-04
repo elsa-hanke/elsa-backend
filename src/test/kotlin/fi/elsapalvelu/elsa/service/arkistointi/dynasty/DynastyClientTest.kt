@@ -35,6 +35,28 @@ class DynastyClientTest {
     private fun token() = MockResponse().setBody("""{"access_token":"test-token","expires_in":900}""")
 
     @ParameterizedTest
+    @ValueSource(strings = ["/", "/dynasty", "/dynasty/"])
+    fun `case URL preserves base path and encodes tosClass as a single query value`(basePath: String) {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(token())
+            server.enqueue(MockResponse().setBody("415"))
+            val c = client(server) { baseUrl = requireNotNull(baseUrl).trimEnd('/') + basePath }
+            val tosClass = "05.06 &other=value+plus#fragment?/% ä"
+
+            assertThat(c.createCase(tosClass, "{}")).isEqualTo("415")
+
+            server.takeRequest() // OAuth request uses its separately configured URL.
+            val url = requireNotNull(server.takeRequest().requestUrl)
+            assertThat(url.encodedPath).isEqualTo(basePath.trimEnd('/') + "/api/v1/cases")
+            assertThat(url.querySize).isEqualTo(1)
+            assertThat(url.queryParameterNames).containsExactly("tosClass")
+            assertThat(url.queryParameter("tosClass")).isEqualTo(tosClass)
+            assertThat(url.fragment).isNull()
+        }
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = ["connect-timeout", "call-timeout", "tls", "response-timeout", "lost-response"])
     fun `network failure only abandons intent when mutation has not started`(scenario: String) {
         MockWebServer().use { server ->
