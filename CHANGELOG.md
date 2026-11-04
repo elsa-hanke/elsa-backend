@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.0...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.1...HEAD)
 
 - Bump brace-expansion from 1.1.11 to 1.1.21 in /frontend [`#813`](https://github.com/elsa-hanke/elsa-backend/pull/813)(2 November 2026)
 - upgrade Cypress to version 16.2.1, spring boot 4.1.2, gradle 9.8.2 [`#812`](https://github.com/elsa-hanke/elsa-backend/pull/812)(2 November 2026)
@@ -23,6 +23,11 @@
 - Korjaa hyväksyntöjen transaktionaalisuus ja sähköposti-ilmoitusten ajoitus [`#796`](https://github.com/elsa-hanke/elsa-backend/pull/796)(26 October 2026)
 - Dynasty - Vaihe 2, task 1 — Arkistoitavien asiakirjojen muuttumaton tallennus [`#783`](https://github.com/elsa-hanke/elsa-backend/pull/783)(26 October 2026)
 - Dynasty - Vaihe 1 - Asynkronisen arkistoinnin tietomalli ja db-scheduler-integraatio [`#782`](https://github.com/elsa-hanke/elsa-backend/pull/782)(24 October 2026)
+
+## [v2.5.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.0...v2.5.1) - 4 November 2026
+
+- arviointityokalut-paakayttaja.cy.ts cypress test [`#816`](https://github.com/elsa-hanke/elsa-backend/pull/816)(4 November 2026)
+- Korjaa valmistumispyynnön hyväksynnän virhe omistajattomilla arviointityökaluilla [`#815`](https://github.com/elsa-hanke/elsa-backend/pull/815)(3 November 2026)
 
 ## [v2.5.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...v2.5.0) - 23 October 2026
 
