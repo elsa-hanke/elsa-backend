@@ -15,7 +15,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 class TurkuDynastyArkistointiAdapter(
     private val client: DynastyClient,
     private val metadata: TurkuDynastyMetadataMapper,
-    private val ledger: DynastyStepLedger,
+    private val steps: DynastyStepExecutor,
     private val mapper: ObjectMapper
 ) : ArkistointiAdapter {
     override val canResumeAfterSuccessPersistenceFailure = true
@@ -27,7 +27,6 @@ class TurkuDynastyArkistointiAdapter(
         metadata.validateConfiguration(caseType, configuration)
     }
 
-    @Suppress("CyclomaticComplexMethod") // Keep the ordered resumable protocol visible in one place.
     override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult {
         val execution = pyynto.execution ?: return failure("DYNASTY_CONFIGURATION_INVALID")
         if (execution.jobId != pyynto.jobId || pyynto.university != university || pyynto.caseType !in supportedCaseTypes) return failure("DYNASTY_PAYLOAD_INVALID")
@@ -36,39 +35,22 @@ class TurkuDynastyArkistointiAdapter(
             metadata.plan(pyynto)
         } catch (e: DynastyFailure) { return failure(e.code) }
         catch (_: Exception) { return failure("DYNASTY_PAYLOAD_INVALID") }
-        fun step(key: String, send: () -> String?): String? {
-            when (val decision = ledger.begin(execution,key)) {
-                is DynastyStepLedger.Decision.Done -> return validatedSavedId(key,decision.remoteId)
-                DynastyStepLedger.Decision.InProgress -> throw DynastyFailure("DYNASTY_STEP_IN_PROGRESS", true)
-                DynastyStepLedger.Decision.Unconfirmed -> throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED")
-                DynastyStepLedger.Decision.Proceed -> Unit
-            }
-            val id = try { send() } catch (e: DynastyFailure) {
-                if (e.definitelyNotProcessed) ledger.abandon(pyynto.jobId,key,execution.version)
-                throw e
-            }
-            if (!ledger.complete(pyynto.jobId,key,execution.version,id)) throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED")
-            return id
-        }
         return try {
-            val caseId = requireNotNull(step("CASE") { client.createCase(plan.tosClass,plan.caseJson) })
-            val taskId = requireNotNull(step("TASK") { client.createTask(caseId,plan.task) })
+            val caseId = requireNotNull(steps.execute(execution, "CASE") { client.createCase(plan.tosClass,plan.caseJson) })
+            val taskId = requireNotNull(steps.execute(execution, "TASK") { client.createTask(caseId,plan.task) })
             var mainId: String? = null
             pyynto.asiakirjat.forEachIndexed { index, doc ->
                 val options = if (index == 0) mapOf("CaseSelector" to mapOf("Id" to caseId), "PhaseSelector" to mapOf("Id" to taskId))
                     else mapOf("caseSelector" to mapOf("id" to caseId.toLong()), "parentDocumentSelector" to mapOf("id" to requireNotNull(mainId).toLong()))
-                val id = step("DOCUMENT:${doc.jarjestysnumero}") { client.createDocument(plan.documents[index],mapper.writeValueAsString(options),doc) }
+                val id = steps.execute(execution, "DOCUMENT:${doc.jarjestysnumero}") {
+                    client.createDocument(plan.documents[index],mapper.writeValueAsString(options),doc)
+                }
                 if (index == 0) mainId = id
             }
             // Conservatively park an ambiguous state change too, until vendor confirms replay semantics.
-            step("ARCHIVE_CASE") { client.archiveCase(caseId); null }
+            steps.execute(execution, "ARCHIVE_CASE") { client.archiveCase(caseId); null }
             ArkistointiResult.Success(caseId)
         } catch (e: DynastyFailure) { failure(e.code,e.retryable) }
-    }
-
-    private fun validatedSavedId(key: String, id: String?): String? {
-        if (key == "ARCHIVE_CASE") return null
-        return DynastyId.requireValid(id, guid = key == "TASK")
     }
 
     private fun failure(code: String, retryable: Boolean = false): ArkistointiResult =

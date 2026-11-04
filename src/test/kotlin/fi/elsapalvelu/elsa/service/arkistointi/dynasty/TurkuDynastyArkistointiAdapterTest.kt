@@ -15,7 +15,7 @@ class TurkuDynastyArkistointiAdapterTest {
     private val client = mock<DynastyClient>()
     private val metadata = mock<TurkuDynastyMetadataMapper>()
     private val ledger = mock<DynastyStepLedger>()
-    private val adapter = TurkuDynastyArkistointiAdapter(client,metadata,ledger,jacksonObjectMapper())
+    private val adapter = TurkuDynastyArkistointiAdapter(client,metadata,DynastyStepExecutor(ledger),jacksonObjectMapper())
     private val execution = ArkistointiJobExecution("archive",UUID.randomUUID().toString(),1)
     private val submission = ArkistointiSubmission(execution.jobId,YliopistoEnum.TURUN_YLIOPISTO,CaseType.KOEJAKSO,"{}",emptyList(),execution)
 

@@ -19,7 +19,7 @@ class DynastyWorkerConfigurationTest {
     private val mapper = jacksonObjectMapper()
     private val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
         DynastyClient(properties, mapper), TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
-        mock<DynastyStepLedger>(), mapper
+        DynastyStepExecutor(mock<DynastyStepLedger>()), mapper
     )))
     private val provider = ArkistointiConfigurationProvider(properties)
 

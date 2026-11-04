@@ -68,7 +68,11 @@ class DynastyDeliveryTest {
                 steps[it.getArgument(1)] = DynastyStepLedger.Decision.Done(it.getArgument(3)); true
             }
             doAnswer { steps.remove(it.getArgument<String>(1)); null }.whenever(ledger).abandon(any(),any(),any())
-            val adapter = TurkuDynastyArkistointiAdapter(DynastyClient(properties,mapper),TurkuDynastyMetadataMapper(properties,mapper,ArchivePayloadReader(mapper)),ledger,mapper)
+            val adapter = TurkuDynastyArkistointiAdapter(
+                DynastyClient(properties,mapper),
+                TurkuDynastyMetadataMapper(properties,mapper,ArchivePayloadReader(mapper)),
+                DynastyStepExecutor(ledger),mapper
+            )
             listOf("""{"access_token":"token","expires_in":900}""","415","\"${UUID.randomUUID()}\"","1078").forEach { server.enqueue(MockResponse().setBody(it)) }
             server.enqueue(MockResponse().setResponseCode(403))
             assertThat(adapter.arkistoi(submission)).isInstanceOf(ArkistointiResult.PermanentFailure::class.java)
