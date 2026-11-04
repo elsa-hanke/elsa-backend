@@ -26,6 +26,8 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import java.time.LocalDate
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
@@ -50,6 +52,30 @@ class KoejaksoArkistointiServiceTest {
     private val university = YliopistoEnum.HELSINGIN_YLIOPISTO
     private val studyRight = Opintooikeus(id = 12, yliopisto = Yliopisto(nimi = university), erikoisala = Erikoisala(id = 1))
     private val document = Asiakirja(id = 22, nimi = "approval.pdf", tyyppi = "application/pdf")
+
+    @ParameterizedTest
+    @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
+    fun `missing specialty prevents synchronous delivery instead of selecting non YEK`(type: CaseType) {
+        studyRight.erikoisala = null
+        whenever(synchronous.onKaytossa(university, type)).thenReturn(true)
+        whenever(synchronous.muodostaSahke(
+            anyOrNull(), any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any()
+        )).thenReturn(ArkistointiPackage("/tmp/test.zip", null))
+
+        assertThatThrownBy { archive(type) }.isInstanceOf(IllegalArgumentException::class.java)
+
+        verify(synchronous, never()).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
+        verifyNoInteractions(snapshots, creator, jobs)
+    }
+
+    @Test
+    fun `assessment still requires specialty when archiving is disabled`() {
+        studyRight.erikoisala = null
+
+        assertThatThrownBy { archive(CaseType.KOEJAKSO) }.isInstanceOf(IllegalArgumentException::class.java)
+
+        verifyNoInteractions(synchronous, snapshots, creator, jobs)
+    }
 
     @ParameterizedTest
     @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])

@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.koejakso
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
@@ -53,9 +53,9 @@ class KoejaksoArkistointiService(
                 "", null, sopimus.vastuuhenkilo?.user?.getName(), sopimus.vastuuhenkilonKuittausaika,
                 university, CaseType.SOPIMUS
             )
-            val specialty = studyRight.erikoisala.required()
+            studyRight.erikoisala.required()
             synchronousArchive.laheta(
-                university, archivePackage.zipFilePath, CaseType.SOPIMUS, specialty.id == YEK_ERIKOISALA_ID,
+                university, archivePackage.zipFilePath, CaseType.SOPIMUS, studyRight.isYek(),
                 sopimus.id.required().toString(), studyRight.erikoistuvaLaakari?.kayttaja?.user?.getName()
             )
         }
@@ -66,7 +66,7 @@ class KoejaksoArkistointiService(
         val university = studyRight.yliopisto?.nimi.required()
         // Preserve the synchronous path's required specialty, including when archiving is disabled.
         if (!isAsyncEnabled(university, CaseType.KOEJAKSO)) {
-            val specialty = studyRight.erikoisala.required()
+            studyRight.erikoisala.required()
             if (!synchronousArchive.onKaytossa(university, CaseType.KOEJAKSO)) return
             val archivePackage = synchronousArchive.muodostaSahke(
                 studyRight, listOf(RecordProperties(document, RecordType.ARVIOINTI)), arvio.id.required().toString(),
@@ -75,7 +75,7 @@ class KoejaksoArkistointiService(
                 university, CaseType.KOEJAKSO
             )
             synchronousArchive.laheta(
-                university, archivePackage.zipFilePath, CaseType.KOEJAKSO, specialty.id == YEK_ERIKOISALA_ID,
+                university, archivePackage.zipFilePath, CaseType.KOEJAKSO, studyRight.isYek(),
                 arvio.id.required().toString(), studyRight.erikoistuvaLaakari?.kayttaja?.user?.getName()
             )
             return

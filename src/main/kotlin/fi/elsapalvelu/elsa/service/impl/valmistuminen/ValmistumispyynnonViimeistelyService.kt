@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.ValmistumispyynnonTarkistus
@@ -70,7 +70,8 @@ class ValmistumispyynnonViimeistelyService(
             return
         }
 
-        val yek = valmistumispyynto.opintooikeus?.erikoisala.required().id == YEK_ERIKOISALA_ID
+        valmistumispyynto.opintooikeus?.erikoisala.required()
+        val yek = valmistumispyynto.isYek()
         if (!asyncEnabled) {
             archiveSynchronously(valmistumispyynto, yliopisto.required(), asiakirjat, yek)
             return
