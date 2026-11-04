@@ -59,15 +59,15 @@ class DynastyDeliveryTest {
             val execution = ArkistointiJobExecution("archive",UUID.randomUUID().toString(),1)
             val submission = ArkistointiSubmission(execution.jobId,YliopistoEnum.TURUN_YLIOPISTO,CaseType.VALMISTUMINEN,payload,documents,execution)
             val ledger = mock<DynastyStepLedger>()
-            val steps = mutableMapOf<String,DynastyStepLedger.Decision>()
+            val steps = mutableMapOf<DynastyStepKey,DynastyStepLedger.Decision>()
             whenever(ledger.begin(eq(execution),any(),any())).thenAnswer {
-                val key = it.getArgument<String>(1)
+                val key = it.getArgument<DynastyStepKey>(1)
                 steps[key] ?: DynastyStepLedger.Decision.Proceed.also { steps[key] = DynastyStepLedger.Decision.Unconfirmed }
             }
             whenever(ledger.complete(any(),any(),any(),anyOrNull())).thenAnswer {
                 steps[it.getArgument(1)] = DynastyStepLedger.Decision.Done(it.getArgument(3)); true
             }
-            doAnswer { steps.remove(it.getArgument<String>(1)); null }.whenever(ledger).abandon(any(),any(),any())
+            doAnswer { steps.remove(it.getArgument<DynastyStepKey>(1)); null }.whenever(ledger).abandon(any(),any(),any())
             val adapter = TurkuDynastyArkistointiAdapter(
                 DynastyClient(properties.getArkistointi().getTurku().dynasty,mapper),
                 TurkuDynastyMetadataMapper(properties,mapper,ArchivePayloadReader(mapper)),

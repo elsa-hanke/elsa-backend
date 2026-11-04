@@ -10,7 +10,7 @@ import java.time.Duration
  */
 @Component
 class DynastyStepExecutor(private val ledger: DynastyStepLedger) {
-    fun execute(execution: ArkistointiJobExecution, key: String, inProgressGrace: Duration, send: () -> String?): String? {
+    fun execute(execution: ArkistointiJobExecution, key: DynastyStepKey, inProgressGrace: Duration, send: () -> String?): String? {
         when (val decision = ledger.begin(execution,key,inProgressGrace)) {
             is DynastyStepLedger.Decision.Done -> return validatedSavedId(key,decision.remoteId)
             DynastyStepLedger.Decision.InProgress -> throw DynastyFailure("DYNASTY_STEP_IN_PROGRESS", true)
@@ -25,9 +25,10 @@ class DynastyStepExecutor(private val ledger: DynastyStepLedger) {
         return id
     }
 
-    private fun validatedSavedId(key: String, id: String?): String? {
-        if (key == "ARCHIVE_CASE") return null
-        return DynastyId.requireValid(id, guid = key == "TASK")
+    private fun validatedSavedId(key: DynastyStepKey, id: String?): String? = when (key) {
+        DynastyStepKey.ArchiveCase -> null
+        DynastyStepKey.Task -> DynastyId.requireValid(id, guid = true)
+        DynastyStepKey.Case, is DynastyStepKey.Document -> DynastyId.requireValid(id, guid = false)
     }
 
 }

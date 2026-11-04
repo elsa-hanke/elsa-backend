@@ -27,6 +27,7 @@ class DynastyStepLedgerIT {
     @Autowired private lateinit var ledger: DynastyStepLedger
     @Autowired private lateinit var properties: ApplicationProperties
     @Autowired private lateinit var jdbc: JdbcTemplate
+    private val grace get() = properties.getArkistointi().getTurku().dynasty.inProgressGrace
 
     @Configuration
     @EnableTransactionManagement
@@ -64,20 +65,20 @@ class DynastyStepLedgerIT {
         val longGrace = java.time.Duration.ofMinutes(5)
         jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) " +
             "values (?,'CASE','ALOITETTU',?,clock_timestamp() - interval '2 minutes')", execution.jobId, execution.version)
-        assertThat(ledger.begin(execution, "CASE", shortGrace)).isEqualTo(DynastyStepLedger.Decision.Unconfirmed)
-        assertThat(ledger.begin(execution, "CASE", longGrace)).isEqualTo(DynastyStepLedger.Decision.InProgress)
+        assertThat(ledger.begin(execution, DynastyStepKey.Case, shortGrace)).isEqualTo(DynastyStepLedger.Decision.Unconfirmed)
+        assertThat(ledger.begin(execution, DynastyStepKey.Case, longGrace)).isEqualTo(DynastyStepLedger.Decision.InProgress)
     }
 
     @Test
     fun `intent is committed and blocks duplicate create after recovery`() {
         val e = fixture()
-        assertThat(ledger.begin(e, "CASE", properties.getArkistointi().getTurku().dynasty.inProgressGrace)).isEqualTo(DynastyStepLedger.Decision.Proceed)
+        assertThat(ledger.begin(e, DynastyStepKey.Case, grace)).isEqualTo(DynastyStepLedger.Decision.Proceed)
         jdbc.update("update scheduled_tasks set version=2 where task_instance=?",e.taskInstanceId)
         val recovered = e.copy(version=2)
-        assertThat(ledger.begin(recovered, "CASE", properties.getArkistointi().getTurku().dynasty.inProgressGrace)).isEqualTo(DynastyStepLedger.Decision.InProgress)
-        assertThat(ledger.complete(e.jobId,"CASE",e.version,"415")).isTrue()
-        assertThat(ledger.begin(recovered, "CASE", properties.getArkistointi().getTurku().dynasty.inProgressGrace)).isEqualTo(DynastyStepLedger.Decision.Done("415"))
-        assertThatThrownBy { ledger.begin(e, "TASK", properties.getArkistointi().getTurku().dynasty.inProgressGrace) }.isInstanceOf(StaleArkistointiExecutionException::class.java)
+        assertThat(ledger.begin(recovered, DynastyStepKey.Case, grace)).isEqualTo(DynastyStepLedger.Decision.InProgress)
+        assertThat(ledger.complete(e.jobId,DynastyStepKey.Case,e.version,"415")).isTrue()
+        assertThat(ledger.begin(recovered, DynastyStepKey.Case, grace)).isEqualTo(DynastyStepLedger.Decision.Done("415"))
+        assertThatThrownBy { ledger.begin(e, DynastyStepKey.Task, grace) }.isInstanceOf(StaleArkistointiExecutionException::class.java)
         assertThatThrownBy { jdbc.update("delete from arkistointi_dynasty_step where job_id=?",e.jobId) }.isInstanceOf(org.springframework.dao.DataAccessException::class.java)
     }
 
@@ -87,14 +88,14 @@ class DynastyStepLedgerIT {
         val pool = java.util.concurrent.Executors.newFixedThreadPool(2)
         try {
             val results = pool.invokeAll(List(2) {
-                java.util.concurrent.Callable { ledger.begin(e, "CASE", properties.getArkistointi().getTurku().dynasty.inProgressGrace) }
+                java.util.concurrent.Callable { ledger.begin(e, DynastyStepKey.Case, grace) }
             }).map { it.get() }
             assertThat(results).containsExactlyInAnyOrder(DynastyStepLedger.Decision.Proceed,DynastyStepLedger.Decision.InProgress)
             val config = properties.getArkistointi().getTurku().dynasty
             val previous = config.inProgressGrace
             try {
                 config.inProgressGrace = java.time.Duration.ZERO
-                assertThat(ledger.begin(e, "CASE", properties.getArkistointi().getTurku().dynasty.inProgressGrace)).isEqualTo(DynastyStepLedger.Decision.Unconfirmed)
+                assertThat(ledger.begin(e, DynastyStepKey.Case, grace)).isEqualTo(DynastyStepLedger.Decision.Unconfirmed)
             } finally { config.inProgressGrace = previous }
         } finally { pool.shutdownNow() }
     }
@@ -107,8 +108,8 @@ class DynastyStepLedgerIT {
             "values (?,'CASE','ALOITETTU',?,clock_timestamp() - interval '6 minutes')", e.jobId, e.version)
         jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) " +
             "values (?,'TASK','ALOITETTU',?,clock_timestamp())", e.jobId, e.version)
-        assertThat(ledger.begin(e, "CASE", properties.getArkistointi().getTurku().dynasty.inProgressGrace)).isEqualTo(DynastyStepLedger.Decision.Unconfirmed)
-        assertThat(ledger.begin(e, "TASK", properties.getArkistointi().getTurku().dynasty.inProgressGrace)).isEqualTo(DynastyStepLedger.Decision.InProgress)
+        assertThat(ledger.begin(e, DynastyStepKey.Case, grace)).isEqualTo(DynastyStepLedger.Decision.Unconfirmed)
+        assertThat(ledger.begin(e, DynastyStepKey.Task, grace)).isEqualTo(DynastyStepLedger.Decision.InProgress)
     }
 
     @Test
@@ -118,8 +119,8 @@ class DynastyStepLedgerIT {
                 "and column_name in ('started_at','completed_at')", String::class.java
         )).containsExactlyInAnyOrder("timestamptz", "timestamptz")
         val e = fixture()
-        ledger.begin(e, "CASE", properties.getArkistointi().getTurku().dynasty.inProgressGrace)
-        assertThat(ledger.complete(e.jobId, "CASE", e.version, "415")).isTrue()
+        ledger.begin(e, DynastyStepKey.Case, grace)
+        assertThat(ledger.complete(e.jobId, DynastyStepKey.Case, e.version, "415")).isTrue()
         assertThat(jdbc.queryForObject(
             "select started_at <= completed_at and completed_at <= clock_timestamp() " +
                 "and started_at > clock_timestamp() - interval '1 minute' from arkistointi_dynasty_step where job_id=?",
@@ -130,11 +131,11 @@ class DynastyStepLedgerIT {
     @Test
     fun `original attempt cannot complete a replacement`() {
         val e = fixture()
-        ledger.begin(e, "CASE", properties.getArkistointi().getTurku().dynasty.inProgressGrace)
-        ledger.abandon(e.jobId,"CASE",e.version)
+        ledger.begin(e, DynastyStepKey.Case, grace)
+        ledger.abandon(e.jobId,DynastyStepKey.Case,e.version)
         jdbc.update("update scheduled_tasks set version=2 where task_instance=?",e.taskInstanceId)
-        ledger.begin(e.copy(version=2), "CASE", properties.getArkistointi().getTurku().dynasty.inProgressGrace)
-        assertThat(ledger.complete(e.jobId,"CASE",1,"415")).isFalse()
-        assertThat(ledger.complete(e.jobId,"CASE",2,"416")).isTrue()
+        ledger.begin(e.copy(version=2), DynastyStepKey.Case, grace)
+        assertThat(ledger.complete(e.jobId,DynastyStepKey.Case,1,"415")).isFalse()
+        assertThat(ledger.complete(e.jobId,DynastyStepKey.Case,2,"416")).isTrue()
     }
 }

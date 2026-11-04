@@ -24,7 +24,7 @@ class DynastyStepLedger(
         data object Unconfirmed : Decision
     }
 
-    fun begin(execution: ArkistointiJobExecution, key: String, inProgressGrace: Duration): Decision {
+    fun begin(execution: ArkistointiJobExecution, key: DynastyStepKey, inProgressGrace: Duration): Decision {
         executionLock.lock(execution)
         val job = jdbc.queryForList("select status from arkistointi_job where id=? for update", execution.jobId).singleOrNull()
         if (job?.get("status") != "KASITTELYSSA") throw StaleArkistointiExecutionException()
@@ -32,7 +32,7 @@ class DynastyStepLedger(
         val rows = jdbc.queryForList(
             "select status, remote_id, started_at + (?::bigint * interval '1 millisecond') > clock_timestamp() as in_progress " +
                 "from arkistointi_dynasty_step where job_id=? and step_key=?",
-            inProgressGrace.toMillis(), execution.jobId, key
+            inProgressGrace.toMillis(), execution.jobId, key.databaseKey
         )
         if (rows.isNotEmpty()) {
             val row = rows.single()
@@ -40,18 +40,18 @@ class DynastyStepLedger(
             return if (row["in_progress"] == true) Decision.InProgress else Decision.Unconfirmed
         }
         jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) values (?,?,'ALOITETTU',?,clock_timestamp())",
-            execution.jobId, key, execution.version)
+            execution.jobId, key.databaseKey, execution.version)
         return Decision.Proceed
     }
 
     /** A late response still records a fact, but only for the attempt which started this step. */
-    fun complete(jobId: UUID, key: String, version: Long, remoteId: String?): Boolean = jdbc.update(
+    fun complete(jobId: UUID, key: DynastyStepKey, version: Long, remoteId: String?): Boolean = jdbc.update(
         "update arkistointi_dynasty_step set status='VALMIS',remote_id=?,completed_at=clock_timestamp() where job_id=? and " +
             "step_key=? and execution_version=? and status='ALOITETTU'",
-        remoteId, jobId, key, version
+        remoteId, jobId, key.databaseKey, version
     ) == 1
 
-    fun abandon(jobId: UUID, key: String, version: Long) {
-        jdbc.update("delete from arkistointi_dynasty_step where job_id=? and step_key=? and execution_version=? and status='ALOITETTU'", jobId, key, version)
+    fun abandon(jobId: UUID, key: DynastyStepKey, version: Long) {
+        jdbc.update("delete from arkistointi_dynasty_step where job_id=? and step_key=? and execution_version=? and status='ALOITETTU'", jobId, key.databaseKey, version)
     }
 }

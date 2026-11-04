@@ -37,19 +37,23 @@ class TurkuDynastyArkistointiAdapter(
         } catch (e: DynastyFailure) { return failure(e.code) }
         catch (_: Exception) { return failure("DYNASTY_PAYLOAD_INVALID") }
         return try {
-            val caseId = requireNotNull(steps.execute(execution, "CASE", client.inProgressGrace) { client.createCase(plan.tosClass,plan.caseJson) })
-            val taskId = requireNotNull(steps.execute(execution, "TASK", client.inProgressGrace) { client.createTask(caseId,plan.task) })
+            val caseId = requireNotNull(steps.execute(execution, DynastyStepKey.Case, client.inProgressGrace) {
+                client.createCase(plan.tosClass,plan.caseJson)
+            })
+            val taskId = requireNotNull(steps.execute(execution, DynastyStepKey.Task, client.inProgressGrace) {
+                client.createTask(caseId,plan.task)
+            })
             var mainId: String? = null
             pyynto.asiakirjat.forEachIndexed { index, doc ->
                 val options = if (index == 0) mapOf("CaseSelector" to mapOf("Id" to caseId), "PhaseSelector" to mapOf("Id" to taskId))
                     else mapOf("caseSelector" to mapOf("id" to caseId.toLong()), "parentDocumentSelector" to mapOf("id" to requireNotNull(mainId).toLong()))
-                val id = steps.execute(execution, "DOCUMENT:${doc.jarjestysnumero}", client.inProgressGrace) {
+                val id = steps.execute(execution, DynastyStepKey.Document(doc.jarjestysnumero), client.inProgressGrace) {
                     client.createDocument(plan.documents[index],mapper.writeValueAsString(options),doc)
                 }
                 if (index == 0) mainId = id
             }
             // Conservatively park an ambiguous state change too, until vendor confirms replay semantics.
-            steps.execute(execution, "ARCHIVE_CASE", client.inProgressGrace) { client.archiveCase(caseId); null }
+            steps.execute(execution, DynastyStepKey.ArchiveCase, client.inProgressGrace) { client.archiveCase(caseId); null }
             ArkistointiResult.Success(caseId)
         } catch (e: DynastyFailure) { failure(e.code,e.retryable) }
     }

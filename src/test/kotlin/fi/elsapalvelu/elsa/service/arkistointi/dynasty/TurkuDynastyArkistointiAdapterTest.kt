@@ -23,9 +23,9 @@ class TurkuDynastyArkistointiAdapterTest {
     fun `completed steps resume without repeating remote mutations`() {
         whenever(client.inProgressGrace).thenReturn(java.time.Duration.ofMinutes(5))
         whenever(metadata.plan(submission)).thenReturn(TurkuDynastyMetadataMapper.Plan("x","{}","Arviointi",emptyList()))
-        whenever(ledger.begin(execution,"CASE",java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done("415"))
-        whenever(ledger.begin(execution,"TASK",java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(UUID.randomUUID().toString()))
-        whenever(ledger.begin(execution,"ARCHIVE_CASE",java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(null))
+        whenever(ledger.begin(execution,DynastyStepKey.Case,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done("415"))
+        whenever(ledger.begin(execution,DynastyStepKey.Task,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(UUID.randomUUID().toString()))
+        whenever(ledger.begin(execution,DynastyStepKey.ArchiveCase,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(null))
         assertThat(adapter.arkistoi(submission)).isEqualTo(ArkistointiResult.Success("415"))
         verify(client).validateConfiguration()
         verify(client, times(3)).inProgressGrace
@@ -37,7 +37,7 @@ class TurkuDynastyArkistointiAdapterTest {
     fun `unknown old intent parks delivery without issuing another request`() {
         whenever(client.inProgressGrace).thenReturn(java.time.Duration.ofMinutes(5))
         whenever(metadata.plan(submission)).thenReturn(TurkuDynastyMetadataMapper.Plan("x","{}","Arviointi",emptyList()))
-        whenever(ledger.begin(execution,"CASE",java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Unconfirmed)
+        whenever(ledger.begin(execution,DynastyStepKey.Case,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Unconfirmed)
         assertThat(adapter.arkistoi(submission)).isInstanceOf(ArkistointiResult.PermanentFailure::class.java)
         verify(client).validateConfiguration()
         verify(client).inProgressGrace
