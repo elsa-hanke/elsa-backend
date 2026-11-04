@@ -249,7 +249,10 @@ edellyttää kyseistä asiatyyppiä tukevaa yliopiston adapteria.
 Adapteri ilmoittaa tuetut asiatyypit `supportedCaseTypes`-joukossa. Worker tarkistaa
 käynnistyessään jokaisen käyttöön otetun yliopisto–asiatyyppiparin. Jo jonossa oleva
 tukematon asiatyyppi päätyy tilaan `VAATII_TOIMENPITEITA` ilman lähetystä tai uusintaa.
-Pelkkä jobien tuottaminen ei edellytä paikallista toimitusadapteria.
+Pelkkä jobien tuottaminen ei edellytä paikallista asynkronista toimitusadapteria.
+Jokainen käytössä oleva synkroninen yliopisto–asiatyyppipari vaatii kuitenkin
+synkronisen adapterin myös silloin, kun paikallinen worker on pois käytöstä.
+Puuttuva hyväksynnän toimitusreitti estää sovelluksen käynnistyksen.
 
 Hyväksyntä, tavallisen ladattavan PDF:n luonti, sen muuttumaton snapshot, job ja
 `scheduled_tasks` tallentuvat samassa transaktiossa. Payload sisältää hyväksymishetken
@@ -467,7 +470,11 @@ vaatii yliopiston asynkronisen `service.arkistointi.job.delivery.ArkistointiAdap
 Puuttuva adapteri estää käynnistyksen ennen workerin aloitusta; ulkoiseen arkistoon
 ei tehdä käynnistystarkistuksessa verkkokutsua. Saman yliopiston adapterit eivät
 saa olla päällekkäisiä. Workerista erillinen jonoon kirjoittava solmu voi käyttää
-asetusta `db-scheduler.enabled=false` ilman paikallisia adaptereita.
+asetusta `db-scheduler.enabled=false` ilman paikallisia asynkronisia adaptereita.
+Kaikilla solmuilla `kaytossa=true` ja tapauskohtainen `async-enabled=false`
+vaatii yliopiston `SynchronousArkistointiAdapter`-beanin. Tarkistus tehdään ennen
+workerin käynnistystä ja myös ilman workeria; valitse async-reitti tai rekisteröi
+synkroninen adapteri ennen integraation käyttöönottoa.
 
 Jo jonossa olevan jobin puuttuva adapteri tallentaa turvallisen virhekoodin
 `ARCHIVE_ADAPTER_MISSING` ja tilan `VAATII_TOIMENPITEITA`, eikä sitä uusita

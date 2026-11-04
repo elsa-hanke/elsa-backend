@@ -21,6 +21,7 @@ import javax.sql.DataSource
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 import org.springframework.core.env.Environment
 import org.springframework.jdbc.datasource.DelegatingDataSource
 
@@ -35,6 +36,7 @@ class ArkistointiDbSchedulerConfiguration {
         ArkistointiRetryPolicy(properties.getArkistointi().retry)
 
     @Bean
+    @DependsOn("arkistointiRouteValidator")
     fun arkistointiJobTask(
         processorProvider: ObjectProvider<ArkistointiJobProcessor>,
         failureHandler: ArkistointiJobFailureHandler,
