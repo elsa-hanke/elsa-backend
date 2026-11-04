@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiManifestValidator
 import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -52,11 +53,10 @@ class TurkuDynastyMetadataMapper(
         val p = reader.read(submission.payload, submission.caseType)
         require(p.university == submission.university.name)
         val docs = submission.asiakirjat
-        require(docs.map { it.jarjestysnumero }.distinct().size == docs.size)
+        ArkistointiManifestValidator.validate(p.documents, docs)
+        // Dynasty attaches documents in this order; SÄHKE sorts its records during package creation.
         require(docs.map { it.jarjestysnumero } == docs.map { it.jarjestysnumero }.sorted())
-        require(p.documents.size == docs.size)
-        p.documents.sortedBy { it.jarjestysnumero }.zip(docs).forEach { (identity, document) ->
-            require(identity.snapshotDocumentId == document.asiakirjaId && identity.recordType == document.asiakirjatyyppi && identity.jarjestysnumero == document.jarjestysnumero)
+        docs.forEach { document ->
             require(document.sisalto.isNotEmpty() && document.filename.isNotBlank())
             okhttp3.MediaType.Companion.run { document.contentType.toMediaType() }
         }

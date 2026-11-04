@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiManifestValidator
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
@@ -36,7 +37,11 @@ class AsyncSahkePackageBuilder(
         }
         requireValidPayload(payload.university == submission.university.name)
         val configuration = requireConfiguration(submission)
-        val identities = validateDocumentManifest(payload.documents, submission.asiakirjat)
+        val identities = try {
+            ArkistointiManifestValidator.validate(payload.documents, submission.asiakirjat)
+        } catch (_: IllegalArgumentException) {
+            throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
+        }
         val records = createRecordProperties(submission.asiakirjat, configuration, identities)
         val request = createMetadataRequest(payload, records, submission)
         val destination = resolvePackagePath(directory, payload, configuration)
@@ -56,23 +61,6 @@ class AsyncSahkePackageBuilder(
             throw SahkePackageException(SahkePackageFailure.CONFIGURATION_INVALID)
         }
         return configuration
-    }
-
-    private fun validateDocumentManifest(
-        identities: List<ArkistointiDocumentIdentity>,
-        documents: List<LoadedArkistointiAsiakirja>
-    ): Map<Long, ArkistointiDocumentIdentity> {
-        requireValidPayload(documents.isNotEmpty() && identities.size == documents.size)
-        requireValidPayload(identities.all { it.sourceDocumentId > 0 && it.snapshotDocumentId > 0 && it.jarjestysnumero >= 0 })
-        requireValidPayload(identities.map { it.snapshotDocumentId }.distinct().size == identities.size)
-        requireValidPayload(identities.map { it.jarjestysnumero }.distinct().size == identities.size)
-        requireValidPayload(documents.map { it.asiakirjaId }.distinct().size == identities.size)
-        val bySnapshot = identities.associateBy { it.snapshotDocumentId }
-        documents.forEach { document ->
-            val identity = requirePayloadValue(bySnapshot[document.asiakirjaId])
-            requireValidPayload(identity.recordType == document.asiakirjatyyppi && identity.jarjestysnumero == document.jarjestysnumero)
-        }
-        return bySnapshot
     }
 
     private fun createRecordProperties(
@@ -147,6 +135,4 @@ class AsyncSahkePackageBuilder(
         if (!valid) throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
     }
 
-    private fun <T : Any> requirePayloadValue(value: T?): T =
-        value ?: throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
 }
