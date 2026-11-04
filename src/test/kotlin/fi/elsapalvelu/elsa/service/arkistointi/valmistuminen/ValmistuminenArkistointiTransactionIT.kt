@@ -165,7 +165,7 @@ class ValmistuminenArkistointiTransactionIT {
                 .isNotEqualTo(request.liitteetAsiakirja!!.id)
             assertGeneratedSummary(request)
             val metadata = mapper.readTree(stored)
-            assertThat(metadata["valmistumispyyntoId"].asLong()).isEqualTo(fixture.id)
+            assertThat(metadata["caseId"].asLong()).isEqualTo(fixture.id)
             assertThat(metadata["opintooikeusId"].asLong()).isEqualTo(fixture.studyRightId)
             assertThat(metadata["university"].asText()).isEqualTo("TAMPEREEN_YLIOPISTO")
             assertThat(metadata["yek"].asBoolean()).isEqualTo(kind == "YEK")

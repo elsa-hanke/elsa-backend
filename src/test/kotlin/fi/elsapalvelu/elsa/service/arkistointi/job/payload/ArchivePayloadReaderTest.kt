@@ -3,13 +3,11 @@ package fi.elsapalvelu.elsa.service.arkistointi.job.payload
 
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import java.time.LocalDate
 import java.util.stream.Stream
@@ -17,12 +15,11 @@ import java.util.stream.Stream
 class ArchivePayloadReaderTest {
     private val reader = ArchivePayloadReader(jacksonObjectMapper())
 
-    @ParameterizedTest
-    @EnumSource(CaseType::class)
-    fun `reads approval values and chooses the operation identifier`(caseType: CaseType) {
-        val payload = reader.read(PAYLOAD, caseType)
+    @Test
+    fun `reads approval values and the common case identifier`() {
+        val payload = reader.read(PAYLOAD)
 
-        assertThat(payload.caseId).isEqualTo(if (caseType == CaseType.VALMISTUMINEN) 42L else 43L)
+        assertThat(payload.caseId).isEqualTo(42L)
         assertThat(payload.university).isEqualTo("TAMPEREEN_YLIOPISTO")
         assertThat(payload.studyRightId).isEqualTo(11L)
         assertThat(payload.yek).isFalse()
@@ -45,7 +42,7 @@ class ArchivePayloadReaderTest {
 
     @Test
     fun `optional missing and null fields stay optional`() {
-        val payload = reader.read(MINIMAL_PAYLOAD, CaseType.VALMISTUMINEN)
+        val payload = reader.read(MINIMAL_PAYLOAD)
 
         assertThat(payload.traineeName).isNull()
         assertThat(payload.firstName).isNull()
@@ -61,7 +58,7 @@ class ArchivePayloadReaderTest {
     @ParameterizedTest
     @MethodSource("invalidPayloads")
     fun `rejects malformed values without coercion or exposing payload`(json: String) {
-        assertThatThrownBy { reader.read(json, CaseType.VALMISTUMINEN) }
+        assertThatThrownBy { reader.read(json) }
             .isInstanceOfSatisfying(ArchivePayloadException::class.java) {
                 assertThat(it.message).isEqualTo("ARCHIVE_PAYLOAD_INVALID")
                 assertThat(it.cause).isNull()
@@ -70,22 +67,22 @@ class ArchivePayloadReaderTest {
     }
 
     @Test
-    fun `reads typed Dynasty fields without requiring them in older snapshots`() {
+    fun `reads optional typed Dynasty fields`() {
         val root = jacksonObjectMapper().readTree(MINIMAL_PAYLOAD) as com.fasterxml.jackson.databind.node.ObjectNode
         root.put("specialtyType", "HAMMASLAAKETIEDE")
         root.put("studyRightStartDate", "2020-01-01")
         root.put("degreeRegulation", "56/2015")
         root.put("licensingDate", "2019-01-01")
-        val payload = reader.read(root.toString(), CaseType.VALMISTUMINEN)
+        val payload = reader.read(root.toString())
         assertThat(payload.specialtyType).isEqualTo("HAMMASLAAKETIEDE")
         assertThat(payload.studyRightStartDate).isEqualTo(LocalDate.of(2020, 1, 1))
         assertThat(payload.degreeRegulation).isEqualTo("56/2015")
         assertThat(payload.licensingDate).isEqualTo(LocalDate.of(2019, 1, 1))
-        val oldPayload = reader.read(MINIMAL_PAYLOAD, CaseType.VALMISTUMINEN)
-        assertThat(oldPayload.specialtyType).isNull()
-        assertThat(oldPayload.studyRightStartDate).isNull()
-        assertThat(oldPayload.degreeRegulation).isNull()
-        assertThat(oldPayload.licensingDate).isNull()
+        val minimalPayload = reader.read(MINIMAL_PAYLOAD)
+        assertThat(minimalPayload.specialtyType).isNull()
+        assertThat(minimalPayload.studyRightStartDate).isNull()
+        assertThat(minimalPayload.degreeRegulation).isNull()
+        assertThat(minimalPayload.licensingDate).isNull()
     }
 
     @ParameterizedTest
@@ -93,7 +90,7 @@ class ArchivePayloadReaderTest {
     fun `rejects nontextual Dynasty fields without scalar coercion`(field: String) {
         val root = jacksonObjectMapper().readTree(MINIMAL_PAYLOAD) as com.fasterxml.jackson.databind.node.ObjectNode
         root.put(field, 123)
-        assertThatThrownBy { reader.read(root.toString(), CaseType.VALMISTUMINEN) }
+        assertThatThrownBy { reader.read(root.toString()) }
             .isInstanceOf(ArchivePayloadException::class.java).hasMessage("ARCHIVE_PAYLOAD_INVALID").hasNoCause()
     }
 
@@ -102,14 +99,14 @@ class ArchivePayloadReaderTest {
     fun `rejects malformed Dynasty dates without retaining private values`(field: String) {
         val root = jacksonObjectMapper().readTree(MINIMAL_PAYLOAD) as com.fasterxml.jackson.databind.node.ObjectNode
         root.put(field, "Private invalid date")
-        assertThatThrownBy { reader.read(root.toString(), CaseType.VALMISTUMINEN) }
+        assertThatThrownBy { reader.read(root.toString()) }
             .isInstanceOf(ArchivePayloadException::class.java).hasMessage("ARCHIVE_PAYLOAD_INVALID").hasNoCause()
     }
 
     companion object {
         private const val MINIMAL_PAYLOAD = """{
             "university": "TAMPEREEN_YLIOPISTO", "yek": false,
-            "opintooikeusId": 11, "valmistumispyyntoId": 42, "caseId": 43,
+            "version": 1, "opintooikeusId": 11, "caseId": 42,
             "approvalDate": "2024-12-31", "firstName": null,
             "documents": [{"sourceDocumentId": 51, "snapshotDocumentId": 61,
                 "recordType": "YHTEENVETO", "jarjestysnumero": 0}]
@@ -129,7 +126,7 @@ class ArchivePayloadReaderTest {
             PAYLOAD.replace("\"opintooikeusId\": 11", "\"opintooikeusId\": 9223372036854775808"),
             PAYLOAD.replace("\"opintooikeusId\": 11", "\"opintooikeusId\": null"),
             PAYLOAD.replace("\"opintooikeusId\": 11", "\"opintooikeusId\": 0"),
-            PAYLOAD.replace("\"valmistumispyyntoId\": 42", "\"valmistumispyyntoId\": false"),
+            PAYLOAD.replace("\"caseId\": 42", "\"caseId\": false"),
             PAYLOAD.replace("\"yek\": false", "\"yek\": \"false\""),
             PAYLOAD.replace("\"yek\": false", "\"yek\": 0"),
             PAYLOAD.replace("\"approvalDate\": \"2024-12-31\"", "\"approvalDate\": null"),

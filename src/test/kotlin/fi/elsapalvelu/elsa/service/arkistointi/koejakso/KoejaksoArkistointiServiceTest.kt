@@ -76,7 +76,7 @@ class KoejaksoArkistointiServiceTest {
         assertThat(request.firstValue.asiakirjat).containsExactly(reference)
         val prefix = if (type == CaseType.SOPIMUS) "koejakso-sopimus" else "koejakso-arvio"
         assertThat(request.firstValue.key).isEqualTo("$prefix:${university.name}:7")
-        val payload = ArchivePayloadReader(mapper).read(request.firstValue.payload, type)
+        val payload = ArchivePayloadReader(mapper).read(request.firstValue.payload)
         val json = mapper.readTree(request.firstValue.payload)
         assertThat(json.has("licensingDate")).isFalse()
         assertThat(json.has("studyRight")).isFalse()

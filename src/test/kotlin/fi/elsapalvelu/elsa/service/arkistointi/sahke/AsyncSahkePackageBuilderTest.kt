@@ -48,7 +48,7 @@ class AsyncSahkePackageBuilderTest {
         val studyRight = input.opintooikeus
         val user = studyRight.erikoistuvaLaakari!!.kayttaja!!.user!!
         val payload = mapper.writeValueAsString(mapOf(
-            "valmistumispyyntoId" to 42, "caseId" to 42, "opintooikeusId" to studyRight.id,
+            "version" to 1, "caseId" to 42, "opintooikeusId" to studyRight.id,
             "university" to scenario.yliopisto.name, "yek" to yek,
             "traineeName" to user.getName(), "firstName" to user.firstName, "lastName" to user.lastName,
             "birthDate" to studyRight.erikoistuvaLaakari!!.syntymaaika.toString(),
@@ -218,7 +218,7 @@ class AsyncSahkePackageBuilderTest {
         val payload = mapper.writeValueAsString(mapOf(
             "university" to scenario.yliopisto.name, "yek" to false,
             "approvalDate" to "2026-01-01", "opintooikeusId" to 1,
-            "valmistumispyyntoId" to 42, "caseId" to 42,
+            "version" to 1, "caseId" to 42,
             "documents" to documents.map {
                 ArkistointiDocumentIdentity(it.asiakirjaId + 10000, it.asiakirjaId, it.asiakirjatyyppi, it.jarjestysnumero)
             }

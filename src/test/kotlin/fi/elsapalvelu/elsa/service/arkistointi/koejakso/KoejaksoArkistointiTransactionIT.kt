@@ -167,7 +167,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         assertThat(job.caseType).isEqualTo(type)
         assertThat(job.expectedDocumentCount).isEqualTo(1)
         assertThat(taskCount(job.id!!)).isEqualTo(1)
-        val payload = ArchivePayloadReader(objectMapper).read(job.payload!!, job.caseType!!)
+        val payload = ArchivePayloadReader(objectMapper).read(job.payload!!)
         assertThat(payload.approvalDate).isEqualTo(LocalDate.now())
         assertThat(payload.caseId).isEqualTo(fixture.caseId(type))
         assertThat(payload.studyRightId).isEqualTo(fixture.studyRightId)
@@ -526,7 +526,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         val fixture = fixture()
         approve(fixture, type).andExpect(status().isOk)
         val saved = job(fixture, type)
-        val identity = ArchivePayloadReader(objectMapper).read(saved.payload!!, saved.caseType!!).documents.single()
+        val identity = ArchivePayloadReader(objectMapper).read(saved.payload!!).documents.single()
         transactions.executeWithoutResult {
             val studyRight = opintooikeusRepository.findById(fixture.studyRightId).orElseThrow()
             studyRight.opiskelijatunnus = "changed-after-approval"
@@ -550,7 +550,7 @@ class KoejaksoArkistointiTransactionIT : ResourceIntegrationTestBase() {
         assertThat(delivered.key).isEqualTo(saved.id)
         assertThat(delivered.caseType).isEqualTo(type)
         assertThat(delivered.payload).isEqualTo(saved.payload)
-        assertThat(ArchivePayloadReader(objectMapper).read(delivered.payload, delivered.caseType).documents).containsExactly(identity)
+        assertThat(ArchivePayloadReader(objectMapper).read(delivered.payload).documents).containsExactly(identity)
         assertThat(delivered.asiakirjat).hasSize(1)
         assertThat(delivered.asiakirjat.single().asiakirjaId).isEqualTo(identity.snapshotDocumentId)
         assertThat(ArkistointiChecksum.sha256(delivered.asiakirjat.single().sisalto))

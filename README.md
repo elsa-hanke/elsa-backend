@@ -249,6 +249,14 @@ edellyttää kyseistä asiatyyppiä tukevaa yliopiston adapteria.
 Adapteri ilmoittaa tuetut asiatyypit `supportedCaseTypes`-joukossa. Worker tarkistaa
 käynnistyessään jokaisen käyttöön otetun yliopisto–asiatyyppiparin. Jo jonossa oleva
 tukematon asiatyyppi päätyy tilaan `VAATII_TOIMENPITEITA` ilman lähetystä tai uusintaa.
+Uudet hyväksynnän payloadit käyttävät yhteistä `ArchiveApprovalPayload`-sopimusta,
+kokonaislukua `version=1` ja kaikille asiatyypeille samaa `caseId`-kenttää.
+JSON-kenttien nimet on kiinnitetty yhteisillä vakioilla ja Jackson-annotaatioilla.
+Lukija vaatii aina `version=1`- ja `caseId`-kentät. Puuttuva tai tuntematon versio,
+väärä version JSON-tyyppi tai virheellinen tunniste hylätään virheellä
+`ARCHIVE_PAYLOAD_INVALID`. Versiottomia payload-muotoja tai vanhoja tunnistealiaksia
+ei tueta.
+
 Pelkkä jobien tuottaminen ei edellytä paikallista asynkronista toimitusadapteria.
 Jokainen käytössä oleva synkroninen yliopisto–asiatyyppipari vaatii kuitenkin
 synkronisen adapterin myös silloin, kun paikallinen worker on pois käytöstä.

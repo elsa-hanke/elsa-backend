@@ -31,7 +31,7 @@ class AsyncSahkePackageBuilder(
 ) {
     fun build(submission: ArkistointiSubmission, directory: Path): PreparedSahkePackage {
         val payload = try {
-            payloadReader.read(submission.payload, submission.caseType)
+            payloadReader.read(submission.payload)
         } catch (_: ArchivePayloadException) {
             throw SahkePackageException(SahkePackageFailure.PAYLOAD_INVALID)
         }

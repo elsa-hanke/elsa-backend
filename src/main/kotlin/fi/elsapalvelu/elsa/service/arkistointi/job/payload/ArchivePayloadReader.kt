@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
-import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
@@ -12,36 +11,37 @@ import java.time.format.DateTimeParseException
 /** Explicit JSON type checks preserve the saved payload contract without scalar coercion. */
 @Component
 class ArchivePayloadReader(private val mapper: ObjectMapper) {
-    fun read(json: String, caseType: CaseType): ArchivePayload {
+    fun read(json: String): ArchivePayload {
         val root = try {
             requirePayloadValue(mapper.readTree(json))
         } catch (_: JsonProcessingException) {
             throw ArchivePayloadException()
         }
         requireValidPayload(root.isObject)
-        val caseIdField = if (caseType == CaseType.VALMISTUMINEN) "valmistumispyyntoId" else "caseId"
-        val yek = root.path("yek")
+        val version = root.path(ArchivePayloadFields.VERSION)
+        requireValidPayload(version.isIntegralNumber && version.canConvertToInt() && version.intValue() == ArchivePayloadFields.CURRENT_VERSION)
+        val yek = root.path(ArchivePayloadFields.YEK)
         requireValidPayload(yek.isBoolean)
         return ArchivePayload(
-            university = requirePayloadValue(text(root, "university")),
-            studyRightId = identifier(root, "opintooikeusId"),
-            caseId = identifier(root, caseIdField),
+            university = requirePayloadValue(text(root, ArchivePayloadFields.UNIVERSITY)),
+            studyRightId = identifier(root, ArchivePayloadFields.STUDY_RIGHT_ID),
+            caseId = identifier(root, ArchivePayloadFields.CASE_ID),
             yek = yek.booleanValue(),
-            approvalDate = requirePayloadValue(date(root, "approvalDate")),
-            reviewer = text(root, "reviewer"),
-            reviewDate = date(root, "reviewDate"),
-            approver = text(root, "approver"),
-            traineeName = text(root, "traineeName"),
-            firstName = text(root, "firstName"),
-            lastName = text(root, "lastName"),
-            birthDate = date(root, "birthDate"),
-            specialtyName = text(root, "specialtyName"),
-            studentNumber = text(root, "studentNumber"),
+            approvalDate = requirePayloadValue(date(root, ArchivePayloadFields.APPROVAL_DATE)),
+            reviewer = text(root, ArchivePayloadFields.REVIEWER),
+            reviewDate = date(root, ArchivePayloadFields.REVIEW_DATE),
+            approver = text(root, ArchivePayloadFields.APPROVER),
+            traineeName = text(root, ArchivePayloadFields.TRAINEE_NAME),
+            firstName = text(root, ArchivePayloadFields.FIRST_NAME),
+            lastName = text(root, ArchivePayloadFields.LAST_NAME),
+            birthDate = date(root, ArchivePayloadFields.BIRTH_DATE),
+            specialtyName = text(root, ArchivePayloadFields.SPECIALTY_NAME),
+            studentNumber = text(root, ArchivePayloadFields.STUDENT_NUMBER),
             documents = documentIdentities(root),
-            specialtyType = text(root, "specialtyType"),
-            studyRightStartDate = date(root, "studyRightStartDate"),
-            degreeRegulation = text(root, "degreeRegulation"),
-            licensingDate = date(root, "licensingDate")
+            specialtyType = text(root, ArchivePayloadFields.SPECIALTY_TYPE),
+            studyRightStartDate = date(root, ArchivePayloadFields.STUDY_RIGHT_START_DATE),
+            degreeRegulation = text(root, ArchivePayloadFields.DEGREE_REGULATION),
+            licensingDate = date(root, ArchivePayloadFields.LICENSING_DATE)
         )
     }
 
@@ -64,7 +64,7 @@ class ArchivePayloadReader(private val mapper: ObjectMapper) {
     }
 
     private fun documentIdentities(root: JsonNode): List<ArkistointiDocumentIdentity> {
-        val manifest = requirePayloadValue(root["documents"])
+        val manifest = requirePayloadValue(root[ArchivePayloadFields.DOCUMENTS])
         requireValidPayload(manifest.isArray)
         return try {
             mapper.treeToValue(manifest, Array<ArkistointiDocumentIdentity>::class.java).toList()

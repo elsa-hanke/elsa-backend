@@ -47,7 +47,7 @@ class DynastyDeliveryTest {
                 LoadedArkistointiAsiakirja(index.toLong()+1,type,index,"file$index.pdf","application/pdf","checksum",byteArrayOf(1,2,3))
             }
             val payload = mapper.writeValueAsString(mapOf(
-                "valmistumispyyntoId" to 1,"opintooikeusId" to 2,"university" to "TURUN_YLIOPISTO","yek" to false,
+                "version" to 1,"caseId" to 1,"opintooikeusId" to 2,"university" to "TURUN_YLIOPISTO","yek" to false,
                 "firstName" to "Maija","lastName" to "Meikäläinen","specialtyName" to "Akuuttilääketiede",
                 "specialtyType" to "LAAKETIEDE","approvalDate" to "2026-10-31","birthDate" to "1980-01-01",
                 "degreeRegulation" to "56/2015","studyRightStartDate" to "2020-01-01","licensingDate" to "2019-01-01",

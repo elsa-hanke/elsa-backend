@@ -60,7 +60,7 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
         val fixture = koejaksoFixture(university, CaseType.KOEJAKSO)
         approve(fixture, accepted).andExpect(status().isOk)
         val job = jobs.findByKey(key(university, fixture.second))!!
-        val payload = ArchivePayloadReader(objectMapper).read(job.payload!!, job.caseType!!)
+        val payload = ArchivePayloadReader(objectMapper).read(job.payload!!)
         assertThat(payload.university).isEqualTo(university.name)
         assertThat(payload.caseId).isEqualTo(fixture.second)
         assertThat(objectMapper.readTree(job.payload).path("koejaksoHyvaksytty").booleanValue()).isEqualTo(accepted)

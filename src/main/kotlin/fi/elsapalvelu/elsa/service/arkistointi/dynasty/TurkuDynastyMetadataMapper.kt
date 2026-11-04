@@ -50,7 +50,7 @@ class TurkuDynastyMetadataMapper(
     @Suppress("CyclomaticComplexMethod", "LongMethod") // Explicit field-by-field customer mapping; validate all before delivery.
     fun plan(submission: ArkistointiSubmission): Plan {
         val c = properties.getArkistointi().getTurku().dynasty
-        val p = reader.read(submission.payload, submission.caseType)
+        val p = reader.read(submission.payload)
         require(p.university == submission.university.name)
         val docs = submission.asiakirjat
         ArkistointiManifestValidator.validate(p.documents, docs)

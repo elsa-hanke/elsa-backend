@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiDbSchedulerConfiguration
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiRouteValidator
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
@@ -143,6 +144,7 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
             ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(DbSchedulerAutoConfiguration::class.java))
                 .withUserConfiguration(ArkistointiDbSchedulerConfiguration::class.java,
+                    ArkistointiRouteValidator::class.java, LouhiArkistointiAdapter::class.java,
                     ArkistointiAdapterRegistry::class.java, AsyncSahkeDelivery::class.java, LouhiAsyncArkistointiAdapter::class.java)
                 .withBean(ApplicationProperties::class.java, Supplier { properties })
                 .withBean(ArkistointiConfigurationProvider::class.java, Supplier { configuration })
@@ -191,7 +193,7 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
         val bytes = PdfTestData.certificate()
         val payload = objectMapper.writeValueAsString(mapOf(
             "university" to YliopistoEnum.TAMPEREEN_YLIOPISTO.name, "yek" to false,
-            "caseId" to 1, "opintooikeusId" to 1, "approvalDate" to LocalDate.now().toString(),
+            "version" to 1, "caseId" to 1, "opintooikeusId" to 1, "approvalDate" to LocalDate.now().toString(),
             "firstName" to "Lifecycle", "lastName" to "Test",
             "documents" to listOf(ArkistointiDocumentIdentity(10, 20, RecordType.ARVIOINTI, 0))
         ))
