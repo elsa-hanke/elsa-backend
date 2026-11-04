@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpEndpointPolicy
-import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaType
@@ -11,7 +11,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.springframework.stereotype.Component
 import java.net.ConnectException
 import java.net.UnknownHostException
 import java.time.Instant
@@ -21,9 +20,8 @@ internal class DynastyFailure(val code: String, val retryable: Boolean = false, 
     RuntimeException("Dynasty request failed [$code]")
 
 /** No redirects, HTTP logging, or transparent retries of non-idempotent POST requests. */
-@Component
-class DynastyClient(private val properties: ApplicationProperties, private val mapper: ObjectMapper) {
-    private val settings get() = properties.getArkistointi().getTurku().dynasty
+class DynastyClient(private val settings: DynastyProperties, private val mapper: ObjectMapper) {
+    val inProgressGrace get() = settings.inProgressGrace
     private var token: String? = null
     private var expires = Instant.EPOCH
 

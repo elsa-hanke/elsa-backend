@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import org.springframework.stereotype.Component
+import java.time.Duration
 
 /**
  * Runs one resumable mutation. Ledger calls keep their own REQUIRES_NEW transactions;
@@ -9,8 +10,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class DynastyStepExecutor(private val ledger: DynastyStepLedger) {
-    fun execute(execution: ArkistointiJobExecution, key: String, send: () -> String?): String? {
-        when (val decision = ledger.begin(execution,key)) {
+    fun execute(execution: ArkistointiJobExecution, key: String, inProgressGrace: Duration, send: () -> String?): String? {
+        when (val decision = ledger.begin(execution,key,inProgressGrace)) {
             is DynastyStepLedger.Decision.Done -> return validatedSavedId(key,decision.remoteId)
             DynastyStepLedger.Decision.InProgress -> throw DynastyFailure("DYNASTY_STEP_IN_PROGRESS", true)
             DynastyStepLedger.Decision.Unconfirmed -> throw DynastyFailure("DYNASTY_DELIVERY_UNCONFIRMED")

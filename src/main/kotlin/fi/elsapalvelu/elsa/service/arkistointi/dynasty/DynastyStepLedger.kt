@@ -1,6 +1,5 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
-import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiExecutionLock
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.StaleArkistointiExecutionException
@@ -8,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
 import java.util.UUID
 
 /** Commit intent before the request; a crash never silently authorizes another create. */
@@ -15,7 +15,6 @@ import java.util.UUID
 @Transactional(propagation = Propagation.REQUIRES_NEW)
 class DynastyStepLedger(
     private val jdbc: JdbcTemplate,
-    private val properties: ApplicationProperties,
     private val executionLock: ArkistointiExecutionLock
 ) {
     sealed interface Decision {
@@ -25,7 +24,7 @@ class DynastyStepLedger(
         data object Unconfirmed : Decision
     }
 
-    fun begin(execution: ArkistointiJobExecution, key: String): Decision {
+    fun begin(execution: ArkistointiJobExecution, key: String, inProgressGrace: Duration): Decision {
         executionLock.lock(execution)
         val job = jdbc.queryForList("select status from arkistointi_job where id=? for update", execution.jobId).singleOrNull()
         if (job?.get("status") != "KASITTELYSSA") throw StaleArkistointiExecutionException()
@@ -33,7 +32,7 @@ class DynastyStepLedger(
         val rows = jdbc.queryForList(
             "select status, remote_id, started_at + (?::bigint * interval '1 millisecond') > clock_timestamp() as in_progress " +
                 "from arkistointi_dynasty_step where job_id=? and step_key=?",
-            properties.getArkistointi().getTurku().dynasty.inProgressGrace.toMillis(), execution.jobId, key
+            inProgressGrace.toMillis(), execution.jobId, key
         )
         if (rows.isNotEmpty()) {
             val row = rows.single()

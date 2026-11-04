@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import fi.elsapalvelu.elsa.config.ApplicationProperties
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
@@ -13,8 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource
 
 class DynastyClientTest {
     private fun client(server: MockWebServer, configure: DynastyProperties.() -> Unit = {}): DynastyClient {
-        val p = ApplicationProperties()
-        p.getArkistointi().getTurku().dynasty.apply {
+        val settings = DynastyProperties().apply {
             baseUrl = server.url("/").newBuilder().host("127.0.0.1").build().toString().trimEnd('/')
             tokenUrl = server.url("/token").newBuilder().host("127.0.0.1").build().toString()
             clientId = "client"
@@ -25,7 +23,7 @@ class DynastyClientTest {
             allowLoopbackHttpForTests = true
             configure()
         }
-        return DynastyClient(p,jacksonObjectMapper())
+        return DynastyClient(settings,jacksonObjectMapper())
     }
     private fun token() = MockResponse().setBody("""{"access_token":"test-token","expires_in":900}""")
 
@@ -84,6 +82,39 @@ class DynastyClientTest {
             val request = s.takeRequest()
             assertThat(request.path).isEqualTo("/api/v1/cases?tosClass=05.06.02.04")
             assertThat(request.getHeader("Authorization")).isEqualTo("Bearer test-token")
+        }
+    }
+
+    @Test
+    fun `destinations keep independent credentials tokens and organization headers`() {
+        MockWebServer().use { first ->
+            MockWebServer().use { second ->
+                first.start()
+                second.start()
+                first.enqueue(MockResponse().setBody("""{"access_token":"first-token","expires_in":900}"""))
+                second.enqueue(MockResponse().setBody("""{"access_token":"second-token","expires_in":900}"""))
+                listOf(first, second).forEach { server ->
+                    server.enqueue(MockResponse().setBody("415"))
+                    server.enqueue(MockResponse().setBody("416"))
+                }
+                val a = client(first) { organization = "first"; clientSecret = "first-secret" }
+                val b = client(second) { organization = "second"; clientSecret = "second-secret" }
+                a.createCase("x", "{}")
+                b.createCase("x", "{}")
+                a.createCase("x", "{}")
+                b.createCase("x", "{}")
+                listOf(first to "first", second to "second").forEach { (server, destination) ->
+                    val auth = server.takeRequest()
+                    assertThat(auth.getHeader("Organization")).isEqualTo(destination)
+                    assertThat(auth.body.readUtf8()).contains("client_secret=$destination-secret")
+                    repeat(2) {
+                        val request = server.takeRequest()
+                        assertThat(request.getHeader("Organization")).isEqualTo(destination)
+                        assertThat(request.getHeader("Authorization")).isEqualTo("Bearer $destination-token")
+                    }
+                    assertThat(server.requestCount).isEqualTo(3)
+                }
+            }
         }
     }
 
