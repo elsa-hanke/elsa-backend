@@ -4,13 +4,29 @@ const api = '**/api/tekninen-paakayttaja/arviointityokalu'
 const originalText = 'Arvioi osaamista: äiti, työ ja Åland.'
 const updatedText = 'Päivitetty ohje: hyvä arviointi säilyy tallennuksen jälkeen.'
 
+type EditorWindow = Window & {
+  tinymce?: {
+    get: (id: string) => { initialized: boolean; getBody: () => HTMLElement } | null
+  }
+}
+
 function instructionEditor() {
-  return cy.get<HTMLIFrameElement>('iframe.tox-edit-area__iframe')
-    .should('have.length', 1)
-    .should(($frame) => {
-      expect($frame[0].contentDocument?.body.isContentEditable).to.eq(true)
+  return cy.contains('.lisaa-arviointityokalu label', 'Ohjeteksti arviointityökalun käyttöön')
+    .invoke('attr', 'for')
+    .should('be.a', 'string')
+    .then((id) => {
+      // Resolve the field's registered editor instead of counting TinyMCE's DOM iframes.
+      // Still type through Cypress into the real contenteditable body (no setContent).
+      return cy.window().should((win) => {
+        const editor = (win as EditorWindow).tinymce?.get(id!)
+        expect(editor?.initialized, `TinyMCE ${id} initialized`).to.eq(true)
+        expect(editor?.getBody()?.isConnected, 'editor body attached').to.eq(true)
+        expect(editor?.getBody()?.isContentEditable, 'editor body editable').to.eq(true)
+      }).then((win) => {
+        const body = (win as EditorWindow).tinymce!.get(id!)!.getBody()
+        return cy.wrap(Cypress.$(body)).should('be.visible')
+      })
     })
-    .then(($frame) => cy.wrap(Cypress.$($frame[0].contentDocument!.body)))
 }
 
 // ELSAINSI-85: real UI POST/PATCH requests must persist ownerless assessment tools.
@@ -64,20 +80,20 @@ describe('Arviointityökalut – tekninen pääkäyttäjä', () => {
     cy.visit('/arviointityokalut/arviointityokalu/uusi')
     cy.contains('label', 'Arviotyökalun nimi').parent().find('input').type(toolName)
     instructionEditor().click().type(originalText)
-    cy.contains('button', /^Tallenna$/).click()
+    cy.get('.lisaa-arviointityokalu form button[type="submit"]').should('have.length', 1).should('be.enabled').click()
     expectSaved('@createTool', originalText).then((originalId) => {
       cy.location('pathname').should('eq', '/arviointityokalut')
       openForEditing(originalText)
 
       // Reproduce saving an existing tool without changing anything.
-      cy.contains('button', /^Tallenna$/).click()
+      cy.get('.lisaa-arviointityokalu form button[type="submit"]').should('have.length', 1).should('be.enabled').click()
       expectSaved('@updateTool', originalText).then((unchangedVersionId) => {
         expect(unchangedVersionId).not.to.eq(originalId)
         cy.location('pathname').should('eq', '/arviointityokalut')
         openForEditing(originalText)
 
         instructionEditor().clear().type(updatedText)
-        cy.contains('button', /^Tallenna$/).click()
+        cy.get('.lisaa-arviointityokalu form button[type="submit"]').should('have.length', 1).should('be.enabled').click()
         expectSaved('@updateTool', updatedText).then((editedVersionId) => {
           expect(editedVersionId).not.to.eq(unchangedVersionId)
         })
