@@ -134,13 +134,15 @@ class ArkistointiJobProcessorImplTest {
         verify(state, never()).succeed(any(), anyOrNull())
     }
 
-    @Test
-    fun `success commit failure stays retryable without exposing the database exception`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `success commit failure respects transport replay safety without exposing database details`(resumable: Boolean) {
+        whenever(adapter.canResumeAfterSuccessPersistenceFailure).thenReturn(resumable)
         whenever(adapter.arkistoi(submission)).thenReturn(ArkistointiResult.Success("valid-id"))
         doThrow(IllegalStateException("private database detail")).`when`(state).succeed(execution, "valid-id")
         val exception = assertThrows<ArkistointiProcessingException> { processor.process(execution) }
-        assertThat(exception.retryable).isTrue()
-        assertThat(exception.error.code).isEqualTo("ARCHIVE_PROCESSING_FAILED")
+        assertThat(exception.retryable).isEqualTo(resumable)
+        assertThat(exception.error.code).isEqualTo("ARCHIVE_SUCCESS_PERSISTENCE_FAILED")
         assertThat(exception.cause).isNull()
         assertThat(exception.message).doesNotContain("private")
     }

@@ -220,6 +220,24 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
         Files.delete(zipPath)
     }
 
+    @Test
+    fun `accepted Louhi delivery is parked when success commit fails`() {
+        val fixture = koejaksoFixture(YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.KOEJAKSO)
+        approveAssessment(fixture).andExpect(status().isOk)
+        val jobId = jobs.findByKey("koejakso-arvio:TAMPEREEN_YLIOPISTO:${fixture.second}")!!.id!!
+        withSuccessCommitFailure {
+            scheduler.triggerCheckForDueExecutions()
+            awaitParked(jobId)
+        }
+        assertThat(jobs.findById(jobId).orElseThrow().errorCode).isEqualTo("ARCHIVE_SUCCESS_PERSISTENCE_FAILED")
+        val finished = server.remote.resolve("Finished/ELSA")
+        val zip = Files.list(finished).use { it.filter { path -> path.toString().endsWith(".zip") }.toList().single() }
+        val published = Files.getLastModifiedTime(zip)
+        pollAndAwait()
+        assertThat(Files.getLastModifiedTime(zip)).isEqualTo(published)
+        Files.delete(zip)
+    }
+
     private fun pollAndAwait() = schedulerControl.pollAndAwait()
 
     @TestConfiguration(proxyBeanMethods = false)

@@ -379,7 +379,7 @@ class ArkistointiJobProcessingIT {
     }
 
     @Test
-    fun `remote success followed by a failed local commit retries with the same key`() {
+    fun `remote success followed by a failed local commit parks without replay`() {
         val jobId = fixture()
         transactions.executeWithoutResult {
             jdbc.execute("""
@@ -395,16 +395,16 @@ class ArkistointiJobProcessingIT {
         val scheduler = scheduler()
         try {
             runUntil(scheduler) { assertThat(failures(jobId)).isEqualTo(1) }
-            assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.ODOTTAA)
+            assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
         } finally {
             transactions.executeWithoutResult {
                 jdbc.execute("DROP TRIGGER fail_archive_success ON arkistointi_job")
                 jdbc.execute("DROP FUNCTION fail_archive_success()")
             }
         }
-        runUntil(scheduler) { assertThat(taskCount(jobId)).isZero() }
-        assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.LAHETETTY)
-        assertThat(adapter.submissions).hasSize(2)
+        runUntil(scheduler) { assertThat(status(jobId)).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA) }
+        assertThat(taskCount(jobId)).isEqualTo(1)
+        assertThat(adapter.submissions).hasSize(1)
         assertThat(adapter.submissions.map { it.key }).containsOnly(jobId)
     }
 

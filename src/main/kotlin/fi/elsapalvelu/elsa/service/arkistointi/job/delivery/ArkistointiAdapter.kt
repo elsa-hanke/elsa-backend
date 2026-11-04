@@ -10,6 +10,9 @@ interface ArkistointiAdapter {
     /** Explicit capabilities; configuring another case type must not silently enable its delivery. */
     val supportedCaseTypes: Set<CaseType>
 
+    /** True only when a repeated invocation safely resumes an already accepted delivery. */
+    val canResumeAfterSuccessPersistenceFailure: Boolean get() = false
+
     /** Validate transport settings for an enabled case type before starting the worker. */
     fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {}
 

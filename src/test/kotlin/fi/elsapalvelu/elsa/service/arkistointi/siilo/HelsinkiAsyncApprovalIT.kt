@@ -179,6 +179,21 @@ class HelsinkiAsyncApprovalIT : AsyncArchiveItSupport() {
         return if (type == CaseType.SOPIMUS) fixture.first else fixture.second
     }
 
+    @Test
+    fun `accepted Siilo delivery is parked when success commit fails`() {
+        val id = approveKoejakso(CaseType.KOEJAKSO)
+        val jobId = jobs.findByKey("koejakso-arvio:HELSINGIN_YLIOPISTO:$id")!!.id!!
+        val before = server.requestCount
+        withSuccessCommitFailure {
+            server.enqueue(MockResponse().setResponseCode(200))
+            startAttempt()
+            awaitParked(jobId)
+        }
+        assertThat(jobs.findById(jobId).orElseThrow().errorCode).isEqualTo("ARCHIVE_SUCCESS_PERSISTENCE_FAILED")
+        pollAndAwait()
+        assertThat(server.requestCount).isEqualTo(before + 1)
+    }
+
     private fun assertDelivery(key: String, type: RecordType, code: String) {
         val jobId = transactions.execute { _ ->
             val job = jobs.findByKey(key)!!

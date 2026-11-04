@@ -110,6 +110,28 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         assertThat(jdbc.queryForList("select status from arkistointi_dynasty_step where job_id=?", String::class.java, job.id))
             .containsExactlyInAnyOrder("VALMIS","VALMIS","VALMIS","VALMIS")
     }
+    @Test fun `success commit failure resumes completed ledger without another HTTP request`() {
+        val job = job()
+        withSuccessCommitFailure {
+            enqueue(TOKEN_RESPONSE, "415", "\"${java.util.UUID.randomUUID()}\"", "1078", "")
+            startAttempt()
+            await().atMost(Duration.ofSeconds(30)).untilAsserted {
+                assertThat(scheduler.currentlyExecuting).isEmpty()
+                val stored = jobs.findById(job.id!!).orElseThrow()
+                assertThat(stored.status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
+                assertThat(stored.errorCode).isEqualTo("ARCHIVE_SUCCESS_PERSISTENCE_FAILED")
+            }
+        }
+        val requests = server.requestCount
+        transactions.executeWithoutResult {
+            jdbc.update("update scheduled_tasks set execution_time=clock_timestamp() " +
+                "where task_name='arkistointi-job' and task_instance=? and picked=false", job.id.toString())
+        }
+        startAttempt()
+        awaitDelivered(job.id!!)
+        assertThat(server.requestCount).isEqualTo(requests)
+    }
+
     @Test fun `manual retry skips completed case and task after definite document rejection`() {
         val job = job()
         enqueue(TOKEN_RESPONSE, "415", "\"${java.util.UUID.randomUUID()}\"")

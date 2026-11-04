@@ -796,3 +796,11 @@ select id, case_type, status from arkistointi_job
 where university = 'TURUN_YLIOPISTO' and status <> 'LAHETETTY';
 ```
 Do not reconstruct missing approval metadata from subsequently modified live records.
+
+
+After a receiver reports success, a failure committing the local result is recorded as
+`ARCHIVE_SUCCESS_PERSISTENCE_FAILED`. Siilo and Louhi park for reconciliation; an automatic
+retry must not send the accepted package again. Before a manual retry, reconcile the remote
+receipt. Dynasty may retry automatically because completed ledger steps are reused without
+repeating their HTTP mutations. If failure persistence also fails, dead-execution recovery
+retains its existing conservative intervention policy.

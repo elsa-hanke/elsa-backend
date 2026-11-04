@@ -111,6 +111,28 @@ open class AsyncArchiveItSupport : ResourceIntegrationTestBase() {
             .with(csrf())
     )
 
+    /** Fail at COMMIT, after the real receiver has accepted the delivery. */
+    protected fun withSuccessCommitFailure(action: () -> Unit) {
+        transactions.executeWithoutResult {
+            jdbc.execute("""
+                CREATE FUNCTION fail_success_commit() RETURNS trigger LANGUAGE plpgsql AS $$
+                BEGIN
+                    IF NEW.status = 'LAHETETTY' THEN RAISE EXCEPTION 'Test commit failure'; END IF;
+                    RETURN NEW;
+                END; $$;
+                CREATE CONSTRAINT TRIGGER fail_success_commit AFTER UPDATE ON arkistointi_job
+                DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION fail_success_commit();
+            """.trimIndent())
+        }
+        try {
+            action()
+        } finally {
+            transactions.executeWithoutResult {
+                jdbc.execute("DROP TRIGGER fail_success_commit ON arkistointi_job; DROP FUNCTION fail_success_commit()")
+            }
+        }
+    }
+
     protected fun awaitParked(id: UUID) {
         await().atMost(Duration.ofSeconds(30)).untilAsserted {
             assertThat(scheduler.currentlyExecuting).isEmpty()

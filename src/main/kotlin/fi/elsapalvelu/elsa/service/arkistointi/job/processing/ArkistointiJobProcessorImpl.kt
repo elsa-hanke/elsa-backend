@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
-/** The adapter must atomically deduplicate concurrent and uncertain deliveries using submission.key. */
+/** Delivery replay safety belongs to the transport; unknown outcomes must not trigger blind retries. */
 @Service
 class ArkistointiJobProcessorImpl(
     private val state: ArkistointiJobStateService,
@@ -64,7 +64,21 @@ class ArkistointiJobProcessorImpl(
         when (val result = adapter.arkistoi(submission)) {
             is ArkistointiResult.Success -> {
                 ArkistointiExternalId.validate(result.externalId)
-                state.succeed(execution, result.externalId)
+                try {
+                    state.succeed(execution, result.externalId)
+                } catch (exception: StaleArkistointiExecutionException) {
+                    throw exception
+                } catch (exception: ParkArkistointiExecutionException) {
+                    throw exception
+                } catch (_: Exception) {
+                    // Acceptance is known, but the commit may have failed or its acknowledgement was lost.
+                    // Only a resumable adapter may be invoked again automatically.
+                    throw ArkistointiProcessingException(
+                        ArkistointiError.create("ARCHIVE_SUCCESS_PERSISTENCE_FAILED",
+                            "Arkisto vastaanotti aineiston, mutta tuloksen tallennus epaonnistui; toimitus on tarkistettava"),
+                        retryable = adapter.canResumeAfterSuccessPersistenceFailure
+                    )
+                }
             }
             is ArkistointiResult.RetryableFailure -> throw ArkistointiProcessingException(result.error)
             is ArkistointiResult.PermanentFailure -> throw ArkistointiProcessingException(result.error, retryable = false)

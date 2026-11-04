@@ -18,6 +18,7 @@ class TurkuDynastyArkistointiAdapter(
     private val ledger: DynastyStepLedger,
     private val mapper: ObjectMapper
 ) : ArkistointiAdapter {
+    override val canResumeAfterSuccessPersistenceFailure = true
     override val university = YliopistoEnum.TURUN_YLIOPISTO
     override val supportedCaseTypes = setOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO)
 
