@@ -26,7 +26,23 @@ class ArkistointiJobFailureHandler(
             operations.remove()
             return
         }
-        val exhausted = execution.consecutiveFailures >= policy.maxAttempts - 1
+        val decision = failureDecision(completed)
+        val retry = try {
+            recordFailure(identity, decision, deadExecution)
+        } catch (_: StaleArkistointiExecutionException) {
+            return
+        }
+        if (retry) {
+            operations.reschedule(completed, completed.timeDone.plus(policy.delay(execution.consecutiveFailures)))
+        } else {
+            parkOrRemove(identity, completed, operations)
+        }
+    }
+
+    private data class FailureDecision(val error: ArkistointiError, val stopRetrying: Boolean)
+
+    private fun failureDecision(completed: ExecutionComplete): FailureDecision {
+        val exhausted = completed.execution.consecutiveFailures >= policy.maxAttempts - 1
         val cause = completed.cause.orElse(null) as? ArkistointiProcessingException
         val lastError = cause?.error ?: unexpectedArchiveError()
         val stopRetrying = exhausted || cause?.retryable == false
@@ -38,26 +54,38 @@ class ArkistointiJobFailureHandler(
         } else {
             lastError
         }
+        return FailureDecision(error, stopRetrying)
+    }
+
+    private fun recordFailure(identity: ArkistointiJobExecution, decision: FailureDecision, deadExecution: Boolean): Boolean {
         // If this commit fails, do not acknowledge the scheduler row. Dead-execution recovery reconciles or parks it.
-        val retry = try {
-            if (deadExecution) state.recoverDeadExecution(identity, error, stopRetrying)
-            else state.fail(identity, error, stopRetrying)
-        } catch (_: StaleArkistointiExecutionException) {
-            return
+        return try {
+            if (deadExecution) {
+                state.recoverDeadExecution(identity, decision.error, decision.stopRetrying)
+            }
+            else {
+                state.fail(identity, decision.error, decision.stopRetrying)
+            }
+        } catch (exception: StaleArkistointiExecutionException) {
+            throw exception
         } catch (_: Exception) {
             // Preserve this live execution's sanitized outcome; never acknowledge a failed commit.
             // Dead-execution recovery cannot reconstruct an outcome that was never committed.
-            throw ArkistointiProcessingException(error, retryable = !stopRetrying)
+            throw ArkistointiProcessingException(decision.error, retryable = !decision.stopRetrying)
         }
-        if (retry) {
-            operations.reschedule(completed, completed.timeDone.plus(policy.delay(execution.consecutiveFailures)))
-        } else {
-            try {
-                if (state.requiresIntervention(identity)) operations.reschedule(completed, Schedule.NEVER)
-                else operations.remove()
-            } catch (_: StaleArkistointiExecutionException) {
-                // A newer execution owns the row.
+    }
+
+    private fun parkOrRemove(
+        identity: ArkistointiJobExecution, completed: ExecutionComplete, operations: ExecutionOperations<Unit>
+    ) {
+        try {
+            if (state.requiresIntervention(identity)) {
+                operations.reschedule(completed, Schedule.NEVER)
+            } else {
+                operations.remove()
             }
+        } catch (_: StaleArkistointiExecutionException) {
+            // A newer execution owns the row.
         }
     }
 }
