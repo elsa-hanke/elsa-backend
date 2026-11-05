@@ -111,7 +111,13 @@ class KoejaksoArkistointiServiceTest {
         assertThat(payload.studyRightId).isEqualTo(12)
         assertThat(payload.documents).containsExactly(ArkistointiDocumentIdentity(22, 33, recordType, 0))
         assertThat(payload.approvalDate).isEqualTo(LocalDate.of(2026, 10, 24))
-        assertThat(json["koejaksoHyvaksytty"].takeUnless { it.isNull }?.booleanValue()).isEqualTo(if (type == CaseType.KOEJAKSO) false else null)
+        val assessment = json["koejaksoHyvaksytty"]
+        if (type == CaseType.KOEJAKSO) {
+            assertThat(assessment.isBoolean).isTrue()
+            assertThat(assessment.booleanValue()).isFalse()
+        } else {
+            assertThat(assessment.isNull).isTrue()
+        }
         assertThat(payload.reviewer).isEqualTo(if (type == CaseType.SOPIMUS) "" else null)
         assertThat(payload.toString()).isEqualTo("ArchivePayload")
         verify(synchronous, never()).muodostaSahke(
