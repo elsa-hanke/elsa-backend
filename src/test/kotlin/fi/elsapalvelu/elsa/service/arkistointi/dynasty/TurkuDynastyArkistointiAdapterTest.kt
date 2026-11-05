@@ -7,6 +7,8 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmissio
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.*
@@ -18,9 +20,11 @@ class TurkuDynastyArkistointiAdapterTest {
     private val ledger = mock<DynastyStepLedger>()
     private val adapter = TurkuDynastyArkistointiAdapter(client,metadata,DynastyStepExecutor(ledger))
     private val execution = ArkistointiJobExecution("archive",UUID.randomUUID().toString(),1)
-    private val submission = ArkistointiSubmission(execution.jobId,YliopistoEnum.TURUN_YLIOPISTO,CaseType.KOEJAKSO,"{}",emptyList(),execution)
+    private val document = LoadedArkistointiAsiakirja(1, RecordType.ARVIOINTI, 0, "approval.pdf", "application/pdf", "checksum", byteArrayOf(1))
+    private val submission = ArkistointiSubmission(execution.jobId,YliopistoEnum.TURUN_YLIOPISTO,CaseType.KOEJAKSO,"{}",listOf(document),execution)
     private val plan = TurkuDynastyMetadataMapper.Plan(
-        "x", DynastyCaseRequest(DynastyCaseModel("schema", "Test", DynastyAdditionalData())), "Arviointi", emptyList()
+        "x", DynastyCaseRequest(DynastyCaseModel("schema", "Test", DynastyAdditionalData())), "Arviointi",
+        listOf(DynastyDocumentMetadata("Test", "document-schema", "Arviointi", -1, DynastyAdditionalData()))
     )
 
     @Test
@@ -38,10 +42,11 @@ class TurkuDynastyArkistointiAdapterTest {
         whenever(metadata.plan(submission)).thenReturn(plan)
         whenever(ledger.begin(execution,DynastyStepKey.Case,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done("415"))
         whenever(ledger.begin(execution,DynastyStepKey.Task,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(UUID.randomUUID().toString()))
+        whenever(ledger.begin(execution,DynastyStepKey.Document(0),java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done("1078"))
         whenever(ledger.begin(execution,DynastyStepKey.ArchiveCase,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(null))
         assertThat(adapter.arkistoi(submission)).isEqualTo(ArkistointiResult.Success("415"))
         verify(client).validateConfiguration()
-        verify(client, times(3)).inProgressGrace
+        verify(client, times(4)).inProgressGrace
         verifyNoMoreInteractions(client)
         verify(ledger,never()).complete(any(),any(),any(),anyOrNull())
     }
