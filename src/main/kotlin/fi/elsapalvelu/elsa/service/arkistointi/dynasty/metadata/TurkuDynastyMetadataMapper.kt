@@ -86,7 +86,7 @@ class TurkuDynastyMetadataMapper(
     private class MappingContext(val payload: ArchivePayload, val caseType: CaseType, val program: EducationProgram) {
         val graduation = caseType == CaseType.VALMISTUMINEN
         val name = "${payload.firstName} ${payload.lastName}"
-        val date = payload.approvalDate.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
+        val date: String = payload.approvalDate.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
         val title = "${program.prefix} ${if (graduation) "Valmistumisen yhteenveto" else "Koejakson vastuuhenkilön arvio"} $name $date"
     }
 
