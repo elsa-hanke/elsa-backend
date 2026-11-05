@@ -96,28 +96,8 @@ class DynastyClientTest {
             server.enqueue(token())
             val beforeRequest = scenario in setOf("connect-timeout", "call-timeout", "tls")
             val retryable = beforeRequest && scenario != "tls"
-            val transport = OkHttpClient.Builder()
-                .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false)
-                .callTimeout(500, TimeUnit.MILLISECONDS)
-                .addInterceptor { chain ->
-                    if (chain.request().url.encodedPath == "/token") return@addInterceptor chain.proceed(chain.request())
-                    when (scenario) {
-                        // Deterministic connect failure, before OkHttp can write any headers.
-                        "connect-timeout" -> throw SocketTimeoutException("private connection details")
-                        "call-timeout" -> {
-                            while (!chain.call().isCanceled()) Thread.sleep(5)
-                            throw IOException("private cancelled request")
-                        }
-                        "tls" -> throw javax.net.ssl.SSLHandshakeException("private certificate")
-                        else -> chain.proceed(chain.request())
-                    }
-                }.build()
-            if (scenario == "response-timeout") {
-                server.enqueue(MockResponse().setHeadersDelay(2, TimeUnit.SECONDS).setBody("415"))
-            }
-            if (scenario == "lost-response") {
-                server.enqueue(MockResponse().setSocketPolicy(okhttp3.mockwebserver.SocketPolicy.DISCONNECT_AFTER_REQUEST))
-            }
+            val transport = networkFailureTransport(scenario)
+            enqueueMutationFailure(server, scenario)
             val ledger = mock<DynastyStepLedger>()
             val execution = ArkistointiJobExecution("arkistointi-job", UUID.randomUUID().toString(), 1)
             whenever(ledger.begin(eq(execution), eq(DynastyStepKey.Case), any()))
@@ -138,6 +118,30 @@ class DynastyClientTest {
                 .abandon(execution.jobId, DynastyStepKey.Case, execution.version)
             verify(ledger, never()).complete(any(), any(), any(), anyOrNull())
             assertThat(server.requestCount).isEqualTo(if (beforeRequest) 1 else 2)
+        }
+    }
+
+    private fun networkFailureTransport(scenario: String): OkHttpClient = OkHttpClient.Builder()
+        .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false)
+        .callTimeout(500, TimeUnit.MILLISECONDS)
+        .addInterceptor { chain ->
+            if (chain.request().url.encodedPath == "/token") return@addInterceptor chain.proceed(chain.request())
+            when (scenario) {
+                // Deterministic connect failure, before OkHttp can write any headers.
+                "connect-timeout" -> throw SocketTimeoutException("private connection details")
+                "call-timeout" -> {
+                    while (!chain.call().isCanceled()) Thread.sleep(5)
+                    throw IOException("private cancelled request")
+                }
+                "tls" -> throw javax.net.ssl.SSLHandshakeException("private certificate")
+                else -> chain.proceed(chain.request())
+            }
+        }.build()
+
+    private fun enqueueMutationFailure(server: MockWebServer, scenario: String) {
+        when (scenario) {
+            "response-timeout" -> server.enqueue(MockResponse().setHeadersDelay(2, TimeUnit.SECONDS).setBody("415"))
+            "lost-response" -> server.enqueue(MockResponse().setSocketPolicy(okhttp3.mockwebserver.SocketPolicy.DISCONNECT_AFTER_REQUEST))
         }
     }
 
