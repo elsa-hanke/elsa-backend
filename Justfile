@@ -118,6 +118,50 @@ br:
   just startf &
   wait
 
+# Current checkout with GHA archive settings and an isolated disposable database.
+br-e2e:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  for port in 8080 9060; do
+    if lsof -tiTCP:"$port" -sTCP:LISTEN >/dev/null; then
+      echo "Port $port is occupied. Stop the existing backend/frontend before just br-e2e." >&2
+      exit 1
+    fi
+  done
+  # Give each child its own process group so Ctrl-C also stops Gradle/Vue descendants.
+  set -m
+  backend_pid=''
+  frontend_pid=''
+  cleanup() {
+    trap - INT TERM EXIT
+    [ -z "$backend_pid" ] || kill -- -"$backend_pid" 2>/dev/null || true
+    [ -z "$frontend_pid" ] || kill -- -"$frontend_pid" 2>/dev/null || true
+  }
+  trap cleanup EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  just startb-e2e &
+  backend_pid=$!
+  just startf &
+  frontend_pid=$!
+  while kill -0 "$backend_pid" 2>/dev/null && kill -0 "$frontend_pid" 2>/dev/null; do
+    sleep 1
+  done
+  if ! kill -0 "$backend_pid" 2>/dev/null; then
+    wait "$backend_pid"
+  else
+    wait "$frontend_pid"
+  fi
+
+start-db-e2e:
+  E2E_DB_PORT=127.0.0.1:15434 docker compose -p elsa-e2e-source -f infra/docker-compose-cicd.yml up -d --wait --wait-timeout 60 db
+
+stop-db-e2e:
+  E2E_DB_PORT=127.0.0.1:15434 docker compose -p elsa-e2e-source -f infra/docker-compose-cicd.yml down
+
+startb-e2e: start-db-e2e
+  ./gradlew bootRun --args='--spring.profiles.active=dev,e2e-archive --spring.config.additional-location=file:./infra/application-e2e.yml --spring.datasource.url=jdbc:postgresql://127.0.0.1:15434/elsaBackend --spring.datasource.username=elsaBackend --spring.datasource.password= --server.port=8080 --server.servlet.session.cookie.secure=false'
+
 brr:
   #!/usr/bin/env sh
   set -eu
@@ -134,14 +178,24 @@ r:
   just startf &
   wait
 
+# Open against br-e2e; always target its disposable DB and the source frontend.
 e2e:
-  cd e2e && yarn run cy:open
+  cd e2e && env CYPRESS_DB_HOST=127.0.0.1 CYPRESS_DB_PORT=15434 CYPRESS_DB_NAME=elsaBackend CYPRESS_DB_USER=elsaBackend CYPRESS_DB_PASSWORD= yarn run cy:open --config baseUrl=http://localhost:9060
 
-up-e2e: kill8080
-  docker compose -f ./infra/docker-compose-cicd.yml up -d
+e2e-open: e2e
+
+e2e-run:
+  cd e2e && env CYPRESS_DB_HOST=127.0.0.1 CYPRESS_DB_PORT=15434 CYPRESS_DB_NAME=elsaBackend CYPRESS_DB_USER=elsaBackend CYPRESS_DB_PASSWORD= yarn run cy:run --browser chrome --config baseUrl=http://localhost:9060
+
+# Optional reproduction against published images, as in GHA.
+e2e-images: up-e2e
+  cd e2e && env CYPRESS_DB_HOST=127.0.0.1 CYPRESS_DB_PORT=15433 CYPRESS_DB_NAME=elsaBackend CYPRESS_DB_USER=elsaBackend CYPRESS_DB_PASSWORD= yarn run cy:open --config baseUrl=http://localhost:18080
+
+up-e2e:
+  E2E_DB_PORT=15433 E2E_FRONTEND_PORT=18080 E2E_BACKEND_PORT=19080 docker compose -p elsa-e2e-local -f ./infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
 
 down-e2e:
-  docker compose -f ./infra/docker-compose-cicd.yml down
+  E2E_DB_PORT=15433 E2E_FRONTEND_PORT=18080 E2E_BACKEND_PORT=19080 docker compose -p elsa-e2e-local -f ./infra/docker-compose-cicd.yml down
 
 pullt:
   echo $(aws ecr get-login-password --profile elsadev)|docker login --password-stdin --username AWS 939452229770.dkr.ecr.eu-west-1.amazonaws.com

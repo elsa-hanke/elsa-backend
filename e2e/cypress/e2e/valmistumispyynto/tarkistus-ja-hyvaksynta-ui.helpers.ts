@@ -411,6 +411,13 @@ export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 
         }).as('approvalPut')
         openActor(approvalPage(original.id), APPROVAL_API, 'approvalBefore').then((body) => {
           pendingApproval(body.valmistumispyynto)
+          if (!failure) {
+            expect(
+              body.valmistumispyynto.arkistoitava,
+              `Archive coverage requires ${university} / VALMISTUMINEN archiving enabled. ` +
+                'Start the disposable backend with profiles dev,e2e-archive and infra/application-e2e.yml.'
+            ).to.eq(true)
+          }
           expect(persistedRequest(body.valmistumispyynto)).to.deep.eq(persistedRequest(original))
           original = body.valmistumispyynto
         })
@@ -497,7 +504,7 @@ export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 
             caseType: 'VALMISTUMINEN',
             types: yek ? ['YHTEENVETO', 'LIITE', 'LAILLISTAMISTODISTUS'] : ['YHTEENVETO'],
             metadata: {
-              valmistumispyyntoId: original.id,
+              caseId: original.id,
               opintooikeusId: original.opintooikeusId,
               yek,
               approver: 'Mia Ålands',
