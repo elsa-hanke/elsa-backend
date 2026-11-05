@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.processing
 
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
@@ -33,23 +34,24 @@ class ArkistointiJobStateService(
             log.warn("Archive job missing [jobId={}]", jobId)
             return null
         }
-        if (job.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA) throw ParkArkistointiExecutionException()
-        if (job.isFinished()) return null
-        job.startProcessing()
+        if (job.isVaatiiToimenpiteita()) {
+            throw ParkArkistointiExecutionException()
+        }
+        if (job.isFinished()) {
+            return null
+        }
+        job.startProcessingIfWaiting()
         val payload = job.payload.required()
         val validPayload = try {
             mapper.readTree(payload)?.isObject == true
-        } catch (_: com.fasterxml.jackson.core.JsonProcessingException) {
+        } catch (_: JsonProcessingException) {
             false
         }
         if (!validPayload || job.asiakirjat.isEmpty()) {
-            throw ArkistointiProcessingException(
-                ArkistointiError.create("ARCHIVE_JOB_INVALID", "Arkistointijobin aineisto on virheellinen"),
-                retryable = false
-            )
+            val error = ArkistointiError.create("ARCHIVE_JOB_INVALID", "Arkistointijobin aineisto on virheellinen")
+            throw ArkistointiProcessingException(error, retryable = false)
         }
-        return PreparedArkistointiJob(
-            jobId, job.university.required(), job.caseType.required(), payload,
+        return PreparedArkistointiJob(jobId, job.university.required(), job.caseType.required(), payload,
             job.asiakirjat.sortedBy { it.jarjestysnumero }.map { it.toDescriptor() }
         )
     }
@@ -58,34 +60,42 @@ class ArkistointiJobStateService(
     fun checkBeforeSend(execution: ArkistointiJobExecution): Boolean {
         executionLock.lock(execution)
         val job = jobs.findByIdForStateChange(execution.jobId) ?: return false
-        if (job.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA) throw ParkArkistointiExecutionException()
-        if (job.isFinished()) return false
+        if (job.isVaatiiToimenpiteita()) {
+            throw ParkArkistointiExecutionException()
+        }
+        if (job.isFinished()) {
+            return false
+        }
         // A recovery handler may have committed ODOTTAA before rescheduling this same version.
         // Do not acknowledge that execution while its retry is still being arranged.
-        if (job.status != ArkistointiJobStatus.KASITTELYSSA) throw StaleArkistointiExecutionException()
+        if (job.status != ArkistointiJobStatus.KASITTELYSSA) {
+            throw StaleArkistointiExecutionException()
+        }
         return true
     }
 
     fun succeed(execution: ArkistointiJobExecution, externalId: String?) {
         val attempt = executionLock.lock(execution)
         val job = requireNotNull(jobs.findByIdForStateChange(execution.jobId))
-        if (job.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA) throw ParkArkistointiExecutionException()
-        if (job.isFinished()) return
+        if (job.isVaatiiToimenpiteita()) {
+            throw ParkArkistointiExecutionException()
+        }
+        if (job.isFinished()) {
+            return
+        }
         ArkistointiExternalId.validate(externalId)
-        job.startProcessing()
+        job.startProcessingIfWaiting()
         job.transitionTo(ArkistointiJobStatus.LAHETETTY)
         job.externalId = externalId
         job.completedAt = Instant.now()
         job.errorCode = null
         job.lastError = null
-        publishOutcome(job, attempt, ArkistointiAttemptCompleted.Outcome.SUCCESS)
+        publishAttemptCompleted(job, attempt, ArkistointiAttemptCompleted.Result.SUCCESS)
     }
 
-    /** Returns false once no further automatic execution is needed. */
     fun fail(execution: ArkistointiJobExecution, error: ArkistointiError, stopRetrying: Boolean): Boolean =
         failExecution(execution, error, stopRetrying, deadExecution = false)
 
-    /** A missing heartbeat does not prove that the old sender has stopped. */
     fun recoverDeadExecution(execution: ArkistointiJobExecution, error: ArkistointiError, stopRetrying: Boolean): Boolean =
         failExecution(execution, error, stopRetrying, deadExecution = true)
 
@@ -94,15 +104,17 @@ class ArkistointiJobStateService(
     ): Boolean {
         val attempt = executionLock.lock(execution)
         val job = jobs.findByIdForStateChange(execution.jobId) ?: return false
-        if (job.isFinished()) return false
+        if (job.isFinished()) {
+            return false
+        }
         val unknownDelivery = deadExecution && job.status == ArkistointiJobStatus.KASITTELYSSA
         val recordedError = if (unknownDelivery) ArkistointiError.create(
             "ARCHIVE_EXECUTION_LOST", "Arkistoinnin suorituksen yhteys katkesi; toimitus on tarkistettava ennen uusintaa"
         ) else error
         val terminal = stopRetrying || unknownDelivery
         val retry = recordFailure(job, recordedError, terminal)
-        publishOutcome(job, attempt, if (terminal) ArkistointiAttemptCompleted.Outcome.TERMINAL_FAILURE
-            else ArkistointiAttemptCompleted.Outcome.RETRYABLE_FAILURE, recordedError.code)
+        val result = if (terminal) ArkistointiAttemptCompleted.Result.TERMINAL_FAILURE else ArkistointiAttemptCompleted.Result.RETRYABLE_FAILURE
+        publishAttemptCompleted(job, attempt, result, recordedError.code)
         return retry
     }
 
@@ -111,25 +123,19 @@ class ArkistointiJobStateService(
         return jobs.findByIdForStateChange(execution.jobId)?.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA
     }
 
-    private fun publishOutcome(job: ArkistointiJob, attempt: Int, outcome: ArkistointiAttemptCompleted.Outcome, code: String? = null) {
+    private fun publishAttemptCompleted(job: ArkistointiJob, attempt: Int, outcome: ArkistointiAttemptCompleted.Result, code: String? = null) {
         events.publishEvent(ArkistointiAttemptCompleted(job.id.required(), job.university.required(), job.caseType.required(), attempt, outcome, code))
     }
 
     private fun recordFailure(job: ArkistointiJob, error: ArkistointiError, stopRetrying: Boolean): Boolean {
-        if (job.isFinished()) return false
-        job.startProcessing()
+        if (job.isFinished()) {
+            return false
+        }
+        job.startProcessingIfWaiting()
         job.errorCode = error.code
         job.lastError = error.description
-        job.transitionTo(
-            if (stopRetrying) ArkistointiJobStatus.VAATII_TOIMENPITEITA else ArkistointiJobStatus.ODOTTAA
-        )
+        val newStatus = if (stopRetrying) ArkistointiJobStatus.VAATII_TOIMENPITEITA else ArkistointiJobStatus.ODOTTAA
+        job.transitionTo(newStatus)
         return !stopRetrying
     }
-
-    private fun ArkistointiJob.startProcessing() {
-        if (status == ArkistointiJobStatus.ODOTTAA) transitionTo(ArkistointiJobStatus.KASITTELYSSA)
-    }
-
-    /** Automatic processing is finished; a controlled manual retry may still be possible. */
-    private fun ArkistointiJob.isFinished() = status == ArkistointiJobStatus.LAHETETTY || status == ArkistointiJobStatus.VAATII_TOIMENPITEITA
 }
