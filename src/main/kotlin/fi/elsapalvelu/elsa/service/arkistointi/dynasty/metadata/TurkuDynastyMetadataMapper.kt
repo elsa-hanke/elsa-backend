@@ -39,9 +39,9 @@ class TurkuDynastyMetadataMapper(
         validatePerson(payload)
         val context = MappingContext(payload, submission.caseType, educationProgram(payload))
         val plan = Plan(
-            tosClass = if (context.graduation) "05.06.02.04" else "05.06.02.00",
+            tosClass = context.profile.tosClass,
             caseRequest = caseRequest(context),
-            task = if (context.graduation) "Hakeminen" else "Arviointi",
+            task = context.profile.task,
             documents = submission.asiakirjat.map { documentMetadata(context, it.asiakirjatyyppi) }
         )
         validateSerialization(plan)
@@ -84,10 +84,11 @@ class TurkuDynastyMetadataMapper(
 
     // Keep the default Object.toString(): this context contains personal data.
     private class MappingContext(val payload: ArchivePayload, val caseType: CaseType, val program: EducationProgram) {
-        val graduation = caseType == CaseType.VALMISTUMINEN
+        val profile = TurkuDynastyCaseProfile.from(caseType)
+        val graduation = profile == TurkuDynastyCaseProfile.VALMISTUMINEN
         val name = "${payload.firstName} ${payload.lastName}"
         val date: String = payload.approvalDate.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
-        val title = "${program.prefix} ${if (graduation) "Valmistumisen yhteenveto" else "Koejakson vastuuhenkilön arvio"} $name $date"
+        val title = "${program.prefix} ${profile.title} $name $date"
     }
 
     private fun caseRequest(context: MappingContext): DynastyCaseRequest {
@@ -107,17 +108,17 @@ class TurkuDynastyMetadataMapper(
         val settings = configuration.dynasty
         val additionalData = documentAdditionalData(context, type)
         val retention = rules.retentionPeriod(context.caseType, type)
-        if (!context.graduation) rules.validateSecrecyConfiguration()
+        val publicity = rules.documentPublicity(context.profile)
         return DynastyDocumentMetadata(
             title = documentTitle(context, type),
             schemaId = settings.documentSchemaId,
-            documentType = documentType(context, type),
+            documentType = context.profile.documentTypes.getValue(type),
             retentionPeriodLength = retention,
             additionalData = additionalData,
-            publicityClassId = if (context.graduation) "J" else requireNotNull(settings.koejaksoPublicityClassId),
-            publicityClassName = if (context.graduation) "Julkinen" else "Osittain salassa pidettävä",
-            retentionPeriodRule = if (context.graduation) "Asian lopullinen ratkaisu" else "Asiakirjan päivämäärä",
-            secrecyFields = if (context.graduation) emptyMap() else settings.koejaksoSecrecyFields.toMap()
+            publicityClassId = publicity.id,
+            publicityClassName = context.profile.publicityClassName,
+            retentionPeriodRule = context.profile.retentionRule,
+            secrecyFields = publicity.secrecyFields
         )
     }
 
@@ -142,12 +143,6 @@ class TurkuDynastyMetadataMapper(
         RecordType.LIITE -> "Valmistumisen yhteenvedon liitteet ${context.name} ${context.date}"
         RecordType.LAILLISTAMISTODISTUS -> "Laillistustodistus ${context.name}"
         else -> context.title
-    }
-
-    private fun documentType(context: MappingContext, type: RecordType): String = when {
-        !context.graduation -> "Koejakson vastuuhenkilön arvio"
-        type == RecordType.YHTEENVETO -> "Valmistumisen yhteenveto, EL, EHL tai YEK"
-        else -> "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK"
     }
 
     private fun validateSerialization(plan: Plan) {

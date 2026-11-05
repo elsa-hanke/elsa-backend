@@ -19,6 +19,17 @@ class TurkuDynastyMetadataMapperTest {
         val mapper = jacksonObjectMapper()
         val documents = plan.documents.map { mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(it) }
         assertThat(plan.tosClass).isEqualTo("05.06.02.04")
+        assertThat(plan.task).isEqualTo("Hakeminen")
+        assertThat(documents.map { it.path("documentType").asText() }).containsExactly(
+            "Valmistumisen yhteenveto, EL, EHL tai YEK",
+            "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK",
+            "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK"
+        )
+        documents.forEach { document ->
+            assertThat(document.path("publicityClassId").asText()).isEqualTo("J")
+            assertThat(document.path("publicityClassName").asText()).isEqualTo("Julkinen")
+            assertThat(document.path("retentionPeriodRule").asText()).isEqualTo("Asian lopullinen ratkaisu")
+        }
         assertThat(mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(plan.caseRequest).path("caseModel").path("title").asText()).startsWith(kind)
         assertThat(documents[0].path("AD").path("UTUkoulutusohjelma").asText()).isEqualTo(when(kind) {
             "YEK" -> "Yleislääketieteen erityiskoulutus"
@@ -39,6 +50,9 @@ class TurkuDynastyMetadataMapperTest {
         val plan = plan("EL", true)
         val doc = jacksonObjectMapper().valueToTree<com.fasterxml.jackson.databind.JsonNode>(plan.documents.single())
         assertThat(plan.tosClass).isEqualTo("05.06.02.00")
+        assertThat(plan.task).isEqualTo("Arviointi")
+        assertThat(doc.path("documentType").asText()).isEqualTo("Koejakson vastuuhenkilön arvio")
+        assertThat(doc.path("retentionPeriodRule").asText()).isEqualTo("Asiakirjan päivämäärä")
         assertThat(doc.path("publicityClassName").asText()).isEqualTo("Osittain salassa pidettävä")
         assertThat(doc.path("publicityClassId").asText()).isEqualTo("test-secret")
         assertThat(doc.path("duration").asText()).isEqualTo("100")

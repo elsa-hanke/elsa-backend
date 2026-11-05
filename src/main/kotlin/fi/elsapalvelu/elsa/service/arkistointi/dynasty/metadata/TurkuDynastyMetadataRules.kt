@@ -9,11 +9,8 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 
 /** Turku-specific document and configuration rules, shared by startup validation and delivery planning. */
 internal class TurkuDynastyMetadataRules(private val turku: ApplicationProperties.Arkistointi.Turku) {
-    fun expectedDocumentTypes(caseType: CaseType): List<RecordType> = when (caseType) {
-        CaseType.VALMISTUMINEN -> listOf(RecordType.YHTEENVETO, RecordType.LIITE, RecordType.LAILLISTAMISTODISTUS)
-        CaseType.KOEJAKSO -> listOf(RecordType.ARVIOINTI)
-        else -> throw IllegalArgumentException("Unsupported Dynasty case type")
-    }
+    fun expectedDocumentTypes(caseType: CaseType): List<RecordType> =
+        TurkuDynastyCaseProfile.from(caseType).documentTypes.keys.toList()
 
     fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {
         val regulations = turku.dynasty.tutkintoasetukset
@@ -22,7 +19,15 @@ internal class TurkuDynastyMetadataRules(private val turku: ApplicationPropertie
             } || regulations.isEmpty() || regulations.any { (key, value) -> key.isBlank() || value.isBlank() }) {
             throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
         }
-        if (caseType != CaseType.VALMISTUMINEN) validateSecrecyConfiguration()
+        if (TurkuDynastyCaseProfile.from(caseType).requiresSecrecy) validateSecrecyConfiguration()
+    }
+
+    data class DocumentPublicity(val id: String, val secrecyFields: Map<String, String>)
+
+    fun documentPublicity(profile: TurkuDynastyCaseProfile): DocumentPublicity {
+        if (!profile.requiresSecrecy) return DocumentPublicity("J", emptyMap())
+        validateSecrecyConfiguration()
+        return DocumentPublicity(requireNotNull(turku.dynasty.koejaksoPublicityClassId), turku.dynasty.koejaksoSecrecyFields.toMap())
     }
 
     fun validateSecrecyConfiguration() {
