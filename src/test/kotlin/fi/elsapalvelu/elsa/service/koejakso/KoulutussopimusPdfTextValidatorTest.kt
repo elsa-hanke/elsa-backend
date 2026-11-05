@@ -20,32 +20,8 @@ class KoulutussopimusPdfTextValidatorTest {
         "trainer,title,nimike", "trainer,email,sahkoposti", "trainer,phone,puhelinnumero", "trainer,correction,korjausehdotus",
         "responsible,email,sahkoposti", "responsible,phone,puhelinnumero", "responsible,correction,korjausehdotus"
     )
-    @Suppress("CyclomaticComplexMethod")
     fun `reports each writable unsupported field for its role`(role: String, property: String, field: String) {
-        val trainer = KoulutussopimuksenKouluttajaDTO(id = 2L, kayttajaUserId = "editor")
-        val dto = KoejaksonKoulutussopimusDTO(
-            id = 42L, kouluttajat = mutableSetOf(trainer),
-            koulutuspaikat = mutableSetOf(KoulutussopimuksenKoulutuspaikkaDTO()),
-            vastuuhenkilo = KoulutussopimuksenVastuuhenkiloDTO()
-        )
-        when (property) {
-            "email" -> when (role) {
-                "trainee" -> dto.erikoistuvanSahkoposti = "💗"
-                "trainer" -> trainer.sahkoposti = "💗"
-                else -> dto.vastuuhenkilo?.sahkoposti = "💗"
-            }
-            "phone" -> when (role) {
-                "trainee" -> dto.erikoistuvanPuhelinnumero = "💗"
-                "trainer" -> trainer.puhelin = "💗"
-                else -> dto.vastuuhenkilo?.puhelin = "💗"
-            }
-            "place" -> dto.koulutuspaikat?.first()?.nimi = "💗"
-            "workplace" -> trainer.toimipaikka = "💗"
-            "address" -> trainer.lahiosoite = "💗"
-            "city" -> trainer.postitoimipaikka = "💗"
-            "title" -> trainer.nimike = "💗"
-            "correction" -> dto.korjausehdotus = "💗"
-        }
+        val dto = withUnsupportedField(role, property)
         val exception = assertFailsWith<UnsupportedPdfCharactersException> {
             when (role) {
                 "trainee" -> validator.validateErikoistujanKentat(dto)
@@ -56,6 +32,47 @@ class KoulutussopimusPdfTextValidatorTest {
         assertThat(exception.field).isEqualTo(field)
         assertThat(exception.unsupportedCharacters).containsExactly("💗 (U+1F497)")
         assertThat(exception.sourceId).isEqualTo(42L)
+    }
+
+    private fun withUnsupportedField(role: String, property: String): KoejaksonKoulutussopimusDTO {
+        val trainer = KoulutussopimuksenKouluttajaDTO(id = 2L, kayttajaUserId = "editor")
+        val dto = KoejaksonKoulutussopimusDTO(
+            id = 42L, kouluttajat = mutableSetOf(trainer),
+            koulutuspaikat = mutableSetOf(KoulutussopimuksenKoulutuspaikkaDTO()),
+            vastuuhenkilo = KoulutussopimuksenVastuuhenkiloDTO()
+        )
+        when (property) {
+            "email" -> setContactFields(dto, role, email = "💗")
+            "phone" -> setContactFields(dto, role, phone = "💗")
+            "place" -> dto.koulutuspaikat?.first()?.nimi = "💗"
+            "workplace" -> trainer.toimipaikka = "💗"
+            "address" -> trainer.lahiosoite = "💗"
+            "city" -> trainer.postitoimipaikka = "💗"
+            "title" -> trainer.nimike = "💗"
+            "correction" -> dto.korjausehdotus = "💗"
+            else -> error("Unknown property: $property")
+        }
+        return dto
+    }
+
+    private fun setContactFields(
+        dto: KoejaksonKoulutussopimusDTO, role: String, email: String? = null, phone: String? = null
+    ) {
+        when (role) {
+            "trainee" -> {
+                dto.erikoistuvanSahkoposti = email
+                dto.erikoistuvanPuhelinnumero = phone
+            }
+            "trainer" -> requireNotNull(dto.kouluttajat).single().apply {
+                sahkoposti = email
+                puhelin = phone
+            }
+            "responsible" -> requireNotNull(dto.vastuuhenkilo).apply {
+                sahkoposti = email
+                puhelin = phone
+            }
+            else -> error("Unknown role: $role")
+        }
     }
 
     @Test
