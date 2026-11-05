@@ -153,7 +153,17 @@ each file to exactly one shard. It balances estimated execution time; the number
 of files per shard may differ. `scripts/spec-durations.json` contains
 per-spec durations in seconds from the supplied GHA execution log (55 specs,
 108 tests). Update those estimates when execution times change substantially.
-New specs automatically receive the mean recorded duration until measured.
+The three `valmistumispyynto/tarkistus-ja-hyvaksynta-*-ui.cy.ts` specs use initial
+planning estimates (EL/EHL: 120 seconds each, YEK: 150 seconds), not measured
+results. Replace these with per-spec durations from the next GHA run. Other new
+specs automatically receive the mean recorded duration until measured.
+
+The graduation UI suite registers four independent tests per degree: clerk review,
+approval including archive/PDF/trainee checks, and recovery after network/HTTP 500
+failures. Earlier request submission is prepared through the real multipart API;
+its UI remains covered in the request-submission specs. Retry tests verify the
+persisted approval without repeating PDF downloads and archive-content checks.
+Shared workflow helpers are not discovered as specs.
 
 To inspect a shard without running tests:
 

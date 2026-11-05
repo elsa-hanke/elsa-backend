@@ -5,14 +5,8 @@ import {
 } from '../../support/commands/credentials'
 import { downloadPdfPages, expectTextInOrder } from '../../support/pdf'
 import { assertArchiveAbsent, assertArchiveProcessed } from '../../support/async-archive'
-import {
-  acceptRequirements,
-  fillContactInformation,
-  fillLicensingInformation,
-  openYekGraduationRequest,
-  setupYekGraduationRequest,
-  submitGraduationRequest
-} from '../valmistumispyynto-yek/valmistumispyynto-yek.helpers'
+import { setupYekGraduationRequest } from '../valmistumispyynto-yek/valmistumispyynto-yek.helpers'
+import { submitGraduationRequestViaApi } from './graduation-request.fixture'
 
 const MAIN = 'main[role="main"]'
 const MODAL = '#confirm-send'
@@ -77,16 +71,13 @@ const finnishDate = (date: string) => {
 
 // Separate actor tests: setup requests advance earlier stages only. Every review/approval
 // protected by these tests goes through the actual form and an unstubbed backend response.
-for (const degree of ['EL', 'EHL', 'YEK'] as const) {
+export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 'YEK') {
   const yek = degree === 'YEK'
   describe(`${degree} valmistumispyynnön tarkistus ja hyväksyntä käyttöliittymässä`, () => {
-    const traineeApi = `/api/${
-      yek ? 'yek-koulutettava' : 'erikoistuva-laakari'
-    }/valmistumispyynto`
+    const traineeApi = `/api/${yek ? 'yek-koulutettava' : 'erikoistuva-laakari'}/valmistumispyynto`
     const traineePage = yek ? '/yekvalmistumispyynto' : '/valmistumispyynto'
     const reviewPage = (id: number) => `/valmistumispyynnon-tarkistus${yek ? '-yek' : ''}/${id}`
-    const approvalPage = (id: number) =>
-      `/valmistumispyynnon-hyvaksynta${yek ? '-yek' : ''}/${id}`
+    const approvalPage = (id: number) => `/valmistumispyynnon-hyvaksynta${yek ? '-yek' : ''}/${id}`
     const approveLabel = yek ? 'Hyväksy valmistumispyyntö' : 'Hyväksy'
     const summaryLabel = yek
       ? 'YEK-koulutuksen valmistumisen yhteenveto'
@@ -192,11 +183,6 @@ for (const degree of ['EL', 'EHL', 'YEK'] as const) {
     beforeEach(() => {
       if (yek) {
         setupYekGraduationRequest()
-        openYekGraduationRequest()
-        acceptRequirements()
-        fillContactInformation('+358401234567')
-        fillLicensingInformation()
-        submitGraduationRequest('POST', 'newYekRequest')
       } else {
         cy.prepareKoejaksoE2e({
           cleanupSupportUsers: true,
@@ -216,15 +202,16 @@ for (const degree of ['EL', 'EHL', 'YEK'] as const) {
           erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL,
           kouluttajaEmail: KOULUTTAJA_EMAIL
         })
-        cy.submitValmistumispyyntoViaUi()
       }
-      cy.apiRequest({ method: 'GET', url: traineeApi }).then(({ status, body }) => {
-        expect(status).to.eq(200)
-        expect(body.id).to.be.a('number')
-        original = body
-        expect(original.virkailijanKuittausaika).to.eq(null)
-        expect(original.vastuuhenkiloHyvaksyjaKuittausaika).to.eq(null)
-      })
+      submitGraduationRequestViaApi(traineeApi).then((id) =>
+        cy.apiRequest({ method: 'GET', url: traineeApi }).then(({ status, body }) => {
+          expect(status).to.eq(200)
+          expect(body.id).to.eq(id)
+          original = body
+          expect(original.virkailijanKuittausaika).to.eq(null)
+          expect(original.vastuuhenkiloHyvaksyjaKuittausaika).to.eq(null)
+        })
+      )
       cy.getCookies().then((cookies) => {
         traineeCookies = cookies
       })
@@ -316,19 +303,13 @@ for (const degree of ['EL', 'EHL', 'YEK'] as const) {
       cy.then(() => cy.apiRequest({ method: 'GET', url: `${REVIEW_API}/${original.id}` })).then(
         ({ body }) => {
           expect(body.valmistumispyynto).to.deep.eq(before.valmistumispyynto)
-          for (const key of [
-            ...checkFields,
-            'kommentitVirkailijoille',
-            'virkailijanYhteenveto'
-          ]) {
+          for (const key of [...checkFields, 'kommentitVirkailijoille', 'virkailijanYhteenveto']) {
             expect(body[key], `unchanged ${key} after cancellation`).to.deep.eq(before[key])
           }
         }
       )
       reviewButton().click()
-      field('Lisätiedot vastuuhenkilölle', MODAL)
-        .find('textarea')
-        .should('have.value', COVER_NOTE)
+      field('Lisätiedot vastuuhenkilölle', MODAL).find('textarea').should('have.value', COVER_NOTE)
       button('Hyväksy ja lähetä', MODAL).click()
       cy.wait('@reviewPut').then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200)
@@ -357,11 +338,7 @@ for (const degree of ['EL', 'EHL', 'YEK'] as const) {
           expect(persistedRequest(body.valmistumispyynto)).to.deep.eq(
             persistedRequest(saved.valmistumispyynto)
           )
-          for (const key of [
-            ...checkFields,
-            'kommentitVirkailijoille',
-            'virkailijanYhteenveto'
-          ])
+          for (const key of [...checkFields, 'kommentitVirkailijoille', 'virkailijanYhteenveto'])
             expect(body[key], key).to.deep.eq(saved[key])
           saved = body
         }
@@ -446,35 +423,36 @@ for (const degree of ['EL', 'EHL', 'YEK'] as const) {
           expectedContacts = { sahkoposti: VASTUUHENKILO_EMAIL, puhelinnumero: '+358501234567' }
         })
       }
-      button(approveLabel).should('be.visible').and('not.be.disabled').click()
-      cy.then(() => {
-        cy.get(MODAL)
-          .should('be.visible')
-          .and('contain.text', 'Vahvista lomakkeen lähetys')
-          .and(
-            'contain.text',
-            yek
-              ? 'Hyväksymällä vahvistat koulutettavan valmistumisen.'
-              : original.arkistoitava
+      if (!failure) {
+        button(approveLabel).should('be.visible').and('not.be.disabled').click()
+        cy.then(() => {
+          cy.get(MODAL)
+            .should('be.visible')
+            .and('contain.text', 'Vahvista lomakkeen lähetys')
+            .and(
+              'contain.text',
+              yek
+                ? 'Hyväksymällä vahvistat koulutettavan valmistumisen.'
+                : original.arkistoitava
                 ? 'Vahvistuksen jälkeen valmistumispyyntö on hyväksytty ja lähetetään arkistoitavaksi.'
                 : 'Vahvistuksen jälkeen valmistumispyyntö on hyväksytty kaikkien osapuolien toimesta.'
-          )
-      })
-      cy.get('@approvalPut.all').should('have.length', 0)
-      button('Peruuta', MODAL).click()
-      cy.get('body').find(`${MODAL}:visible`).should('have.length', 0)
-      cy.get('@approvalPut.all').should('have.length', 0)
-      cy.then(() => cy.apiRequest({ method: 'GET', url: `${APPROVAL_API}/${original.id}` })).then(
-        ({ body }) => expect(body.valmistumispyynto).to.deep.eq(original)
-      )
-      if (!yek) field('Matkapuhelinnumero').find('input').should('have.value', '+358501234567')
+            )
+        })
+        cy.get('@approvalPut.all').should('have.length', 0)
+        button('Peruuta', MODAL).click()
+        cy.get('body').find(`${MODAL}:visible`).should('have.length', 0)
+        cy.get('@approvalPut.all').should('have.length', 0)
+        cy.then(() => cy.apiRequest({ method: 'GET', url: `${APPROVAL_API}/${original.id}` })).then(
+          ({ body }) => expect(body.valmistumispyynto).to.deep.eq(original)
+        )
+        if (!yek) field('Matkapuhelinnumero').find('input').should('have.value', '+358501234567')
+      }
       if (failure) {
         button(approveLabel).click()
         button(approveLabel, MODAL).click()
         cy.wait('@failedApproval').then(({ request, response, error }) => {
           expect(request.body).to.deep.eq({ id: original.id, ...expectedContacts })
-          if (failure === 'network')
-            expect(error, 'network failure without HTTP response').to.exist
+          if (failure === 'network') expect(error, 'network failure without HTTP response').to.exist
           else expect(response?.statusCode).to.eq(500)
         })
         cy.contains('.toast-body', 'Valmistumispyynnön hyväksynnän lähetys epäonnistui')
@@ -491,26 +469,27 @@ for (const degree of ['EL', 'EHL', 'YEK'] as const) {
           field('Matkapuhelinnumero').find('input').should('have.value', '+358501234567')
         }
         // A fresh read must still show the pending request and no generated approval documents.
-        cy.then(() =>
-          cy.apiRequest({ method: 'GET', url: `${APPROVAL_API}/${original.id}` })
-        ).then(({ status, body }) => {
-          expect(status).to.eq(200)
-          pendingApproval(body.valmistumispyynto)
-          expect(body.valmistumispyynto).to.deep.eq(original)
-          expect(submittedBodies).to.have.length(1)
-        })
+        cy.then(() => cy.apiRequest({ method: 'GET', url: `${APPROVAL_API}/${original.id}` })).then(
+          ({ status, body }) => {
+            expect(status).to.eq(200)
+            pendingApproval(body.valmistumispyynto)
+            expect(body.valmistumispyynto).to.deep.eq(original)
+            expect(submittedBodies).to.have.length(1)
+          }
+        )
+        cy.then(() => assertArchiveAbsent('valmistuminen', university, original.id))
         cy.apiRequest({ method: 'GET', url: '/api/kayttaja' })
           .its('body.activeAuthority')
           .should('eq', 'ROLE_VASTUUHENKILO')
       }
       button(approveLabel).click()
       button(approveLabel, MODAL).click()
-      cy.wait('@successfulApproval', { responseTimeout: 120000 }).then(
-        ({ request, response }) => {
-          expect(request.body).to.deep.eq({ id: original.id, ...expectedContacts })
-          expect(response?.statusCode).to.eq(200)
-          saved = response?.body.valmistumispyynto
-          approved(saved)
+      cy.wait('@successfulApproval', { responseTimeout: 120000 }).then(({ request, response }) => {
+        expect(request.body).to.deep.eq({ id: original.id, ...expectedContacts })
+        expect(response?.statusCode).to.eq(200)
+        saved = response?.body.valmistumispyynto
+        approved(saved)
+        if (!failure)
           assertArchiveProcessed({
             prefix: 'valmistuminen',
             university,
@@ -532,8 +511,7 @@ for (const degree of ['EL', 'EHL', 'YEK'] as const) {
               LIITE: saved.liitteetAsiakirjaId!
             }
           })
-        }
-      )
+      })
       cy.location('pathname').should('eq', '/valmistumispyynnot')
       cy.get('@approvalPut.all').should('have.length', failure ? 2 : 1)
       cy.then(() => {
@@ -551,6 +529,8 @@ for (const degree of ['EL', 'EHL', 'YEK'] as const) {
         .should('be.visible')
       button(approveLabel).should('not.exist')
       cy.get(MAIN).contains('button', 'Palauta').should('not.exist')
+      // Retry tests stop at the persisted decision; the happy path protects PDFs and trainee views.
+      if (failure) return
       cy.get(MAIN).contains('button', summaryLabel).should('be.visible')
       cy.get(MAIN).contains('button', 'Valmistumispyynnön liitteet').should('be.visible')
       cy.then(() => {
