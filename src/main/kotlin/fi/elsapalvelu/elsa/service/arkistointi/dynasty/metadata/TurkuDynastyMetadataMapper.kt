@@ -49,22 +49,25 @@ class TurkuDynastyMetadataMapper(
     }
 
     private fun validateDocuments(submission: ArkistointiSubmission, payload: ArchivePayload) {
-        require(payload.university == submission.university.name)
+        require(payload.university == submission.university.name) { "university mismatch" }
         val documents = submission.asiakirjat
         ArkistointiManifestValidator.validate(payload.documents, documents)
         // Dynasty attaches documents in this order; SÄHKE sorts records during package creation.
         val order = documents.map { it.jarjestysnumero }
-        require(order == order.sorted())
+        require(order == order.sorted()) { "document order" }
         documents.forEach { document ->
-            require(document.sisalto.isNotEmpty() && document.filename.isNotBlank())
+            require(document.sisalto.isNotEmpty()) { "empty document content" }
+            require(document.filename.isNotBlank()) { "missing document filename" }
             document.contentType.toMediaType()
         }
-        require(documents.map { it.asiakirjatyyppi } == rules.expectedDocumentTypes(submission.caseType))
+        require(documents.map { it.asiakirjatyyppi } == rules.expectedDocumentTypes(submission.caseType)) { "document types" }
     }
 
     private fun validatePerson(payload: ArchivePayload) {
-        require(payload.specialtyType in setOf("LAAKETIEDE", "HAMMASLAAKETIEDE"))
-        require(!payload.firstName.isNullOrBlank() && !payload.lastName.isNullOrBlank() && !payload.specialtyName.isNullOrBlank())
+        require(payload.specialtyType in setOf("LAAKETIEDE", "HAMMASLAAKETIEDE")) { "unsupported specialty type" }
+        require(!payload.firstName.isNullOrBlank()) { "missing first name" }
+        require(!payload.lastName.isNullOrBlank()) { "missing last name" }
+        require(!payload.specialtyName.isNullOrBlank()) { "missing specialty name" }
     }
 
     private enum class EducationProgram(val prefix: String, val title: String) {

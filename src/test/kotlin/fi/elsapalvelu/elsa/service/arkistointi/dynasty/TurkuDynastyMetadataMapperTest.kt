@@ -51,12 +51,14 @@ class TurkuDynastyMetadataMapperTest {
     fun `snapshot missing specialty type is rejected`() {
         assertThatThrownBy { plan("EL", false) { it.remove("specialtyType") } }
             .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("unsupported specialty type")
     }
 
     @Test
     fun `snapshot missing required person data is rejected`() {
         assertThatThrownBy { plan("EL", true) { it.remove("firstName") } }
             .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("missing first name")
     }
 
     private fun plan(
