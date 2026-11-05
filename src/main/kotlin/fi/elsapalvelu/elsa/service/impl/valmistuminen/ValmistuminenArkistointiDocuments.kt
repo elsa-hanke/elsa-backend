@@ -26,7 +26,9 @@ class ValmistuminenArkistointiDocuments(
         check(settings.case.documents.orEmpty().keys.all { key -> available.any { it.name.lowercase() == key } }) {
             "Configured graduation document is missing"
         }
-        if (!includeCertificate) return generated
+        if (!includeCertificate) {
+            return generated
+        }
         check(generated.none { it.type == RecordType.LAILLISTAMISTODISTUS }) {
             "Graduation certificate must be added only once"
         }

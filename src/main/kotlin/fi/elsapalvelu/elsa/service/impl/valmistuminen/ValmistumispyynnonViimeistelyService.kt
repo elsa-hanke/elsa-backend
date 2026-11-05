@@ -22,7 +22,7 @@ class ValmistumispyynnonViimeistelyService(
     private val tarkistusMapper: ValmistumispyynnonTarkistusMapper,
     private val ilmoitusService: ValmistumispyynnonIlmoitusService,
     private val arkistointiService: SynchronousArkistointiService,
-    private val enqueuer: ArkistointiJobEnqueuer,
+    private val jobEnqueuer: ArkistointiJobEnqueuer,
     private val arkistointiConfigurationProvider: ArkistointiConfigurationProvider,
     private val archiveDocuments: ValmistuminenArkistointiDocuments
 ) {
@@ -35,11 +35,10 @@ class ValmistumispyynnonViimeistelyService(
         yliopisto: YliopistoEnum?
     ) {
         val archiveEnabled = onkoArkistointiKaytossa(yliopisto)
-        val asyncEnabled = archiveEnabled &&
-            arkistointiConfigurationProvider.isAsyncEnabled(yliopisto.required(), CaseType.VALMISTUMINEN)
+        val asyncEnabled = archiveEnabled && arkistointiConfigurationProvider.isAsyncEnabled(yliopisto.required(), CaseType.VALMISTUMINEN)
         val university = yliopisto.required()
         if (asyncEnabled) {
-            enqueuer.enqueue(university, CaseType.VALMISTUMINEN, valmistumispyyntoId, {
+            jobEnqueuer.enqueue(university, CaseType.VALMISTUMINEN, valmistumispyyntoId, {
                 val documents = createDocuments(valmistumispyyntoId, tarkistus, valmistumispyynto)
                 valmistumispyynto.opintooikeus?.erikoisala.required()
                 val completed = archiveDocuments.complete(valmistumispyynto, university, documents)
@@ -53,16 +52,12 @@ class ValmistumispyynnonViimeistelyService(
 
         log.info("Tarkistetaan arkistointi [valmistumispyyntoId=$valmistumispyyntoId, yliopisto=$yliopisto]")
         if (!archiveEnabled) {
-            log.info(
-                "Arkistointi ei kaytossa " +
-                    "[valmistumispyyntoId=$valmistumispyyntoId, yliopisto=$yliopisto]"
-            )
+            log.info("Arkistointi ei kaytossa [valmistumispyyntoId=$valmistumispyyntoId, yliopisto=$yliopisto]")
             return
         }
 
         valmistumispyynto.opintooikeus?.erikoisala.required()
-        val yek = valmistumispyynto.isYek()
-        archiveSynchronously(valmistumispyynto, university, asiakirjat, yek)
+        archiveSynchronously(valmistumispyynto, university, asiakirjat)
     }
 
     private fun createDocuments(
@@ -83,7 +78,6 @@ class ValmistumispyynnonViimeistelyService(
         valmistumispyynto: Valmistumispyynto,
         yliopisto: YliopistoEnum,
         asiakirjat: List<RecordProperties>,
-        yek: Boolean
     ) {
         val sahke = arkistointiService.muodostaSahke(
             valmistumispyynto.opintooikeus, asiakirjat,
@@ -96,7 +90,7 @@ class ValmistumispyynnonViimeistelyService(
         )
         arkistointiService.laheta(
             yliopisto = yliopisto, filePath = sahke.zipFilePath,
-            caseType = CaseType.VALMISTUMINEN, yek = yek,
+            caseType = CaseType.VALMISTUMINEN, yek = valmistumispyynto.isYek(),
             caseId = valmistumispyynto.id.required().toString(),
             erikoistujanNimi = valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
         )
