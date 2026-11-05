@@ -50,7 +50,9 @@ class ArkistointiJobProcessorImpl(
             prepared.asiakirjat.map(loader::load), execution
         )
         // This narrows the stale-send window. Lost active executions are parked: an in-flight send cannot be cancelled by fencing.
-        if (!state.checkBeforeSend(execution)) return
+        if (!state.checkBeforeSend(execution)) {
+            return
+        }
         handleResult(execution, adapter, adapter.arkistoi(submission))
     }
 

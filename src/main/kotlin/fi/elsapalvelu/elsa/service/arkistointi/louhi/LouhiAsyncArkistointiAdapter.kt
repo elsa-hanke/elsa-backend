@@ -21,8 +21,7 @@ class LouhiAsyncArkistointiAdapter(
     override val university = YliopistoEnum.TAMPEREEN_YLIOPISTO
     override val supportedCaseTypes = setOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO)
 
-    override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult =
-        delivery.deliver(pyynto, this, "LOUHI", ::invalid, ::send)
+    override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult = delivery.deliver(pyynto, this, "LOUHI", ::invalid, ::send)
 
     private fun send(archive: PreparedSahkePackage): ArkistointiResult =
         try {
@@ -37,11 +36,7 @@ class LouhiAsyncArkistointiAdapter(
             retryable()
         }
 
-    private fun invalid(code: String) = ArkistointiResult.failure(
-        code, "Louhi-toimituksen tiedot tai vastaanoton asetukset on tarkistettava", retryable = false
-    )
+    private fun invalid(code: String) = ArkistointiResult.failure(code, "Louhi-toimituksen tiedot tai vastaanoton asetukset on tarkistettava", retryable = false)
 
-    private fun retryable() = ArkistointiResult.failure(
-        "LOUHI_TRANSFER_FAILED", "Louhi-siirto ei valmistunut ennen julkaisua", retryable = true
-    )
+    private fun retryable() = ArkistointiResult.failure("LOUHI_TRANSFER_FAILED", "Louhi-siirto ei valmistunut ennen julkaisua", retryable = true)
 }

@@ -35,9 +35,7 @@ class HelsinkiSiiloService(
         val timeout = properties.asyncTransferTimeout
         requireAsyncConfiguration(code.isNotBlank() && code.all { it.isLetterOrDigit() || it in "-_" })
         val endpoint = host.toHttpUrlOrNull()
-        requireAsyncConfiguration(ArchiveHttpEndpointPolicy.isAllowed(
-            endpoint?.scheme, endpoint?.host, properties.asyncAllowLoopbackHttpForTests
-        ))
+        requireAsyncConfiguration(ArchiveHttpEndpointPolicy.isAllowed(endpoint?.scheme, endpoint?.host, properties.asyncAllowLoopbackHttpForTests))
         requireAsyncConfiguration(key.isNotBlank() && key.none { it.isISOControl() })
         requireAsyncConfiguration(!timeout.isNegative && !timeout.isZero && timeout.toMillis() in 1..Int.MAX_VALUE.toLong())
         val file = File(zipFilePath)
@@ -70,7 +68,9 @@ class HelsinkiSiiloService(
     }
 
     private fun requireAsyncConfiguration(valid: Boolean) {
-        if (!valid) throw SiiloTransferException("SIILO_CONFIGURATION_INVALID", false)
+        if (!valid) {
+            throw SiiloTransferException("SIILO_CONFIGURATION_INVALID", false)
+        }
     }
 
     fun laheta(zipFilePath: String, caseType: CaseType) {
@@ -82,9 +82,7 @@ class HelsinkiSiiloService(
         val url = "${arkistointiProperties.host}/unisign/elsa/archive/$siiloKoodi"
 
         val zipFile = File(zipFilePath)
-        require(zipFile.exists()) {
-            "Arkistointitiedostoa ei löydy: $zipFilePath"
-        }
+        require(zipFile.exists()) { "Arkistointitiedostoa ei löydy: $zipFilePath" }
 
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)

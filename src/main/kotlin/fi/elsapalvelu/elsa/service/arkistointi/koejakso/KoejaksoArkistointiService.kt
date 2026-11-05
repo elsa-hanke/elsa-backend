@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional
 class KoejaksoArkistointiService(
     private val configuration: ArkistointiConfigurationProvider,
     private val synchronousArchive: SynchronousArkistointiService,
-    private val enqueuer: ArkistointiJobEnqueuer
+    private val jobEnqueuer: ArkistointiJobEnqueuer
 ) {
     fun isAsyncEnabled(university: YliopistoEnum, caseType: CaseType): Boolean =
         configuration.isAsyncEnabled(university, caseType)
@@ -31,8 +31,8 @@ class KoejaksoArkistointiService(
         val university = studyRight.yliopisto?.nimi.required()
         if (!synchronousArchive.onKaytossa(university, CaseType.SOPIMUS)) return
         if (isAsyncEnabled(university, CaseType.SOPIMUS)) {
-            enqueuer.enqueue(university, CaseType.SOPIMUS, sopimus.id.required(),
-                { listOf(RecordProperties(document, RecordType.SOPIMUS)) }) { documents ->
+            jobEnqueuer.enqueue(university, CaseType.SOPIMUS, sopimus.id.required(),
+                    { listOf(RecordProperties(document, RecordType.SOPIMUS)) }) { documents ->
                 KoejaksoArkistointiPayload.create(
                     sopimus.id.required(), studyRight, documents, "", null,
                     sopimus.vastuuhenkilo?.user?.getName(), sopimus.vastuuhenkilonKuittausaika
@@ -72,7 +72,7 @@ class KoejaksoArkistointiService(
             return
         }
         if (!synchronousArchive.onKaytossa(university, CaseType.KOEJAKSO)) return
-        enqueuer.enqueue(university, CaseType.KOEJAKSO, arvio.id.required(),
+        jobEnqueuer.enqueue(university, CaseType.KOEJAKSO, arvio.id.required(),
             { listOf(RecordProperties(document, RecordType.ARVIOINTI)) }) { documents ->
             KoejaksoArkistointiPayload.create(
                 arvio.id.required(), studyRight, documents, arvio.virkailija?.user?.getName(), arvio.virkailijanKuittausaika,
