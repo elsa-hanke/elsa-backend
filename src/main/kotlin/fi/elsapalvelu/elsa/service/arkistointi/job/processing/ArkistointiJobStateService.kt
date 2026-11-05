@@ -128,9 +128,6 @@ class ArkistointiJobStateService(
     }
 
     private fun recordFailure(job: ArkistointiJob, error: ArkistointiError, stopRetrying: Boolean): Boolean {
-        if (job.isFinished()) {
-            return false
-        }
         job.startProcessingIfWaiting()
         job.errorCode = error.code
         job.lastError = error.description

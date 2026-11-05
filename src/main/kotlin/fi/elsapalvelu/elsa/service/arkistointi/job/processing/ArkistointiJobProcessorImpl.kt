@@ -80,12 +80,14 @@ class ArkistointiJobProcessorImpl(
     }
 
     private fun persistSuccess(execution: ArkistointiJobExecution, adapter: ArkistointiAdapter, externalId: String?) {
-        ArkistointiExternalId.validate(externalId)
         try {
             state.succeed(execution, externalId)
         } catch (exception: StaleArkistointiExecutionException) {
             throw exception
         } catch (exception: ParkArkistointiExecutionException) {
+            throw exception
+        } catch (exception: ArkistointiProcessingException) {
+            // State validation failures must keep their classification, even for resumable adapters.
             throw exception
         } catch (_: Exception) {
             // Acceptance is known, but the commit may have failed or its acknowledgement was lost.
