@@ -192,7 +192,7 @@ e2e-images: up-e2e
   cd e2e && env CYPRESS_DB_HOST=127.0.0.1 CYPRESS_DB_PORT=15433 CYPRESS_DB_NAME=elsaBackend CYPRESS_DB_USER=elsaBackend CYPRESS_DB_PASSWORD= yarn run cy:open --config baseUrl=http://localhost:18080
 
 up-e2e:
-  E2E_DB_PORT=15433 E2E_FRONTEND_PORT=18080 E2E_BACKEND_PORT=19080 docker compose -p elsa-e2e-local -f ./infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
+  E2E_DB_PORT=127.0.0.1:15433 E2E_FRONTEND_PORT=18080 E2E_BACKEND_PORT=19080 docker compose -p elsa-e2e-local -f ./infra/docker-compose-cicd.yml up -d --wait --wait-timeout 300
 
 down-e2e:
   E2E_DB_PORT=15433 E2E_FRONTEND_PORT=18080 E2E_BACKEND_PORT=19080 docker compose -p elsa-e2e-local -f ./infra/docker-compose-cicd.yml down
