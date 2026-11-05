@@ -27,19 +27,7 @@ class ArkistointiJobStateService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun prepare(execution: ArkistointiJobExecution): PreparedArkistointiJob? {
-        executionLock.lock(execution)
-        val jobId = execution.jobId
-        val job = jobs.findByIdForStateChange(jobId)
-        if (job == null) {
-            log.warn("Archive job missing [jobId={}]", jobId)
-            return null
-        }
-        if (job.isVaatiiToimenpiteita()) {
-            throw ParkArkistointiExecutionException()
-        }
-        if (job.isFinished()) {
-            return null
-        }
+        val job = lockActiveJob(execution)?.job ?: return null
         job.startProcessingIfWaiting()
         val payload = job.payload.required()
         val validPayload = try {
@@ -51,21 +39,14 @@ class ArkistointiJobStateService(
             val error = ArkistointiError.create("ARCHIVE_JOB_INVALID", "Arkistointijobin aineisto on virheellinen")
             throw ArkistointiProcessingException(error, retryable = false)
         }
-        return PreparedArkistointiJob(jobId, job.university.required(), job.caseType.required(), payload,
+        return PreparedArkistointiJob(execution.jobId, job.university.required(), job.caseType.required(), payload,
             job.asiakirjat.sortedBy { it.jarjestysnumero }.map { it.toDescriptor() }
         )
     }
 
     /** Recheck the original execution after loading; release both locks before the network call. */
     fun checkBeforeSend(execution: ArkistointiJobExecution): Boolean {
-        executionLock.lock(execution)
-        val job = jobs.findByIdForStateChange(execution.jobId) ?: return false
-        if (job.isVaatiiToimenpiteita()) {
-            throw ParkArkistointiExecutionException()
-        }
-        if (job.isFinished()) {
-            return false
-        }
+        val job = lockActiveJob(execution)?.job ?: return false
         // A recovery handler may have committed ODOTTAA before rescheduling this same version.
         // Do not acknowledge that execution while its retry is still being arranged.
         if (job.status != ArkistointiJobStatus.KASITTELYSSA) {
@@ -75,14 +56,7 @@ class ArkistointiJobStateService(
     }
 
     fun succeed(execution: ArkistointiJobExecution, externalId: String?) {
-        val attempt = executionLock.lock(execution)
-        val job = requireNotNull(jobs.findByIdForStateChange(execution.jobId))
-        if (job.isVaatiiToimenpiteita()) {
-            throw ParkArkistointiExecutionException()
-        }
-        if (job.isFinished()) {
-            return
-        }
+        val (job, attempt) = lockActiveJob(execution) ?: return
         ArkistointiExternalId.validate(externalId)
         job.startProcessingIfWaiting()
         job.transitionTo(ArkistointiJobStatus.LAHETETTY)
@@ -135,4 +109,23 @@ class ArkistointiJobStateService(
         job.transitionTo(newStatus)
         return !stopRetrying
     }
+
+    private fun lockActiveJob(execution: ArkistointiJobExecution): LockedActiveJob? {
+        val attempt = executionLock.lock(execution)
+        val jobId = execution.jobId
+        val job = jobs.findByIdForStateChange(jobId)
+        if (job == null) {
+            log.warn("Archive job missing [jobId={}]", jobId)
+            return null
+        }
+        if (job.isVaatiiToimenpiteita()) {
+            throw ParkArkistointiExecutionException()
+        }
+        if (job.isFinished()) {
+            return null
+        }
+        return LockedActiveJob(job, attempt)
+    }
+
+    private data class LockedActiveJob(val job: ArkistointiJob, val attempt: Int)
 }
