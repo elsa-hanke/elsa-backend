@@ -31,10 +31,7 @@ class TurkuDynastyMetadataMapper(
         override fun toString() = "DynastyPlan(documents=${documents.size})"
     }
 
-    /** Validate static settings only; snapshot values are checked by plan(). */
-    fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {
-        rules.validateConfiguration(caseType, configuration)
-    }
+    fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) = rules.validateConfiguration(caseType, configuration)
 
     fun plan(submission: ArkistointiSubmission): Plan {
         val payload = reader.read(submission.payload)

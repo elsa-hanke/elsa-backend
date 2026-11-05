@@ -50,10 +50,16 @@ class DynastyClient internal constructor(
     }
 
     private fun validateUrl(value: String?) {
-        val uri = try { java.net.URI(value.orEmpty()) } catch (_: Exception) { throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID) }
+        val uri = try {
+            java.net.URI(value.orEmpty())
+        } catch (_: Exception) {
+            throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
+        }
         val invalidAddress = !ArchiveHttpEndpointPolicy.isAllowed(uri.scheme, uri.host, settings.allowLoopbackHttpForTests)
         val invalidParts = uri.rawUserInfo != null || uri.rawFragment != null || uri.rawQuery != null
-        if (invalidAddress || invalidParts) throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
+        if (invalidAddress || invalidParts) {
+            throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
+        }
     }
 
     private fun requireSetting(value: String?): String = value?.takeIf { it.isNotBlank() } ?: throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
@@ -61,11 +67,13 @@ class DynastyClient internal constructor(
     @Synchronized
     private fun accessToken(): String {
         val cachedToken = token
-        if (cachedToken != null && expires.isAfter(Instant.now().plusSeconds(TOKEN_REFRESH_MARGIN_SECONDS))) return cachedToken
+        if (cachedToken != null && expires.isAfter(Instant.now().plusSeconds(TOKEN_REFRESH_MARGIN_SECONDS))) {
+            return cachedToken
+        }
         val received = fetchAccessToken()
-        token = received.value
+        token = received.tokenValue
         expires = received.expiresAt
-        return received.value
+        return received.tokenValue
     }
 
     private fun fetchAccessToken(): AccessToken {
@@ -105,18 +113,16 @@ class DynastyClient internal constructor(
 
     private fun parseAccessToken(response: Response): AccessToken {
         val data = mapper.readTree(response.peekBody(MAX_TOKEN_RESPONSE_BYTES).string())
-        val value = data.path("access_token").takeIf { it.isTextual }?.textValue()?.takeIf { it.isNotBlank() }
-            ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
-        val seconds = data.path("expires_in").takeIf { it.isIntegralNumber }?.longValue()
-            ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
-        if (seconds <= TOKEN_REFRESH_MARGIN_SECONDS || seconds > MAX_TOKEN_LIFETIME_SECONDS) {
+        val tokenValue = data.path("access_token").takeIf { it.isTextual }?.textValue()?.takeIf { it.isNotBlank() } ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
+        val expiresInSeconds = data.path("expires_in").takeIf { it.isIntegralNumber }?.longValue() ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
+        if (expiresInSeconds <= TOKEN_REFRESH_MARGIN_SECONDS || expiresInSeconds > MAX_TOKEN_LIFETIME_SECONDS) {
             throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
         }
-        return AccessToken(value, Instant.now().plusSeconds(seconds))
+        return AccessToken(tokenValue, Instant.now().plusSeconds(expiresInSeconds))
     }
 
     // No generated toString(): the token must never appear in diagnostics.
-    private class AccessToken(val value: String, val expiresAt: Instant)
+    private class AccessToken(val tokenValue: String, val expiresAt: Instant)
 
     @Synchronized
     private fun invalidate() {
@@ -137,9 +143,7 @@ class DynastyClient internal constructor(
         return post(endpoint("api/v1/documents").build(), body, DynastyResponseKind.DocumentId)
     }
 
-    fun archiveCase(caseId: DynastyCaseId) {
-        post(endpoint("api/v1/cases/$caseId/state/Archived").build(), ByteArray(0).toRequestBody(), DynastyResponseKind.NoContent)
-    }
+    fun archiveCase(caseId: DynastyCaseId) = post(endpoint("api/v1/cases/$caseId/state/Archived").build(), ByteArray(0).toRequestBody(), DynastyResponseKind.NoContent)
 
     private fun json(value: Any) = mapper.writeValueAsString(value).toRequestBody("application/json".toMediaType())
 
@@ -159,11 +163,15 @@ class DynastyClient internal constructor(
                     validateMutationResponse(response)
                     return responseKind.read(response)
                 }
-            } catch (e: DynastyFailure) { throw e }
+            } catch (e: DynastyFailure) {
+                throw e
+            }
             catch (e: IOException) {
                 throw networkFailure(progress, e)
             }
-            catch (_: Exception) { throw DynastyFailure(DynastyFailureCategory.DELIVERY_UNCONFIRMED) }
+            catch (_: Exception) {
+                throw DynastyFailure(DynastyFailureCategory.DELIVERY_UNCONFIRMED)
+            }
         }
         throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
     }
