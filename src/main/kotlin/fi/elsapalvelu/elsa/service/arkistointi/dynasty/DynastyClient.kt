@@ -14,6 +14,7 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.Response
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.time.Instant
@@ -55,54 +56,94 @@ class DynastyClient internal constructor(
         if (invalidAddress || invalidParts) throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
     }
 
-    private fun requireSetting(value: String?): String =
-        value?.takeIf { it.isNotBlank() } ?: throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
+    private fun requireSetting(value: String?): String = value?.takeIf { it.isNotBlank() } ?: throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
 
     @Synchronized
     private fun accessToken(): String {
         val cachedToken = token
-        if (cachedToken != null && expires.isAfter(Instant.now().plusSeconds(60))) return cachedToken
-        val body = FormBody.Builder().add("grant_type", "client_credentials").add("client_id", requireSetting(settings.clientId))
-            .add("client_secret", requireSetting(settings.clientSecret)).add("scope", settings.scope).build()
-        val request = Request.Builder().url(requireSetting(settings.tokenUrl)).header("Organization", requireSetting(settings.organization)).post(body).build()
-        try {
-            httpClient.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw DynastyFailure(
-                    if (response.code >= 500 || response.code == 429) DynastyFailureCategory.AUTH_TEMPORARILY_REJECTED
-                    else DynastyFailureCategory.AUTH_FAILED
-                )
-                val data = mapper.readTree(response.peekBody(16384).string())
-                val value = data.path("access_token").takeIf { it.isTextual }?.textValue()?.takeIf { it.isNotBlank() }
-                    ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
-                val seconds = data.path("expires_in").takeIf { it.isIntegralNumber }?.longValue()
-                    ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
-                if (seconds <= 60 || seconds > 86400) throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
-                token = value
-                expires = Instant.now().plusSeconds(seconds)
-                return value
-            }
-        } catch (e: DynastyFailure) { throw e }
-        catch (_: Exception) { throw DynastyFailure(DynastyFailureCategory.AUTH_UNAVAILABLE) }
+        if (cachedToken != null && expires.isAfter(Instant.now().plusSeconds(TOKEN_REFRESH_MARGIN_SECONDS))) return cachedToken
+        val received = fetchAccessToken()
+        token = received.value
+        expires = received.expiresAt
+        return received.value
     }
 
+    private fun fetchAccessToken(): AccessToken {
+        val request = tokenRequest()
+        try {
+            return httpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    val category = if (response.code >= 500 || response.code == 429) {
+                        DynastyFailureCategory.AUTH_TEMPORARILY_REJECTED
+                    } else {
+                        DynastyFailureCategory.AUTH_FAILED
+                    }
+                    throw DynastyFailure(category)
+                }
+                parseAccessToken(response)
+            }
+        } catch (exception: DynastyFailure) {
+            throw exception
+        } catch (_: Exception) {
+            throw DynastyFailure(DynastyFailureCategory.AUTH_UNAVAILABLE)
+        }
+    }
+
+    private fun tokenRequest(): Request {
+        val body = FormBody.Builder()
+            .add("grant_type", "client_credentials")
+            .add("client_id", requireSetting(settings.clientId))
+            .add("client_secret", requireSetting(settings.clientSecret))
+            .add("scope", settings.scope)
+            .build()
+        return Request.Builder()
+            .url(requireSetting(settings.tokenUrl))
+            .header("Organization", requireSetting(settings.organization))
+            .post(body)
+            .build()
+    }
+
+    private fun parseAccessToken(response: Response): AccessToken {
+        val data = mapper.readTree(response.peekBody(MAX_TOKEN_RESPONSE_BYTES).string())
+        val value = data.path("access_token").takeIf { it.isTextual }?.textValue()?.takeIf { it.isNotBlank() }
+            ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
+        val seconds = data.path("expires_in").takeIf { it.isIntegralNumber }?.longValue()
+            ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
+        if (seconds <= TOKEN_REFRESH_MARGIN_SECONDS || seconds > MAX_TOKEN_LIFETIME_SECONDS) {
+            throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
+        }
+        return AccessToken(value, Instant.now().plusSeconds(seconds))
+    }
+
+    // No generated toString(): the token must never appear in diagnostics.
+    private class AccessToken(val value: String, val expiresAt: Instant)
+
     @Synchronized
-    private fun invalidate() { token = null; expires = Instant.EPOCH }
+    private fun invalidate() {
+        token = null;
+        expires = Instant.EPOCH
+    }
 
     fun createCase(tosClass: String, metadata: DynastyCaseRequest): DynastyCaseId =
         post(endpoint("api/v1/cases").addQueryParameter("tosClass", tosClass).build(), json(metadata), DynastyResponseKind.CaseId)
+
     fun createTask(caseId: DynastyCaseId, title: String): DynastyTaskId =
         post(endpoint("api/v1/cases/$caseId/tasks").build(), json(DynastyTaskRequest(title)), DynastyResponseKind.TaskId)
+
     fun createDocument(metadata: DynastyDocumentMetadata, options: DynastyDocumentOptions, document: LoadedArkistointiAsiakirja): DynastyDocumentId {
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
             .addFormDataPart("MetaData", mapper.writeValueAsString(metadata)).addFormDataPart("CaseAttachmentOptions", mapper.writeValueAsString(options))
             .addFormDataPart("File", document.filename, document.sisalto.toRequestBody(document.contentType.toMediaType())).build()
         return post(endpoint("api/v1/documents").build(), body, DynastyResponseKind.DocumentId)
     }
-    fun archiveCase(caseId: DynastyCaseId) { post(endpoint("api/v1/cases/$caseId/state/Archived").build(), ByteArray(0).toRequestBody(), DynastyResponseKind.NoContent) }
+
+    fun archiveCase(caseId: DynastyCaseId) {
+        post(endpoint("api/v1/cases/$caseId/state/Archived").build(), ByteArray(0).toRequestBody(), DynastyResponseKind.NoContent)
+    }
+
     private fun json(value: Any) = mapper.writeValueAsString(value).toRequestBody("application/json".toMediaType())
 
-    private fun endpoint(path: String): HttpUrl.Builder =
-        requireSetting(settings.baseUrl).trimEnd('/').toHttpUrl().newBuilder().addPathSegments(path)
+    private fun endpoint(path: String): HttpUrl.Builder = requireSetting(settings.baseUrl).trimEnd('/').toHttpUrl().newBuilder().addPathSegments(path)
 
     private fun <T> post(url: HttpUrl, body: RequestBody, responseKind: DynastyResponseKind<T>): T {
         repeat(2) { attempt ->
@@ -114,30 +155,50 @@ class DynastyClient internal constructor(
             val client = httpClient.newBuilder().eventListener(progress).build()
             try {
                 client.newCall(request).execute().use { response ->
-                    if (response.code == 401) {
-                        invalidate()
-                        if (attempt == 0) return@use
-                        throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
-                    }
-                    if (!response.isSuccessful) {
-                        // Even 503/429 can originate from a gateway after upstream processing.
-                        if (response.code in 400..499 && response.code !in setOf(408,429)) throw DynastyFailure(DynastyFailureCategory.HTTP_REJECTED)
-                        throw DynastyFailure(DynastyFailureCategory.DELIVERY_UNCONFIRMED)
-                    }
+                    if (retryAfterUnauthorized(response.code, attempt)) return@use
+                    validateMutationResponse(response)
                     return responseKind.read(response)
                 }
             } catch (e: DynastyFailure) { throw e }
             catch (e: IOException) {
-                val failure = progress.failure(e)
-                val category = when (failure) {
-                    ArchiveHttpFailure.CONNECTION_FAILED -> DynastyFailureCategory.CONNECTION_FAILED
-                    ArchiveHttpFailure.TLS_FAILED -> DynastyFailureCategory.TLS_FAILED
-                    ArchiveHttpFailure.DELIVERY_UNCONFIRMED -> DynastyFailureCategory.DELIVERY_UNCONFIRMED
-                }
-                throw DynastyFailure(category)
+                throw networkFailure(progress, e)
             }
             catch (_: Exception) { throw DynastyFailure(DynastyFailureCategory.DELIVERY_UNCONFIRMED) }
         }
         throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
     }
+
+    private fun retryAfterUnauthorized(statusCode: Int, attempt: Int): Boolean {
+        if (statusCode != 401) return false
+        invalidate()
+        if (attempt != 0) throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
+        return true
+    }
+
+    private fun validateMutationResponse(response: Response) {
+        if (response.isSuccessful) return
+        // Even 503/429 can originate from a gateway after upstream processing.
+        val category = if (response.code in 400..499 && response.code !in setOf(408, 429)) {
+            DynastyFailureCategory.HTTP_REJECTED
+        } else {
+            DynastyFailureCategory.DELIVERY_UNCONFIRMED
+        }
+        throw DynastyFailure(category)
+    }
+
+    private fun networkFailure(progress: ArchiveHttpRequestProgress, exception: IOException): DynastyFailure {
+        val category = when (progress.failure(exception)) {
+            ArchiveHttpFailure.CONNECTION_FAILED -> DynastyFailureCategory.CONNECTION_FAILED
+            ArchiveHttpFailure.TLS_FAILED -> DynastyFailureCategory.TLS_FAILED
+            ArchiveHttpFailure.DELIVERY_UNCONFIRMED -> DynastyFailureCategory.DELIVERY_UNCONFIRMED
+        }
+        return DynastyFailure(category)
+    }
+
+    private companion object {
+        const val TOKEN_REFRESH_MARGIN_SECONDS = 60L
+        const val MAX_TOKEN_LIFETIME_SECONDS = 86400L
+        const val MAX_TOKEN_RESPONSE_BYTES = 16384L
+    }
+
 }

@@ -211,6 +211,34 @@ class DynastyClientTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = [
+        """{"access_token":"","expires_in":900}""",
+        """{"access_token":123,"expires_in":900}""",
+        """{"access_token":"test-token","expires_in":"900"}""",
+        """{"access_token":"test-token","expires_in":60}""",
+        """{"access_token":"test-token","expires_in":86401}"""
+    ])
+    fun `invalid token response sends no mutation and does not poison the cache`(body: String) {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(MockResponse().setBody(body))
+            val c = client(server)
+            assertThatThrownBy { c.createCase("x", caseRequest()) }
+                .isInstanceOfSatisfying(DynastyFailure::class.java) {
+                    assertThat(it.code).isEqualTo("DYNASTY_AUTH_FAILED")
+                    assertThat(it.retryable).isFalse()
+                    assertThat(it.definitelyNotProcessed).isTrue()
+                }
+            assertThat(server.requestCount).isEqualTo(1)
+            server.enqueue(token())
+            server.enqueue(MockResponse().setBody("415"))
+            assertThat(c.createCase("x", caseRequest())).isEqualTo(DynastyCaseId(415))
+            assertThat((1..3).map { server.takeRequest().requestUrl?.encodedPath })
+                .containsExactly("/token", "/token", "/api/v1/cases")
+        }
+    }
+
     @Test
     fun `token is cached and organization accompanies every request`() {
         MockWebServer().use { s ->
@@ -282,6 +310,27 @@ class DynastyClientTest {
             s.start(); s.enqueue(token()); s.enqueue(MockResponse().setResponseCode(401)); s.enqueue(token()); s.enqueue(MockResponse().setBody("415"))
             assertThat(client(s).createCase("x",caseRequest())).isEqualTo(DynastyCaseId(415))
             assertThat(s.requestCount).isEqualTo(4)
+        }
+    }
+
+    @Test
+    fun `second 401 stops after one token renewal and leaves the mutation safe to retry manually`() {
+        MockWebServer().use { server ->
+            server.start()
+            repeat(2) {
+                server.enqueue(token())
+                server.enqueue(MockResponse().setResponseCode(401))
+            }
+
+            assertThatThrownBy { client(server).createCase("x", caseRequest()) }
+                .isInstanceOfSatisfying(DynastyFailure::class.java) {
+                    assertThat(it.code).isEqualTo("DYNASTY_AUTH_FAILED")
+                    assertThat(it.retryable).isFalse()
+                    assertThat(it.definitelyNotProcessed).isTrue()
+                }
+            assertThat(server.requestCount).isEqualTo(4)
+            assertThat((1..4).map { server.takeRequest().requestUrl?.encodedPath })
+                .containsExactly("/token", "/api/v1/cases", "/token", "/api/v1/cases")
         }
     }
 
