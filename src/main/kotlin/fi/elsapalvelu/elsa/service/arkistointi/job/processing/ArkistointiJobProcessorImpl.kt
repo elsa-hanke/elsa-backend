@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.processing
 
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
@@ -23,27 +24,37 @@ class ArkistointiJobProcessorImpl(
     override fun process(execution: ArkistointiJobExecution) {
         try {
             processSubmission(execution)
-        } catch (exception: ParkArkistointiExecutionException) {
-            throw exception
-        } catch (exception: StaleArkistointiExecutionException) {
-            throw exception
-        } catch (exception: ArkistointiProcessingException) {
-            // The failure handler owns failure persistence, including permanent outcomes.
-            throw exception
-        } catch (exception: ArkistointiAsiakirjaException) {
-            // Keep a fixed description even for malformed adapter/library descriptions. Never retain a cause chain.
-            throw ArkistointiProcessingException(
-                ArkistointiError.create(exception.error.code, "Arkistoitavan asiakirjan tarkistus epaonnistui"),
-                retryable = exception.category == ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE
-            )
-        } catch (_: Exception) {
-            // No original exception/cause: scheduler logs must not expose payloads or HTTP response bodies.
-            throw ArkistointiProcessingException(unexpectedArchiveError())
+        } catch (exception: Exception) {
+            throw processingFailure(exception)
         }
+    }
+
+    private fun processingFailure(exception: Exception): Exception = when (exception) {
+        // Preserve execution control signals and already classified outcomes unchanged.
+        is ParkArkistointiExecutionException, is StaleArkistointiExecutionException,
+        is ArkistointiProcessingException -> exception
+        is ArkistointiAsiakirjaException -> ArkistointiProcessingException(
+            // Keep a fixed description even for malformed adapter/library descriptions. Never retain a cause chain.
+            ArkistointiError.create(exception.error.code, "Arkistoitavan asiakirjan tarkistus epaonnistui"),
+            retryable = exception.category == ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE
+        )
+        // No original exception/cause: scheduler logs must not expose payloads or HTTP response bodies.
+        else -> ArkistointiProcessingException(unexpectedArchiveError())
     }
 
     private fun processSubmission(execution: ArkistointiJobExecution) {
         val prepared = state.prepare(execution) ?: return
+        val adapter = requireAdapter(prepared)
+        val submission = ArkistointiSubmission(
+            prepared.jobId, prepared.university, prepared.caseType, prepared.payload,
+            prepared.asiakirjat.map(loader::load), execution
+        )
+        // This narrows the stale-send window. Lost active executions are parked: an in-flight send cannot be cancelled by fencing.
+        if (!state.checkBeforeSend(execution)) return
+        handleResult(execution, adapter, adapter.arkistoi(submission))
+    }
+
+    private fun requireAdapter(prepared: PreparedArkistointiJob): ArkistointiAdapter {
         val adapter = adapters.find(prepared.university)
             ?: throw ArkistointiProcessingException(
                 ArkistointiError.create("ARCHIVE_ADAPTER_MISSING", "Yliopiston arkistointiadapteria ei ole maaritelty"),
@@ -55,35 +66,36 @@ class ArkistointiJobProcessorImpl(
                 retryable = false
             )
         }
-        val submission = ArkistointiSubmission(
-            prepared.jobId, prepared.university, prepared.caseType, prepared.payload,
-            prepared.asiakirjat.map(loader::load), execution
-        )
-        // This narrows the stale-send window. Lost active executions are parked: an in-flight send cannot be cancelled by fencing.
-        if (!state.checkBeforeSend(execution)) return
-        when (val result = adapter.arkistoi(submission)) {
-            is ArkistointiResult.Success -> {
-                ArkistointiExternalId.validate(result.externalId)
-                try {
-                    state.succeed(execution, result.externalId)
-                } catch (exception: StaleArkistointiExecutionException) {
-                    throw exception
-                } catch (exception: ParkArkistointiExecutionException) {
-                    throw exception
-                } catch (_: Exception) {
-                    // Acceptance is known, but the commit may have failed or its acknowledgement was lost.
-                    // Only a resumable adapter may be invoked again automatically.
-                    throw ArkistointiProcessingException(
-                        ArkistointiError.create("ARCHIVE_SUCCESS_PERSISTENCE_FAILED",
-                            "Arkisto vastaanotti aineiston, mutta tuloksen tallennus epaonnistui; toimitus on tarkistettava"),
-                        retryable = adapter.canResumeAfterSuccessPersistenceFailure
-                    )
-                }
-            }
+        return adapter
+    }
+
+    private fun handleResult(execution: ArkistointiJobExecution, adapter: ArkistointiAdapter, result: ArkistointiResult) {
+        when (result) {
+            is ArkistointiResult.Success -> persistSuccess(execution, adapter, result.externalId)
             is ArkistointiResult.RetryableFailure -> throw ArkistointiProcessingException(result.error)
             is ArkistointiResult.PermanentFailure -> throw ArkistointiProcessingException(result.error, retryable = false)
         }
     }
+
+    private fun persistSuccess(execution: ArkistointiJobExecution, adapter: ArkistointiAdapter, externalId: String?) {
+        ArkistointiExternalId.validate(externalId)
+        try {
+            state.succeed(execution, externalId)
+        } catch (exception: StaleArkistointiExecutionException) {
+            throw exception
+        } catch (exception: ParkArkistointiExecutionException) {
+            throw exception
+        } catch (_: Exception) {
+            // Acceptance is known, but the commit may have failed or its acknowledgement was lost.
+            // Only a resumable adapter may be invoked again automatically.
+            throw ArkistointiProcessingException(
+                ArkistointiError.create("ARCHIVE_SUCCESS_PERSISTENCE_FAILED",
+                    "Arkisto vastaanotti aineiston, mutta tuloksen tallennus epaonnistui; toimitus on tarkistettava"),
+                retryable = adapter.canResumeAfterSuccessPersistenceFailure
+            )
+        }
+    }
+
 }
 
 internal fun unexpectedArchiveError() = ArkistointiError.create("ARCHIVE_PROCESSING_FAILED", "Arkistoinnin kasittely epaonnistui")
