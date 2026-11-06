@@ -44,11 +44,12 @@ class TurkuDynastyMetadataMapper(
         validateDocuments(submission, payload)
         validatePerson(payload)
         val context = MappingContext(payload, submission.caseType, educationProgram(payload))
+        val publicity = rules.documentPublicity(context.profile)
         val plan = Plan(
             tosClass = context.profile.tosClass,
             caseRequest = caseRequest(context),
             task = context.profile.task,
-            documents = submission.asiakirjat.map { documentMetadata(context, it.asiakirjatyyppi) }
+            documents = submission.asiakirjat.map { documentMetadata(context, publicity, it.asiakirjatyyppi) }
         )
         validateSerialization(plan)
         return plan
@@ -121,11 +122,14 @@ class TurkuDynastyMetadataMapper(
         degreeRegulation = degreeRegulation, licensingDate = licensingDate
     )
 
-    private fun documentMetadata(context: MappingContext, type: RecordType): DynastyDocumentMetadata {
+    private fun documentMetadata(
+        context: MappingContext,
+        publicity: TurkuDynastyMetadataRules.DocumentPublicity,
+        type: RecordType
+    ): DynastyDocumentMetadata {
         val settings = configuration.dynasty
         val additionalData = documentAdditionalData(context, type)
         val retention = rules.retentionPeriod(context.caseType, type)
-        val publicity = rules.documentPublicity(context.profile)
         return DynastyDocumentMetadata(
             title = documentTitle(context, type),
             schemaId = settings.documentSchemaId,
