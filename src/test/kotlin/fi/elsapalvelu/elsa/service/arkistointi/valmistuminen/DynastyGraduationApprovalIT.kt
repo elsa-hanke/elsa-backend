@@ -1,25 +1,25 @@
 package fi.elsapalvelu.elsa.service.arkistointi.valmistuminen
 
-import com.github.kagkarlsson.scheduler.Scheduler
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
 import fi.elsapalvelu.elsa.service.arkistointi.support.AsyncArchiveItSupport
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
-import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoHyvaksyntaFormDTO
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
-import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import org.assertj.core.api.Assertions.assertThat
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mockingDetails
 import org.mockito.Mockito.verifyNoInteractions
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,11 +27,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.http.MediaType
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.bean.override.convention.TestBean
 import org.springframework.test.context.bean.override.mockito.MockitoBean
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import java.awt.image.BufferedImage
@@ -48,12 +46,20 @@ import javax.imageio.ImageIO
     "application.arkistointi.uef.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=20",
     "application.arkistointi.turku.kaytossa=true", "application.arkistointi.uef.kaytossa=true",
     "application.arkistointi.turku.metadata.cases.valmistuminen.async-enabled=true",
+    "application.arkistointi.turku.metadata.cases.koejakso.async-enabled=true",
+    "application.arkistointi.uef.metadata.cases.koejakso.async-enabled=true",
     "application.arkistointi.uef.metadata.cases.valmistuminen.async-enabled=true"
 ])
 @Import(DynastyGraduationApprovalIT.Adapters::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
-    @Autowired private lateinit var scheduler: Scheduler
+    @Autowired private lateinit var documents: fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
+
+    @TestBean(name = "turkuDynastyArkistointiAdapter", methodName = "createTurkuAdapter", enforceOverride = true)
+    private lateinit var turkuAdapter: ArkistointiAdapter
+    @Autowired private lateinit var registry: ArkistointiAdapterRegistry
+    @Autowired private lateinit var adapters: List<ArkistointiAdapter>
+
     @Autowired private lateinit var properties: ApplicationProperties
     @MockitoBean lateinit var mail: MailService
 
@@ -160,30 +166,37 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
     private fun assertManifest(jobId: java.util.UUID, filename: String, contentType: String) {
         transactions.executeWithoutResult { _ ->
             val job = jobs.findById(jobId).orElseThrow()
-            val payload = objectMapper.readValue(job.payload, ValmistuminenArkistointiPayload::class.java)
+            val payload = ArchivePayloadReader(objectMapper).read(job.payload!!)
             assertThat(payload.documents).hasSize(job.asiakirjat.size)
             payload.documents.forEach { identity ->
                 val reference = job.asiakirjat.single { it.jarjestysnumero == identity.jarjestysnumero }
                 assertThat(identity.snapshotDocumentId).isEqualTo(reference.asiakirja!!.id)
                 assertThat(identity.recordType).isEqualTo(reference.asiakirjatyyppi)
-                assertThat(identity.sourceDocumentId).isNotEqualTo(identity.snapshotDocumentId)
                 val source = em.find(fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja::class.java, identity.sourceDocumentId)
                 assertThat(source).isNotNull()
-                assertThat(source.archiveSnapshot).isFalse()
                 assertThat(reference.asiakirja!!.archiveSnapshot).isTrue()
                 if (identity.recordType == RecordType.LAILLISTAMISTODISTUS) {
+                    assertThat(identity.sourceDocumentId).isEqualTo(identity.snapshotDocumentId)
+                    assertThat(source.archiveSnapshot).isTrue()
+                    val studyRightId = source.opintooikeus!!.id!!
+                    // No visible certificate copy and no second snapshot created by prepareDocuments/job creator.
+                    assertThat(jdbc.queryForList("select id from asiakirja where opintooikeus_id=? and nimi=?",
+                        Long::class.javaObjectType, studyRightId, filename)).containsExactly(identity.snapshotDocumentId)
+                    assertThat(documents.findAllByOpintooikeusId(studyRightId).map { it.id })
+                        .doesNotContain(identity.snapshotDocumentId)
                     assertThat(reference.filename).isEqualTo(filename)
                     assertThat(reference.contentType).isEqualTo(contentType)
                     assertThat(source.nimi).isEqualTo(filename)
                     assertThat(source.tyyppi).isEqualTo(contentType)
+                } else {
+                    assertThat(identity.sourceDocumentId).isNotEqualTo(identity.snapshotDocumentId)
+                    assertThat(source.archiveSnapshot).isFalse()
                 }
             }
         }
     }
 
-    private fun approve(id: Long) = testMockMvc.perform(put("/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id")
-        .contentType(MediaType.APPLICATION_JSON).with(csrf())
-        .content(convertObjectToJsonBytes(ValmistumispyyntoHyvaksyntaFormDTO(null))))
+    private fun approve(id: Long) = approveGraduation(id)
 
     companion object {
         private val certificateImage = ByteArrayOutputStream().use { output ->
@@ -191,21 +204,12 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
             output.toByteArray()
         }
         private val certificate = fi.elsapalvelu.elsa.service.pdf.PdfTestData.certificate()
-    }
+        @JvmStatic
+        fun createTurkuAdapter(): ArkistointiAdapter = adapter(YliopistoEnum.TURUN_YLIOPISTO)
 
-    @TestConfiguration(proxyBeanMethods = false)
-    class Adapters {
-        @Bean
-        fun isolatedCache(customizer: org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer): javax.cache.CacheManager =
-            (javax.cache.Caching.getCachingProvider() as org.ehcache.jsr107.EhcacheCachingProvider).getCacheManager(
-                java.net.URI("urn:elsa:dynasty-graduation-it"), org.ehcache.core.config.DefaultConfiguration(javaClass.classLoader)
-            ).also(customizer::customize)
-
-        @Bean fun turku(): ArkistointiAdapter = adapter(YliopistoEnum.TURUN_YLIOPISTO)
-        @Bean fun uef(): ArkistointiAdapter = adapter(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
         private fun adapter(value: YliopistoEnum) = object : ArkistointiAdapter {
             override val university = value
-            override val supportedCaseTypes = setOf(CaseType.VALMISTUMINEN)
+            override val supportedCaseTypes = setOf(CaseType.KOEJAKSO, CaseType.VALMISTUMINEN)
             override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult {
                 assertThat(pyynto.asiakirjat.map { it.asiakirjatyyppi }).containsExactly(
                     RecordType.YHTEENVETO, RecordType.LIITE, RecordType.LAILLISTAMISTODISTUS)
@@ -218,5 +222,20 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
                 return ArkistointiResult.Success("test:${pyynto.jobId}")
             }
         }
+    }
+
+    @Test
+    fun `Turku test bean replaces the production adapter in the registry`() {
+        assertThat(adapters.filter { it.university == YliopistoEnum.TURUN_YLIOPISTO }).containsExactly(turkuAdapter)
+        assertThat(registry.find(YliopistoEnum.TURUN_YLIOPISTO)).isSameAs(turkuAdapter)
+    }
+
+    @TestConfiguration(proxyBeanMethods = false)
+    class Adapters {
+        @Bean
+        fun isolatedCache(customizer: org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer): javax.cache.CacheManager =
+            AsyncArchiveItSupport.isolatedArchiveCache("urn:elsa:dynasty-graduation-it", javaClass.classLoader, customizer)
+
+        @Bean fun uef(): ArkistointiAdapter = adapter(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
     }
 }

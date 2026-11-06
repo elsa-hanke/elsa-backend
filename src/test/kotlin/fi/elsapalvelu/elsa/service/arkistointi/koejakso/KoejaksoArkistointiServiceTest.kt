@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.koejakso
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
@@ -15,6 +16,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobEnqueuer
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference
@@ -25,6 +27,8 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import java.time.LocalDate
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
@@ -45,10 +49,34 @@ class KoejaksoArkistointiServiceTest {
     private val creator = mock<ArkistointiJobCreator>()
     private val jobs = mock<ArkistointiJobRepository>()
     private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
-    private val service = KoejaksoArkistointiService(configuration, synchronous, snapshots, creator, mapper, jobs)
+    private val service = KoejaksoArkistointiService(configuration, synchronous, ArkistointiJobEnqueuer(jobs, snapshots, creator, mapper))
     private val university = YliopistoEnum.HELSINGIN_YLIOPISTO
     private val studyRight = Opintooikeus(id = 12, yliopisto = Yliopisto(nimi = university), erikoisala = Erikoisala(id = 1))
     private val document = Asiakirja(id = 22, nimi = "approval.pdf", tyyppi = "application/pdf")
+
+    @ParameterizedTest
+    @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
+    fun `missing specialty prevents synchronous delivery instead of selecting non YEK`(type: CaseType) {
+        studyRight.erikoisala = null
+        whenever(synchronous.onKaytossa(university, type)).thenReturn(true)
+        whenever(synchronous.muodostaSahke(
+            anyOrNull(), any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any()
+        )).thenReturn(ArkistointiPackage("/tmp/test.zip", null))
+
+        assertThatThrownBy { archive(type) }.isInstanceOf(IllegalArgumentException::class.java)
+
+        verify(synchronous, never()).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
+        verifyNoInteractions(snapshots, creator, jobs)
+    }
+
+    @Test
+    fun `assessment still requires specialty when archiving is disabled`() {
+        studyRight.erikoisala = null
+
+        assertThatThrownBy { archive(CaseType.KOEJAKSO) }.isInstanceOf(IllegalArgumentException::class.java)
+
+        verifyNoInteractions(synchronous, snapshots, creator, jobs)
+    }
 
     @ParameterizedTest
     @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
@@ -75,14 +103,23 @@ class KoejaksoArkistointiServiceTest {
         assertThat(request.firstValue.asiakirjat).containsExactly(reference)
         val prefix = if (type == CaseType.SOPIMUS) "koejakso-sopimus" else "koejakso-arvio"
         assertThat(request.firstValue.key).isEqualTo("$prefix:${university.name}:7")
-        val payload = mapper.readValue(request.firstValue.payload, KoejaksoArkistointiPayload::class.java)
+        val payload = ArchivePayloadReader(mapper).read(request.firstValue.payload)
+        val json = mapper.readTree(request.firstValue.payload)
+        assertThat(json.has("licensingDate")).isFalse()
+        assertThat(json.has("studyRight")).isFalse()
         assertThat(payload.caseId).isEqualTo(7)
-        assertThat(payload.opintooikeusId).isEqualTo(12)
+        assertThat(payload.studyRightId).isEqualTo(12)
         assertThat(payload.documents).containsExactly(ArkistointiDocumentIdentity(22, 33, recordType, 0))
         assertThat(payload.approvalDate).isEqualTo(LocalDate.of(2026, 10, 24))
-        assertThat(payload.koejaksoHyvaksytty).isEqualTo(if (type == CaseType.KOEJAKSO) false else null)
+        val assessment = json["koejaksoHyvaksytty"]
+        if (type == CaseType.KOEJAKSO) {
+            assertThat(assessment.isBoolean).isTrue()
+            assertThat(assessment.booleanValue()).isFalse()
+        } else {
+            assertThat(assessment.isNull).isTrue()
+        }
         assertThat(payload.reviewer).isEqualTo(if (type == CaseType.SOPIMUS) "" else null)
-        assertThat(payload.toString()).isEqualTo("KoejaksoArkistointiPayload(caseId=7)")
+        assertThat(payload.toString()).isEqualTo("ArchivePayload")
         verify(synchronous, never()).muodostaSahke(
             anyOrNull(), any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any()
         )

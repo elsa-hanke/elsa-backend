@@ -43,13 +43,24 @@ export const asyncArchiveTasks = {
         const sourceId = sourceIds[type] ?? identities.find(
           (identity) => identity.snapshotDocumentId === Number(row.asiakirja_id)
         )?.sourceDocumentId
-        const source = await client.query(
-          `SELECT d.data FROM asiakirja a
-          JOIN asiakirja_data d ON d.id = a.asiakirja_data_id
-          WHERE NOT a.archive_snapshot AND a.opintooikeus_id = $1 AND a.nimi = $2
-          AND a.id = $3`,
-          [row.opintooikeus_id, row.nimi, sourceId]
-        )
+        // Certificates originate in the trainee's AsiakirjaData, not a visible Asiakirja.
+        // Read those original bytes; the manifest source ID is the snapshot itself.
+        const source = job.case_type === 'VALMISTUMINEN' && type === 'LAILLISTAMISTODISTUS'
+          ? await client.query(
+            `SELECT d.data FROM opintooikeus o
+            JOIN erikoistuva_laakari el ON el.id = o.erikoistuva_laakari_id
+            JOIN asiakirja_data d ON d.id = el.laillistamistodistus_id
+            WHERE o.id = $1 AND el.laillistamispaivan_liitetiedoston_nimi = $2
+            AND el.laillistamispaivan_liitetiedoston_tyyppi = $3`,
+            [row.opintooikeus_id, row.nimi, row.sisaltotyyppi]
+          )
+          : await client.query(
+            `SELECT d.data FROM asiakirja a
+            JOIN asiakirja_data d ON d.id = a.asiakirja_data_id
+            WHERE NOT a.archive_snapshot AND a.opintooikeus_id = $1 AND a.nimi = $2
+            AND a.id = $3`,
+            [row.opintooikeus_id, row.nimi, sourceId]
+          )
         documents.push({
           id: Number(row.asiakirja_id),
           type,

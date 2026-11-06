@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkeDelivery
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.PreparedSahkePackage
 
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
@@ -22,8 +21,7 @@ class LouhiAsyncArkistointiAdapter(
     override val university = YliopistoEnum.TAMPEREEN_YLIOPISTO
     override val supportedCaseTypes = setOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO)
 
-    override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult =
-        delivery.deliver(pyynto, this, "LOUHI", ::invalid, ::send)
+    override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult = delivery.deliver(pyynto, this, "LOUHI", ::invalid, ::send)
 
     private fun send(archive: PreparedSahkePackage): ArkistointiResult =
         try {
@@ -31,19 +29,14 @@ class LouhiAsyncArkistointiAdapter(
             ArkistointiResult.Success(null)
         } catch (exception: LouhiTransferException) {
             val failure = exception.failure
-            val error = ArkistointiError.create(failure.code,
-                "Louhi-siirto epaonnistui [stage=${exception.stage.name}, reason=${exception.reason.name}, status=${exception.sftpStatus}]")
-            if (failure.retryable) ArkistointiResult.RetryableFailure(error)
-            else ArkistointiResult.PermanentFailure(error)
+            ArkistointiResult.failure(failure.code,
+                "Louhi-siirto epaonnistui [stage=${exception.stage.name}, reason=${exception.reason.name}, status=${exception.sftpStatus}]",
+                failure.retryable)
         } catch (_: ResponseStatusException) {
             retryable()
         }
 
-    private fun invalid(code: String) = ArkistointiResult.PermanentFailure(
-        ArkistointiError.create(code, "Louhi-toimituksen tiedot tai vastaanoton asetukset on tarkistettava")
-    )
+    private fun invalid(code: String) = ArkistointiResult.failure(code, "Louhi-toimituksen tiedot tai vastaanoton asetukset on tarkistettava", retryable = false)
 
-    private fun retryable() = ArkistointiResult.RetryableFailure(
-        ArkistointiError.create("LOUHI_TRANSFER_FAILED", "Louhi-siirto ei valmistunut ennen julkaisua")
-    )
+    private fun retryable() = ArkistointiResult.failure("LOUHI_TRANSFER_FAILED", "Louhi-siirto ei valmistunut ennen julkaisua", retryable = true)
 }

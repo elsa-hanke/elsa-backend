@@ -30,8 +30,9 @@ class ArkistointiDbSchedulerConfigurationTest {
     private val provider = mock<ObjectProvider<ArkistointiJobProcessor>>().also {
         whenever(it.getIfAvailable()).thenReturn(processor)
     }
+    private val failureHandler = mock<ArkistointiJobFailureHandler>()
     private val task = ArkistointiDbSchedulerConfiguration().arkistointiJobTask(
-        provider, mock<ArkistointiJobFailureHandler>(),
+        provider, failureHandler,
         ArkistointiAdapterRegistry(emptyList()), ArkistointiConfigurationProvider(ApplicationProperties()), MockEnvironment()
     )
     private val jobId = UUID.randomUUID()
@@ -41,6 +42,14 @@ class ArkistointiDbSchedulerConfigurationTest {
     private val context = mock<ExecutionContext>().also { whenever(it.execution).thenReturn(execution) }
     private val identity = ArkistointiJobExecution(instance.taskName, instance.id, execution.version)
     private val operations = mock<ExecutionOperations<Unit>>()
+
+    @Test
+    fun `dead execution callback uses dedicated recovery handler`() {
+        val completed = ExecutionComplete.success(execution, now, now)
+        task.deadExecutionHandler.deadExecution(completed, operations)
+        verify(failureHandler).onDeadExecution(completed, operations)
+        verifyNoInteractions(processor)
+    }
 
     @Test
     fun `task passes the exact job UUID and captured execution identity and acknowledges normal completion`() {

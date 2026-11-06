@@ -17,7 +17,7 @@ class PeppiExamImportTest {
 
     @Test
     fun `incomplete passed subpart does not become an authoritative deletion snapshot`() {
-        val result = fetch(listOf(accomplishment("main", MAIN), accomplishment("essay", ESSAY, date = null)))
+        val result = fetch(listOf(accomplishment("main", MAIN), accomplishment("essay", ESSAY, assessment = Assessment(date = null))))
         assertThat(result.items).hasSize(2)
         val main = result.items!!.single { it.suorituspaiva != null }
         assertThat(main.nimi_fi).isEqualTo(MAIN)
@@ -27,7 +27,7 @@ class PeppiExamImportTest {
 
     @Test
     fun `passed subpart never replaces a failed main exam`() {
-        val result = fetch(listOf(accomplishment("main", MAIN, passed = false), accomplishment("essay", ESSAY)))
+        val result = fetch(listOf(accomplishment("main", MAIN, assessment = Assessment(passed = false)), accomplishment("essay", ESSAY)))
         val exam = result.items!!.single()
         assertThat(exam.nimi_fi).isEqualTo(MAIN)
         assertThat(exam.hyvaksytty).isFalse
@@ -39,7 +39,7 @@ class PeppiExamImportTest {
     fun `missing or undated main exam never promotes a passed subpart`() {
         val essay = accomplishment("essay", ESSAY)
         assertThat(fetch(listOf(essay)).items).isEmpty()
-        val result = fetch(listOf(accomplishment("main", MAIN, passed = false, date = null), essay))
+        val result = fetch(listOf(accomplishment("main", MAIN, assessment = Assessment(passed = false, date = null)), essay))
         assertThat(result.items).hasSize(1)
         assertThat(result.items!!.single().suorituspaiva).isNull()
         assertThat(result.items!!.single().nimi_fi).isEqualTo(MAIN)
@@ -88,9 +88,9 @@ class PeppiExamImportTest {
     @Test
     fun `main exam retakes are not imported as subparts and response order is irrelevant`() {
         val payload = listOf(
-            accomplishment("main-1", MAIN, grade = "1"),
-            accomplishment("main-2", MAIN, grade = "2"),
-            accomplishment("failed-main", MAIN, passed = false, date = "2026-06-01T00:00:00"),
+            accomplishment("main-1", MAIN, assessment = Assessment(grade = "1")),
+            accomplishment("main-2", MAIN, assessment = Assessment(grade = "2")),
+            accomplishment("failed-main", MAIN, assessment = Assessment(passed = false, date = "2026-06-01T00:00:00")),
             accomplishment("essay", ESSAY)
         )
         val first = fetch(payload).items!!.single()
@@ -105,8 +105,8 @@ class PeppiExamImportTest {
     fun `missing IDs remain deterministic and long common name prefixes do not collide`() {
         val prefix = "Patologia, " + "a".repeat(60)
         val payload = listOf(
-            accomplishment(null, MAIN, grade = "1"),
-            accomplishment(null, MAIN, grade = "2"),
+            accomplishment(null, MAIN, assessment = Assessment(grade = "1")),
+            accomplishment(null, MAIN, assessment = Assessment(grade = "2")),
             accomplishment(null, prefix + "esseet"),
             accomplishment(null, prefix + "preparaatit"),
             accomplishment("long-id-" + "x".repeat(80), "Patologia, muu")
@@ -193,25 +193,28 @@ class PeppiExamImportTest {
         }
     }
 
-    @Suppress("LongParameterList")
     private fun accomplishment(
         id: String?,
         name: String,
-        passed: Boolean = true,
-        date: String? = "2026-05-07T00:00:00",
+        assessment: Assessment = Assessment(),
         code: String = "ELOP0001",
-        entitlement: String = "key",
-        grade: String = if (passed) "Hyväksytty" else "Hylätty"
+        entitlement: String = "key"
     ): Map<String, Any?> = mapOf(
         "id" to id,
         "studyEntitlementId" to "123",
         "studyEntitlementKey" to entitlement,
         "kurssiKoodi" to code,
-        "suoritusPvm" to date,
+        "suoritusPvm" to assessment.date,
         "opintopisteet" to 0.0,
         "nimi" to mapOf("fi" to name, "sv" to ""),
-        "hyvaksytty" to passed,
-        "arvio" to mapOf("fi" to grade, "sv" to "")
+        "hyvaksytty" to assessment.passed,
+        "arvio" to mapOf("fi" to assessment.grade, "sv" to "")
+    )
+
+    private data class Assessment(
+        val passed: Boolean = true,
+        val date: String? = "2026-05-07T00:00:00",
+        val grade: String = if (passed) "Hyväksytty" else "Hylätty"
     )
 
     private companion object {

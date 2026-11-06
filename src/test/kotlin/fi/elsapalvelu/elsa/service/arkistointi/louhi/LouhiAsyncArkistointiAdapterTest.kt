@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.sahke.PreparedSahkePackage
 
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
-import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
+import fi.elsapalvelu.elsa.service.arkistointi.support.arkistointiSubmission
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -31,7 +31,7 @@ class LouhiAsyncArkistointiAdapterTest {
     private val builder = mock<AsyncSahkePackageBuilder>()
     private val louhi = mock<TampereLouhiService>()
     private val adapter = LouhiAsyncArkistointiAdapter(AsyncSahkeDelivery(builder), louhi)
-    private val submission = ArkistointiSubmission(UUID.randomUUID(), YliopistoEnum.TAMPEREEN_YLIOPISTO,
+    private val submission = arkistointiSubmission(UUID.randomUUID(), YliopistoEnum.TAMPEREEN_YLIOPISTO,
         CaseType.VALMISTUMINEN, "{}", emptyList())
 
     @ParameterizedTest

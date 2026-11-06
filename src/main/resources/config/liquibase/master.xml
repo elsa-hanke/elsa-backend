@@ -288,5 +288,6 @@
     <include file="config/liquibase/changelog/20260905090000_added_async_arkistointi_job.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20261018090000_archive_document_snapshots.xml" relativeToChangelogFile="false"/>
 
+    <include file="config/liquibase/changelog/20261101090000_added_arkistointi_dynasty_step.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
 <!-- @formatter:on -->

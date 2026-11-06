@@ -114,6 +114,16 @@ class ArkistointiJobFailureHandlerTest {
         verify(operations, never()).reschedule(any(), any())
     }
 
+    @Test
+    fun `dead execution uses recovery state decision instead of normal retry`() {
+        val completed = failure(0)
+        whenever(state.recoverDeadExecution(any(), any(), eq(false))).thenReturn(false)
+        handler.onDeadExecution(completed, operations)
+        verify(state).recoverDeadExecution(any(), any(), eq(false))
+        verify(state, never()).fail(any(), any(), any())
+        verify(operations).reschedule(completed, Schedule.NEVER)
+    }
+
     private fun failure(previousFailures: Int, cause: ArkistointiProcessingException = ArkistointiProcessingException(unexpectedArchiveError())): ExecutionComplete {
         val now = Instant.parse("2026-01-01T00:00:00Z")
         val execution = Execution(now, ARKISTOINTI_JOB_TASK.instance(jobId.toString()).build())

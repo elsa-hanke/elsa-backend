@@ -491,8 +491,12 @@ class OpintotietodataPersistenceServiceIT {
         val secondOpintoopas = em.findAll(Opintoopas::class)
             .first { it.erikoisala == secondErikoisala && it.voimassaoloPaattyy == null }
         addValidOpintooikeus(
-            em, erikoistuvaLaakari, yliopistoRepository.findOneByNimi(yliopisto)!!,
-            secondErikoisala, secondOpintoopas, secondAsetus, currentDate, secondOpintooikeusId
+            em, erikoistuvaLaakari,
+            StudyProgramme(
+                yliopisto = yliopistoRepository.findOneByNimi(yliopisto)!!,
+                erikoisala = secondErikoisala, opintoopas = secondOpintoopas, asetus = secondAsetus
+            ),
+            currentDate, secondOpintooikeusId
         )
         val validYekOikeus = OpintooikeusHelper.addOpintooikeusForYekKoulutettava(em, erikoistuvaLaakari, alkamispaiva = currentDate.minusYears(1),
             paattymispaiva = currentDate.plusYears(5)
@@ -850,14 +854,17 @@ class OpintotietodataPersistenceServiceIT {
     }
 }
 
-@Suppress("LongParameterList")
+private data class StudyProgramme(
+    val yliopisto: Yliopisto,
+    val erikoisala: Erikoisala,
+    val opintoopas: Opintoopas,
+    val asetus: Asetus
+)
+
 private fun addValidOpintooikeus(
     em: EntityManager,
     erikoistuvaLaakari: ErikoistuvaLaakari,
-    yliopisto: Yliopisto,
-    erikoisala: Erikoisala,
-    opintoopas: Opintoopas,
-    asetus: Asetus,
+    programme: StudyProgramme,
     currentDate: LocalDate,
     yliopistoOpintooikeusId: String
 ) {
@@ -869,10 +876,10 @@ private fun addValidOpintooikeus(
         opiskelijatunnus = "123456",
         osaamisenArvioinninOppaanPvm = currentDate,
         erikoistuvaLaakari = erikoistuvaLaakari,
-        yliopisto = yliopisto,
-        erikoisala = erikoisala,
-        opintoopas = opintoopas,
-        asetus = asetus,
+        yliopisto = programme.yliopisto,
+        erikoisala = programme.erikoisala,
+        opintoopas = programme.opintoopas,
+        asetus = programme.asetus,
         kaytossa = false,
         tila = OpintooikeudenTila.AKTIIVINEN
     )

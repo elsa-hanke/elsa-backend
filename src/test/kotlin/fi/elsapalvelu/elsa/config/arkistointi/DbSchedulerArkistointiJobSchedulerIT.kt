@@ -73,6 +73,7 @@ class DbSchedulerArkistointiJobSchedulerIT {
             .withConfiguration(AutoConfigurations.of(DbSchedulerAutoConfiguration::class.java))
             .withUserConfiguration(
                 ArkistointiDbSchedulerConfiguration::class.java,
+                ArkistointiRouteValidator::class.java,
                 ArkistointiAdapterRegistry::class.java,
                 ArkistointiConfigurationProvider::class.java
             )

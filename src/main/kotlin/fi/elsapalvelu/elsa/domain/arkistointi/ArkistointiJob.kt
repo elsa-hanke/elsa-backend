@@ -103,12 +103,22 @@ data class ArkistointiJob(
         asiakirjat.add(asiakirja)
     }
 
+    fun startProcessingIfWaiting() {
+        if (status == ArkistointiJobStatus.ODOTTAA) {
+            transitionTo(ArkistointiJobStatus.KASITTELYSSA)
+        }
+    }
+
     fun transitionTo(newStatus: ArkistointiJobStatus) {
         require(status.canTransitionTo(newStatus)) {
             "ArkistointiJob ei voi siirtya tilasta $status tilaan $newStatus"
         }
         status = newStatus
     }
+
+    fun isFinished() = status in setOf(ArkistointiJobStatus.LAHETETTY, ArkistointiJobStatus.VAATII_TOIMENPITEITA)
+
+    fun isVaatiiToimenpiteita() = status == ArkistointiJobStatus.VAATII_TOIMENPITEITA
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

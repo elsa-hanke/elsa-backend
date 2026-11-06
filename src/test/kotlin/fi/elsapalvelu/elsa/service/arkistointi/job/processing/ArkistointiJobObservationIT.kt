@@ -91,7 +91,7 @@ class ArkistointiJobObservationIT {
         assertThat(observedCommittedState).isTrue()
         assertThat(errors()).isEqualTo(errorsBefore)
         verify(observer).onCompleted(ArkistointiAttemptCompleted(execution.jobId, YliopistoEnum.TURUN_YLIOPISTO,
-            CaseType.VALMISTUMINEN, 3, ArkistointiAttemptCompleted.Outcome.RETRYABLE_FAILURE, "UNAVAILABLE"))
+            CaseType.VALMISTUMINEN, 3, ArkistointiAttemptCompleted.Result.RETRYABLE_FAILURE, "UNAVAILABLE"))
         verify(alerts).publishAlert(any(), any())
     }
 
