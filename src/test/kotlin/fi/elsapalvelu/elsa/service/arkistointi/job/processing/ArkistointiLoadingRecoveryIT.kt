@@ -60,7 +60,7 @@ import org.springframework.transaction.support.TransactionTemplate
     "application.arkistointi.retry.max-delay=2s",
     "application.arkistointi.retry.max-attempts=3"
 ])
-@Import(ArkistointiJobProcessingIT.TestConfig::class)
+@Import(ArkistointiJobProcessingItBase.TestConfig::class)
 class ArkistointiLoadingRecoveryIT : ArchiveProcessingTestSupport() {
     @Autowired private lateinit var creator: ArkistointiJobCreator
     @Autowired private lateinit var snapshots: ArkistointiAsiakirjaSnapshotService

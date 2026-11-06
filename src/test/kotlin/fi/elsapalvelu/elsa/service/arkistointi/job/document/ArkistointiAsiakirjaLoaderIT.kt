@@ -14,7 +14,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreato
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
-import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessingIT
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessingItBase
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobStateService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -51,7 +51,7 @@ import org.springframework.transaction.support.TransactionTemplate
     "application.arkistointi.retry.max-delay=2s",
     "application.arkistointi.retry.max-attempts=3"
 ])
-@Import(ArkistointiJobProcessingIT.TestConfig::class)
+@Import(ArkistointiJobProcessingItBase.TestConfig::class)
 class ArkistointiAsiakirjaLoaderIT : ArchiveProcessingTestSupport() {
     @Autowired private lateinit var creator: ArkistointiJobCreator
     @Autowired private lateinit var snapshots: ArkistointiAsiakirjaSnapshotService
