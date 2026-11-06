@@ -19,24 +19,21 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaLoader
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
 import fi.elsapalvelu.elsa.service.arkistointi.support.ArchiveProcessingTestSupport
+import fi.elsapalvelu.elsa.service.arkistointi.support.AsyncArchiveItSupport
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.web.rest.helpers.AsiakirjaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
 import jakarta.persistence.EntityManager
-import java.net.URI
 import java.sql.Connection
 import java.sql.Timestamp
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
-import javax.cache.Caching
 import javax.sql.DataSource
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
-import org.ehcache.core.config.DefaultConfiguration
-import org.ehcache.jsr107.EhcacheCachingProvider
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -260,8 +257,6 @@ open class ArkistointiJobProcessingItBase : ArchiveProcessingTestSupport() {
     @TestConfiguration(proxyBeanMethods = false)
     class TestConfig {
         @Bean fun isolatedCache(customizer: JCacheManagerCustomizer): javax.cache.CacheManager =
-            (Caching.getCachingProvider() as EhcacheCachingProvider).getCacheManager(
-                URI("urn:elsa:archive-processing-it"), DefaultConfiguration(javaClass.classLoader)
-            ).also(customizer::customize)
+            AsyncArchiveItSupport.isolatedArchiveCache("urn:elsa:archive-processing-it", javaClass.classLoader, customizer)
     }
 }
