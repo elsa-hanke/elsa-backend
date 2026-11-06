@@ -10,10 +10,12 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 class TurkuDynastyMetadataMapperTest {
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = ["EL", "EHL", "YEK"])
+    @ParameterizedTest
+    @ValueSource(strings = ["EL", "EHL", "YEK"])
     fun `graduation maps program regulation dates and document specific fields`(kind: String) {
         val plan = plan(kind, false)
         val mapper = jacksonObjectMapper()

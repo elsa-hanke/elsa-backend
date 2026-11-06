@@ -9,6 +9,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
 import java.util.stream.Stream
 
@@ -86,7 +87,7 @@ class ArchivePayloadReaderTest {
     }
 
     @ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = ["specialtyType", "studyRightStartDate", "degreeRegulation", "licensingDate"])
+    @ValueSource(strings = ["specialtyType", "studyRightStartDate", "degreeRegulation", "licensingDate"])
     fun `rejects nontextual Dynasty fields without scalar coercion`(field: String) {
         val root = jacksonObjectMapper().readTree(MINIMAL_PAYLOAD) as com.fasterxml.jackson.databind.node.ObjectNode
         root.put(field, 123)
@@ -95,7 +96,7 @@ class ArchivePayloadReaderTest {
     }
 
     @ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = ["studyRightStartDate", "licensingDate"])
+    @ValueSource(strings = ["studyRightStartDate", "licensingDate"])
     fun `rejects malformed Dynasty dates without retaining private values`(field: String) {
         val root = jacksonObjectMapper().readTree(MINIMAL_PAYLOAD) as com.fasterxml.jackson.databind.node.ObjectNode
         root.put(field, "Private invalid date")
