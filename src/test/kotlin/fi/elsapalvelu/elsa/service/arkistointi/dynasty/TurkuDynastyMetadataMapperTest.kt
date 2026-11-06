@@ -11,7 +11,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
+import com.fasterxml.jackson.databind.JsonNode
 
 class TurkuDynastyMetadataMapperTest {
     @ParameterizedTest
@@ -63,6 +65,23 @@ class TurkuDynastyMetadataMapperTest {
         assertThat(doc.path("AD").has("UTUvalmistumispaiva")).isFalse()
         assertThat(doc.path("AD").has("UTUlaillistamispaiva")).isFalse()
     }
+    @ParameterizedTest
+    @CsvSource("false,turku-valmistuminen-el.json", "true,turku-koejakso-el.json")
+    fun `plan matches the golden specification mapping`(koejakso: Boolean, goldenFile: String) {
+        val mapper = jacksonObjectMapper()
+        val actual = mapper.valueToTree<JsonNode>(plan("EL", koejakso))
+        val golden = javaClass.getResourceAsStream("/fixtures/arkistointi/dynasty/$goldenFile")!!.use(mapper::readTree)
+        assertThat(actual).isEqualTo(golden)
+    }
+
+    @Test
+    fun `unconfigured degree regulation is rejected with regulation category`() {
+        assertThatThrownBy { plan("EL", false) { it.put("degreeRegulation", "99/2000") } }
+            .isInstanceOfSatisfying(DynastyFailure::class.java) {
+                assertThat(it.category).isEqualTo(DynastyFailureCategory.REGULATION_UNCONFIGURED)
+            }
+    }
+
     @Test
     fun `snapshot missing specialty type is rejected`() {
         assertThatThrownBy { plan("EL", false) { it.remove("specialtyType") } }
