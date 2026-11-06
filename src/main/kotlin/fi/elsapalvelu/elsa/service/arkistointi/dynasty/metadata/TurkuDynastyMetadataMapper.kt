@@ -24,6 +24,10 @@ class TurkuDynastyMetadataMapper(
     private val mapper: ObjectMapper,
     private val reader: ArchivePayloadReader
 ) {
+    private companion object {
+        const val FACULTY = "Lääketieteellinen tiedekunta"
+    }
+
     private val configuration = properties.getArkistointi().getTurku()
     private val rules = TurkuDynastyMetadataRules(configuration)
 
@@ -91,18 +95,27 @@ class TurkuDynastyMetadataMapper(
         val title = "${program.prefix} ${profile.title} $name $date"
     }
 
-    private fun caseRequest(context: MappingContext): DynastyCaseRequest {
-        val payload = context.payload
-        return DynastyCaseRequest(DynastyCaseModel(
-            schemaId = configuration.dynasty.caseSchemaId,
-            title = context.title,
-            additionalData = DynastyAdditionalData(
-                firstName = payload.firstName, lastName = payload.lastName,
-                faculty = "Lääketieteellinen tiedekunta", program = context.program.title,
-                specialty = payload.specialtyName, birthDate = payload.birthDate?.toString()
-            )
-        ))
-    }
+    private fun caseRequest(context: MappingContext) = DynastyCaseRequest(DynastyCaseModel(
+        schemaId = configuration.dynasty.caseSchemaId,
+        title = context.title,
+        additionalData = additionalData(context, birthDate = context.payload.birthDate?.toString())
+    ))
+
+    private fun additionalData(
+        context: MappingContext,
+        birthDate: String? = null,
+        studyRightStartDate: String? = null,
+        graduationDate: String? = null,
+        approvalDate: String? = null,
+        degreeRegulation: String? = null,
+        licensingDate: String? = null
+    ) = DynastyAdditionalData(
+        firstName = context.payload.firstName, lastName = context.payload.lastName,
+        faculty = FACULTY, program = context.program.title, specialty = context.payload.specialtyName,
+        birthDate = birthDate, studyRightStartDate = studyRightStartDate,
+        graduationDate = graduationDate, approvalDate = approvalDate,
+        degreeRegulation = degreeRegulation, licensingDate = licensingDate
+    )
 
     private fun documentMetadata(context: MappingContext, type: RecordType): DynastyDocumentMetadata {
         val settings = configuration.dynasty
@@ -125,9 +138,8 @@ class TurkuDynastyMetadataMapper(
     private fun documentAdditionalData(context: MappingContext, type: RecordType): DynastyAdditionalData {
         val payload = context.payload
         val main = type in setOf(RecordType.YHTEENVETO, RecordType.ARVIOINTI)
-        return DynastyAdditionalData(
-            firstName = payload.firstName, lastName = payload.lastName,
-            faculty = "Lääketieteellinen tiedekunta", program = context.program.title, specialty = payload.specialtyName,
+        return additionalData(
+            context,
             birthDate = if (main) payload.birthDate?.toString() else null,
             studyRightStartDate = if (main) payload.studyRightStartDate?.toString() else null,
             graduationDate = if (main && context.graduation) payload.approvalDate.toString() else null,
