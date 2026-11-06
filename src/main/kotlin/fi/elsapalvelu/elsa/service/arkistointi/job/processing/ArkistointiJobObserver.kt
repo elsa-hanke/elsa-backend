@@ -1,6 +1,9 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.processing
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiAttemptCompleted.Result.RETRYABLE_FAILURE
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiAttemptCompleted.Result.SUCCESS
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiAttemptCompleted.Result.TERMINAL_FAILURE
 import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import fi.elsapalvelu.elsa.service.metrics.ArkistointiMetricsService
 import org.slf4j.LoggerFactory
@@ -22,28 +25,31 @@ class ArkistointiJobObserver(
     fun onCompleted(event: ArkistointiAttemptCompleted) {
         try {
             metrics.recordAsyncAttempt(event.university, event.caseType, event.result.name)
-            if (event.result == ArkistointiAttemptCompleted.Result.SUCCESS) {
-                metrics.recordSuccess(event.university, event.caseType)
-            } else if (event.result == ArkistointiAttemptCompleted.Result.TERMINAL_FAILURE) {
-                metrics.recordError(event.university, event.caseType)
+            when (event.result) {
+                SUCCESS -> metrics.recordSuccess(event.university, event.caseType)
+                TERMINAL_FAILURE -> metrics.recordError(event.university, event.caseType)
+                RETRYABLE_FAILURE -> Unit
             }
         } catch (_: Exception) {
             log.warn("Archive metrics publication failed [jobId={}]", event.jobId)
         }
-        val code = if (event.result == ArkistointiAttemptCompleted.Result.SUCCESS) "NONE"
+        val code = if (event.result == SUCCESS) "NONE"
             else event.errorCode?.takeIf { SAFE_CODE.matches(it) } ?: "ARCHIVE_ERROR_UNSPECIFIED"
         val details = "jobId=${event.jobId}, university=${event.university.name}, caseType=${event.caseType.value}, " +
             "attempt=${event.attempt}, outcome=${event.result.name}, errorCode=$code"
-        when {
-            event.result == ArkistointiAttemptCompleted.Result.TERMINAL_FAILURE -> {
+        when (event.result) {
+            SUCCESS -> log.info("Archive attempt committed [{}]", details)
+            TERMINAL_FAILURE -> {
                 log.error("Archive job requires intervention [{}]", details)
                 publish("Asynkroninen arkistointi vaatii toimenpiteitä", "Automaattiset yritykset on lopetettu. $details", event)
             }
-            event.result == ArkistointiAttemptCompleted.Result.RETRYABLE_FAILURE && event.attempt == alertAfterAttempts -> {
-                log.warn("Archive delivery delayed [{}]", details)
-                publish("Asynkroninen arkistointi viivästyy", "Automaattiset yritykset jatkuvat. $details", event)
-            }
-            else -> log.info("Archive attempt committed [{}]", details)
+            RETRYABLE_FAILURE ->
+                if (event.attempt == alertAfterAttempts) {
+                    log.warn("Archive delivery delayed [{}]", details)
+                    publish("Asynkroninen arkistointi viivästyy", "Automaattiset yritykset jatkuvat. $details", event)
+                } else {
+                    log.info("Archive attempt committed [{}]", details)
+                }
         }
     }
 
