@@ -10,6 +10,10 @@ interface ArkistointiAdapter {
     /** Explicit capabilities; configuring another case type must not silently enable its delivery. */
     val supportedCaseTypes: Set<CaseType>
 
+    /** True when the submission belongs to this adapter's university and one of its supported case types. */
+    fun supports(submission: ArkistointiSubmission): Boolean =
+        submission.university == university && submission.caseType in supportedCaseTypes
+
     /** True only when a repeated invocation safely resumes an already accepted delivery. */
     val canResumeAfterSuccessPersistenceFailure: Boolean get() = false
 

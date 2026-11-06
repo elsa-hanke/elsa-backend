@@ -2,22 +2,23 @@ package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import java.util.UUID
 
+/** Phantom scopes that keep case and document ids from being mixed up at compile time. */
+sealed interface DynastyIdScope {
+    data object Case : DynastyIdScope
+    data object Document : DynastyIdScope
+}
+
 /** IDs keep their validated wire representation, including numeric padding and UUID letter case. */
 @JvmInline
-value class DynastyCaseId(val value: String) {
+value class DynastyNumericId<S : DynastyIdScope>(val value: String) {
     init { dynastyNumericId(value) }
     constructor(value: Long) : this(value.toString())
     val numericValue: Long get() = value.toLong()
     override fun toString() = value
 }
 
-@JvmInline
-value class DynastyDocumentId(val value: String) {
-    init { dynastyNumericId(value) }
-    constructor(value: Long) : this(value.toString())
-    val numericValue: Long get() = value.toLong()
-    override fun toString() = value
-}
+typealias DynastyCaseId = DynastyNumericId<DynastyIdScope.Case>
+typealias DynastyDocumentId = DynastyNumericId<DynastyIdScope.Document>
 
 @JvmInline
 value class DynastyTaskId(val value: String) {

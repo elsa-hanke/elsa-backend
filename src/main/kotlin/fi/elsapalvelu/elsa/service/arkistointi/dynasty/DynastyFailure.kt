@@ -21,8 +21,4 @@ internal enum class DynastyFailureCategory(
 }
 
 /** Safe diagnostics only: no original exception, response body or request data. */
-internal class DynastyFailure(val category: DynastyFailureCategory) : RuntimeException("Dynasty request failed [${category.code}]") {
-    val code: String get() = category.code
-    val retryable: Boolean get() = category.retryable
-    val definitelyNotProcessed: Boolean get() = category.definitelyNotProcessed
-}
+internal class DynastyFailure(val category: DynastyFailureCategory) : RuntimeException("Dynasty request failed [${category.code}]")

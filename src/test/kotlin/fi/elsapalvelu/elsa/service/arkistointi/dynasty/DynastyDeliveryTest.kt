@@ -25,7 +25,7 @@ class DynastyDeliveryTest {
             val adapter = TurkuDynastyArkistointiAdapter(
                 DynastyClient(properties.getArkistointi().getTurku().dynasty,mapper),
                 TurkuDynastyMetadataMapper(properties,mapper,ArchivePayloadReader(mapper)),
-                DynastyStepExecutor(ledger)
+                DynastyStepExecutor(ledger, properties)
             )
             listOf("""{"access_token":"token","expires_in":900}""","415","\"${UUID.randomUUID()}\"","1078").forEach { server.enqueue(MockResponse().setBody(it)) }
             server.enqueue(MockResponse().setResponseCode(403))

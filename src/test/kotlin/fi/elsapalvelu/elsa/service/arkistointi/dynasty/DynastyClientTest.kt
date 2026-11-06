@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -50,13 +51,13 @@ class DynastyClientTest {
             val c = client(server)
 
             assertThatThrownBy {
-                DynastyStepExecutor(ledger).execute(execution, DynastyStepKey.Case, c.inProgressGrace) {
+                DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, DynastyStepKey.Case) {
                     c.createCase("05.06.02.04", caseRequest())
                 }
             }.isInstanceOfSatisfying(DynastyFailure::class.java) {
-                assertThat(it.code).isEqualTo("DYNASTY_AUTH_FAILED")
-                assertThat(it.retryable).isEqualTo(retryable)
-                assertThat(it.definitelyNotProcessed).isTrue()
+                assertThat(it.category.code).isEqualTo("DYNASTY_AUTH_FAILED")
+                assertThat(it.category.retryable).isEqualTo(retryable)
+                assertThat(it.category.definitelyNotProcessed).isTrue()
                 assertThat(it.message).doesNotContain("private")
                 assertThat(it.cause).isNull()
             }
@@ -104,13 +105,13 @@ class DynastyClientTest {
                 .thenReturn(DynastyStepLedger.Decision.Proceed)
             val c = client(server, transport)
             assertThatThrownBy {
-                DynastyStepExecutor(ledger).execute(execution, DynastyStepKey.Case, c.inProgressGrace) {
+                DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, DynastyStepKey.Case) {
                     c.createCase("05.06.02.04", caseRequest())
                 }
             }.isInstanceOfSatisfying(DynastyFailure::class.java) {
-                assertThat(it.code).isEqualTo(if (beforeRequest) "DYNASTY_UNAVAILABLE" else "DYNASTY_DELIVERY_UNCONFIRMED")
-                assertThat(it.retryable).isEqualTo(retryable)
-                assertThat(it.definitelyNotProcessed).isEqualTo(beforeRequest)
+                assertThat(it.category.code).isEqualTo(if (beforeRequest) "DYNASTY_UNAVAILABLE" else "DYNASTY_DELIVERY_UNCONFIRMED")
+                assertThat(it.category.retryable).isEqualTo(retryable)
+                assertThat(it.category.definitelyNotProcessed).isEqualTo(beforeRequest)
                 assertThat(it.message).doesNotContain("private")
                 assertThat(it.cause).isNull()
             }
@@ -161,13 +162,13 @@ class DynastyClientTest {
                 whenever(ledger.begin(eq(execution), eq(DynastyStepKey.Case), any()))
                     .thenReturn(DynastyStepLedger.Decision.Proceed)
                 assertThatThrownBy {
-                    DynastyStepExecutor(ledger).execute(execution, DynastyStepKey.Case, c.inProgressGrace) {
+                    DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, DynastyStepKey.Case) {
                         c.createCase("05.06.02.04", caseRequest())
                     }
                 }.isInstanceOfSatisfying(DynastyFailure::class.java) {
-                    assertThat(it.code).isEqualTo("DYNASTY_UNAVAILABLE")
-                    assertThat(it.retryable).isFalse()
-                    assertThat(it.definitelyNotProcessed).isTrue()
+                    assertThat(it.category.code).isEqualTo("DYNASTY_UNAVAILABLE")
+                    assertThat(it.category.retryable).isFalse()
+                    assertThat(it.category.definitelyNotProcessed).isTrue()
                     assertThat(it.cause).isNull()
                 }
                 verify(ledger).abandon(execution.jobId, DynastyStepKey.Case, execution.version)
@@ -191,7 +192,7 @@ class DynastyClientTest {
             }
             assertThatThrownBy { client.createCase("x", caseRequest()) }
                 .isInstanceOfSatisfying(DynastyFailure::class.java) {
-                    assertThat(it.code).isEqualTo("DYNASTY_CONFIGURATION_INVALID")
+                    assertThat(it.category.code).isEqualTo("DYNASTY_CONFIGURATION_INVALID")
                     assertThat(it.cause).isNull()
                 }
             assertThat(server.requestCount).isZero()
@@ -207,9 +208,9 @@ class DynastyClientTest {
             server.enqueue(MockResponse().setSocketPolicy(okhttp3.mockwebserver.SocketPolicy.DISCONNECT_AFTER_REQUEST))
             assertThatThrownBy { client(server).createCase("x", caseRequest()) }
                 .isInstanceOfSatisfying(DynastyFailure::class.java) {
-                    assertThat(it.retryable).isEqualTo(!duringMutation)
-                    assertThat(it.definitelyNotProcessed).isEqualTo(!duringMutation)
-                    assertThat(it.code).isEqualTo(if (duringMutation) "DYNASTY_DELIVERY_UNCONFIRMED" else "DYNASTY_AUTH_UNAVAILABLE")
+                    assertThat(it.category.retryable).isEqualTo(!duringMutation)
+                    assertThat(it.category.definitelyNotProcessed).isEqualTo(!duringMutation)
+                    assertThat(it.category.code).isEqualTo(if (duringMutation) "DYNASTY_DELIVERY_UNCONFIRMED" else "DYNASTY_AUTH_UNAVAILABLE")
                 }
             assertThat(server.requestCount).isEqualTo(if (duringMutation) 2 else 1)
         }
@@ -230,9 +231,9 @@ class DynastyClientTest {
             val c = client(server)
             assertThatThrownBy { c.createCase("x", caseRequest()) }
                 .isInstanceOfSatisfying(DynastyFailure::class.java) {
-                    assertThat(it.code).isEqualTo("DYNASTY_AUTH_FAILED")
-                    assertThat(it.retryable).isFalse()
-                    assertThat(it.definitelyNotProcessed).isTrue()
+                    assertThat(it.category.code).isEqualTo("DYNASTY_AUTH_FAILED")
+                    assertThat(it.category.retryable).isFalse()
+                    assertThat(it.category.definitelyNotProcessed).isTrue()
                 }
             assertThat(server.requestCount).isEqualTo(1)
             server.enqueue(token())
@@ -300,8 +301,8 @@ class DynastyClientTest {
         MockWebServer().use { s ->
             s.start(); s.enqueue(token()); s.enqueue(MockResponse().setResponseCode(503).setBody("private details"))
             assertThatThrownBy { client(s).createCase("x",caseRequest()) }.isInstanceOfSatisfying(DynastyFailure::class.java) {
-                assertThat(it.definitelyNotProcessed).isFalse()
-                assertThat(it.retryable).isFalse()
+                assertThat(it.category.definitelyNotProcessed).isFalse()
+                assertThat(it.category.retryable).isFalse()
                 assertThat(it.message).doesNotContain("private details")
             }
             assertThat(s.requestCount).isEqualTo(2)
@@ -328,9 +329,9 @@ class DynastyClientTest {
 
             assertThatThrownBy { client(server).createCase("x", caseRequest()) }
                 .isInstanceOfSatisfying(DynastyFailure::class.java) {
-                    assertThat(it.code).isEqualTo("DYNASTY_AUTH_FAILED")
-                    assertThat(it.retryable).isFalse()
-                    assertThat(it.definitelyNotProcessed).isTrue()
+                    assertThat(it.category.code).isEqualTo("DYNASTY_AUTH_FAILED")
+                    assertThat(it.category.retryable).isFalse()
+                    assertThat(it.category.definitelyNotProcessed).isTrue()
                 }
             assertThat(server.requestCount).isEqualTo(4)
             assertThat((1..4).map { server.takeRequest().requestUrl?.encodedPath })
@@ -343,8 +344,8 @@ class DynastyClientTest {
         MockWebServer().use { s ->
             s.start(); s.enqueue(token()); s.enqueue(MockResponse().setBody("not-an-id"))
             assertThatThrownBy { client(s).createCase("x",caseRequest()) }.isInstanceOfSatisfying(DynastyFailure::class.java) {
-                assertThat(it.code).isEqualTo("DYNASTY_RESPONSE_INVALID")
-                assertThat(it.definitelyNotProcessed).isFalse()
+                assertThat(it.category.code).isEqualTo("DYNASTY_RESPONSE_INVALID")
+                assertThat(it.category.definitelyNotProcessed).isFalse()
             }
         }
     }

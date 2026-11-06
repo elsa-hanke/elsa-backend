@@ -13,24 +13,21 @@ sealed class DynastyResponseKind<T>(val accept: String = "text/plain") {
         return fromSaved(raw.trim().removeSurrounding("\""))
     }
 
-    data object CaseId : DynastyResponseKind<DynastyCaseId>() {
-        override fun fromSaved(id: String?) = DynastyCaseId(requireDynastyId(id))
-        override fun toSaved(value: DynastyCaseId) = value.toString()
-    }
-
-    data object TaskId : DynastyResponseKind<DynastyTaskId>() {
-        override fun fromSaved(id: String?) = DynastyTaskId(requireDynastyId(id))
-        override fun toSaved(value: DynastyTaskId) = value.toString()
-    }
-
-    data object DocumentId : DynastyResponseKind<DynastyDocumentId>() {
-        override fun fromSaved(id: String?) = DynastyDocumentId(requireDynastyId(id))
-        override fun toSaved(value: DynastyDocumentId) = value.toString()
+    /** An identifier saved and read back as its own string; [parse] validates the remote value. */
+    class IdKind<T>(private val parse: (String) -> T) : DynastyResponseKind<T>() {
+        override fun fromSaved(id: String?) = parse(requireDynastyId(id))
+        override fun toSaved(value: T) = value.toString()
     }
 
     data object NoContent : DynastyResponseKind<Unit>("application/json") {
         override fun read(response: Response) = Unit
         override fun fromSaved(id: String?) = Unit
         override fun toSaved(value: Unit): String? = null
+    }
+
+    companion object {
+        val CaseId = IdKind { DynastyCaseId(it) }
+        val TaskId = IdKind { DynastyTaskId(it) }
+        val DocumentId = IdKind { DynastyDocumentId(it) }
     }
 }

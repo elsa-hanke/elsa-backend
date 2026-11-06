@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
@@ -18,7 +19,7 @@ class TurkuDynastyArkistointiAdapterTest {
     private val client = mock<DynastyClient>()
     private val metadata = mock<TurkuDynastyMetadataMapper>()
     private val ledger = mock<DynastyStepLedger>()
-    private val adapter = TurkuDynastyArkistointiAdapter(client,metadata,DynastyStepExecutor(ledger))
+    private val adapter = TurkuDynastyArkistointiAdapter(client,metadata,DynastyStepExecutor(ledger, ApplicationProperties()))
     private val execution = ArkistointiJobExecution("archive",UUID.randomUUID().toString(),1)
     private val document = LoadedArkistointiAsiakirja(1, RecordType.ARVIOINTI, 0, "approval.pdf", "application/pdf", "checksum", byteArrayOf(1))
     private val submission = ArkistointiSubmission(execution.jobId,YliopistoEnum.TURUN_YLIOPISTO,CaseType.KOEJAKSO,"{}",listOf(document),execution)
@@ -38,7 +39,6 @@ class TurkuDynastyArkistointiAdapterTest {
 
     @Test
     fun `completed steps resume without repeating remote mutations`() {
-        whenever(client.inProgressGrace).thenReturn(java.time.Duration.ofMinutes(5))
         whenever(metadata.plan(submission)).thenReturn(plan)
         whenever(ledger.begin(execution,DynastyStepKey.Case,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done("415"))
         whenever(ledger.begin(execution,DynastyStepKey.Task,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(UUID.randomUUID().toString()))
@@ -46,19 +46,16 @@ class TurkuDynastyArkistointiAdapterTest {
         whenever(ledger.begin(execution,DynastyStepKey.ArchiveCase,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(null))
         assertThat(adapter.arkistoi(submission)).isEqualTo(ArkistointiResult.Success("415"))
         verify(client).validateConfiguration()
-        verify(client, times(4)).inProgressGrace
         verifyNoMoreInteractions(client)
         verify(ledger,never()).complete(any(),any(),any(),anyOrNull())
     }
 
     @Test
     fun `unknown old intent parks delivery without issuing another request`() {
-        whenever(client.inProgressGrace).thenReturn(java.time.Duration.ofMinutes(5))
         whenever(metadata.plan(submission)).thenReturn(plan)
         whenever(ledger.begin(execution,DynastyStepKey.Case,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Unconfirmed)
         assertThat(adapter.arkistoi(submission)).isInstanceOf(ArkistointiResult.PermanentFailure::class.java)
         verify(client).validateConfiguration()
-        verify(client).inProgressGrace
         verifyNoMoreInteractions(client)
     }
 

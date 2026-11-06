@@ -28,7 +28,6 @@ class DynastyClient internal constructor(
 ) {
     constructor(settings: DynastyProperties, mapper: ObjectMapper) : this(settings, mapper, null)
 
-    val inProgressGrace get() = settings.inProgressGrace
     private var token: String? = null
     private var expires = Instant.EPOCH
 

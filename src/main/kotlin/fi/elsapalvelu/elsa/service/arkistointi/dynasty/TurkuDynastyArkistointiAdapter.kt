@@ -36,7 +36,7 @@ class TurkuDynastyArkistointiAdapter(
             client.validateConfiguration()
             metadata.plan(pyynto)
         } catch (e: DynastyFailure) {
-            return failure(e.code)
+            return failure(e.category.code)
         }
         catch (_: Exception) {
             return failure("DYNASTY_PAYLOAD_INVALID")
@@ -45,26 +45,26 @@ class TurkuDynastyArkistointiAdapter(
             val caseId = deliver(pyynto, plan)
             ArkistointiResult.Success(caseId.toString())
         } catch (e: DynastyFailure) {
-            failure(e.code, e.retryable)
+            failure(e.category.code, e.category.retryable)
         }
     }
 
     private fun validateSubmission(submission: ArkistointiSubmission) {
         require(submission.execution.jobId == submission.jobId)
-        require(submission.university == university && submission.caseType in supportedCaseTypes)
+        require(supports(submission))
     }
 
     private fun deliver(submission: ArkistointiSubmission, plan: TurkuDynastyMetadataMapper.Plan): DynastyCaseId {
         val execution = submission.execution
-        val caseId = steps.execute(execution, DynastyStepKey.Case, client.inProgressGrace) {
+        val caseId = steps.execute(execution, DynastyStepKey.Case) {
             client.createCase(plan.tosClass, plan.caseRequest)
         }
-        val taskId = steps.execute(execution, DynastyStepKey.Task, client.inProgressGrace) {
+        val taskId = steps.execute(execution, DynastyStepKey.Task) {
             client.createTask(caseId, plan.task)
         }
         deliverDocuments(submission, plan, caseId, taskId)
         // Conservatively park an ambiguous state change too, until vendor confirms replay semantics.
-        steps.execute(execution, DynastyStepKey.ArchiveCase, client.inProgressGrace) { client.archiveCase(caseId) }
+        steps.execute(execution, DynastyStepKey.ArchiveCase) { client.archiveCase(caseId) }
         return caseId
     }
 
@@ -72,20 +72,22 @@ class TurkuDynastyArkistointiAdapter(
         submission: ArkistointiSubmission, plan: TurkuDynastyMetadataMapper.Plan,
         caseId: DynastyCaseId, taskId: DynastyTaskId
     ) {
+        // zip would silently drop documents if the plan and the submission ever disagreed.
+        check(submission.asiakirjat.size == plan.documents.size) { "document plan does not match submission" }
+        val documents = submission.asiakirjat.zip(plan.documents)
+        val (mainDocument, mainMetadata) = documents.first()
         val mainId = deliverDocument(
-            submission.execution, submission.asiakirjat.first(), plan.documents.first(), DynastyMainDocumentOptions(caseId, taskId)
+            submission.execution, mainDocument, mainMetadata, DynastyMainDocumentOptions(caseId, taskId)
         )
-        submission.asiakirjat.drop(1).forEachIndexed { index, document ->
-            deliverDocument(
-                submission.execution, document, plan.documents[index + 1], DynastyAttachmentOptions(caseId, mainId)
-            )
+        documents.drop(1).forEach { (document, metadata) ->
+            deliverDocument(submission.execution, document, metadata, DynastyAttachmentOptions(caseId, mainId))
         }
     }
 
     private fun deliverDocument(
         execution: ArkistointiJobExecution, document: LoadedArkistointiAsiakirja,
         metadata: DynastyDocumentMetadata, options: DynastyDocumentOptions
-    ): DynastyDocumentId = steps.execute(execution, DynastyStepKey.Document(document.jarjestysnumero), client.inProgressGrace) {
+    ): DynastyDocumentId = steps.execute(execution, DynastyStepKey.Document(document.jarjestysnumero)) {
         client.createDocument(metadata, options, document)
     }
 
