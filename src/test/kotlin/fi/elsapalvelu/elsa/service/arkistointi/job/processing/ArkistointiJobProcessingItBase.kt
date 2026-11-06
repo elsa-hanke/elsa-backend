@@ -77,7 +77,7 @@ open class ArkistointiJobProcessingItBase : ArchiveProcessingTestSupport() {
     @Autowired protected lateinit var failureHandler: ArkistointiJobFailureHandler
     @Autowired protected lateinit var state: ArkistointiJobStateService
     @MockitoSpyBean protected lateinit var loader: ArkistointiAsiakirjaLoader
-    private val schedulers = mutableListOf<Scheduler>()
+    protected val schedulers = mutableListOf<Scheduler>()
 
     @BeforeEach
     fun resetAdapter() {
