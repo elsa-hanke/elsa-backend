@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyCaseRequest
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyCaseModel
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyAdditionalData
@@ -26,6 +27,7 @@ class TurkuDynastyMetadataMapper(
 ) {
     private companion object {
         const val FACULTY = "Lääketieteellinen tiedekunta"
+        val SUPPORTED_SPECIALTY_TYPES = setOf(ErikoisalaTyyppi.LAAKETIEDE, ErikoisalaTyyppi.HAMMASLAAKETIEDE)
     }
 
     private val configuration = properties.getArkistointi().getTurku()
@@ -68,11 +70,13 @@ class TurkuDynastyMetadataMapper(
     }
 
     private fun validatePerson(payload: ArchivePayload) {
-        require(payload.specialtyType in setOf("LAAKETIEDE", "HAMMASLAAKETIEDE")) { "unsupported specialty type" }
+        require(specialtyType(payload) in SUPPORTED_SPECIALTY_TYPES) { "unsupported specialty type" }
         require(!payload.firstName.isNullOrBlank()) { "missing first name" }
         require(!payload.lastName.isNullOrBlank()) { "missing last name" }
         require(!payload.specialtyName.isNullOrBlank()) { "missing specialty name" }
     }
+
+    private fun specialtyType(payload: ArchivePayload): ErikoisalaTyyppi? = ErikoisalaTyyppi.entries.firstOrNull { it.name == payload.specialtyType }
 
     private enum class EducationProgram(val prefix: String, val title: String) {
         EL("EL", "Erikoislääkärikoulutus"),
@@ -82,7 +86,7 @@ class TurkuDynastyMetadataMapper(
 
     private fun educationProgram(payload: ArchivePayload): EducationProgram = when {
         payload.yek -> EducationProgram.YEK
-        payload.specialtyType == "HAMMASLAAKETIEDE" -> EducationProgram.EHL
+        specialtyType(payload) == ErikoisalaTyyppi.HAMMASLAAKETIEDE -> EducationProgram.EHL
         else -> EducationProgram.EL
     }
 
