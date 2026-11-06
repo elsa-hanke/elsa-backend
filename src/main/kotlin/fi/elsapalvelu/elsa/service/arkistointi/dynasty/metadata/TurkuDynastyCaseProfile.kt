@@ -26,7 +26,7 @@ internal enum class TurkuDynastyCaseProfile(
         tosClass = "05.06.02.00",
         task = "Arviointi",
         documentTypes = mapOf(RecordType.ARVIOINTI to "Koejakson vastuuhenkilön arvio"),
-        publicityClassName = "Osittain salassa pidettävä",
+        publicityClassName = "Osittain salassapidettävä",
         retentionRule = "Asiakirjan päivämäärä"
     );
 

@@ -33,10 +33,10 @@ class DynastyRequestsTest {
     @Test
     fun `document DTO flattens only configured secrecy fields`() {
         val metadata = DynastyDocumentMetadata("Test title", "schema", "Assessment", -1, DynastyAdditionalData(),
-            "secret", "Osittain salassa pidettävä", "Asiakirjan päivämäärä", secrecyFields = mapOf("reason" to "law", "duration" to "100", "start" to "approval"))
+            "secret", "Osittain salassapidettävä", "Asiakirjan päivämäärä", secrecyFields = mapOf("reason" to "law", "duration" to "100", "start" to "approval"))
         assertThat(mapper.readTree(mapper.writeValueAsString(metadata))).isEqualTo(mapper.readTree("""{
             "title":"Test title", "schemaId":"schema", "documentType":"Assessment", "retentionPeriodLength":-1, "AD":{},
-            "publicityClassId":"secret", "publicityClassName":"Osittain salassa pidettävä", "retentionPeriodRule":"Asiakirjan päivämäärä",
+            "publicityClassId":"secret", "publicityClassName":"Osittain salassapidettävä", "retentionPeriodRule":"Asiakirjan päivämäärä",
             "personalData":"Sisältää henkilötietoja", "state":3, "reason":"law", "duration":"100", "start":"approval"
         }"""))
     }

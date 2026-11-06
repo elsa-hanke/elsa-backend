@@ -36,7 +36,7 @@
         "UTUtutkintoasetus": "Confirmed regulation"
       },
       "publicityClassId": "test-secret",
-      "publicityClassName": "Osittain salassa pidettävä",
+      "publicityClassName": "Osittain salassapidettävä",
       "retentionPeriodRule": "Asiakirjan päivämäärä",
       "personalData": "Sisältää henkilötietoja",
       "state": 3,

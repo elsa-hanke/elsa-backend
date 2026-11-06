@@ -57,7 +57,7 @@ class TurkuDynastyMetadataMapperTest {
         assertThat(plan.task).isEqualTo("Arviointi")
         assertThat(doc.path("documentType").asText()).isEqualTo("Koejakson vastuuhenkilön arvio")
         assertThat(doc.path("retentionPeriodRule").asText()).isEqualTo("Asiakirjan päivämäärä")
-        assertThat(doc.path("publicityClassName").asText()).isEqualTo("Osittain salassa pidettävä")
+        assertThat(doc.path("publicityClassName").asText()).isEqualTo("Osittain salassapidettävä")
         assertThat(doc.path("publicityClassId").asText()).isEqualTo("test-secret")
         assertThat(doc.path("duration").asText()).isEqualTo("100")
         assertThat(doc.path("retentionPeriodLength").asInt()).isEqualTo(-1)
