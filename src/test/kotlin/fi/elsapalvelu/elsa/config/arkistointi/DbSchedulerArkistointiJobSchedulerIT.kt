@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobScheduler
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobLogContext
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
@@ -61,6 +62,9 @@ class DbSchedulerArkistointiJobSchedulerIT {
     @Autowired
     private lateinit var failureHandler: ArkistointiJobFailureHandler
 
+    @Autowired
+    private lateinit var arkistointiJobLogContext: ArkistointiJobLogContext
+
     @Test
     fun `scheduler kaynnistyy Spring kontekstin mukana`() {
         assertThat(backgroundScheduler.schedulerState.isStarted).isTrue
@@ -79,6 +83,7 @@ class DbSchedulerArkistointiJobSchedulerIT {
             )
             .withBean(ApplicationProperties::class.java, Supplier { properties })
             .withBean(ArkistointiJobFailureHandler::class.java, Supplier { failureHandler })
+            .withBean(ArkistointiJobLogContext::class.java, Supplier { arkistointiJobLogContext })
             // The wrapper prevents closing the parent context's shared connection pool.
             .withBean(DataSource::class.java, Supplier { DelegatingDataSource(dataSource) })
             .withPropertyValues(
