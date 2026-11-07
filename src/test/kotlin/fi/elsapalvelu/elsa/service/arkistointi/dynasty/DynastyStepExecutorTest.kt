@@ -72,7 +72,7 @@ class DynastyStepExecutorTest {
         assertThrows<DynastyFailure> { executor.execute(execution, DynastyStepKey.Document(2)) { DynastyDocumentId("1") } }
 
         val event = appender.list.single()
-        assertThat(event.level).isEqualTo(Level.WARN)
+        assertThat(event.level).isEqualTo(Level.ERROR)
         assertThat(event.formattedMessage)
             .isEqualTo("Dynasty step failed [jobId=$jobId, step=DOCUMENT:2, category=STEP_IN_PROGRESS]")
     }
