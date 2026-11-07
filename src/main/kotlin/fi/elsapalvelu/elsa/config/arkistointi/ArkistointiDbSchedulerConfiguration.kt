@@ -12,6 +12,7 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobLogContext
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessor
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiRetryPolicy
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.StaleArkistointiExecutionException
@@ -40,6 +41,7 @@ class ArkistointiDbSchedulerConfiguration {
     fun arkistointiJobTask(
         processorProvider: ObjectProvider<ArkistointiJobProcessor>,
         failureHandler: ArkistointiJobFailureHandler,
+        logContext: ArkistointiJobLogContext,
         adapters: ArkistointiAdapterRegistry,
         configuration: ArkistointiConfigurationProvider,
         environment: Environment
@@ -61,6 +63,9 @@ class ArkistointiDbSchedulerConfiguration {
             }
 
             override fun execute(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext): CompletionHandler<Unit> =
+                logContext.withJob(taskInstance.id) { executeWithOutcome(taskInstance, executionContext) }
+
+            private fun executeWithOutcome(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext): CompletionHandler<Unit> =
                 try {
                     super.execute(taskInstance, executionContext)
                 } catch (_: ParkArkistointiExecutionException) {

@@ -10,7 +10,8 @@ import org.springframework.stereotype.Component
 @Component
 class ArkistointiJobFailureHandler(
     private val state: ArkistointiJobStateService,
-    private val policy: ArkistointiRetryPolicy
+    private val policy: ArkistointiRetryPolicy,
+    private val logContext: ArkistointiJobLogContext
 ) : FailureHandler<Unit> {
     override fun onFailure(completed: ExecutionComplete, operations: ExecutionOperations<Unit>) =
         handle(completed, operations, deadExecution = false)
@@ -18,7 +19,10 @@ class ArkistointiJobFailureHandler(
     fun onDeadExecution(completed: ExecutionComplete, operations: ExecutionOperations<Unit>) =
         handle(completed, operations, deadExecution = true)
 
-    private fun handle(completed: ExecutionComplete, operations: ExecutionOperations<Unit>, deadExecution: Boolean) {
+    private fun handle(completed: ExecutionComplete, operations: ExecutionOperations<Unit>, deadExecution: Boolean) =
+        logContext.withJob(completed.execution.taskInstance.id) { handleFailure(completed, operations, deadExecution) }
+
+    private fun handleFailure(completed: ExecutionComplete, operations: ExecutionOperations<Unit>, deadExecution: Boolean) {
         val execution = completed.execution
         val identity = try {
             ArkistointiJobExecution(execution.taskInstance.taskName, execution.taskInstance.id, execution.version)

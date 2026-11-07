@@ -15,6 +15,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
+import fi.elsapalvelu.elsa.security.MDC_USER_ID_KEY
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobEnqueuer
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreator
@@ -28,6 +29,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import java.time.LocalDate
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -38,9 +40,11 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import org.slf4j.MDC
 
 class KoejaksoArkistointiServiceTest {
     private val configuration = mock<ArkistointiConfigurationProvider>()
@@ -53,6 +57,29 @@ class KoejaksoArkistointiServiceTest {
     private val university = YliopistoEnum.HELSINGIN_YLIOPISTO
     private val studyRight = Opintooikeus(id = 12, yliopisto = Yliopisto(nimi = university), erikoisala = Erikoisala(id = 1))
     private val document = Asiakirja(id = 22, nimi = "approval.pdf", tyyppi = "application/pdf")
+
+    @AfterEach
+    fun clearMdc() = MDC.clear()
+
+    @ParameterizedTest
+    @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
+    fun `async job records the user from the request MDC and null when there is none`(type: CaseType) {
+        whenever(synchronous.onKaytossa(university, type)).thenReturn(true)
+        whenever(configuration.isAsyncEnabled(university, type)).thenReturn(true)
+        val recordType = if (type == CaseType.SOPIMUS) RecordType.SOPIMUS else RecordType.ARVIOINTI
+        val snapshot = Asiakirja(id = 33, nimi = "approval.pdf", tyyppi = "application/pdf", archiveSnapshot = true)
+        whenever(snapshots.createReference(document, recordType, 0))
+            .thenReturn(ArkistointiAsiakirjaReference(snapshot, recordType, 0, "approval.pdf", "application/pdf", "abc"))
+
+        MDC.put(MDC_USER_ID_KEY, "approver-1")
+        archive(type)
+        MDC.remove(MDC_USER_ID_KEY)
+        archive(type)
+
+        val request = argumentCaptor<CreateArkistointiJobRequest>()
+        verify(creator, times(2)).create(request.capture())
+        assertThat(request.allValues.map { it.requestedByUserId }).containsExactly("approver-1", null)
+    }
 
     @ParameterizedTest
     @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])

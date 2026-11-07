@@ -74,6 +74,18 @@ class ArkistointiJobCreatorImplTest {
     }
 
     @Test
+    fun `stores the requesting user on the job for log correlation`() {
+        val request = request().copy(requestedByUserId = "user-1")
+        whenever(snapshotService.resolveReference(any())).thenAnswer { it.getArgument<ArkistointiAsiakirjaReference>(0) }
+        whenever(repository.saveAndFlush(any<ArkistointiJob>())).thenAnswer {
+            it.getArgument<ArkistointiJob>(0).apply { id = UUID.randomUUID() }
+        }
+        whenever(scheduler.schedule(any(), any())).thenReturn(true)
+
+        assertThat(creator.create(request).requestedByUserId).isEqualTo("user-1")
+    }
+
+    @Test
     fun `manifest count is fixed from the entire request before persist`() {
         val reference = request().asiakirjat.single()
         val request = request().copy(asiakirjat = listOf(

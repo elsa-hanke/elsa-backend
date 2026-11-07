@@ -77,6 +77,10 @@ data class ArkistointiJob(
     @Column(name = "last_error", length = 1000)
     var lastError: String? = null,
 
+    @get:Size(max = MAX_REQUESTED_BY_USER_ID_LENGTH)
+    @Column(name = "requested_by_user_id", length = MAX_REQUESTED_BY_USER_ID_LENGTH, updatable = false)
+    var requestedByUserId: String? = null,
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: Instant? = Instant.now(),
@@ -138,6 +142,7 @@ data class ArkistointiJob(
 
     companion object {
         const val MAX_EXTERNAL_ID_LENGTH = 255
+        const val MAX_REQUESTED_BY_USER_ID_LENGTH = 100
         private const val serialVersionUID = 1L
     }
 }
