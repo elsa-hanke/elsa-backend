@@ -63,9 +63,9 @@ class ArkistointiDbSchedulerConfiguration {
             }
 
             override fun execute(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext): CompletionHandler<Unit> =
-                logContext.withJob(taskInstance.id) { executeWithOutcome(taskInstance, executionContext) }
+                logContext.withJob(taskInstance.id) { executeHandlingControlSignals(taskInstance, executionContext) }
 
-            private fun executeWithOutcome(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext): CompletionHandler<Unit> =
+            private fun executeHandlingControlSignals(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext): CompletionHandler<Unit> =
                 try {
                     super.execute(taskInstance, executionContext)
                 } catch (_: ParkArkistointiExecutionException) {

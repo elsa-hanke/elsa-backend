@@ -63,7 +63,7 @@ class KoejaksoArkistointiServiceTest {
 
     @ParameterizedTest
     @EnumSource(value = CaseType::class, names = ["SOPIMUS", "KOEJAKSO"])
-    fun `async job records the user from the request MDC and null when there is none`(type: CaseType) {
+    fun `async job records the request MDC user, and null when it is missing or too long for the column`(type: CaseType) {
         whenever(synchronous.onKaytossa(university, type)).thenReturn(true)
         whenever(configuration.isAsyncEnabled(university, type)).thenReturn(true)
         val recordType = if (type == CaseType.SOPIMUS) RecordType.SOPIMUS else RecordType.ARVIOINTI
@@ -75,10 +75,12 @@ class KoejaksoArkistointiServiceTest {
         archive(type)
         MDC.remove(MDC_USER_ID_KEY)
         archive(type)
+        MDC.put(MDC_USER_ID_KEY, "x".repeat(ArkistointiJob.MAX_REQUESTED_BY_USER_ID_LENGTH + 1))
+        archive(type)
 
         val request = argumentCaptor<CreateArkistointiJobRequest>()
-        verify(creator, times(2)).create(request.capture())
-        assertThat(request.allValues.map { it.requestedByUserId }).containsExactly("approver-1", null)
+        verify(creator, times(3)).create(request.capture())
+        assertThat(request.allValues.map { it.requestedByUserId }).containsExactly("approver-1", null, null)
     }
 
     @ParameterizedTest

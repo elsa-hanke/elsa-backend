@@ -51,7 +51,7 @@ class ArkistointiJobEnqueuer(
         creator.create(CreateArkistointiJobRequest(
             university = university, caseType = caseType, key = key,
             payload = mapper.writeValueAsString(createPayload(identities.toList())), asiakirjat = references,
-            requestedByUserId = MDC.get(MDC_USER_ID_KEY)?.take(ArkistointiJob.MAX_REQUESTED_BY_USER_ID_LENGTH)
+            requestedByUserId = MDC.get(MDC_USER_ID_KEY)?.takeIf { it.length <= ArkistointiJob.MAX_REQUESTED_BY_USER_ID_LENGTH }
         ))
     }
 }

@@ -4,9 +4,12 @@ import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
+import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 
 @Service
 class ArkistointiJobCreatorImpl(
@@ -46,8 +49,18 @@ class ArkistointiJobCreatorImpl(
         val saved = jobRepository.saveAndFlush(job)
         val jobId = requireNotNull(saved.id)
         check(jobScheduler.schedule(jobId)) { "Arkistointi-jobin ajastus epaonnistui" }
-        log.info("Arkistointi-job luotu [key={}, jobId={}]", jobRequest.key, jobId)
+        logCreatedAfterCommit(jobRequest.key, jobId)
         return saved
+    }
+
+    private fun logCreatedAfterCommit(key: String, jobId: UUID) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+                override fun afterCommit() = log.info("Arkistointi-job luotu [key={}, jobId={}]", key, jobId)
+            })
+        } else {
+            log.info("Arkistointi-job luotu [key={}, jobId={}]", key, jobId)
+        }
     }
 
     private fun validate(pyynto: CreateArkistointiJobRequest) {

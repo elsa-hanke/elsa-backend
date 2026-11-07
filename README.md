@@ -769,6 +769,26 @@ lähetyksen. Sama UUID säilyy, mutta vastaanottajan deduplikointi ratkaisee,
 voiko uusinta tuottaa kaksoistoimituksen. Älä muuta immutable payloadia tai
 snapshotteja palautuksen yhteydessä. Yliopiston pääkäyttäjärooli ei hallitse uusintaa.
 
+### Asynkronisen arkistoinnin lokien haku
+
+db-schedulerin työsäikeet eivät peri HTTP-pyynnön MDC-arvoja. `ArkistointiJobLogContext` asettaa
+siksi työsäikeelle `archiveJobId`- ja `userId`-kentät `execute()`-kutsun ja virhekäsittelijän ajaksi.
+`userId` luetaan jobin sarakkeesta `requested_by_user_id`, joka täytetään hyväksynnän yhteydessä
+pyynnön MDC:stä. Se on hyväksyvä käyttäjä, ei erikoistuva lääkäri.
+
+Haku AWS Logs Insightsissa:
+
+1. Hae `userId`-kentällä rivi `Arkistointi-job luotu [key=…, jobId=…]`. Se kirjoitetaan vasta
+   hyväksynnän commitin jälkeen.
+2. Hae sama `jobId` kentällä `archiveJobId`: tulokseen tulevat yrityksen alku
+   (`Archive attempt started`), Dynasty-vaiheet (`Dynasty step executed`, `reused from ledger`,
+   `failed`) ja yrityksen lopputulos.
+
+Rajaukset: db-schedulerin omat lokirivit (esim. käsittelemätön poikkeus ja kuollut suoritus)
+kirjoitetaan kontekstin ulkopuolella, joten niissä ei ole `userId`- eikä `archiveJobId`-kenttää;
+hae ne `jobId`:llä viestin tekstistä. Ennen tätä muutosta luoduilla jobeilla ja ilman
+pyyntökontekstia luoduilla jobeilla `requested_by_user_id` on tyhjä.
+
 ### Turku Dynasty REST delivery
 
 Turku uses independent REST calls (case, task, main document, attachments, archive state),

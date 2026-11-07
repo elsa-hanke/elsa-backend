@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.creation
 
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
@@ -27,6 +30,8 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
+import org.springframework.transaction.support.TransactionSynchronizationManager
 
 @ExtendWith(MockitoExtension::class)
 class ArkistointiJobCreatorImplTest {
@@ -83,6 +88,31 @@ class ArkistointiJobCreatorImplTest {
         whenever(scheduler.schedule(any(), any())).thenReturn(true)
 
         assertThat(creator.create(request).requestedByUserId).isEqualTo("user-1")
+    }
+
+    @Test
+    fun `created log is written only after the transaction commits`() {
+        val jobId = UUID.randomUUID()
+        whenever(snapshotService.resolveReference(any())).thenAnswer { it.getArgument<ArkistointiAsiakirjaReference>(0) }
+        whenever(repository.saveAndFlush(any<ArkistointiJob>())).thenAnswer {
+            it.getArgument<ArkistointiJob>(0).apply { id = jobId }
+        }
+        whenever(scheduler.schedule(any(), any())).thenReturn(true)
+        val logger = LoggerFactory.getLogger(ArkistointiJobCreatorImpl::class.java) as Logger
+        val appender = ListAppender<ILoggingEvent>().also { it.start(); logger.addAppender(it) }
+        TransactionSynchronizationManager.initSynchronization()
+        try {
+            creator.create(request())
+
+            assertThat(appender.list).isEmpty()
+            TransactionSynchronizationManager.getSynchronizations().forEach { it.afterCommit() }
+            assertThat(appender.list.single().formattedMessage)
+                .isEqualTo("Arkistointi-job luotu [key=valmistuminen-123, jobId=$jobId]")
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization()
+            logger.detachAppender(appender)
+            appender.stop()
+        }
     }
 
     @Test

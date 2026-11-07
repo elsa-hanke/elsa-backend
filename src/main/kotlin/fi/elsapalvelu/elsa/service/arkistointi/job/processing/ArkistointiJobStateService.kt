@@ -27,7 +27,7 @@ class ArkistointiJobStateService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun prepare(execution: ArkistointiJobExecution): PreparedArkistointiJob? {
-        val job = lockActiveJob(execution)?.job ?: return null
+        val (job, attempt) = lockActiveJob(execution) ?: return null
         job.startProcessingIfWaiting()
         val payload = job.payload.required()
         val validPayload = try {
@@ -39,7 +39,13 @@ class ArkistointiJobStateService(
             val error = ArkistointiError.create("ARCHIVE_JOB_INVALID", "Arkistointijobin aineisto on virheellinen")
             throw ArkistointiProcessingException(error, retryable = false)
         }
-        return PreparedArkistointiJob(execution.jobId, job.university.required(), job.caseType.required(), payload,
+        val university = job.university.required()
+        val caseType = job.caseType.required()
+        log.info(
+            "Archive attempt started [jobId={}, university={}, caseType={}, attempt={}]",
+            execution.jobId, university.name, caseType.value, attempt
+        )
+        return PreparedArkistointiJob(execution.jobId, university, caseType, payload,
             job.asiakirjat.sortedBy { it.jarjestysnumero }.map { it.toDescriptor() }
         )
     }
