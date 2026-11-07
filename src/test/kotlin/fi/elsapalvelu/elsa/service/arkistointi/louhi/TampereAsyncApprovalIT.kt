@@ -19,6 +19,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobLogContext
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessor
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkeDelivery
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.AsyncSahkePackageBuilder
@@ -65,9 +66,6 @@ import org.springframework.test.context.bean.override.convention.TestBean
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-
-
-/** HTTP approval, real PDF/snapshots/PostgreSQL, real scheduler/adapter and loopback SFTP. */
 @SpringBootTest(classes = [ElsaBackendApp::class], properties = [
     "spring.datasource.url=jdbc:tc:postgresql:16.9:///tampereAsyncApproval?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true",
     "application.arkistointi.tre.kaytossa=true",
@@ -91,12 +89,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
 
-
-
     @Autowired private lateinit var properties: ApplicationProperties
     @Autowired private lateinit var configuration: ArkistointiConfigurationProvider
     @Autowired private lateinit var packageBuilder: AsyncSahkePackageBuilder
     @Autowired private lateinit var failureHandler: ArkistointiJobFailureHandler
+    @Autowired private lateinit var arkistointiJobLogContext: ArkistointiJobLogContext
     @Autowired private lateinit var dataSource: DataSource
     @MockitoBean lateinit var mail: MailService
     @TestBean(methodName = "createTransport") lateinit var tampereLouhiService: TampereLouhiService
@@ -151,6 +148,7 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
                 .withBean(ArkistointiConfigurationProvider::class.java, Supplier { configuration })
                 .withBean(AsyncSahkePackageBuilder::class.java, Supplier { packageBuilder })
                 .withBean(ArkistointiJobFailureHandler::class.java, Supplier { failureHandler })
+                .withBean(ArkistointiJobLogContext::class.java, Supplier { arkistointiJobLogContext })
                 .withBean(DataSource::class.java, Supplier { DelegatingDataSource(dataSource) })
                 .withBean(TampereLouhiService::class.java, Supplier { receiver.client { destroyed.set(true) } },
                     { definition -> definition.destroyMethodName = "close" })
