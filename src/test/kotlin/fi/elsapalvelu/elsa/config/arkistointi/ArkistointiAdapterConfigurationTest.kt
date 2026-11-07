@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobLogContext
 import java.util.function.Supplier
 import javax.sql.DataSource
 import org.assertj.core.api.Assertions.assertThat
@@ -212,6 +213,7 @@ class ArkistointiAdapterConfigurationTest {
         .withBean(DataSource::class.java, Supplier { dataSource })
         .withBean(Scheduler::class.java, Supplier { worker })
         .withBean(ArkistointiJobFailureHandler::class.java, Supplier { mock() })
+        .withBean(ArkistointiJobLogContext::class.java, Supplier { mock() })
         .withBean(SynchronousArkistointiAdapter::class.java, Supplier {
             mock<SynchronousArkistointiAdapter>().also {
                 whenever(it.yliopisto).thenReturn(YliopistoEnum.HELSINGIN_YLIOPISTO)
