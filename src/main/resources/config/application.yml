@@ -93,6 +93,7 @@ logging:
     org.thymeleaf: WARN
     org.xnio: WARN
     sun.rmi: WARN
+    com.github.kagkarlsson: INFO
     com.itextpdf.styledxmlparser.css.parse.syntax: OFF
     com.itextpdf.layout.renderer: OFF
     com.itextpdf.pdfa.PdfADocument: OFF

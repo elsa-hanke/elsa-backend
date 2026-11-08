@@ -216,6 +216,19 @@ psql +args='':
          -U elsaBackend                                       \
          {{ args }}
 
+psql-e2e +args='':
+  @docker run                                                 \
+    --rm -it                                                  \
+    --network elsa-e2e-source_elsa                            \
+    -v $(pwd)/.psqlrc:/root/.psqlrc                           \
+    -v $(pwd):/app                                            \
+    -w=/app                                                   \
+    postgres:16-alpine                                        \
+    psql -h db                            \
+         -p 5432                                              \
+         -U elsaBackend                                       \
+         {{ args }}
+
 psqlr +args='':
   @exec just --dotenv-path .env.replica -- _psqlr {{ args }}
 
