@@ -62,6 +62,19 @@ class DynastyWorkerConfigurationTest {
     }
 
     @Test
+    fun `Turku does not archive koulutussopimus in Dynasty`() {
+        configure()
+        val metadata = turku.metadata!!
+        metadata.cases = metadata.cases!! + (CaseType.SOPIMUS.value to ApplicationProperties.Arkistointi.Case().apply {
+            asyncEnabled = true
+            documents = mapOf("sopimus" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "10" })
+        })
+        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }
+            .hasMessageContaining("TURUN_YLIOPISTO / sopimus")
+            .hasMessageContaining("does not support this case type")
+    }
+
+    @Test
     fun `graduation does not require koejakso secrecy configuration`() {
         configure()
         assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
