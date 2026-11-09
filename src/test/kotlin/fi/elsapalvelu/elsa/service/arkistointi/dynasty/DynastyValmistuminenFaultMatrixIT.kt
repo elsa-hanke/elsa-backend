@@ -143,6 +143,8 @@ class DynastyValmistuminenFaultMatrixIT {
             .sortedBy { STEPS.indexOf(it) }
 
     private fun age(jobId: UUID, step: String) {
+        // Only tests may age a step: bypass immutability solely in this isolated disposable database
+        // to simulate expiry of the grace period without waiting. Production must keep the trigger enabled.
         jdbc.execute("alter table arkistointi_dynasty_step disable trigger protect_dynasty_step")
         try {
             jdbc.update("update arkistointi_dynasty_step set started_at = started_at - interval '1 hour' where job_id=? and step_key=?", jobId, step)
