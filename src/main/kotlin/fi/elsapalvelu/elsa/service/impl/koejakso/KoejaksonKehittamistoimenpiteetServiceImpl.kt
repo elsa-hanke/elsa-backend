@@ -203,7 +203,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
                 id,
                 userId
             )
-        return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
+        return taydennaValiarvioinninTiedoilla(kehittamistoimenpiteet)
     }
 
     @Transactional(readOnly = true)
@@ -216,7 +216,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
                 id,
                 userId
             )
-        return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
+        return taydennaValiarvioinninTiedoilla(kehittamistoimenpiteet)
     }
 
     @Transactional(readOnly = true)
@@ -243,7 +243,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         return Optional.empty()
     }
 
-    private fun applyWithKehittamistoimenpiteetDescription(
+    private fun taydennaValiarvioinninTiedoilla(
         kehittamistoimenpiteet: Optional<KoejaksonKehittamistoimenpiteet>
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
         val kehittamistoimenpiteetDto =

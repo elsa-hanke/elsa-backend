@@ -116,21 +116,21 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
         accomplishments: List<StudyAccomplishment>,
         yliopisto: YliopistoEnum
     ): List<OpintosuoritusDTO> {
-        val examCodes = when (yliopisto) {
+        val kuulustelukoodit = when (yliopisto) {
             YliopistoEnum.TURUN_YLIOPISTO -> setOf("ELOP0001", "EHLO0001")
             YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> setOf("4415200", "4415100")
             else -> emptySet()
         }
         // Ordinary courses keep the original mapping and response order, including repeat attempts.
-        val ordinary = accomplishments.filter { it.kurssiKoodi !in examCodes }
+        val ordinary = accomplishments.filter { it.kurssiKoodi !in kuulustelukoodit }
             .map { it.toFlatOpintosuoritusDto() }
-        val exams = accomplishments.filter { it.kurssiKoodi in examCodes }
+        val kuulustelut = accomplishments.filter { it.kurssiKoodi in kuulustelukoodit }
             .groupBy { it.studyEntitlementKey to it.kurssiKoodi }
             .values.flatMap { group ->
                 val (valid, invalid) = group.partition { it.isValid() }
                 val invalidDtos = invalid.map { it.toFlatOpintosuoritusDto() }
                 val primary = selectAccomplishment(valid.filter { it.isMainExam() })
-                val incompleteSubparts = invalid.any { !it.isMainExam() && it.hyvaksytty != false }
+                val hasPuutteellisiaOsakokonaisuuksia = invalid.any { !it.isMainExam() && it.hyvaksytty != false }
                 if (primary == null) {
                     // A subpart alone cannot certify the whole exam. Preserve legacy validation logging
                     // for invalid records, but never persist a valid subpart as the parent exam.
@@ -141,7 +141,7 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
                     )
                     invalidDtos
                 } else {
-                    if (incompleteSubparts) {
+                    if (hasPuutteellisiaOsakokonaisuuksia) {
                         log.warn(
                             "Peppi: incomplete subpart data for course {} and study entitlement {}. " +
                                 "Main exam updated; existing children preserved.",
@@ -150,7 +150,7 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
                     }
                     invalidDtos + primary.toFlatOpintosuoritusDto().apply {
                         // Retakes of the main exam are not components of the main exam.
-                        osakokonaisuudet = if (incompleteSubparts) {
+                        osakokonaisuudet = if (hasPuutteellisiaOsakokonaisuuksia) {
                             null
                         } else {
                             valid.filterNot { it.isMainExam() }
@@ -163,7 +163,7 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
                     }
                 }
             }
-        return ordinary + exams
+        return ordinary + kuulustelut
     }
 
     private fun selectAccomplishment(group: List<StudyAccomplishment>): StudyAccomplishment? =

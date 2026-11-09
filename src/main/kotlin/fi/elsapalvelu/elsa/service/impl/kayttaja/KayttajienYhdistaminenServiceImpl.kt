@@ -76,8 +76,8 @@ class KayttajienYhdistaminenServiceImpl(
             kasitteleKoejaksonKehittamistoimenpiteet(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
 
             kasitteleSeurantajaksot(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
-            kasitteleKoulutussopimuket(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
-            kasitteleSuoritusArvioinnnit(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
+            kasitteleKoulutussopimukset(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
+            kasitteleSuoritusarvioinnit(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             kasitteleArvioinninKommentit(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             kasitteleArviointityokalut(tilanne, ensimmainenKayttaja.get(), toinenKayttaja.get())
             poistaVerificationToken(tilanne, toinenKayttaja.get())
@@ -314,7 +314,7 @@ class KayttajienYhdistaminenServiceImpl(
         }
     }
 
-    private fun kasitteleKoulutussopimuket(
+    private fun kasitteleKoulutussopimukset(
         tilanne: ArrayList<KayttajienYhdistaminenResult>,
         ensimmainenKayttaja: Kayttaja,
         toinenKayttaja: Kayttaja
@@ -343,7 +343,7 @@ class KayttajienYhdistaminenServiceImpl(
         }
     }
 
-    private fun kasitteleSuoritusArvioinnnit(
+    private fun kasitteleSuoritusarvioinnit(
         tilanne: ArrayList<KayttajienYhdistaminenResult>, ensimmainenKayttaja: Kayttaja, toinenKayttaja: Kayttaja
     ) {
         try {

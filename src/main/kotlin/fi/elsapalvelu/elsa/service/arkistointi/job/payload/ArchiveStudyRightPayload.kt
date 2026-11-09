@@ -43,23 +43,23 @@ data class ArchiveStudyRightPayload(
     override fun toString() = "ArchiveStudyRightPayload"
 
     companion object {
-        fun create(studyRight: Opintooikeus, university: YliopistoEnum): ArchiveStudyRightPayload {
-            val trainee = studyRight.erikoistuvaLaakari
-            val user = trainee?.kayttaja?.user
+        fun create(opintooikeus: Opintooikeus, university: YliopistoEnum): ArchiveStudyRightPayload {
+            val erikoistuvaLaakari = opintooikeus.erikoistuvaLaakari
+            val user = erikoistuvaLaakari?.kayttaja?.user
             return ArchiveStudyRightPayload(
-                opintooikeusId = studyRight.id.required(),
+                opintooikeusId = opintooikeus.id.required(),
                 university = university,
-                yek = studyRight.isYek(),
+                yek = opintooikeus.isYek(),
                 traineeName = user?.getName(),
                 firstName = user?.firstName,
                 lastName = user?.lastName,
-                birthDate = trainee?.syntymaaika,
-                specialtyId = studyRight.erikoisala?.id,
-                specialtyName = studyRight.erikoisala?.nimi,
-                studentNumber = studyRight.opiskelijatunnus,
-                specialtyType = studyRight.erikoisala?.tyyppi,
-                studyRightStartDate = studyRight.opintooikeudenMyontamispaiva,
-                degreeRegulation = studyRight.asetus?.nimi
+                birthDate = erikoistuvaLaakari?.syntymaaika,
+                specialtyId = opintooikeus.erikoisala?.id,
+                specialtyName = opintooikeus.erikoisala?.nimi,
+                studentNumber = opintooikeus.opiskelijatunnus,
+                specialtyType = opintooikeus.erikoisala?.tyyppi,
+                studyRightStartDate = opintooikeus.opintooikeudenMyontamispaiva,
+                degreeRegulation = opintooikeus.asetus?.nimi
             )
         }
     }

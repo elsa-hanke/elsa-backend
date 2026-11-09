@@ -30,20 +30,20 @@ data class ValmistuminenArkistointiPayload(
 
     companion object {
         fun create(
-            request: Valmistumispyynto,
+            valmistumispyynto: Valmistumispyynto,
             university: YliopistoEnum,
             documents: List<ArkistointiDocumentIdentity>
         ): ValmistuminenArkistointiPayload {
-            val studyRight = request.opintooikeus.required()
+            val opintooikeus = valmistumispyynto.opintooikeus.required()
             return ValmistuminenArkistointiPayload(
-                caseId = request.id.required(),
-                studyRight = ArchiveStudyRightPayload.create(studyRight, university),
-                reviewer = request.virkailija?.user?.getName(),
-                reviewDate = request.virkailijanKuittausaika,
-                approver = request.vastuuhenkiloHyvaksyja?.user?.getName(),
-                approvalDate = request.vastuuhenkiloHyvaksyjaKuittausaika,
+                caseId = valmistumispyynto.id.required(),
+                studyRight = ArchiveStudyRightPayload.create(opintooikeus, university),
+                reviewer = valmistumispyynto.virkailija?.user?.getName(),
+                reviewDate = valmistumispyynto.virkailijanKuittausaika,
+                approver = valmistumispyynto.vastuuhenkiloHyvaksyja?.user?.getName(),
+                approvalDate = valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika,
                 documents = documents.toList(),
-                licensingDate = studyRight.erikoistuvaLaakari?.laillistamispaiva
+                licensingDate = opintooikeus.erikoistuvaLaakari?.laillistamispaiva
             )
         }
     }
