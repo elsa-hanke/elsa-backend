@@ -56,7 +56,8 @@ fun dynastySubmission(
     caseType: CaseType = CaseType.VALMISTUMINEN,
     specialtyType: ErikoisalaTyyppi = ErikoisalaTyyppi.LAAKETIEDE,
     yek: Boolean = false,
-    jobId: UUID = UUID.randomUUID()
+    jobId: UUID = UUID.randomUUID(),
+    version: Long = 1
 ): ArkistointiSubmission {
     require(caseType in setOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO))
     val types = if (caseType == CaseType.VALMISTUMINEN) listOf(RecordType.YHTEENVETO, RecordType.LIITE, RecordType.LAILLISTAMISTODISTUS)
@@ -81,7 +82,7 @@ fun dynastySubmission(
     } else {
         KoejaksoArkistointiPayload(1, studyRight, null, null, null, approvalDate, null, identities)
     }
-    return arkistointiSubmission(jobId, studyRight.university, caseType, mapper.writeValueAsString(payload), documents)
+    return arkistointiSubmission(jobId, studyRight.university, caseType, mapper.writeValueAsString(payload), documents, version)
 }
 
 /** Standard successful HTTP sequence; tests with rejection or ambiguity enqueue their own responses. */

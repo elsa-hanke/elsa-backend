@@ -14,8 +14,9 @@ fun arkistointiSubmission(
     university: YliopistoEnum,
     caseType: CaseType,
     payload: String,
-    asiakirjat: List<LoadedArkistointiAsiakirja>
+    asiakirjat: List<LoadedArkistointiAsiakirja>,
+    version: Long = 1
 ): ArkistointiSubmission = ArkistointiSubmission(
     jobId, university, caseType, payload, asiakirjat,
-    ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, jobId.toString(), 1)
+    ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, jobId.toString(), version)
 )

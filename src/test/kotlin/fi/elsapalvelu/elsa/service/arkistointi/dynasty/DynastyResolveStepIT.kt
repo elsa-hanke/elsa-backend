@@ -8,11 +8,6 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.datasource.DriverManagerDataSource
-import org.testcontainers.postgresql.PostgreSQLContainer
-import org.testcontainers.utility.MountableFile
-import java.nio.file.Path
 import java.util.UUID
 import java.time.Instant
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
@@ -21,23 +16,17 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExec
 /** Execute the actual operator script with psql, including variable quoting and ON_ERROR_STOP. */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DynastyResolveStepIT {
-    private val database = PostgreSQLContainer("postgres:16.9")
-    private lateinit var jdbc: JdbcTemplate
+    private val ops = DynastyOpsDatabase()
+    private val jdbc get() = ops.jdbc
     private val stepFixture get() = DynastyStepJdbcFixture(jdbc)
 
     @BeforeAll
     fun startDatabase() {
-        database.start()
-        jdbc = JdbcTemplate(DriverManagerDataSource(database.jdbcUrl, database.username, database.password))
-        stepFixture.createSchema()
-        database.copyFileToContainer(
-            MountableFile.forHostPath(Path.of("ops/arkistointi/dynasty-resolve-step.sql").toAbsolutePath().toString()),
-            "/tmp/resolve.sql"
-        )
+        ops.start()
     }
 
     @AfterAll
-    fun stopDatabase() = database.stop()
+    fun stopDatabase() = ops.stop()
 
     private fun fixture(step: String = "CASE"): UUID {
         val execution = stepFixture.execution(
@@ -50,8 +39,7 @@ class DynastyResolveStepIT {
     }
 
     private fun resolve(id: UUID, step: String = "CASE", remote: String = "415", action: String = "confirm") =
-        database.execInContainer("psql", "-U", database.username, "-d", database.databaseName,
-            "-v", "job_id=$id", "-v", "step_key=$step", "-v", "remote_id=$remote", "-v", "action=$action", "-f", "/tmp/resolve.sql")
+        ops.resolveStep(id, step, remote, action)
 
     @ParameterizedTest
     @CsvSource(value = ["CASE|415", "DOCUMENT:0|9223372036854775807", "TASK|ABCDEF12-3456-7890-ABCD-EF1234567890", "ARCHIVE_CASE|''"], delimiter = '|')

@@ -14,8 +14,9 @@ class DynastyStepJdbcFixture(private val jdbc: JdbcTemplate) {
     /** Minimal dependencies plus the real ledger migration, used only by isolated ledger/script databases. */
     fun createSchema() {
         jdbc.execute("create table scheduled_tasks(task_name text,task_instance text,version bigint,picked boolean," +
+            "picked_by text,last_heartbeat timestamptz,last_failure timestamptz,last_success timestamptz," +
             "consecutive_failures integer default 0,execution_time timestamptz,primary key(task_name,task_instance))")
-        jdbc.execute("create table arkistointi_job(id uuid primary key,status text)")
+        jdbc.execute("create table arkistointi_job(id uuid primary key,status text,completed_at timestamptz,updated_at timestamptz)")
         jdbc.execute("create table arkistointi_job_asiakirja(job_id uuid,jarjestys integer)")
         val migration = javaClass.getResourceAsStream("/config/liquibase/changelog/20261101090000_added_arkistointi_dynasty_step.xml")!!
         migration.use {

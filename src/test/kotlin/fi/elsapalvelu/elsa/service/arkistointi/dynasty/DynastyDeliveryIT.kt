@@ -2,16 +2,25 @@ package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import com.github.kagkarlsson.scheduler.task.TaskInstanceId
 import fi.elsapalvelu.elsa.ElsaBackendApp
+import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
+import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessorImpl
 import fi.elsapalvelu.elsa.service.arkistointi.support.ArchiveSchedulerTestControl
 import fi.elsapalvelu.elsa.service.arkistointi.support.AsyncArchiveItSupport
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
+import fi.elsapalvelu.elsa.service.pdf.PdfTestData
+import com.fasterxml.jackson.databind.JsonNode
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
 import java.time.Duration
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.cache.CacheManager
+import javax.imageio.ImageIO
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.QueueDispatcher
@@ -22,6 +31,8 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer
 import org.springframework.boot.test.context.SpringBootTest
@@ -45,6 +56,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
  "db-scheduler.heartbeat-interval=1h",
  "application.arkistointi.turku.metadata.cases.koejakso.async-enabled=true",
  "application.arkistointi.turku.metadata.cases.koejakso.documents.arviointi.retention-period=-1",
+ "application.arkistointi.turku.metadata.cases.valmistuminen.async-enabled=true",
+ "application.arkistointi.turku.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
+ "application.arkistointi.turku.metadata.cases.valmistuminen.documents.liite.retention-period=20",
+ "application.arkistointi.turku.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=20",
  "application.arkistointi.turku.dynasty.client-id=test",
  "application.arkistointi.turku.dynasty.client-secret=test",
  "application.arkistointi.turku.dynasty.organization=0",
@@ -60,10 +75,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @Import(DynastyDeliveryIT.CacheConfig::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DynastyDeliveryIT : AsyncArchiveItSupport() {
-
-
-
-
 
  @Autowired private lateinit var properties: fi.elsapalvelu.elsa.config.ApplicationProperties
  @Autowired private lateinit var client: DynastyClient
@@ -135,7 +146,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
 
     @Test fun `manual retry skips completed case and task after definite document rejection`() {
         val job = job()
-        enqueue(DYNASTY_TEST_TOKEN_RESPONSE, "415", "\"${java.util.UUID.randomUUID()}\"")
+        enqueue(DYNASTY_TEST_TOKEN_RESPONSE, "415", "\"${UUID.randomUUID()}\"")
         server.enqueue(MockResponse().setResponseCode(403))
         startAttempt()
         awaitParked(job.id!!)
@@ -221,6 +232,61 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
             recovery.stop()
         }
     }
+    @ParameterizedTest(name = "{0} certificate as {1}")
+    @CsvSource("EL,pdf", "EHL,pdf", "YEK,pdf", "YEK,png")
+    fun `approved graduation reaches Dynasty as case task and three documents in order`(kind: String, format: String) {
+        val image = format == "png"
+        val fixture = graduationFixture(kind, YliopistoEnum.TURUN_YLIOPISTO, true)
+        transactions.executeWithoutResult { _ ->
+            val studyRight = em.find(Valmistumispyynto::class.java, fixture.first).opintooikeus!!
+            properties.getArkistointi().getTurku().dynasty.tutkintoasetukset = mapOf(studyRight.asetus!!.nimi!! to "Test regulation")
+            studyRight.erikoistuvaLaakari!!.apply {
+                laillistamistodistus = AsiakirjaData(data = if (image) certificateImage else certificate)
+                laillistamispaivanLiitetiedostonNimi = "certificate.$format"
+                laillistamispaivanLiitetiedostonTyyppi = if (image) "image/png" else "application/pdf"
+            }
+        }
+        setSecurityContext(fixture.second, VASTUUHENKILO)
+        approveGraduation(fixture.first).andExpect(status().isOk)
+        val job = jobs.findByKey("valmistuminen:TURUN_YLIOPISTO:${fixture.first}")!!
+        val taskId = UUID.randomUUID()
+        server.enqueueDynastySuccess(documentIds = listOf(1078, 1079, 1080), taskId = taskId)
+        val requestsBefore = server.requestCount
+
+        startAttempt()
+        awaitDelivered(job.id!!)
+
+        assertThat(server.requestCount - requestsBefore).describedAs("token, case, task, three documents, archive and nothing else").isEqualTo(7)
+        val requests = (1..7).map { server.takeRequest(5, TimeUnit.SECONDS)!! }
+        assertThat(requests.map { it.method + " " + it.path!!.substringBefore('?') }).containsExactly(
+            "POST /token", "POST /api/v1/cases", "POST /api/v1/cases/415/tasks",
+            "POST /api/v1/documents", "POST /api/v1/documents", "POST /api/v1/documents",
+            "POST /api/v1/cases/415/state/Archived"
+        )
+        val bodies = requests.map { it.body.readUtf8() }
+        // The program comes from the real approval payload; the full metadata mapping is covered by the golden tests.
+        assertThat(objectMapper.readTree(bodies[1]).at("/caseModel/title").asText()).startsWith("$kind ")
+        val main = multipartJson(bodies[3], "CaseAttachmentOptions")
+        assertThat(main.at("/CaseSelector/Id").asText()).isEqualTo("415")
+        assertThat(main.at("/PhaseSelector/Id").asText()).isEqualTo(taskId.toString())
+        listOf(bodies[4], bodies[5]).forEach { body ->
+            val options = multipartJson(body, "CaseAttachmentOptions")
+            assertThat(options.at("/caseSelector/id").asLong()).isEqualTo(415)
+            assertThat(options.at("/parentDocumentSelector/id").asLong()).isEqualTo(1078)
+        }
+        assertThat(bodies[5]).contains("filename=\"certificate.$format\"", "Content-Type: ${if (image) "image/png" else "application/pdf"}")
+        assertThat(jobs.findById(job.id!!).orElseThrow().externalId).isEqualTo("415")
+        assertThat(stepFixture.steps(job.id!!).associate { it.key to it.status }).isEqualTo(
+            listOf("CASE", "TASK", "DOCUMENT:0", "DOCUMENT:1", "DOCUMENT:2", "ARCHIVE_CASE").associateWith { DynastyStepStatus.VALMIS }
+        )
+        assertThat((0..2).map { stepFixture.step(job.id!!, "DOCUMENT:$it")?.remoteId }).containsExactly("1078", "1079", "1080")
+    }
+
+    private fun multipartJson(body: String, part: String): JsonNode = objectMapper.readTree(
+        Regex("name=\"$part\"\\r\\n(?:[A-Za-z-]+: [^\\r\\n]*\\r\\n)*\\r\\n(.*?)\\r\\n--", RegexOption.DOT_MATCHES_ALL)
+            .find(body)!!.groupValues[1]
+    )
+
     private fun approveKoejakso(type: CaseType): Long {
         val fixture = koejaksoFixture(YliopistoEnum.TURUN_YLIOPISTO, type)
         transactions.executeWithoutResult {
@@ -245,6 +311,11 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
 
     companion object {
         private val server = MockWebServer().apply { start() }
+        private val certificate = PdfTestData.certificate()
+        private val certificateImage = ByteArrayOutputStream().use { output ->
+            check(ImageIO.write(BufferedImage(4, 4, BufferedImage.TYPE_INT_RGB), "png", output))
+            output.toByteArray()
+        }
         @JvmStatic @DynamicPropertySource
         fun transport(registry: DynamicPropertyRegistry) {
             registry.add("application.arkistointi.turku.dynasty.base-url") { server.url("/").newBuilder().host("127.0.0.1").build().toString().trimEnd('/') }
