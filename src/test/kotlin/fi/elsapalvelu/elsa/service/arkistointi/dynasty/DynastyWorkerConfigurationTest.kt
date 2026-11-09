@@ -75,7 +75,7 @@ class DynastyWorkerConfigurationTest {
     }
 
     @Test
-    fun `graduation does not require koejakso secrecy configuration`() {
+    fun `valmistuminen does not require koejakso secrecy configuration`() {
         configure()
         assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
     }

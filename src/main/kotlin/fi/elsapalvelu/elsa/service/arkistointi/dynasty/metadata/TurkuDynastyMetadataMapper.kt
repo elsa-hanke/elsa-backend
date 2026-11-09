@@ -43,7 +43,7 @@ class TurkuDynastyMetadataMapper(
         val payload = reader.read(submission.payload)
         validateDocuments(submission, payload)
         validatePerson(payload)
-        val context = MappingContext(payload, submission.caseType, educationProgram(payload))
+        val context = MappingContext(payload, submission.caseType, koulutusohjelma(payload))
         val publicity = rules.documentPublicity(context.profile)
         val plan = Plan(
             tosClass = context.profile.tosClass,
@@ -79,25 +79,25 @@ class TurkuDynastyMetadataMapper(
 
     private fun specialtyType(payload: ArchivePayload): ErikoisalaTyyppi? = ErikoisalaTyyppi.entries.firstOrNull { it.name == payload.specialtyType }
 
-    private enum class EducationProgram(val prefix: String, val title: String) {
+    private enum class Koulutusohjelma(val prefix: String, val title: String) {
         EL("EL", "Erikoislääkärikoulutus"),
         EHL("EHL", "Erikoishammaslääkärikoulutus"),
         YEK("YEK", "Yleislääketieteen erityiskoulutus")
     }
 
-    private fun educationProgram(payload: ArchivePayload): EducationProgram = when {
-        payload.yek -> EducationProgram.YEK
-        specialtyType(payload) == ErikoisalaTyyppi.HAMMASLAAKETIEDE -> EducationProgram.EHL
-        else -> EducationProgram.EL
+    private fun koulutusohjelma(payload: ArchivePayload): Koulutusohjelma = when {
+        payload.yek -> Koulutusohjelma.YEK
+        specialtyType(payload) == ErikoisalaTyyppi.HAMMASLAAKETIEDE -> Koulutusohjelma.EHL
+        else -> Koulutusohjelma.EL
     }
 
     // Keep the default Object.toString(): this context contains personal data.
-    private class MappingContext(val payload: ArchivePayload, val caseType: CaseType, val program: EducationProgram) {
+    private class MappingContext(val payload: ArchivePayload, val caseType: CaseType, val koulutusohjelma: Koulutusohjelma) {
         val profile = TurkuDynastyCaseProfile.from(caseType)
-        val graduation = profile == TurkuDynastyCaseProfile.VALMISTUMINEN
+        val isValmistuminen = profile == TurkuDynastyCaseProfile.VALMISTUMINEN
         val name = "${payload.firstName} ${payload.lastName}"
         val date: String = payload.approvalDate.format(DateTimeFormatter.ofPattern("d.M.yyyy"))
-        val title = "${program.prefix} ${profile.title} $name $date"
+        val title = "${koulutusohjelma.prefix} ${profile.title} $name $date"
     }
 
     private fun caseRequest(context: MappingContext) = DynastyCaseRequest(DynastyCaseModel(
@@ -116,7 +116,7 @@ class TurkuDynastyMetadataMapper(
         licensingDate: String? = null
     ) = DynastyAdditionalData(
         firstName = context.payload.firstName, lastName = context.payload.lastName,
-        faculty = FACULTY, program = context.program.title, specialty = context.payload.specialtyName,
+        faculty = FACULTY, program = context.koulutusohjelma.title, specialty = context.payload.specialtyName,
         birthDate = birthDate, studyRightStartDate = studyRightStartDate,
         graduationDate = graduationDate, approvalDate = approvalDate,
         degreeRegulation = degreeRegulation, licensingDate = licensingDate
@@ -150,12 +150,12 @@ class TurkuDynastyMetadataMapper(
             context,
             birthDate = if (main) payload.birthDate?.toString() else null,
             studyRightStartDate = if (main) payload.studyRightStartDate?.toString() else null,
-            graduationDate = if (main && context.graduation) payload.approvalDate.toString() else null,
-            approvalDate = if (main && !context.graduation) payload.approvalDate.toString() else null,
+            graduationDate = if (main && context.isValmistuminen) payload.approvalDate.toString() else null,
+            approvalDate = if (main && !context.isValmistuminen) payload.approvalDate.toString() else null,
             degreeRegulation = if (main) payload.degreeRegulation?.let { regulation ->
                 rules.degreeRegulation(regulation)
             } else null,
-            licensingDate = if (context.graduation && type != RecordType.LIITE) payload.licensingDate?.toString() else null
+            licensingDate = if (context.isValmistuminen && type != RecordType.LIITE) payload.licensingDate?.toString() else null
         )
     }
 

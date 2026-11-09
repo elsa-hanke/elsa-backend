@@ -27,47 +27,47 @@ class KoejaksoArkistointiService(
         configuration.isAsyncEnabled(university, caseType)
 
     fun archive(sopimus: KoejaksonKoulutussopimus, document: Asiakirja) {
-        val studyRight = sopimus.opintooikeus.required()
-        val university = studyRight.yliopisto?.nimi.required()
+        val opintooikeus = sopimus.opintooikeus.required()
+        val university = opintooikeus.yliopisto?.nimi.required()
         if (!synchronousArchive.onKaytossa(university, CaseType.SOPIMUS)) return
         if (isAsyncEnabled(university, CaseType.SOPIMUS)) {
             jobEnqueuer.enqueue(university, CaseType.SOPIMUS, sopimus.id.required(),
                     { listOf(RecordProperties(document, RecordType.SOPIMUS)) }) { documents ->
                 KoejaksoArkistointiPayload.create(
-                    sopimus.id.required(), studyRight, documents, "", null,
+                    sopimus.id.required(), opintooikeus, documents, "", null,
                     sopimus.vastuuhenkilo?.user?.getName(), sopimus.vastuuhenkilonKuittausaika
                 )
             }
         } else {
             val archivePackage = synchronousArchive.muodostaSahke(
-                studyRight, listOf(RecordProperties(document, RecordType.SOPIMUS)), sopimus.id.required().toString(),
+                opintooikeus, listOf(RecordProperties(document, RecordType.SOPIMUS)), sopimus.id.required().toString(),
                 "", null, sopimus.vastuuhenkilo?.user?.getName(), sopimus.vastuuhenkilonKuittausaika,
                 university, CaseType.SOPIMUS
             )
-            studyRight.erikoisala.required()
+            opintooikeus.erikoisala.required()
             synchronousArchive.laheta(
-                university, archivePackage.zipFilePath, CaseType.SOPIMUS, studyRight.isYek(),
-                sopimus.id.required().toString(), studyRight.erikoistuvaLaakari?.kayttaja?.user?.getName()
+                university, archivePackage.zipFilePath, CaseType.SOPIMUS, opintooikeus.isYek(),
+                sopimus.id.required().toString(), opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.getName()
             )
         }
     }
 
     fun archive(arvio: KoejaksonVastuuhenkilonArvio, document: Asiakirja) {
-        val studyRight = arvio.opintooikeus.required()
-        val university = studyRight.yliopisto?.nimi.required()
+        val opintooikeus = arvio.opintooikeus.required()
+        val university = opintooikeus.yliopisto?.nimi.required()
         // Preserve the synchronous path's required specialty, including when archiving is disabled.
         if (!isAsyncEnabled(university, CaseType.KOEJAKSO)) {
-            studyRight.erikoisala.required()
+            opintooikeus.erikoisala.required()
             if (!synchronousArchive.onKaytossa(university, CaseType.KOEJAKSO)) return
             val archivePackage = synchronousArchive.muodostaSahke(
-                studyRight, listOf(RecordProperties(document, RecordType.ARVIOINTI)), arvio.id.required().toString(),
+                opintooikeus, listOf(RecordProperties(document, RecordType.ARVIOINTI)), arvio.id.required().toString(),
                 arvio.virkailija?.user?.getName(), arvio.virkailijanKuittausaika,
                 arvio.vastuuhenkilo?.user?.getName(), arvio.vastuuhenkilonKuittausaika,
                 university, CaseType.KOEJAKSO
             )
             synchronousArchive.laheta(
-                university, archivePackage.zipFilePath, CaseType.KOEJAKSO, studyRight.isYek(),
-                arvio.id.required().toString(), studyRight.erikoistuvaLaakari?.kayttaja?.user?.getName()
+                university, archivePackage.zipFilePath, CaseType.KOEJAKSO, opintooikeus.isYek(),
+                arvio.id.required().toString(), opintooikeus.erikoistuvaLaakari?.kayttaja?.user?.getName()
             )
             return
         }
@@ -75,7 +75,7 @@ class KoejaksoArkistointiService(
         jobEnqueuer.enqueue(university, CaseType.KOEJAKSO, arvio.id.required(),
             { listOf(RecordProperties(document, RecordType.ARVIOINTI)) }) { documents ->
             KoejaksoArkistointiPayload.create(
-                arvio.id.required(), studyRight, documents, arvio.virkailija?.user?.getName(), arvio.virkailijanKuittausaika,
+                arvio.id.required(), opintooikeus, documents, arvio.virkailija?.user?.getName(), arvio.virkailijanKuittausaika,
                 arvio.vastuuhenkilo?.user?.getName(), arvio.vastuuhenkilonKuittausaika, arvio.koejaksoHyvaksytty
             )
         }

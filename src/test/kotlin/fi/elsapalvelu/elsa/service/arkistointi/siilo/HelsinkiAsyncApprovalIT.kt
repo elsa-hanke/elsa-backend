@@ -105,10 +105,10 @@ class HelsinkiAsyncApprovalIT : AsyncArchiveItSupport() {
 
     @ParameterizedTest
     @ValueSource(strings = ["EL", "EHL", "YEK"])
-    fun `graduation approval delivers only Helsinki configured documents`(kind: String) {
-        val fixture = graduationFixture(kind, YliopistoEnum.HELSINGIN_YLIOPISTO, true)
+    fun `valmistuminen approval delivers only Helsinki configured documents`(kind: String) {
+        val fixture = createValmistumispyyntoFixture(kind, YliopistoEnum.HELSINGIN_YLIOPISTO, true)
         setSecurityContext(fixture.second, VASTUUHENKILO)
-        approveGraduation(fixture.first)
+        approveValmistumispyynto(fixture.first)
             .andExpect(status().isOk)
         assertDelivery("valmistuminen:HELSINGIN_YLIOPISTO:${fixture.first}", RecordType.YHTEENVETO, "graduation")
     }
@@ -135,7 +135,7 @@ class HelsinkiAsyncApprovalIT : AsyncArchiveItSupport() {
         }
         pollAndAwait()
         assertThat(jobs.findById(job.id!!).orElseThrow().status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
-        assertThat(assessments.findById(id).orElseThrow().vastuuhenkiloHyvaksynyt).isTrue()
+        assertThat(vastuuhenkilonArvioRepository.findById(id).orElseThrow().vastuuhenkiloHyvaksynyt).isTrue()
         val first = zipEntries(receivedZip(server.takeRequest(5, TimeUnit.SECONDS)!!))
         server.enqueue(MockResponse().setResponseCode(200))
         val nextExecution = jdbc.queryForObject(
@@ -162,7 +162,7 @@ class HelsinkiAsyncApprovalIT : AsyncArchiveItSupport() {
         awaitParked(job.id!!)
         assertThat(jobs.findById(job.id!!).orElseThrow().errorCode)
             .isEqualTo(if (lostResponse) "SIILO_DELIVERY_UNCONFIRMED" else "SIILO_HTTP_REJECTED")
-        assertThat(assessments.findById(id).orElseThrow().vastuuhenkiloHyvaksynyt).isTrue()
+        assertThat(vastuuhenkilonArvioRepository.findById(id).orElseThrow().vastuuhenkiloHyvaksynyt).isTrue()
         server.takeRequest(5, TimeUnit.SECONDS)!!
         val requests = server.requestCount
         val attempts = org.mockito.Mockito.mockingDetails(processor).invocations.size
@@ -174,7 +174,7 @@ class HelsinkiAsyncApprovalIT : AsyncArchiveItSupport() {
 
     private fun approveKoejakso(type: CaseType): Long {
         val fixture = koejaksoFixture(YliopistoEnum.HELSINGIN_YLIOPISTO, type)
-        val result = if (type == CaseType.SOPIMUS) approveContract(fixture) else approveAssessment(fixture)
+        val result = if (type == CaseType.SOPIMUS) approveKoejaksonKoulutussopimus(fixture) else approveKoejaksonVastuuhenkilonArvio(fixture)
         result.andExpect(status().isOk)
         return if (type == CaseType.SOPIMUS) fixture.first else fixture.second
     }

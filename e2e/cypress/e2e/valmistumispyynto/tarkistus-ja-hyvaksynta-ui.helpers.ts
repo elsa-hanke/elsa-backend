@@ -5,8 +5,8 @@ import {
 } from '../../support/commands/credentials'
 import { downloadPdfPages, expectTextInOrder } from '../../support/pdf'
 import { assertArchiveAbsent, assertArchiveProcessed } from '../../support/async-archive'
-import { setupYekGraduationRequest } from '../valmistumispyynto-yek/valmistumispyynto-yek.helpers'
-import { submitGraduationRequestViaApi } from './graduation-request.fixture'
+import { setupYekValmistumispyynto } from '../valmistumispyynto-yek/valmistumispyynto-yek.helpers'
+import { submitValmistumispyyntoViaApi } from './valmistumispyynto.fixture'
 
 const MAIN = 'main[role="main"]'
 const MODAL = '#confirm-send'
@@ -35,7 +35,7 @@ const CHECKS = [
 ]
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 
-type Graduation = {
+type Valmistumispyynto = {
   id: number
   opintooikeusId: number
   erikoistujanNimi: string
@@ -48,8 +48,8 @@ type Graduation = {
   yhteenvetoAsiakirjaId: number | null
   liitteetAsiakirjaId: number | null
 }
-type Review = Record<string, unknown> & {
-  valmistumispyynto: Graduation
+type ValmistumispyynnonTarkistus = Record<string, unknown> & {
+  valmistumispyynto: Valmistumispyynto
 }
 
 const field = (label: string, root = MAIN) =>
@@ -71,7 +71,7 @@ const finnishDate = (date: string) => {
 
 // Separate actor tests: setup requests advance earlier stages only. Every review/approval
 // protected by these tests goes through the actual form and an unstubbed backend response.
-export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 'YEK') {
+export function registerValmistumispyynnonTarkistusAndHyvaksyntaTests(degree: 'EL' | 'EHL' | 'YEK') {
   const yek = degree === 'YEK'
   describe(`${degree} valmistumispyynnön tarkistus ja hyväksyntä käyttöliittymässä`, () => {
     const traineeApi = `/api/${yek ? 'yek-koulutettava' : 'erikoistuva-laakari'}/valmistumispyynto`
@@ -83,7 +83,7 @@ export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 
       ? 'YEK-koulutuksen valmistumisen yhteenveto'
       : 'Erikoistumiskoulutuksen valmistumisen yhteenveto'
     const checkFields = yek ? CHECKS : [...CHECKS, 'teoriakoulutusTarkistettu']
-    let original: Graduation
+    let original: Valmistumispyynto
     let ehlSpecialtyId: number | undefined
     let traineeCookies: Cypress.Cookie[]
 
@@ -95,7 +95,7 @@ export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 
       cy
         .task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false })
         .then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
-    const sameRequest = (saved: Graduation) => {
+    const sameRequest = (saved: Valmistumispyynto) => {
       expect(saved).to.include({
         id: original.id,
         opintooikeusId: original.opintooikeusId,
@@ -104,7 +104,7 @@ export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 
       })
     }
     // PUT review responses contain persisted fields; role-specific GETs compute tila.
-    const reviewSaved = (saved: Graduation) => {
+    const reviewSaved = (saved: Valmistumispyynto) => {
       sameRequest(saved)
       expect(saved.virkailijanKuittausaika).to.match(DATE)
       expect(saved).to.include({
@@ -114,21 +114,21 @@ export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 
         liitteetAsiakirjaId: null
       })
     }
-    const pendingApproval = (saved: Graduation) => {
+    const pendingApproval = (saved: Valmistumispyynto) => {
       reviewSaved(saved)
       expect(saved.tila).to.eq('ODOTTAA_VASTUUHENKILON_HYVAKSYNTAA')
     }
     // tila and archiving eligibility are computed for the actor reading the record.
-    const persistedRequest = ({ tila, arkistoitava, ...persisted }: Graduation) => persisted
+    const persistedRequest = ({ tila, arkistoitava, ...persisted }: Valmistumispyynto) => persisted
     const openActor = (path: string, api: string, alias: string) => {
       cy.intercept({ method: 'GET', url: `**${api}/${original.id}`, times: 1 }).as(alias)
       cy.visit(path)
       return cy.wait(`@${alias}`).then(({ response }) => {
         expect(response?.statusCode).to.eq(200)
-        return response?.body as Review
+        return response?.body as ValmistumispyynnonTarkistus
       })
     }
-    const traineeView = (expected: Graduation) => {
+    const traineeView = (expected: Valmistumispyynto) => {
       // YEK setup logs out of the original cached EL session. Restore the live
       // trainee session captured after setup instead of reusing that invalid cache.
       cy.clearAllCookies()
@@ -170,7 +170,7 @@ export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 
       cy.get(MAIN).contains('Opintohallinto on tarkistanut').should('be.visible')
       cy.get(MAIN).should('not.contain.text', NOTES)
     }
-    const approved = (saved: Graduation) => {
+    const approved = (saved: Valmistumispyynto) => {
       sameRequest(saved)
       expect(saved.tila).to.eq('HYVAKSYTTY')
       expect(saved.virkailijanKuittausaika).to.eq(original.virkailijanKuittausaika)
@@ -182,7 +182,7 @@ export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 
 
     beforeEach(() => {
       if (yek) {
-        setupYekGraduationRequest()
+        setupYekValmistumispyynto()
       } else {
         cy.prepareKoejaksoE2e({
           cleanupSupportUsers: true,
@@ -203,7 +203,7 @@ export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 
           kouluttajaEmail: KOULUTTAJA_EMAIL
         })
       }
-      submitGraduationRequestViaApi(traineeApi).then((id) =>
+      submitValmistumispyyntoViaApi(traineeApi).then((id) =>
         cy.apiRequest({ method: 'GET', url: traineeApi }).then(({ status, body }) => {
           expect(status).to.eq(200)
           expect(body.id).to.eq(id)
@@ -239,8 +239,8 @@ export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 
     })
 
     it('virkailija tarkistaa lomakkeen ja lähettää sen vastuuhenkilölle vasta vahvistuksesta', () => {
-      let before: Review
-      let saved: Review
+      let before: ValmistumispyynnonTarkistus
+      let saved: ValmistumispyynnonTarkistus
       let sentFields: Record<string, FormDataEntryValue> | undefined
       cy.then(() => {
         cy.intercept('PUT', `**${REVIEW_API}/${original.id}`).as('reviewPut')
@@ -365,7 +365,7 @@ export function registerGraduationReviewAndApprovalTests(degree: 'EL' | 'EHL' | 
 
     const approveThroughUi = (failure?: 'network' | 'http500') => {
       const submittedBodies: unknown[] = []
-      let saved: Graduation
+      let saved: Valmistumispyynto
       let expectedContacts: { sahkoposti: string; puhelinnumero: string | null }
       const university = yek ? 'ITA_SUOMEN_YLIOPISTO' : 'HELSINGIN_YLIOPISTO'
       cy.then(() => assertArchiveAbsent('valmistuminen', university, original.id))

@@ -11,7 +11,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirja
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
-import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistuminenArkistointiDocuments
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistuminenArkistointiAsiakirjat
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.params.ParameterizedTest
@@ -22,38 +22,38 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 
-class ValmistuminenArkistointiDocumentsTest {
+class ValmistuminenArkistointiAsiakirjatTest {
     private val properties = ApplicationProperties()
     private val snapshots = mock<ArkistointiAsiakirjaSnapshotService>()
-    private val service = ValmistuminenArkistointiDocuments(ArkistointiConfigurationProvider(properties), snapshots)
-    private val request = mock<Valmistumispyynto>()
+    private val service = ValmistuminenArkistointiAsiakirjat(ArkistointiConfigurationProvider(properties), snapshots)
+    private val valmistumispyynto = mock<Valmistumispyynto>()
     private val generated = listOf(RecordType.YHTEENVETO, RecordType.LIITE).map { RecordProperties(Asiakirja(id = 1), it) }
 
-    private fun metadata(certificate: Boolean) = ApplicationProperties.Arkistointi.Metadata().apply {
+    private fun metadata(includeLaillistamistodistus: Boolean) = ApplicationProperties.Arkistointi.Metadata().apply {
         cases = mapOf("valmistuminen" to ApplicationProperties.Arkistointi.Case().apply {
-            documents = (listOf("yhteenveto", "liite") + if (certificate) listOf("laillistamistodistus") else emptyList())
+            documents = (listOf("yhteenveto", "liite") + if (includeLaillistamistodistus) listOf("laillistamistodistus") else emptyList())
                 .associateWith { ApplicationProperties.Arkistointi.DocumentMetadata() }
         })
     }
 
     @ParameterizedTest
     @EnumSource(value = YliopistoEnum::class, names = ["TURUN_YLIOPISTO", "ITA_SUOMEN_YLIOPISTO"])
-    fun `certificate selection is configured independently for each university`(university: YliopistoEnum) {
+    fun `includeLaillistamistodistus selection is configured independently for each university`(university: YliopistoEnum) {
         val turku = properties.getArkistointi().getTurku()
         val uef = properties.getArkistointi().getUef()
         turku.metadata = metadata(university != YliopistoEnum.TURUN_YLIOPISTO)
         uef.metadata = metadata(university != YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
-        assertThat(service.complete(request, university, generated)).isSameAs(generated)
-        verifyNoInteractions(request, snapshots)
+        assertThat(service.taydenna(valmistumispyynto, university, generated)).isSameAs(generated)
+        verifyNoInteractions(valmistumispyynto, snapshots)
 
         if (university == YliopistoEnum.TURUN_YLIOPISTO) turku.metadata = metadata(true) else uef.metadata = metadata(true)
-        val studyRight = mock<Opintooikeus>()
-        whenever(request.opintooikeus).thenReturn(studyRight)
-        whenever(studyRight.erikoistuvaLaakari).thenReturn(mock<ErikoistuvaLaakari>())
+        val opintooikeus = mock<Opintooikeus>()
+        whenever(valmistumispyynto.opintooikeus).thenReturn(opintooikeus)
+        whenever(opintooikeus.erikoistuvaLaakari).thenReturn(mock<ErikoistuvaLaakari>())
         val snapshot = Asiakirja(id = 44, archiveSnapshot = true)
         whenever(snapshots.createSnapshot(any(), anyOrNull(), anyOrNull(), anyOrNull(), any(), any()))
             .thenReturn(ArkistointiAsiakirjaReference(snapshot, RecordType.LAILLISTAMISTODISTUS, 2, "certificate.pdf", "application/pdf", "sha"))
-        val result = service.complete(request, university, generated)
+        val result = service.taydenna(valmistumispyynto, university, generated)
         assertThat(result.map { it.type }).containsExactly(RecordType.YHTEENVETO, RecordType.LIITE, RecordType.LAILLISTAMISTODISTUS)
         assertThat(result.last().asiakirja).isSameAs(snapshot)
     }
@@ -63,8 +63,8 @@ class ValmistuminenArkistointiDocumentsTest {
     fun `missing configured generated document fails before snapshot creation`(university: YliopistoEnum) {
         properties.getArkistointi().getTurku().metadata = metadata(true)
         properties.getArkistointi().getUef().metadata = metadata(true)
-        assertThatThrownBy { service.complete(request, university, generated.take(1)) }
+        assertThatThrownBy { service.taydenna(valmistumispyynto, university, generated.take(1)) }
             .hasMessage("Configured graduation document is missing")
-        verifyNoInteractions(request, snapshots)
+        verifyNoInteractions(valmistumispyynto, snapshots)
     }
 }

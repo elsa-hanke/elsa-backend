@@ -210,17 +210,17 @@ open class ValmistuminenArchiveItBase {
         universityName: YliopistoEnum = YliopistoEnum.TAMPEREEN_YLIOPISTO
     ): ApprovalFixture = transactions.execute {
         val university = YliopistoHelper.createReferenceData(em, universityName)
-        val specialty = em.findAll(Erikoisala::class).first { erikoisala ->
+        val erikoisala = em.findAll(Erikoisala::class).first { erikoisala ->
             when (kind) {
                 "YEK" -> erikoisala.id == YEK_ERIKOISALA_ID
                 "EHL" -> erikoisala.tyyppi == ErikoisalaTyyppi.HAMMASLAAKETIEDE
                 else -> erikoisala.tyyppi == ErikoisalaTyyppi.LAAKETIEDE && erikoisala.id != YEK_ERIKOISALA_ID
             }
         }
-        val guide = OpintoopasHelper.createEntity(em, erikoisala = specialty)
-        em.persist(guide)
+        val opintoopas = OpintoopasHelper.createEntity(em, erikoisala = erikoisala)
+        em.persist(opintoopas)
         val student = ErikoistuvaLaakariHelper.createEntity(
-            em, yliopisto = university, erikoisala = specialty, opintoopas = guide,
+            em, yliopisto = university, erikoisala = erikoisala, opintoopas = opintoopas,
             laillistamistodistusData = certificate ?: PdfTestData.certificate(),
             laillistamistodistusNimi = certificateFilename ?: "laillistamistodistus.${certificateContentType.substringAfter('/')}",
             laillistamistodistusTyyppi = certificateContentType
@@ -228,38 +228,38 @@ open class ValmistuminenArchiveItBase {
         if (certificate == null) student.laillistamistodistus = null
         em.persist(student)
         em.persist(Koulutussuunnitelma(opintooikeus = student.getOpintooikeusKaytossa()!!))
-        val period = TyoskentelyjaksoHelper.createEntity(em).apply {
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em).apply {
             opintooikeus = student.getOpintooikeusKaytossa()!!
         }
-        em.persist(period)
+        em.persist(tyoskentelyjakso)
         val uploaded = Asiakirja(
             nimi = "approval-attachment", tyyppi = contentType, lisattypvm = LocalDateTime.now(),
-            opintooikeus = period.opintooikeus, tyoskentelyjakso = period,
+            opintooikeus = tyoskentelyjakso.opintooikeus, tyoskentelyjakso = tyoskentelyjakso,
             asiakirjaData = AsiakirjaData(data = attachment)
         )
         em.persist(uploaded)
-        period.asiakirjat.add(uploaded)
+        tyoskentelyjakso.asiakirjat.add(uploaded)
         extraAttachments.forEachIndexed { index, (type, bytes) ->
             val extra = Asiakirja(
                 nimi = "approval-extra-$index", tyyppi = type, lisattypvm = LocalDateTime.now(),
-                opintooikeus = period.opintooikeus, tyoskentelyjakso = period,
+                opintooikeus = tyoskentelyjakso.opintooikeus, tyoskentelyjakso = tyoskentelyjakso,
                 asiakirjaData = AsiakirjaData(data = bytes)
             )
             em.persist(extra)
-            period.asiakirjat.add(extra)
+            tyoskentelyjakso.asiakirjat.add(extra)
         }
         val approverUser = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(approverUser)
-        val approver = KayttajaHelper.createEntity(em, approverUser)
+        val hyvaksyja = KayttajaHelper.createEntity(em, approverUser)
         val task = if (kind == "YEK") VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN
             else VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
-        approver.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(
-            kayttaja = approver, yliopisto = university, erikoisala = specialty,
+        hyvaksyja.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(
+            kayttaja = hyvaksyja, yliopisto = university, erikoisala = erikoisala,
             vastuuhenkilonTehtavat = em.findAll(VastuuhenkilonTehtavatyyppi::class).filter { vastuuhenkilonTehtava -> vastuuhenkilonTehtava.nimi == task }.toMutableSet()
         ))
-        em.persist(approver)
+        em.persist(hyvaksyja)
         val request = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(
-            student.getOpintooikeusKaytossa()!!, approver, approver
+            student.getOpintooikeusKaytossa()!!, hyvaksyja, hyvaksyja
         )
         em.persist(request)
         em.persist(ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(request))

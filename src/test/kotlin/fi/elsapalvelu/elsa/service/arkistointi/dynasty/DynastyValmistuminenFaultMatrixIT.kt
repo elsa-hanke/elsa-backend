@@ -41,8 +41,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
  * reused. A permanent failure parks the job and a retryable one backs it off, exactly as the worker decides.
  */
 @ExtendWith(SpringExtension::class)
-@ContextConfiguration(classes = [DynastyGraduationFaultMatrixIT.Config::class])
-class DynastyGraduationFaultMatrixIT {
+@ContextConfiguration(classes = [DynastyValmistuminenFaultMatrixIT.Config::class])
+class DynastyValmistuminenFaultMatrixIT {
     @Autowired private lateinit var ledger: DynastyStepLedger
     @Autowired private lateinit var jdbc: JdbcTemplate
     private val stepFixture get() = DynastyStepJdbcFixture(jdbc)
@@ -68,7 +68,7 @@ class DynastyGraduationFaultMatrixIT {
 
     @ParameterizedTest(name = "{1} at {0}")
     @MethodSource("scenarios")
-    fun `interrupted graduation delivery converges without repeating a Dynasty mutation`(step: String, fault: Fault) {
+    fun `interrupted valmistuminen delivery converges without repeating a Dynasty mutation`(step: String, fault: Fault) {
         val dynasty = FakeDynasty()
         val server = MockWebServer().apply { dispatcher = dynasty; start() }
         try {

@@ -35,12 +35,12 @@ class ValmistumispyynnonViimeistelyServiceTest {
     private val creator = mock<ArkistointiJobCreator>()
     private val snapshots = mock<ArkistointiAsiakirjaSnapshotService>()
     private val configuration = mock<ArkistointiConfigurationProvider>()
-    private val archiveDocuments = mock<ValmistuminenArkistointiDocuments>()
+    private val arkistointiAsiakirjat = mock<ValmistuminenArkistointiAsiakirjat>()
     private val jobs = mock<ArkistointiJobRepository>()
     private val notifications = mock<ValmistumispyynnonIlmoitusService>()
     private val service = ValmistumispyynnonViimeistelyService(
         documents, reviewService, reviewMapper, notifications, archive,
-        ArkistointiJobEnqueuer(jobs, snapshots, creator, jacksonObjectMapper()), configuration, archiveDocuments
+        ArkistointiJobEnqueuer(jobs, snapshots, creator, jacksonObjectMapper()), configuration, arkistointiAsiakirjat
     )
     private val university = YliopistoEnum.HELSINGIN_YLIOPISTO
     private val review = ValmistumispyynnonTarkistus()
@@ -53,7 +53,7 @@ class ValmistumispyynnonViimeistelyServiceTest {
 
         service.viimeistele(7, review, Valmistumispyynto(id = 7), university)
 
-        verifyNoInteractions(documents, reviewService, reviewMapper, notifications, archiveDocuments, snapshots, creator)
+        verifyNoInteractions(documents, reviewService, reviewMapper, notifications, arkistointiAsiakirjat, snapshots, creator)
     }
 
     @BeforeEach
@@ -78,7 +78,7 @@ class ValmistumispyynnonViimeistelyServiceTest {
             anyOrNull(), any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any()
         )
         verify(archive, never()).laheta(any(), any(), any(), any(), anyOrNull(), anyOrNull())
-        verifyNoInteractions(creator, snapshots, archiveDocuments)
+        verifyNoInteractions(creator, snapshots, arkistointiAsiakirjat)
     }
 
     @ParameterizedTest
@@ -94,6 +94,6 @@ class ValmistumispyynnonViimeistelyServiceTest {
         service.viimeistele(7, review, request, university)
 
         verify(archive).laheta(eq(university), eq("/tmp/test.zip"), eq(CaseType.VALMISTUMINEN), eq(yek), eq("7"), isNull())
-        verifyNoInteractions(creator, snapshots, archiveDocuments)
+        verifyNoInteractions(creator, snapshots, arkistointiAsiakirjat)
     }
 }

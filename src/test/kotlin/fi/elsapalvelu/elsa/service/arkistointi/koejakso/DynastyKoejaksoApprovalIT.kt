@@ -84,7 +84,7 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
         }
         // Change live data after commit: the adapter must still receive the original decision and PDF.
         transactions.executeWithoutResult { _ ->
-            assessments.findById(fixture.second).orElseThrow().koejaksoHyvaksytty = !accepted
+            vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().koejaksoHyvaksytty = !accepted
             em.find(Asiakirja::class.java, identity.sourceDocumentId).asiakirjaData!!.data = byteArrayOf(1, 2)
         }
         scheduler.triggerCheckForDueExecutions()
@@ -117,8 +117,8 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
             }.whenever(jobScheduler).schedule(any(), any())
         }
         approve(fixture, true).andExpect(status().isInternalServerError)
-        assertThat(assessments.findById(fixture.second).orElseThrow().vastuuhenkiloHyvaksynyt).isFalse()
-        assertThat(assessments.findById(fixture.second).orElseThrow().vastuuhenkilonKuittausaika).isNull()
+        assertThat(vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().vastuuhenkiloHyvaksynyt).isFalse()
+        assertThat(vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().vastuuhenkilonKuittausaika).isNull()
         assertThat(jobs.findByKey(key(university, fixture.second))).isNull()
         assertThat(count("asiakirja")).isEqualTo(documentsBefore)
         assertThat(count("scheduled_tasks")).isEqualTo(tasksBefore)
@@ -135,12 +135,12 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
         assertThat(jobs.findByKey(key(university, fixture.second))).isNull()
         assertThat(count("asiakirja")).isEqualTo(documentsBefore)
         assertThat(count("scheduled_tasks")).isEqualTo(tasksBefore)
-        assertThat(assessments.findById(fixture.second).orElseThrow().vastuuhenkilonKorjausehdotus).isEqualTo("Korjattava")
+        assertThat(vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().vastuuhenkilonKorjausehdotus).isEqualTo("Korjattava")
         verifyNoInteractions(jobScheduler)
     }
 
     private fun approve(fixture: Triple<Long, Long, String>, accepted: Boolean, correction: String? = null) =
-        approveAssessment(fixture, accepted, correction)
+        approveKoejaksonVastuuhenkilonArvio(fixture, accepted, correction)
 
     private fun key(university: YliopistoEnum, id: Long) = "koejakso-arvio:$university:$id"
     private fun count(table: String) = jdbc.queryForObject("select count(*) from $table", Long::class.java)

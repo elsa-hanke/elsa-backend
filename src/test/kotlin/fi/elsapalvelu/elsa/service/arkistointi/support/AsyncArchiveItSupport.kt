@@ -77,20 +77,20 @@ open class AsyncArchiveItSupport : ResourceIntegrationTestBase() {
     @Autowired protected lateinit var jdbc: JdbcTemplate
 
     @Autowired protected lateinit var scheduler: Scheduler
-    @Autowired protected lateinit var assessments: KoejaksonVastuuhenkilonArvioRepository
-    @Autowired protected lateinit var assessmentMapper: KoejaksonVastuuhenkilonArvioMapper
-    @Autowired private lateinit var contracts: KoejaksonKoulutussopimusRepository
-    @Autowired private lateinit var contractMapper: KoejaksonKoulutussopimusMapper
+    @Autowired protected lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
+    @Autowired protected lateinit var vastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
+    @Autowired private lateinit var koulutussopimusRepository: KoejaksonKoulutussopimusRepository
+    @Autowired private lateinit var koulutussopimusMapper: KoejaksonKoulutussopimusMapper
 
-    protected fun approveGraduation(id: Long) = approvalRequest(
+    protected fun approveValmistumispyynto(id: Long) = approvalRequest(
         "/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/$id",
         ValmistumispyyntoHyvaksyntaFormDTO(null)
     )
 
-    protected fun approveAssessment(fixture: Triple<Long, Long, String>, accepted: Boolean = true, correction: String? = null): ResultActions {
+    protected fun approveKoejaksonVastuuhenkilonArvio(fixture: Triple<Long, Long, String>, accepted: Boolean = true, correction: String? = null): ResultActions {
         setSecurityContext(fixture.third, VASTUUHENKILO)
         val dto = transactions.execute {
-            assessmentMapper.toDto(assessments.findById(fixture.second).orElseThrow()).apply {
+            vastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow()).apply {
                 koejaksoHyvaksytty = accepted
                 vastuuhenkilonKorjausehdotus = correction
             }
@@ -98,9 +98,9 @@ open class AsyncArchiveItSupport : ResourceIntegrationTestBase() {
         return approvalRequest("/api/vastuuhenkilo/koejakso/vastuuhenkilonarvio", requireNotNull(dto))
     }
 
-    protected fun approveContract(fixture: Triple<Long, Long, String>): ResultActions {
+    protected fun approveKoejaksonKoulutussopimus(fixture: Triple<Long, Long, String>): ResultActions {
         setSecurityContext(fixture.third, VASTUUHENKILO)
-        val dto = transactions.execute { contractMapper.toDto(contracts.findById(fixture.first).orElseThrow()) }
+        val dto = transactions.execute { koulutussopimusMapper.toDto(koulutussopimusRepository.findById(fixture.first).orElseThrow()) }
         return approvalRequest("/api/vastuuhenkilo/koejakso/koulutussopimus", requireNotNull(dto))
     }
 
@@ -149,35 +149,35 @@ open class AsyncArchiveItSupport : ResourceIntegrationTestBase() {
         assertThat(jobs.findById(id).orElseThrow().status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
     }
 
-    protected fun graduationFixture(kind: String, universityType: YliopistoEnum, withCertificate: Boolean): Pair<Long, String> = transactions.execute { _ ->
+    protected fun createValmistumispyyntoFixture(kind: String, universityType: YliopistoEnum, withLaillistamistodistus: Boolean): Pair<Long, String> = transactions.execute { _ ->
         val university = YliopistoHelper.createReferenceData(em, universityType)
-        val specialty = em.findAll(Erikoisala::class).first {
+        val erikoisala = em.findAll(Erikoisala::class).first {
             when (kind) {
                 "YEK" -> it.id == YEK_ERIKOISALA_ID
                 "EHL" -> it.tyyppi == ErikoisalaTyyppi.HAMMASLAAKETIEDE
                 else -> it.tyyppi == ErikoisalaTyyppi.LAAKETIEDE && it.id != YEK_ERIKOISALA_ID
             }
         }
-        val guide = OpintoopasHelper.createEntity(em, erikoisala = specialty).also(em::persist)
-        val trainee = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = university, erikoisala = specialty, opintoopas = guide)
-        trainee.laillistamistodistus = if (withCertificate) AsiakirjaData(data = PdfTestData.certificate()) else null
-        em.persist(trainee)
-        val studyRight = trainee.getOpintooikeusKaytossa()!!
-        em.persist(Koulutussuunnitelma(opintooikeus = studyRight))
-        val period = TyoskentelyjaksoHelper.createEntity(em).apply { opintooikeus = studyRight }.also(em::persist)
+        val opintoopas = OpintoopasHelper.createEntity(em, erikoisala = erikoisala).also(em::persist)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = university, erikoisala = erikoisala, opintoopas = opintoopas)
+        erikoistuvaLaakari.laillistamistodistus = if (withLaillistamistodistus) AsiakirjaData(data = PdfTestData.certificate()) else null
+        em.persist(erikoistuvaLaakari)
+        val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
+        em.persist(Koulutussuunnitelma(opintooikeus = opintooikeus))
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em).also { it.opintooikeus = opintooikeus }.also(em::persist)
         val attachment = Asiakirja(nimi = "approval-attachment.pdf", tyyppi = "application/pdf", lisattypvm = LocalDateTime.now(),
-            opintooikeus = studyRight, tyoskentelyjakso = period, asiakirjaData = AsiakirjaData(data = PdfTestData.certificate()))
+            opintooikeus = opintooikeus, tyoskentelyjakso = tyoskentelyjakso, asiakirjaData = AsiakirjaData(data = PdfTestData.certificate()))
         em.persist(attachment)
-        period.asiakirjat.add(attachment)
+        tyoskentelyjakso.asiakirjat.add(attachment)
         val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO)).also(em::persist)
-        val approver = KayttajaHelper.createEntity(em, user)
+        val hyvaksyja = KayttajaHelper.createEntity(em, user)
         val task = if (kind == "YEK") VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN
             else VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
-        approver.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(kayttaja = approver, yliopisto = university,
-            erikoisala = specialty, vastuuhenkilonTehtavat = em.findAll(VastuuhenkilonTehtavatyyppi::class)
+        hyvaksyja.yliopistotAndErikoisalat.add(KayttajaYliopistoErikoisala(kayttaja = hyvaksyja, yliopisto = university,
+            erikoisala = erikoisala, vastuuhenkilonTehtavat = em.findAll(VastuuhenkilonTehtavatyyppi::class)
                 .filter { it.nimi == task }.toMutableSet()))
-        em.persist(approver)
-        val request = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(studyRight, approver, approver).also(em::persist)
+        em.persist(hyvaksyja)
+        val request = ValmistumispyyntoHelper.createValmistumispyyntoOdottaaHyvaksyntaa(opintooikeus, hyvaksyja, hyvaksyja).also(em::persist)
         em.persist(ValmistumispyynnonTarkistusHelper.createValmistumispyynnonTarkistusOdottaaHyvaksyntaa(request))
         em.flush()
         request.id!! to user.id!!
@@ -188,13 +188,13 @@ open class AsyncArchiveItSupport : ResourceIntegrationTestBase() {
             val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO)).also(em::persist)
             val university = YliopistoHelper.createReferenceData(em, universityType)
             val traineeUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI)).also(em::persist)
-            val trainee = ErikoistuvaLaakariHelper.createEntity(em, user = traineeUser, yliopisto = university)
-            val approver = createVastuuhenkiloForKoejakso(trainee, user = user)
-            val trainer = KayttajaHelper.createEntity(em).also(em::persist)
+            val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user = traineeUser, yliopisto = university)
+            val hyvaksyja = createVastuuhenkiloForKoejakso(erikoistuvaLaakari, user = user)
+            val kouluttaja = KayttajaHelper.createEntity(em).also(em::persist)
             val supervisor = KayttajaHelper.createEntity(em).also(em::persist)
-            val phases = KoejaksonVaiheetHelper.persistKoejaksoVaiheet(em, trainee, trainer, supervisor, approver, university)
+            val phases = KoejaksonVaiheetHelper.persistKoejaksoVaiheet(em, erikoistuvaLaakari, kouluttaja, supervisor, hyvaksyja, university)
             phases.koulutussopimus.erikoistuvanAllekirjoitusaika = LocalDate.now()
-            val assessment = KoejaksonVaiheetHelper.createVastuuhenkilonArvio(trainee, approver).apply {
+            val assessment = KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, hyvaksyja).apply {
                 erikoistuvanKuittausaika = LocalDate.now()
                 virkailija = KayttajaHelper.createEntity(em).also(em::persist)
                 virkailijaHyvaksynyt = true

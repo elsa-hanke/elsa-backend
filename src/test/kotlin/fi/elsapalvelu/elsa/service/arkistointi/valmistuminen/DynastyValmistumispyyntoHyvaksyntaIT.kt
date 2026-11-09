@@ -50,9 +50,9 @@ import javax.imageio.ImageIO
     "application.arkistointi.uef.metadata.cases.koejakso.async-enabled=true",
     "application.arkistointi.uef.metadata.cases.valmistuminen.async-enabled=true"
 ])
-@Import(DynastyGraduationApprovalIT.Adapters::class)
+@Import(DynastyValmistumispyyntoHyvaksyntaIT.Adapters::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
+class DynastyValmistumispyyntoHyvaksyntaIT : AsyncArchiveItSupport() {
     @Autowired private lateinit var documents: fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 
     @TestBean(name = "turkuDynastyArkistointiAdapter", methodName = "createTurkuAdapter", enforceOverride = true)
@@ -71,7 +71,7 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
         val originalBytes = if (format == "png") certificateImage else certificate
         val originalFilename = "certificate.$format"
         val originalContentType = if (format == "png") "image/png" else "application/pdf"
-        val fixture = graduationFixture(kind, university, true)
+        val fixture = createValmistumispyyntoFixture(kind, university, true)
         transactions.executeWithoutResult { _ ->
             val request = em.find(fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto::class.java, fixture.first)
             request.opintooikeus!!.erikoistuvaLaakari!!.apply {
@@ -109,7 +109,7 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
         "TURUN_YLIOPISTO,empty", "ITA_SUOMEN_YLIOPISTO,empty",
         "TURUN_YLIOPISTO,metadata", "ITA_SUOMEN_YLIOPISTO,metadata")
     fun `invalid certificate rolls back documents job and schedule`(university: YliopistoEnum, problem: String) {
-        val fixture = graduationFixture("YEK", university, problem != "missing")
+        val fixture = createValmistumispyyntoFixture("YEK", university, problem != "missing")
         transactions.executeWithoutResult { _ ->
             val request = em.find(fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto::class.java, fixture.first)
             request.opintooikeus!!.erikoistuvaLaakari!!.apply {
@@ -121,9 +121,9 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
         setSecurityContext(fixture.second, VASTUUHENKILO)
         transactions.executeWithoutResult { _ ->
             val request = em.find(fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto::class.java, fixture.first)
-            val trainee = request.opintooikeus!!.erikoistuvaLaakari!!
-            if (problem == "empty") trainee.laillistamistodistus = AsiakirjaData(data = byteArrayOf())
-            if (problem == "metadata") trainee.laillistamispaivanLiitetiedostonNimi = ""
+            val erikoistuvaLaakari = request.opintooikeus!!.erikoistuvaLaakari!!
+            if (problem == "empty") erikoistuvaLaakari.laillistamistodistus = AsiakirjaData(data = byteArrayOf())
+            if (problem == "metadata") erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi = ""
         }
         val before = jdbc.queryForObject("select count(*) from asiakirja", Long::class.java)
         val tasks = jdbc.queryForObject("select count(*) from scheduled_tasks", Long::class.java)
@@ -149,7 +149,7 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
     @ParameterizedTest
     @CsvSource("TURUN_YLIOPISTO", "ITA_SUOMEN_YLIOPISTO")
     fun `disabled archive does not require certificate`(university: YliopistoEnum) {
-        val fixture = graduationFixture("YEK", university, false)
+        val fixture = createValmistumispyyntoFixture("YEK", university, false)
         setSecurityContext(fixture.second, VASTUUHENKILO)
         val settings = properties.getArkistointi()
         try {
@@ -196,7 +196,7 @@ class DynastyGraduationApprovalIT : AsyncArchiveItSupport() {
         }
     }
 
-    private fun approve(id: Long) = approveGraduation(id)
+    private fun approve(id: Long) = approveValmistumispyynto(id)
 
     companion object {
         private val certificateImage = ByteArrayOutputStream().use { output ->

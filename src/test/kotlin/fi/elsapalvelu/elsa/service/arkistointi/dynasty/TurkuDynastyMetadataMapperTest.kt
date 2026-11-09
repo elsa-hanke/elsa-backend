@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.JsonNode
 class TurkuDynastyMetadataMapperTest {
     @ParameterizedTest
     @ValueSource(strings = ["EL", "EHL", "YEK"])
-    fun `graduation maps program regulation dates and document specific fields`(kind: String) {
+    fun `valmistuminen maps program regulation dates and document specific fields`(kind: String) {
         val plan = plan(kind, false)
         val mapper = jacksonObjectMapper()
         val documents = plan.documents.map { mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(it) }

@@ -1,7 +1,7 @@
 import { E2E_ERIKOISTUVA_EMAIL } from '../../support/commands/credentials'
 
 /** Earlier workflow stage only: review and approval themselves still use the real UI. */
-export function submitGraduationRequestViaApi(traineeApi: string) {
+export function submitValmistumispyyntoViaApi(traineeApi: string) {
   // cy.session restores cookies but clears the page. Establish the application origin for fetch.
   cy.visit('/')
   return cy.fixture('test.pdf', 'base64').then((certificate: string) =>

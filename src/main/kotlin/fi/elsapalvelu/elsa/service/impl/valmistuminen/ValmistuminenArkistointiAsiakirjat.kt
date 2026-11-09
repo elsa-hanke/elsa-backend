@@ -15,28 +15,28 @@ import org.springframework.transaction.annotation.Transactional
 /** Supplements the configured async graduation document set, independently of transport or university. */
 @Service
 @Transactional(propagation = Propagation.MANDATORY)
-class ValmistuminenArkistointiDocuments(
+class ValmistuminenArkistointiAsiakirjat(
     private val configuration: ArkistointiConfigurationProvider,
     private val snapshots: ArkistointiAsiakirjaSnapshotService
 ) {
-    fun complete(request: Valmistumispyynto, university: YliopistoEnum, generated: List<RecordProperties>): List<RecordProperties> {
+    fun taydenna(valmistumispyynto: Valmistumispyynto, university: YliopistoEnum, generated: List<RecordProperties>): List<RecordProperties> {
         val settings = configuration.getConfiguration(university, CaseType.VALMISTUMINEN)
-        val includeCertificate = settings.metadata.getDocumentMetadata(RecordType.LAILLISTAMISTODISTUS, settings.case) != null
-        val available = generated.map { it.type } + if (includeCertificate) listOf(RecordType.LAILLISTAMISTODISTUS) else emptyList()
+        val includeLaillistamistodistus = settings.metadata.getDocumentMetadata(RecordType.LAILLISTAMISTODISTUS, settings.case) != null
+        val available = generated.map { it.type } + if (includeLaillistamistodistus) listOf(RecordType.LAILLISTAMISTODISTUS) else emptyList()
         check(settings.case.documents.orEmpty().keys.all { key -> available.any { it.name.lowercase() == key } }) {
             "Configured graduation document is missing"
         }
-        if (!includeCertificate) {
+        if (!includeLaillistamistodistus) {
             return generated
         }
         check(generated.none { it.type == RecordType.LAILLISTAMISTODISTUS }) {
             "Graduation certificate must be added only once"
         }
-        val studyRight = request.opintooikeus.required()
-        val trainee = studyRight.erikoistuvaLaakari.required()
+        val opintooikeus = valmistumispyynto.opintooikeus.required()
+        val erikoistuvaLaakari = opintooikeus.erikoistuvaLaakari.required()
         val snapshot = snapshots.createSnapshot(
-            studyRight, trainee.laillistamispaivanLiitetiedostonNimi, trainee.laillistamispaivanLiitetiedostonTyyppi,
-            trainee.laillistamistodistus?.data, RecordType.LAILLISTAMISTODISTUS, generated.size
+            opintooikeus, erikoistuvaLaakari.laillistamispaivanLiitetiedostonNimi, erikoistuvaLaakari.laillistamispaivanLiitetiedostonTyyppi,
+            erikoistuvaLaakari.laillistamistodistus?.data, RecordType.LAILLISTAMISTODISTUS, generated.size
         )
         // The certificate has no source Asiakirja: use the snapshot's own ID, never an AsiakirjaData ID.
         // The enqueuer's createReference recognizes this persisted snapshot and reuses it.

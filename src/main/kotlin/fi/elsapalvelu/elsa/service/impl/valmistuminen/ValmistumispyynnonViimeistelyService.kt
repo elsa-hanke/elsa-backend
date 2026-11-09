@@ -24,7 +24,7 @@ class ValmistumispyynnonViimeistelyService(
     private val arkistointiService: SynchronousArkistointiService,
     private val jobEnqueuer: ArkistointiJobEnqueuer,
     private val arkistointiConfigurationProvider: ArkistointiConfigurationProvider,
-    private val archiveDocuments: ValmistuminenArkistointiDocuments
+    private val arkistointiAsiakirjat: ValmistuminenArkistointiAsiakirjat
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -39,16 +39,16 @@ class ValmistumispyynnonViimeistelyService(
         val university = yliopisto.required()
         if (asyncEnabled) {
             jobEnqueuer.enqueue(university, CaseType.VALMISTUMINEN, valmistumispyyntoId, {
-                val documents = createDocuments(valmistumispyyntoId, tarkistus, valmistumispyynto)
+                val documents = luoAsiakirjat(valmistumispyyntoId, tarkistus, valmistumispyynto)
                 valmistumispyynto.opintooikeus?.erikoisala.required()
-                val completed = archiveDocuments.complete(valmistumispyynto, university, documents)
-                selectConfiguredDocuments(completed, university)
+                val completed = arkistointiAsiakirjat.taydenna(valmistumispyynto, university, documents)
+                valitseArkistoitavatAsiakirjat(completed, university)
             }) { identities ->
                 ValmistuminenArkistointiPayload.create(valmistumispyynto, university, identities)
             }
             return
         }
-        val asiakirjat = createDocuments(valmistumispyyntoId, tarkistus, valmistumispyynto)
+        val asiakirjat = luoAsiakirjat(valmistumispyyntoId, tarkistus, valmistumispyynto)
 
         log.info("Tarkistetaan arkistointi [valmistumispyyntoId=$valmistumispyyntoId, yliopisto=$yliopisto]")
         if (!archiveEnabled) {
@@ -57,10 +57,10 @@ class ValmistumispyynnonViimeistelyService(
         }
 
         valmistumispyynto.opintooikeus?.erikoisala.required()
-        archiveSynchronously(valmistumispyynto, university, asiakirjat)
+        arkistoiSynkronisesti(valmistumispyynto, university, asiakirjat)
     }
 
-    private fun createDocuments(
+    private fun luoAsiakirjat(
         valmistumispyyntoId: Long,
         tarkistus: ValmistumispyynnonTarkistus,
         valmistumispyynto: Valmistumispyynto
@@ -74,7 +74,7 @@ class ValmistumispyynnonViimeistelyService(
         return documents
     }
 
-    private fun archiveSynchronously(
+    private fun arkistoiSynkronisesti(
         valmistumispyynto: Valmistumispyynto,
         yliopisto: YliopistoEnum,
         asiakirjat: List<RecordProperties>,
@@ -96,7 +96,7 @@ class ValmistumispyynnonViimeistelyService(
         )
     }
 
-    private fun selectConfiguredDocuments(
+    private fun valitseArkistoitavatAsiakirjat(
         documents: List<RecordProperties>,
         university: YliopistoEnum
     ): List<RecordProperties> {

@@ -1,3 +1,3 @@
-import { registerGraduationReviewAndApprovalTests } from './tarkistus-ja-hyvaksynta-ui.helpers'
+import { registerValmistumispyynnonTarkistusAndHyvaksyntaTests } from './tarkistus-ja-hyvaksynta-ui.helpers'
 
-registerGraduationReviewAndApprovalTests('EHL')
+registerValmistumispyynnonTarkistusAndHyvaksyntaTests('EHL')

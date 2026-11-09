@@ -101,7 +101,7 @@ class KoejaksoApprovalRoutingIT : KoejaksoArchiveItBase() {
 
     private fun verifyNoAsyncInteractions() {
         verifyNoInteractions(snapshots, creator, scheduler)
-        verify(contracts, never()).findByIdForUpdate(any())
-        verify(assessments, never()).findByIdForUpdate(any())
+        verify(koulutussopimusRepository, never()).findByIdForUpdate(any())
+        verify(vastuuhenkilonArvioRepository, never()).findByIdForUpdate(any())
     }
 }

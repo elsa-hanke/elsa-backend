@@ -109,9 +109,9 @@ class KoejaksoApprovalCommitIT : KoejaksoArchiveItBase() {
         transactions.executeWithoutResult {
             val source = asiakirjaRepository.findAllByOpintooikeusId(fixture.studyRightId).single()
             if (type == CaseType.SOPIMUS) {
-                archiveService.archive(requireNotNull(contracts.findByIdForUpdate(fixture.contractId)), source)
+                archiveService.archive(requireNotNull(koulutussopimusRepository.findByIdForUpdate(fixture.koulutussopimusId)), source)
             } else {
-                archiveService.archive(requireNotNull(assessments.findByIdForUpdate(fixture.assessmentId)), source)
+                archiveService.archive(requireNotNull(vastuuhenkilonArvioRepository.findByIdForUpdate(fixture.vastuuhenkilonArvioId)), source)
             }
         }
 
@@ -141,21 +141,21 @@ class KoejaksoApprovalCommitIT : KoejaksoArchiveItBase() {
     fun `contract return and resubmission can still be approved`() {
         val fixture = fixture()
         approve(fixture, CaseType.SOPIMUS, correction = "Korjattava").andExpect(status().isOk)
-        val returned = contractDto(fixture)
+        val returned = koulutussopimusDto(fixture)
         assertThat(returned.lahetetty).isFalse()
         assertThat(returned.erikoistuvanAllekirjoitusaika).isNull()
         assertThat(returned.kouluttajat!!.single().sopimusHyvaksytty).isFalse()
         assertAwaitingFinalApproval(fixture, CaseType.SOPIMUS)
 
         setSecurityContext(fixture.traineeId, ERIKOISTUVA_LAAKARI)
-        val resubmitted = contractService.update(returned.apply { lahetetty = true }, fixture.traineeId)
+        val resubmitted = koulutussopimusService.update(returned.apply { lahetetty = true }, fixture.traineeId)
         assertThat(resubmitted.lahetetty).isTrue()
         assertThat(resubmitted.erikoistuvanAllekirjoitusaika).isEqualTo(LocalDate.now())
         assertThat(resubmitted.kouluttajat!!.single().sopimusHyvaksytty).isFalse()
         assertAwaitingFinalApproval(fixture, CaseType.SOPIMUS)
 
         setSecurityContext(fixture.trainerId, KOULUTTAJA)
-        val reviewed = contractService.update(contractDto(fixture), fixture.trainerId)
+        val reviewed = koulutussopimusService.update(koulutussopimusDto(fixture), fixture.trainerId)
         assertThat(reviewed.kouluttajat!!.single().sopimusHyvaksytty).isTrue()
         assertThat(reviewed.vastuuhenkilonKorjausehdotus).isNull()
         assertAwaitingFinalApproval(fixture, CaseType.SOPIMUS)
@@ -169,7 +169,7 @@ class KoejaksoApprovalCommitIT : KoejaksoArchiveItBase() {
         val fixture = fixture()
         approve(fixture, CaseType.KOEJAKSO, correction = "Korjattava").andExpect(status().isOk)
         transactions.executeWithoutResult {
-            val returned = assessments.findById(fixture.assessmentId).orElseThrow()
+            val returned = vastuuhenkilonArvioRepository.findById(fixture.vastuuhenkilonArvioId).orElseThrow()
             assertThat(returned.erikoistuvanKuittausaika).isNull()
             assertThat(returned.virkailijaHyvaksynyt).isFalse()
             assertThat(returned.virkailijanKuittausaika).isNull()
@@ -177,18 +177,18 @@ class KoejaksoApprovalCommitIT : KoejaksoArchiveItBase() {
         assertAwaitingFinalApproval(fixture, CaseType.KOEJAKSO)
 
         setSecurityContext(fixture.traineeId, ERIKOISTUVA_LAAKARI)
-        assessmentService.update(assessmentDto(fixture), fixture.traineeId)
+        vastuuhenkilonArvioService.update(vastuuhenkilonArvioDto(fixture), fixture.traineeId)
         transactions.executeWithoutResult {
-            val resubmitted = assessments.findById(fixture.assessmentId).orElseThrow()
+            val resubmitted = vastuuhenkilonArvioRepository.findById(fixture.vastuuhenkilonArvioId).orElseThrow()
             assertThat(resubmitted.erikoistuvanKuittausaika).isEqualTo(LocalDate.now())
             assertThat(resubmitted.virkailijaHyvaksynyt).isFalse()
         }
         assertAwaitingFinalApproval(fixture, CaseType.KOEJAKSO)
 
         setSecurityContext(fixture.reviewerId, OPINTOHALLINNON_VIRKAILIJA)
-        assessmentService.update(assessmentDto(fixture).apply { virkailijanKorjausehdotus = null }, fixture.reviewerId)
+        vastuuhenkilonArvioService.update(vastuuhenkilonArvioDto(fixture).apply { virkailijanKorjausehdotus = null }, fixture.reviewerId)
         transactions.executeWithoutResult {
-            val reviewed = assessments.findById(fixture.assessmentId).orElseThrow()
+            val reviewed = vastuuhenkilonArvioRepository.findById(fixture.vastuuhenkilonArvioId).orElseThrow()
             assertThat(reviewed.virkailijaHyvaksynyt).isTrue()
             assertThat(reviewed.virkailijanKuittausaika).isEqualTo(LocalDate.now())
             assertThat(reviewed.vastuuhenkilonKorjausehdotus).isNull()
@@ -202,8 +202,8 @@ class KoejaksoApprovalCommitIT : KoejaksoArchiveItBase() {
     @ForEachKoejaksoCaseType
     fun `concurrent approvals serialize and produce one delivery`(type: CaseType) {
         val fixture = fixture()
-        val dto = contractDto(fixture)
-        val assessmentDto = assessmentDto(fixture).apply { koejaksoHyvaksytty = true }
+        val dto = koulutussopimusDto(fixture)
+        val vastuuhenkilonArvioDto = vastuuhenkilonArvioDto(fixture).apply { koejaksoHyvaksytty = true }
         val start = CountDownLatch(1)
         val executor = Executors.newFixedThreadPool(2)
         try {
@@ -212,8 +212,8 @@ class KoejaksoApprovalCommitIT : KoejaksoArchiveItBase() {
                     start.await(10, TimeUnit.SECONDS)
                     try {
                         setSecurityContext(fixture.approverId, VASTUUHENKILO)
-                        if (type == CaseType.SOPIMUS) contractService.update(dto, fixture.approverId)
-                        else assessmentService.update(assessmentDto, fixture.approverId, null, null)
+                        if (type == CaseType.SOPIMUS) koulutussopimusService.update(dto, fixture.approverId)
+                        else vastuuhenkilonArvioService.update(vastuuhenkilonArvioDto, fixture.approverId, null, null)
                         true
                     } catch (_: BadRequestAlertException) {
                         false
@@ -281,7 +281,7 @@ class KoejaksoApprovalCommitIT : KoejaksoArchiveItBase() {
         assertThrows<ArkistointiProcessingException> {
             processor.process(execution)
         }
-        assertThat(contracts.findById(fixture.contractId).orElseThrow().vastuuhenkiloHyvaksynyt).isTrue()
+        assertThat(koulutussopimusRepository.findById(fixture.koulutussopimusId).orElseThrow().vastuuhenkiloHyvaksynyt).isTrue()
     }
 
     private fun assertSingleDelivery(fixture: Fixture, type: CaseType) {

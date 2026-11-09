@@ -107,10 +107,10 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
 
     @ParameterizedTest
     @ValueSource(strings = ["EL", "EHL", "YEK"])
-    fun `graduation approval sends exactly its saved documents to Louhi`(kind: String) {
-        val fixture = graduationFixture(kind, YliopistoEnum.TAMPEREEN_YLIOPISTO, false)
+    fun `valmistuminen approval sends exactly its saved documents to Louhi`(kind: String) {
+        val fixture = createValmistumispyyntoFixture(kind, YliopistoEnum.TAMPEREEN_YLIOPISTO, false)
         setSecurityContext(fixture.second, VASTUUHENKILO)
-        approveGraduation(fixture.first)
+        approveValmistumispyynto(fixture.first)
             .andExpect(status().isOk)
         assertDelivery("valmistuminen:${YliopistoEnum.TAMPEREEN_YLIOPISTO.name}:${fixture.first}",
             listOf(RecordType.YHTEENVETO, RecordType.LIITE), kind == "YEK")
@@ -119,7 +119,7 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
     @Test
     fun `koejakso approval sends its saved assessment to Louhi`() {
         val prepared = koejaksoFixture(YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.KOEJAKSO)
-        approveAssessment(prepared).andExpect(status().isOk)
+        approveKoejaksonVastuuhenkilonArvio(prepared).andExpect(status().isOk)
         assertDelivery("koejakso-arvio:${YliopistoEnum.TAMPEREEN_YLIOPISTO.name}:${prepared.second}", listOf(RecordType.ARVIOINTI), false)
     }
 
@@ -224,7 +224,7 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
     @Test
     fun `accepted Louhi delivery is parked when success commit fails`() {
         val fixture = koejaksoFixture(YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.KOEJAKSO)
-        approveAssessment(fixture).andExpect(status().isOk)
+        approveKoejaksonVastuuhenkilonArvio(fixture).andExpect(status().isOk)
         val jobId = jobs.findByKey("koejakso-arvio:TAMPEREEN_YLIOPISTO:${fixture.second}")!!.id!!
         withSuccessCommitFailure {
             scheduler.triggerCheckForDueExecutions()

@@ -234,20 +234,20 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     }
     @ParameterizedTest(name = "{0} certificate as {1}")
     @CsvSource("EL,pdf", "EHL,pdf", "YEK,pdf", "YEK,png")
-    fun `approved graduation reaches Dynasty as case task and three documents in order`(kind: String, format: String) {
+    fun `approved valmistuminen reaches Dynasty as case task and three documents in order`(kind: String, format: String) {
         val image = format == "png"
-        val fixture = graduationFixture(kind, YliopistoEnum.TURUN_YLIOPISTO, true)
+        val fixture = createValmistumispyyntoFixture(kind, YliopistoEnum.TURUN_YLIOPISTO, true)
         transactions.executeWithoutResult { _ ->
-            val studyRight = em.find(Valmistumispyynto::class.java, fixture.first).opintooikeus!!
-            properties.getArkistointi().getTurku().dynasty.tutkintoasetukset = mapOf(studyRight.asetus!!.nimi!! to "Test regulation")
-            studyRight.erikoistuvaLaakari!!.apply {
+            val opintooikeus = em.find(Valmistumispyynto::class.java, fixture.first).opintooikeus!!
+            properties.getArkistointi().getTurku().dynasty.tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
+            opintooikeus.erikoistuvaLaakari!!.apply {
                 laillistamistodistus = AsiakirjaData(data = if (image) certificateImage else certificate)
                 laillistamispaivanLiitetiedostonNimi = "certificate.$format"
                 laillistamispaivanLiitetiedostonTyyppi = if (image) "image/png" else "application/pdf"
             }
         }
         setSecurityContext(fixture.second, VASTUUHENKILO)
-        approveGraduation(fixture.first).andExpect(status().isOk)
+        approveValmistumispyynto(fixture.first).andExpect(status().isOk)
         val job = jobs.findByKey("valmistuminen:TURUN_YLIOPISTO:${fixture.first}")!!
         val taskId = UUID.randomUUID()
         server.enqueueDynastySuccess(documentIds = listOf(1078, 1079, 1080), taskId = taskId)
@@ -290,10 +290,10 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     private fun approveKoejakso(type: CaseType): Long {
         val fixture = koejaksoFixture(YliopistoEnum.TURUN_YLIOPISTO, type)
         transactions.executeWithoutResult {
-            val studyRight = assessments.findById(fixture.second).orElseThrow().opintooikeus!!
-            properties.getArkistointi().getTurku().dynasty.tutkintoasetukset = mapOf(studyRight.asetus!!.nimi!! to "Test regulation")
+            val opintooikeus = vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().opintooikeus!!
+            properties.getArkistointi().getTurku().dynasty.tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
         }
-        val result = if (type == CaseType.SOPIMUS) approveContract(fixture) else approveAssessment(fixture)
+        val result = if (type == CaseType.SOPIMUS) approveKoejaksonKoulutussopimus(fixture) else approveKoejaksonVastuuhenkilonArvio(fixture)
         result.andExpect(status().isOk)
         return if (type == CaseType.SOPIMUS) fixture.first else fixture.second
     }

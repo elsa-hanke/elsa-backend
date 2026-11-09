@@ -93,12 +93,12 @@ open class KoejaksoArchiveItBase : ResourceIntegrationTestBase() {
     @Autowired protected lateinit var jdbc: JdbcTemplate
     @Autowired protected lateinit var jobs: ArkistointiJobRepository
     @Autowired protected lateinit var properties: ApplicationProperties
-    @MockitoSpyBean protected lateinit var contracts: KoejaksonKoulutussopimusRepository
-    @MockitoSpyBean protected lateinit var assessments: KoejaksonVastuuhenkilonArvioRepository
-    @Autowired protected lateinit var contractMapper: KoejaksonKoulutussopimusMapper
-    @Autowired protected lateinit var assessmentMapper: KoejaksonVastuuhenkilonArvioMapper
-    @Autowired protected lateinit var contractService: KoejaksonKoulutussopimusService
-    @Autowired protected lateinit var assessmentService: KoejaksonVastuuhenkilonArvioService
+    @MockitoSpyBean protected lateinit var koulutussopimusRepository: KoejaksonKoulutussopimusRepository
+    @MockitoSpyBean protected lateinit var vastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
+    @Autowired protected lateinit var koulutussopimusMapper: KoejaksonKoulutussopimusMapper
+    @Autowired protected lateinit var vastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
+    @Autowired protected lateinit var koulutussopimusService: KoejaksonKoulutussopimusService
+    @Autowired protected lateinit var vastuuhenkilonArvioService: KoejaksonVastuuhenkilonArvioService
     @MockitoSpyBean protected lateinit var snapshots: ArkistointiAsiakirjaSnapshotService
     @MockitoSpyBean protected lateinit var scheduler: ArkistointiJobScheduler
     @MockitoSpyBean protected lateinit var archiveMapper: ObjectMapper
@@ -138,8 +138,8 @@ open class KoejaksoArchiveItBase : ResourceIntegrationTestBase() {
 
     protected fun assertRolledBack(fixture: Fixture, type: CaseType) {
         transactions.executeWithoutResult {
-            val approved = if (type == CaseType.SOPIMUS) contracts.findById(fixture.contractId).orElseThrow().vastuuhenkiloHyvaksynyt
-            else assessments.findById(fixture.assessmentId).orElseThrow().vastuuhenkiloHyvaksynyt
+            val approved = if (type == CaseType.SOPIMUS) koulutussopimusRepository.findById(fixture.koulutussopimusId).orElseThrow().vastuuhenkiloHyvaksynyt
+            else vastuuhenkilonArvioRepository.findById(fixture.vastuuhenkilonArvioId).orElseThrow().vastuuhenkiloHyvaksynyt
             assertThat(approved).isFalse()
         }
         assertNoJob(fixture, type)
@@ -163,9 +163,9 @@ open class KoejaksoArchiveItBase : ResourceIntegrationTestBase() {
     protected fun withdrawPreviousApproval(fixture: Fixture, type: CaseType) {
         transactions.executeWithoutResult {
             if (type == CaseType.SOPIMUS) {
-                contracts.findById(fixture.contractId).orElseThrow().kouluttajat!!.forEach { trainer -> trainer.sopimusHyvaksytty = false }
+                koulutussopimusRepository.findById(fixture.koulutussopimusId).orElseThrow().kouluttajat!!.forEach { kouluttaja -> kouluttaja.sopimusHyvaksytty = false }
             } else {
-                assessments.findById(fixture.assessmentId).orElseThrow().virkailijaHyvaksynyt = false
+                vastuuhenkilonArvioRepository.findById(fixture.vastuuhenkilonArvioId).orElseThrow().virkailijaHyvaksynyt = false
             }
         }
     }
@@ -174,27 +174,27 @@ open class KoejaksoArchiveItBase : ResourceIntegrationTestBase() {
     protected fun updateApproval(fixture: Fixture, type: CaseType) {
         setSecurityContext(fixture.approverId, VASTUUHENKILO)
         if (type == CaseType.SOPIMUS) {
-            contractService.update(contractDto(fixture), fixture.approverId)
+            koulutussopimusService.update(koulutussopimusDto(fixture), fixture.approverId)
         } else {
-            assessmentService.update(assessmentDto(fixture).apply { koejaksoHyvaksytty = true }, fixture.approverId, null, null)
+            vastuuhenkilonArvioService.update(vastuuhenkilonArvioDto(fixture).apply { koejaksoHyvaksytty = true }, fixture.approverId, null, null)
         }
     }
 
     protected fun approve(fixture: Fixture, type: CaseType, accepted: Boolean = true, correction: String? = null): ResultActions {
         setSecurityContext(fixture.approverId, VASTUUHENKILO)
-        val dto = if (type == CaseType.SOPIMUS) contractDto(fixture).apply { korjausehdotus = correction }
-        else assessmentDto(fixture).apply { koejaksoHyvaksytty = accepted; vastuuhenkilonKorjausehdotus = correction }
+        val dto = if (type == CaseType.SOPIMUS) koulutussopimusDto(fixture).apply { korjausehdotus = correction }
+        else vastuuhenkilonArvioDto(fixture).apply { koejaksoHyvaksytty = accepted; vastuuhenkilonKorjausehdotus = correction }
         val endpoint = if (type == CaseType.SOPIMUS) "koulutussopimus" else "vastuuhenkilonarvio"
         return testMockMvc.perform(put("/api/vastuuhenkilo/koejakso/$endpoint")
             .contentType(MediaType.APPLICATION_JSON).content(convertObjectToJsonBytes(dto)).with(csrf()))
     }
 
-    protected fun contractDto(fixture: Fixture): KoejaksonKoulutussopimusDTO = transactions.execute {
-        contractMapper.toDto(contracts.findById(fixture.contractId).orElseThrow())
+    protected fun koulutussopimusDto(fixture: Fixture): KoejaksonKoulutussopimusDTO = transactions.execute {
+        koulutussopimusMapper.toDto(koulutussopimusRepository.findById(fixture.koulutussopimusId).orElseThrow())
     }
 
-    protected fun assessmentDto(fixture: Fixture): KoejaksonVastuuhenkilonArvioDTO = transactions.execute {
-        assessmentMapper.toDto(assessments.findById(fixture.assessmentId).orElseThrow())
+    protected fun vastuuhenkilonArvioDto(fixture: Fixture): KoejaksonVastuuhenkilonArvioDTO = transactions.execute {
+        vastuuhenkilonArvioMapper.toDto(vastuuhenkilonArvioRepository.findById(fixture.vastuuhenkilonArvioId).orElseThrow())
     }
 
     protected fun fixture(): Fixture = transactions.execute {
@@ -205,39 +205,39 @@ open class KoejaksoArchiveItBase : ResourceIntegrationTestBase() {
         val university = YliopistoHelper.createReferenceData(em, YliopistoEnum.TAMPEREEN_YLIOPISTO)
         val traineeUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI))
         em.persist(traineeUser)
-        val trainee = ErikoistuvaLaakariHelper.createEntity(em, user = traineeUser, yliopisto = university)
-        val approver = createVastuuhenkiloForKoejakso(trainee, user = approverUser)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user = traineeUser, yliopisto = university)
+        val hyvaksyja = createVastuuhenkiloForKoejakso(erikoistuvaLaakari, user = approverUser)
         val trainerUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(KOULUTTAJA)).also(em::persist)
-        val trainer = KayttajaHelper.createEntity(em, trainerUser).also(em::persist)
+        val kouluttaja = KayttajaHelper.createEntity(em, trainerUser).also(em::persist)
         val supervisor = KayttajaHelper.createEntity(em).also(em::persist)
         val reviewerUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(OPINTOHALLINNON_VIRKAILIJA)).also(em::persist)
-        val reviewer = KayttajaHelper.createEntity(em, reviewerUser).apply { yliopistot.add(university) }.also(em::persist)
-        val phases = KoejaksonVaiheetHelper.persistKoejaksoVaiheet(em, trainee, trainer, supervisor, approver, university)
+        val tarkastaja = KayttajaHelper.createEntity(em, reviewerUser).apply { yliopistot.add(university) }.also(em::persist)
+        val phases = KoejaksonVaiheetHelper.persistKoejaksoVaiheet(em, erikoistuvaLaakari, kouluttaja, supervisor, hyvaksyja, university)
         phases.koulutussopimus.erikoistuvanAllekirjoitusaika = LocalDate.now()
-        val assessment = KoejaksonVaiheetHelper.createVastuuhenkilonArvio(trainee, approver).apply {
+        val assessment = KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, hyvaksyja).apply {
             erikoistuvanKuittausaika = LocalDate.now()
-            virkailija = reviewer
+            virkailija = tarkastaja
             virkailijaHyvaksynyt = true
             virkailijanKuittausaika = LocalDate.now()
         }
         em.persist(assessment)
         em.flush()
         Fixture(
-            phases.koulutussopimus.id!!, assessment.id!!, trainee.getOpintooikeusKaytossa()!!.id!!,
+            phases.koulutussopimus.id!!, assessment.id!!, erikoistuvaLaakari.getOpintooikeusKaytossa()!!.id!!,
             approverUser.id!!, traineeUser.id!!, trainerUser.id!!, reviewerUser.id!!
         )
     }
 
     protected data class Fixture(
-        val contractId: Long,
-        val assessmentId: Long,
+        val koulutussopimusId: Long,
+        val vastuuhenkilonArvioId: Long,
         val studyRightId: Long,
         val approverId: String,
         val traineeId: String,
         val trainerId: String,
         val reviewerId: String
     ) {
-        fun caseId(type: CaseType) = if (type == CaseType.SOPIMUS) contractId else assessmentId
+        fun caseId(type: CaseType) = if (type == CaseType.SOPIMUS) koulutussopimusId else vastuuhenkilonArvioId
     }
 
     @TestConfiguration(proxyBeanMethods = false)
