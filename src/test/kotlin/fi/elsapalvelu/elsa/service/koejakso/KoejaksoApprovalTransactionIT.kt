@@ -146,8 +146,8 @@ class KoejaksoApprovalTransactionIT : ResourceIntegrationTestBase() {
 
     private fun assertNotApproved(fixture: Fixture, type: CaseType) {
         transactions.executeWithoutResult {
-            val approved = if (type == CaseType.SOPIMUS) contracts.findById(fixture.contractId).orElseThrow().vastuuhenkiloHyvaksynyt
-            else assessments.findById(fixture.assessmentId).orElseThrow().vastuuhenkiloHyvaksynyt
+            val approved = if (type == CaseType.SOPIMUS) contracts.findById(fixture.koulutussopimusId).orElseThrow().vastuuhenkiloHyvaksynyt
+            else assessments.findById(fixture.vastuuhenkilonArvioId).orElseThrow().vastuuhenkiloHyvaksynyt
             assertThat(approved).isFalse()
         }
     }
@@ -159,17 +159,17 @@ class KoejaksoApprovalTransactionIT : ResourceIntegrationTestBase() {
 
     private fun approve(fixture: Fixture, type: CaseType, accepted: Boolean = true, correction: String? = null): org.springframework.test.web.servlet.ResultActions {
         authenticateUser(fixture.approverId, VASTUUHENKILO)
-        val dto = if (type == CaseType.SOPIMUS) contractDto(fixture).apply { korjausehdotus = correction }
-        else assessmentDto(fixture).apply { koejaksoHyvaksytty = accepted; vastuuhenkilonKorjausehdotus = correction }
+        val dto = if (type == CaseType.SOPIMUS) koulutussopimusDto(fixture).apply { korjausehdotus = correction }
+        else vastuuhenkilonArvioDto(fixture).apply { koejaksoHyvaksytty = accepted; vastuuhenkilonKorjausehdotus = correction }
         val endpoint = if (type == CaseType.SOPIMUS) "koulutussopimus" else "vastuuhenkilonarvio"
         return testMockMvc.perform(put("/api/vastuuhenkilo/koejakso/$endpoint")
             .contentType(MediaType.APPLICATION_JSON).content(convertObjectToJsonBytes(dto)).with(csrf()))
     }
-    private fun contractDto(fixture: Fixture): KoejaksonKoulutussopimusDTO = transactions.execute {
-        contractMapper.toDto(contracts.findById(fixture.contractId).orElseThrow())
+    private fun koulutussopimusDto(fixture: Fixture): KoejaksonKoulutussopimusDTO = transactions.execute {
+        contractMapper.toDto(contracts.findById(fixture.koulutussopimusId).orElseThrow())
     }
-    private fun assessmentDto(fixture: Fixture): KoejaksonVastuuhenkilonArvioDTO = transactions.execute {
-        assessmentMapper.toDto(assessments.findById(fixture.assessmentId).orElseThrow())
+    private fun vastuuhenkilonArvioDto(fixture: Fixture): KoejaksonVastuuhenkilonArvioDTO = transactions.execute {
+        assessmentMapper.toDto(assessments.findById(fixture.vastuuhenkilonArvioId).orElseThrow())
     }
 
     private fun fixture(): Fixture = transactions.execute {
@@ -205,15 +205,15 @@ class KoejaksoApprovalTransactionIT : ResourceIntegrationTestBase() {
     }
 
     private data class Fixture(
-        val contractId: Long,
-        val assessmentId: Long,
+        val koulutussopimusId: Long,
+        val vastuuhenkilonArvioId: Long,
         val studyRightId: Long,
         val approverId: String,
         val traineeId: String,
         val trainerId: String,
         val reviewerId: String
     ) {
-        fun caseId(type: CaseType) = if (type == CaseType.SOPIMUS) contractId else assessmentId
+        fun caseId(type: CaseType) = if (type == CaseType.SOPIMUS) koulutussopimusId else vastuuhenkilonArvioId
     }
 
     @TestConfiguration(proxyBeanMethods = false)

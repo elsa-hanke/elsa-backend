@@ -6,7 +6,7 @@ const SPECIMENS = 'Patologia, preparaatit'
 
 // Backend import/reconciliation is covered by persistence ITs. This spec checks the
 // customer-visible result with a controlled API response, without querying Peppi.
-const subpart = (id: number, name: string, passed: boolean) => ({
+const createOsakokonaisuus = (id: number, name: string, passed: boolean) => ({
   id,
   nimi_fi: name,
   nimi_sv: '',
@@ -19,7 +19,7 @@ const subpart = (id: number, name: string, passed: boolean) => ({
   vanhenemispaiva: null,
 })
 
-const exam = (children: ReturnType<typeof subpart>[] | null, passed: boolean) => ({
+const createKuulustelu = (children: ReturnType<typeof createOsakokonaisuus>[] | null, passed: boolean) => ({
   id: 91001,
   nimi_fi: MAIN_EXAM,
   nimi_sv: MAIN_EXAM,
@@ -35,7 +35,7 @@ const exam = (children: ReturnType<typeof subpart>[] | null, passed: boolean) =>
   osakokonaisuudet: children,
 })
 
-const stubExamResponse = (value: ReturnType<typeof exam>) => {
+const stubExamResponse = (value: ReturnType<typeof createKuulustelu>) => {
   cy.intercept('GET', '**/erikoistuva-laakari/opintosuoritukset', {
     statusCode: 200,
     body: {
@@ -48,7 +48,7 @@ const stubExamResponse = (value: ReturnType<typeof exam>) => {
   }).as('examAccomplishments')
 }
 
-const openExamTab = () => {
+const openKuulusteluTab = () => {
   cy.wait('@examAccomplishments', { timeout: 15000 }).its('response.statusCode').should('eq', 200)
   cy.contains('h1', 'Opintosuoritukset').should('be.visible')
   cy.contains('.nav-link', 'Kuulustelu').click()
@@ -84,21 +84,21 @@ describe('Kuulustelun osasuoritukset', () => {
   })
 
   it('näyttää pääkuulustelun ja osasuoritusten omat tilat myös sivun uudelleenlatauksen jälkeen', () => {
-    stubExamResponse(exam([subpart(91003, SPECIMENS, false), subpart(91002, ESSAYS, true)], false))
+    stubExamResponse(createKuulustelu([createOsakokonaisuus(91003, SPECIMENS, false), createOsakokonaisuus(91002, ESSAYS, true)], false))
     cy.visit('/opintosuoritukset')
-    openExamTab()
+    openKuulusteluTab()
     assertExamAndSubparts()
 
     cy.reload()
-    openExamTab()
+    openKuulusteluTab()
     assertExamAndSubparts()
   })
 
-  for (const children of [null, [] as ReturnType<typeof subpart>[]]) {
+  for (const children of [null, [] as ReturnType<typeof createOsakokonaisuus>[]]) {
     it(`näyttää pelkän pääkuulustelun kun osakokonaisuudet on ${children === null ? 'null' : 'tyhjä lista'}`, () => {
-      stubExamResponse(exam(children, true))
+      stubExamResponse(createKuulustelu(children, true))
       cy.visit('/opintosuoritukset')
-      openExamTab()
+      openKuulusteluTab()
       cy.get('.tab-pane.active .opintosuoritus-table').within(() => {
         cy.get('tbody tr').should('have.length', 1)
         cy.get('.exam-subpart-row').should('not.exist')

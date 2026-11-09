@@ -6,6 +6,7 @@ import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.*
@@ -39,7 +40,6 @@ import fi.elsapalvelu.elsa.service.seuranta.*
 import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
-import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.service.arkistointi.koejakso.KoejaksoArkistointiService
 import fi.elsapalvelu.elsa.service.mail.TransactionalMailService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -85,7 +85,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val koulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val asiakirjaRepository: AsiakirjaRepository,
-    private val arkistointiService: SynchronousArkistointiService,
+    private val arkistointiConfigurationProvider: ArkistointiConfigurationProvider,
     private val koejaksoArkistointiService: KoejaksoArkistointiService,
     private val keskeytysaikaService: KeskeytysaikaService,
     private val pdfService: PdfService,
@@ -100,11 +100,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         asiakirjat: Set<AsiakirjaDTO>?
     ): KoejaksonVastuuhenkilonArvioDTO? {
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
-            vastuuhenkilonArvioPdfTextValidator.validateLuonti(
-                koejaksonVastuuhenkilonArvioDTO, asiakirjat.orEmpty().map { asiakirja -> asiakirja.nimi }
-            )
-            var vastuuhenkilonArvio =
-                koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
+            vastuuhenkilonArvioPdfTextValidator.validateLuonti(koejaksonVastuuhenkilonArvioDTO, asiakirjat.orEmpty().map { asiakirja -> asiakirja.nimi })
+            var vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
             vastuuhenkilonArvio.opintooikeus = it
             vastuuhenkilonArvio.virkailija = null
             vastuuhenkilonArvio.vastuuhenkilo = null
@@ -125,14 +122,6 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
 
             vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.save(vastuuhenkilonArvio)
 
-            /* Sähköposti virkailijalle. Poistetaan käytöstä kommentoimalla.
-            mailService.sendEmailFromTemplate(
-                to = it.yliopisto?.nimi?.getOpintohallintoEmailAddress(applicationProperties),
-                templateName = "virkailijaKoejaksoTarkastettavissa.html",
-                titleKey = "email.virkailijakoejaksotarkastettavissa.title",
-                properties = mapOf(Pair(MailProperty.ID, vastuuhenkilonArvio.id.required().toString()))
-            ) */
-
             it.erikoistuvaLaakari?.kayttaja?.user?.let { user ->
                 user.email = koejaksonVastuuhenkilonArvioDTO.erikoistuvanSahkoposti
                 user.phoneNumber = koejaksonVastuuhenkilonArvioDTO.erikoistuvanPuhelinnumero
@@ -152,11 +141,9 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     ): KoejaksonVastuuhenkilonArvioDTO {
         val vastuuhenkilonArvio = loadForUpdate(koejaksonVastuuhenkilonArvioDTO.id.required())
 
-        val updatedVastuuhenkilonArvio =
-            koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
+        val updatedVastuuhenkilonArvio = koejaksonVastuuhenkilonArvioMapper.toEntity(koejaksonVastuuhenkilonArvioDTO)
 
-        val kirjautunutErikoistuvaLaakari =
-            erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
+        val kirjautunutErikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
 
         val vastuuhenkilo =
             kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
@@ -166,12 +153,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 VastuuhenkilonTehtavatyyppiEnum.KOEJAKSOSOPIMUSTEN_JA_KOEJAKSOJEN_HYVAKSYMINEN
             )
 
-        if (kirjautunutErikoistuvaLaakari != null
-            && kirjautunutErikoistuvaLaakari == vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari
-        ) {
-            vastuuhenkilonArvioPdfTextValidator.validateErikoistujanKentat(
-                koejaksonVastuuhenkilonArvioDTO, asiakirjat.orEmpty().map { it.nimi }
-            )
+        if (kirjautunutErikoistuvaLaakari != null && kirjautunutErikoistuvaLaakari == vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari) {
+            vastuuhenkilonArvioPdfTextValidator.validateErikoistujanKentat(koejaksonVastuuhenkilonArvioDTO, asiakirjat.orEmpty().map { it.nimi })
             handleErikoistuja(
                 vastuuhenkilonArvio,
                 koejaksonVastuuhenkilonArvioDTO.erikoistuvanSahkoposti,
@@ -213,8 +196,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private fun loadForUpdate(id: Long): KoejaksonVastuuhenkilonArvio {
         val university = koejaksonVastuuhenkilonArvioRepository.findUniversityById(id)
         if (university == null || !koejaksoArkistointiService.isAsyncEnabled(university, CaseType.KOEJAKSO)) {
-            return koejaksonVastuuhenkilonArvioRepository.findById(id)
-                .orElseThrow { EntityNotFoundException("Vastuuhenkilön arviota ei löydy") }
+            return koejaksonVastuuhenkilonArvioRepository.findById(id).orElseThrow { EntityNotFoundException("Vastuuhenkilön arviota ei löydy") }
         }
         val arvio = koejaksonVastuuhenkilonArvioRepository.findByIdForUpdate(id)
             ?: throw EntityNotFoundException("Vastuuhenkilön arviota ei löydy")
@@ -492,22 +474,16 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
                 opintoOikeusId
             ).toMutableSet()
         )
-        result.aloituskeskustelu =
-            koejaksonAloituskeskusteluService.findByOpintooikeusId(opintoOikeusId)
-                .orElse(null)
-        result.valiarviointi =
-            koejaksonValiarviointiService.findByOpintooikeusId(opintoOikeusId).orElse(null)
-        result.kehittamistoimenpiteet =
-            koejaksonKehittamistoimenpiteetService.findByOpintooikeusId(opintoOikeusId).orElse(null)
-        result.loppukeskustelu =
-            koejaksonLoppukeskusteluService.findByOpintooikeusId(opintoOikeusId).orElse(null)
+        result.aloituskeskustelu = koejaksonAloituskeskusteluService.findByOpintooikeusId(opintoOikeusId).orElse(null)
+        result.valiarviointi = koejaksonValiarviointiService.findByOpintooikeusId(opintoOikeusId).orElse(null)
+        result.kehittamistoimenpiteet = koejaksonKehittamistoimenpiteetService.findByOpintooikeusId(opintoOikeusId).orElse(null)
+        result.loppukeskustelu = koejaksonLoppukeskusteluService.findByOpintooikeusId(opintoOikeusId).orElse(null)
         result.muutOpintooikeudet =
             opintooikeusService.findAllValidByErikoistuvaLaakariKayttajaUserId(vastuuhenkilonArvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.id.required())
                 .filter { it.id != opintoOikeusId && it.erikoisalaId != YEK_ERIKOISALA_ID }
         val koulutussopimus = koulutussopimusRepository.findByOpintooikeusId(opintoOikeusId)
-        result.koulutussopimusHyvaksytty =
-            koulutussopimus.isPresent && koulutussopimus.get().vastuuhenkiloHyvaksynyt == true
-        result.arkistoitava = arkistointiService.onKaytossa(vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi.required(), CaseType.KOEJAKSO)
+        result.koulutussopimusHyvaksytty = koulutussopimus.isPresent && koulutussopimus.get().vastuuhenkiloHyvaksynyt == true
+        result.arkistoitava = arkistointiConfigurationProvider.onKaytossa(vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi.required(), CaseType.KOEJAKSO)
         result.tila = KoejaksoTila.fromVastuuhenkilonArvio(
             vastuuhenkilonArvio,
             authentication.authorities.any { it.authority == OPINTOHALLINNON_VIRKAILIJA },

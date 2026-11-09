@@ -20,7 +20,7 @@ class AsyncSahkeDelivery(private val builder: AsyncSahkePackageBuilder) {
         invalid: (String) -> ArkistointiResult,
         send: (PreparedSahkePackage) -> ArkistointiResult
     ): ArkistointiResult {
-        if (submission.university != adapter.university || submission.caseType !in adapter.supportedCaseTypes) {
+        if (!adapter.supports(submission)) {
             return invalid("${transport}_SUBMISSION_INVALID")
         }
         val directory = Files.createTempDirectory("elsa-${transport.lowercase()}-")

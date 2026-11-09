@@ -47,7 +47,7 @@ class ArkistointiJobObserverTest {
     @ParameterizedTest
     @ValueSource(ints = [1, 3, 25])
     fun `terminal outcomes always alert without a duplicate threshold warning`(attempt: Int) {
-        observer.onCompleted(event(attempt).copy(outcome = ArkistointiAttemptCompleted.Outcome.TERMINAL_FAILURE))
+        observer.onCompleted(event(attempt).copy(result = ArkistointiAttemptCompleted.Result.TERMINAL_FAILURE))
         val message = argumentCaptor<String>()
         verify(alerts).publishAlert(any(), message.capture())
         assertThat(message.firstValue).contains("Automaattiset yritykset on lopetettu")
@@ -57,7 +57,7 @@ class ArkistointiJobObserverTest {
 
     @Test
     fun `success records completion without claiming recovery notification delivery`() {
-        observer.onCompleted(event(4).copy(outcome = ArkistointiAttemptCompleted.Outcome.SUCCESS, errorCode = null))
+        observer.onCompleted(event(4).copy(result = ArkistointiAttemptCompleted.Result.SUCCESS, errorCode = null))
         verifyNoInteractions(alerts)
         assertThat(registry.get("arkistointi.requests.total").counter().count()).isEqualTo(1.0)
         assertThat(registry.find("arkistointi.errors.total").counter()).isNull()
@@ -71,8 +71,8 @@ class ArkistointiJobObserverTest {
         observer.onCompleted(first.copy(attempt = 2))
         observer.onCompleted(first.copy(attempt = 3))
         observer.onCompleted(first.copy(attempt = 4,
-            outcome = if (succeeds) ArkistointiAttemptCompleted.Outcome.SUCCESS
-                else ArkistointiAttemptCompleted.Outcome.TERMINAL_FAILURE,
+            result = if (succeeds) ArkistointiAttemptCompleted.Result.SUCCESS
+                else ArkistointiAttemptCompleted.Result.TERMINAL_FAILURE,
             errorCode = if (succeeds) null else first.errorCode))
 
         assertThat(registry.get("arkistointi.async.attempts.total").tag("outcome", "RETRYABLE_FAILURE").counter().count()).isEqualTo(3.0)
@@ -110,6 +110,6 @@ class ArkistointiJobObserverTest {
 
     private fun event(attempt: Int) = ArkistointiAttemptCompleted(
         UUID.randomUUID(), YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.VALMISTUMINEN,
-        attempt, ArkistointiAttemptCompleted.Outcome.RETRYABLE_FAILURE, "UNAVAILABLE"
+        attempt, ArkistointiAttemptCompleted.Result.RETRYABLE_FAILURE, "UNAVAILABLE"
     )
 }

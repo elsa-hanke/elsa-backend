@@ -38,7 +38,7 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
         val opintooikeusId = opintooikeus.id.required()
         val aloitettu = System.currentTimeMillis()
 
-        val data = luoKooste(opintooikeusId, valmistumispyynto).use { assembler ->
+        val data = luoKooste(opintooikeusId).use { assembler ->
             arviointiPdfService.lisaa(opintooikeusId, valmistumispyynto, assembler)
             suoritemerkintaPdfService.lisaa(opintooikeusId, valmistumispyynto, assembler)
             lisaaPaivakirjamerkinnat(opintooikeusId, assembler)
@@ -69,10 +69,7 @@ class ValmistumispyynnonErikoistujanTiedotPdfService(
         )
     }
 
-    private fun luoKooste(
-        opintooikeusId: Long,
-        @Suppress("UNUSED_PARAMETER") valmistumispyynto: Valmistumispyynto
-    ): PdfAssembler {
+    private fun luoKooste(opintooikeusId: Long): PdfAssembler {
         val koulutussuunnitelma =
             koulutussuunnitelmaRepository.findOneByOpintooikeusId(opintooikeusId)
         val koulutussuunnitelmaStream = ByteArrayOutputStream()

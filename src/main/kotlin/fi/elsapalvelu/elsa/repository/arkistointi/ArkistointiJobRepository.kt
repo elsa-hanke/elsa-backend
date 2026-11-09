@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 @Repository
 interface ArkistointiJobRepository : JpaRepository<ArkistointiJob, UUID> {
@@ -17,4 +18,8 @@ interface ArkistointiJobRepository : JpaRepository<ArkistointiJob, UUID> {
     fun findByIdForStateChange(@Param("id") id: UUID): ArkistointiJob?
 
     fun findByKey(key: String): ArkistointiJob?
+
+    @Transactional(readOnly = true)
+    @Query("select job.requestedByUserId from ArkistointiJob job where job.id = :id")
+    fun findRequestedByUserId(@Param("id") id: UUID): String?
 }

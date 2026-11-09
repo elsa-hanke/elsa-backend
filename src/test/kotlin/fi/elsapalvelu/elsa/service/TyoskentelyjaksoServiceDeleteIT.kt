@@ -52,6 +52,8 @@ class TyoskentelyjaksoServiceDeleteIT {
     @Autowired
     private lateinit var em: EntityManager
 
+    @Autowired private lateinit var snapshots: fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
+
     private lateinit var owner: User
     private lateinit var tyoskentelyjakso: Tyoskentelyjakso
     private var tyoskentelyjaksoId: Long = 0
@@ -111,6 +113,10 @@ class TyoskentelyjaksoServiceDeleteIT {
 
     @Test
     fun deleteOwnTyoskentelyjaksoRemovesReferencesAndKeepsEntities() {
+        val source = asiakirjaRepository.findById(asiakirjaId).orElseThrow()
+        val bytes = source.asiakirjaData!!.data!!.copyOf()
+        val snapshot = snapshots.createReference(source, fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType.LIITE, 0)
+        em.flush()
         val result = tyoskentelyjaksoService.delete(tyoskentelyjaksoId, ownerOpintooikeusId)
 
         assertThat(result).isTrue()
@@ -120,6 +126,11 @@ class TyoskentelyjaksoServiceDeleteIT {
 
         assertThat(tyoskentelyjaksoRepository.findById(tyoskentelyjaksoId)).isEmpty
         assertThat(asiakirjaRepository.findById(asiakirjaId).orElseThrow().tyoskentelyjakso).isNull()
+        val archived = asiakirjaRepository.findOneWithDataById(snapshot.asiakirja.id!!)!!
+        assertThat(archived.archiveSnapshot).isTrue()
+        assertThat(archived.tyoskentelyjakso).isNull()
+        assertThat(archived.opintooikeus!!.id).isEqualTo(ownerOpintooikeusId)
+        assertThat(archived.asiakirjaData!!.data).containsExactly(*bytes)
         assertThat(
             koulutusjaksoRepository.findById(koulutusjaksoId).orElseThrow().tyoskentelyjaksot
                 ?: mutableSetOf()

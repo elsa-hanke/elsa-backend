@@ -176,6 +176,17 @@ class ArkistointiJobRepositoryIT {
         assertThat(job.updatedAt).isAfter(Instant.EPOCH)
     }
 
+    @Test
+    fun `pyytajan kayttajatunnus tallentuu ja loytyy lokikorrelaatiota varten`() {
+        val pyytajalla = jobRepository.saveAndFlush(uusiJob("pyytaja-1").apply { requestedByUserId = "user-1" })
+        val ilmanPyytajaa = jobRepository.saveAndFlush(uusiJob("pyytaja-2"))
+        entityManager.clear()
+
+        assertThat(jobRepository.findRequestedByUserId(pyytajalla.id!!)).isEqualTo("user-1")
+        assertThat(jobRepository.findRequestedByUserId(ilmanPyytajaa.id!!)).isNull()
+        assertThat(jobRepository.findRequestedByUserId(UUID.randomUUID())).isNull()
+    }
+
     private fun uusiJob(key: String) = ArkistointiJob(
         university = YliopistoEnum.TURUN_YLIOPISTO,
         caseType = CaseType.VALMISTUMINEN,

@@ -10,7 +10,8 @@ data class CreateArkistointiJobRequest(
     val payload: String,
     /** Local business key for finding the existing job, not the external delivery identity. */
     val key: String,
-    val asiakirjat: List<ArkistointiAsiakirjaReference>
+    val asiakirjat: List<ArkistointiAsiakirjaReference>,
+    val requestedByUserId: String? = null
 ) {
     override fun toString() = "CreateArkistointiJobRequest(" +
         "university=$university, " +

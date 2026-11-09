@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.delivery
 
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 
@@ -8,6 +9,16 @@ interface ArkistointiAdapter {
 
     /** Explicit capabilities; configuring another case type must not silently enable its delivery. */
     val supportedCaseTypes: Set<CaseType>
+
+    /** True when the submission belongs to this adapter's university and one of its supported case types. */
+    fun supports(submission: ArkistointiSubmission): Boolean =
+        submission.university == university && submission.caseType in supportedCaseTypes
+
+    /** True only when a repeated invocation safely resumes an already accepted delivery. */
+    val canResumeAfterSuccessPersistenceFailure: Boolean get() = false
+
+    /** Validate transport settings for an enabled case type before starting the worker. */
+    fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {}
 
     /**
      * Deduplicate by the persisted pyynto.key UUID, including concurrent calls and retries after an uncertain success.

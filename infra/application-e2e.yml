@@ -43,6 +43,10 @@ application:
       kaytossa: true
       metadata:
         cases:
+          # University enablement also activates KOEJAKSO metadata inherited from application.yml.
+          # UEF has no synchronous adapter; use the profile-scoped stub for both case types.
+          koejakso:
+            async-enabled: true
           valmistuminen:
             async-enabled: true
             documents:

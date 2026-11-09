@@ -12,6 +12,7 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobLogContext
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessor
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiRetryPolicy
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.StaleArkistointiExecutionException
@@ -21,6 +22,7 @@ import javax.sql.DataSource
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 import org.springframework.core.env.Environment
 import org.springframework.jdbc.datasource.DelegatingDataSource
 
@@ -35,9 +37,11 @@ class ArkistointiDbSchedulerConfiguration {
         ArkistointiRetryPolicy(properties.getArkistointi().retry)
 
     @Bean
+    @DependsOn("arkistointiRouteValidator")
     fun arkistointiJobTask(
         processorProvider: ObjectProvider<ArkistointiJobProcessor>,
         failureHandler: ArkistointiJobFailureHandler,
+        logContext: ArkistointiJobLogContext,
         adapters: ArkistointiAdapterRegistry,
         configuration: ArkistointiConfigurationProvider,
         environment: Environment
@@ -49,7 +53,7 @@ class ArkistointiDbSchedulerConfiguration {
         }
         return object : OneTimeTask<Unit>(
             ARKISTOINTI_JOB_TASK.taskName, Unit::class.java, failureHandler,
-            { completed, operations -> failureHandler.onFailure(completed, operations) }
+            { completed, operations -> failureHandler.onDeadExecution(completed, operations) }
         ) {
             override fun executeOnce(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext) {
                 val execution = ArkistointiJobExecution(taskInstance.taskName, taskInstance.id, executionContext.execution.version)
@@ -59,6 +63,9 @@ class ArkistointiDbSchedulerConfiguration {
             }
 
             override fun execute(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext): CompletionHandler<Unit> =
+                logContext.withJob(taskInstance.id) { executeHandlingControlSignals(taskInstance, executionContext) }
+
+            private fun executeHandlingControlSignals(taskInstance: TaskInstance<Unit>, executionContext: ExecutionContext): CompletionHandler<Unit> =
                 try {
                     super.execute(taskInstance, executionContext)
                 } catch (_: ParkArkistointiExecutionException) {

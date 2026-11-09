@@ -85,7 +85,12 @@ export function assertArchiveProcessed(expected: ExpectedArchive) {
           snapshotDocumentId: document.id, recordType: document.type, jarjestysnumero: order
         })
         expect(identity.sourceDocumentId).to.be.greaterThan(0)
-        expect(identity.sourceDocumentId).not.to.eq(document.id)
+        if (expected.caseType === 'VALMISTUMINEN' && document.type === 'LAILLISTAMISTODISTUS') {
+          // The certificate is created directly as an archive snapshot and reused.
+          expect(identity.sourceDocumentId).to.eq(document.id)
+        } else {
+          expect(identity.sourceDocumentId).not.to.eq(document.id)
+        }
         expect(document.order).to.eq(order)
         expect(document.snapshot).to.eq(true)
         expect(document.sourceMatches, `snapshot ${document.id} retains source bytes`).to.eq(true)

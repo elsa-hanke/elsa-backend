@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="20261101090000" author="elsa">
+        <sql splitStatements="false"><![CDATA[
+CREATE TABLE arkistointi_dynasty_step (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    job_id uuid NOT NULL REFERENCES arkistointi_job(id),
+    step_key varchar(50) NOT NULL,
+    status varchar(20) NOT NULL CHECK (status IN ('ALOITETTU','VALMIS')),
+    remote_id varchar(255),
+    execution_version bigint NOT NULL,
+    -- Absolute UTC instants; PostgreSQL displays them in the session time zone.
+    started_at timestamptz NOT NULL,
+    completed_at timestamptz,
+    UNIQUE(job_id,step_key),
+    CHECK ((status='VALMIS') = (completed_at IS NOT NULL)),
+    CHECK (status <> 'VALMIS' OR remote_id IS NOT NULL OR step_key='ARCHIVE_CASE')
+);
+CREATE FUNCTION protect_dynasty_step() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF OLD.status='VALMIS' THEN RAISE EXCEPTION 'Completed archive step is immutable'; END IF;
+    IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+    IF NEW.job_id IS DISTINCT FROM OLD.job_id OR NEW.step_key IS DISTINCT FROM OLD.step_key
+       OR NEW.execution_version IS DISTINCT FROM OLD.execution_version OR NEW.started_at IS DISTINCT FROM OLD.started_at
+       THEN RAISE EXCEPTION 'Archive step identity is immutable'; END IF;
+    RETURN NEW;
+END; $$;
+CREATE TRIGGER protect_dynasty_step BEFORE UPDATE OR DELETE ON arkistointi_dynasty_step FOR EACH ROW EXECUTE FUNCTION protect_dynasty_step();
+        ]]></sql>
+    </changeSet>
+</databaseChangeLog>

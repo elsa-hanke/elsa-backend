@@ -9,7 +9,7 @@ const localVue = createLocalVue()
 localVue.use(BootstrapVue)
 localVue.use(VueI18n)
 
-function part(
+function createOsakokonaisuus(
   id: number,
   name: string,
   date: string,
@@ -35,7 +35,7 @@ function render(
   locale = 'fi',
   variant = 'kuulustelu'
 ) {
-  const exam: Opintosuoritus = {
+  const kuulustelu: Opintosuoritus = {
     id: 1,
     nimi_fi: 'Valtakunnallinen kuulustelu',
     nimi_sv: 'Nationellt prov',
@@ -60,7 +60,7 @@ function render(
       },
       silentTranslationWarn: true
     }),
-    propsData: { variant, suoritukset: [exam] },
+    propsData: { variant, suoritukset: [kuulustelu] },
     mocks: { $date: (date: string) => date },
     stubs: { 'font-awesome-icon': true }
   })
@@ -69,8 +69,8 @@ function render(
 describe('Exam subparts in the shared study accomplishment view', () => {
   it('renders name, date and pass/fail independently of the main exam', () => {
     const wrapper = render([
-      part(2, 'Patologia, esseet', '2026-05-07', false),
-      part(3, 'Patologia, preparaatit', '2026-05-08', true)
+      createOsakokonaisuus(2, 'Patologia, esseet', '2026-05-07', false),
+      createOsakokonaisuus(3, 'Patologia, preparaatit', '2026-05-08', true)
     ])
     const rows = wrapper.findAll('.exam-subpart-row')
     expect(rows).toHaveLength(2)
@@ -84,8 +84,8 @@ describe('Exam subparts in the shared study accomplishment view', () => {
   it('uses Finnish for empty Swedish names and keeps nonempty Swedish names', () => {
     const wrapper = render(
       [
-        part(2, 'Patologia, esseet', '2026-05-07', true, '  '),
-        part(3, 'Patologia, preparaatit', '2026-05-08', false, 'Patologi, preparat')
+        createOsakokonaisuus(2, 'Patologia, esseet', '2026-05-07', true, '  '),
+        createOsakokonaisuus(3, 'Patologia, preparaatit', '2026-05-08', false, 'Patologi, preparat')
       ],
       'sv'
     )
@@ -100,9 +100,9 @@ describe('Exam subparts in the shared study accomplishment view', () => {
 
   it('sorts by date then name regardless of incoming order without mutating the prop', () => {
     const children = [
-      part(4, 'C', '2026-05-08', true),
-      part(3, 'B', '2026-05-07', true),
-      part(2, 'A', '2026-05-07', true)
+      createOsakokonaisuus(4, 'C', '2026-05-08', true),
+      createOsakokonaisuus(3, 'B', '2026-05-07', true),
+      createOsakokonaisuus(2, 'A', '2026-05-07', true)
     ]
     const first = render(children)
     const second = render([...children].reverse())
@@ -125,7 +125,7 @@ describe('Exam subparts in the shared study accomplishment view', () => {
   })
 
   it('keeps the muu variant without exam child rows', () => {
-    const wrapper = render([part(2, 'A', '2026-05-07', true)], 'fi', 'muu')
+    const wrapper = render([createOsakokonaisuus(2, 'A', '2026-05-07', true)], 'fi', 'muu')
     expect(wrapper.findAll('.exam-subpart-row')).toHaveLength(0)
     wrapper.destroy()
   })

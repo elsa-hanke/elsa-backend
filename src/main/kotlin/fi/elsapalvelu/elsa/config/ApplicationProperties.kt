@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiRetryProperties
 import fi.elsapalvelu.elsa.config.arkistointi.LouhiTransferProperties
+import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -232,6 +233,7 @@ class ApplicationProperties {
         }
 
         class Turku {
+            val dynasty = DynastyProperties()
             var kaytossa: Boolean = false
             var metadata: Metadata? = null
         }

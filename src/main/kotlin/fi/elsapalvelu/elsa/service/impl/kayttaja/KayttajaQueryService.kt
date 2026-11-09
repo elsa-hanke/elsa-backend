@@ -98,31 +98,31 @@ class KayttajaQueryService(
         yliopistoId: Long,
         allowTrainerWithoutTraineeAccount: Boolean
     ): Specification<Kayttaja> = Specification { root, query, cb ->
-        val studyRights = query.required().subquery(Long::class.java)
-        val studyRight = studyRights.from(Opintooikeus::class.java)
-        val trainee = studyRight.join(Opintooikeus_.erikoistuvaLaakari)
-        studyRights.select(studyRight.get(Opintooikeus_.id)).where(
-            cb.equal(trainee.get(ErikoistuvaLaakari_.kayttaja).get(Kayttaja_.id), root.get(Kayttaja_.id)),
-            cb.equal(studyRight.get(Opintooikeus_.yliopisto).get(Yliopisto_.id), yliopistoId)
+        val opintooikeusSubquery = query.required().subquery(Long::class.java)
+        val opintooikeusRoot = opintooikeusSubquery.from(Opintooikeus::class.java)
+        val erikoistuvaLaakariJoin = opintooikeusRoot.join(Opintooikeus_.erikoistuvaLaakari)
+        opintooikeusSubquery.select(opintooikeusRoot.get(Opintooikeus_.id)).where(
+            cb.equal(erikoistuvaLaakariJoin.get(ErikoistuvaLaakari_.kayttaja).get(Kayttaja_.id), root.get(Kayttaja_.id)),
+            cb.equal(opintooikeusRoot.get(Opintooikeus_.yliopisto).get(Yliopisto_.id), yliopistoId)
         )
-        val hasStudyRight = cb.exists(studyRights)
+        val hasStudyRight = cb.exists(opintooikeusSubquery)
         if (!allowTrainerWithoutTraineeAccount) {
             hasStudyRight
         } else {
             // A trainer who is also a trainee must satisfy the same university restriction.
-            val trainees = query.subquery(Long::class.java)
-            val traineeAccount = trainees.from(ErikoistuvaLaakari::class.java)
-            trainees.select(traineeAccount.get(ErikoistuvaLaakari_.id)).where(
-                cb.equal(traineeAccount.get(ErikoistuvaLaakari_.kayttaja).get(Kayttaja_.id), root.get(Kayttaja_.id))
+            val erikoistujaSubquery = query.subquery(Long::class.java)
+            val erikoistuvaLaakariRoot = erikoistujaSubquery.from(ErikoistuvaLaakari::class.java)
+            erikoistujaSubquery.select(erikoistuvaLaakariRoot.get(ErikoistuvaLaakari_.id)).where(
+                cb.equal(erikoistuvaLaakariRoot.get(ErikoistuvaLaakari_.kayttaja).get(Kayttaja_.id), root.get(Kayttaja_.id))
             )
-            val traineeRoles = query.subquery(Long::class.java)
-            val account = traineeRoles.from(Kayttaja::class.java)
+            val erikoistujanRoolitSubquery = query.subquery(Long::class.java)
+            val account = erikoistujanRoolitSubquery.from(Kayttaja::class.java)
             val role = account.join(Kayttaja_.user).join(User_.authorities)
-            traineeRoles.select(account.get(Kayttaja_.id)).where(
+            erikoistujanRoolitSubquery.select(account.get(Kayttaja_.id)).where(
                 cb.equal(account.get(Kayttaja_.id), root.get(Kayttaja_.id)),
                 role.get(Authority_.name).`in`(listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA))
             )
-            cb.or(hasStudyRight, cb.and(cb.not(cb.exists(trainees)), cb.not(cb.exists(traineeRoles))))
+            cb.or(hasStudyRight, cb.and(cb.not(cb.exists(erikoistujaSubquery)), cb.not(cb.exists(erikoistujanRoolitSubquery))))
         }
     }
 

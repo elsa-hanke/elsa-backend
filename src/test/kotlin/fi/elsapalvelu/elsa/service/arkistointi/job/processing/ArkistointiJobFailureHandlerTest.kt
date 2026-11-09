@@ -6,6 +6,8 @@ import com.github.kagkarlsson.scheduler.task.ExecutionComplete
 import com.github.kagkarlsson.scheduler.task.ExecutionOperations
 import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiRetryProperties
+import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
+import fi.elsapalvelu.elsa.security.MDC_USER_ID_KEY
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import java.time.Duration
 import java.time.Instant
@@ -22,6 +24,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import org.slf4j.MDC
 
 class ArkistointiJobFailureHandlerTest {
     private val jobId = UUID.randomUUID()
@@ -31,7 +34,9 @@ class ArkistointiJobFailureHandlerTest {
         maxAttempts = 3
         jitterFactor = 0.0
     })
-    private val handler = ArkistointiJobFailureHandler(state, policy)
+    private val jobs = mock<ArkistointiJobRepository>()
+    private val logContext = ArkistointiJobLogContext(jobs)
+    private val handler = ArkistointiJobFailureHandler(state, policy, logContext)
 
     init { whenever(state.requiresIntervention(any())).thenReturn(true) }
 
@@ -56,7 +61,7 @@ class ArkistointiJobFailureHandlerTest {
         val jitteredPolicy = ArkistointiRetryPolicy { 0.5 }
         val completed = failure(1)
         whenever(state.fail(any(), any(), eq(false))).thenReturn(true)
-        ArkistointiJobFailureHandler(state, jitteredPolicy).onFailure(completed, operations)
+        ArkistointiJobFailureHandler(state, jitteredPolicy, logContext).onFailure(completed, operations)
         verify(operations).reschedule(completed, completed.timeDone.plusSeconds(114))
         verify(operations, never()).remove()
     }
@@ -112,6 +117,37 @@ class ArkistointiJobFailureHandlerTest {
         verifyNoInteractions(state)
         verify(operations).remove()
         verify(operations, never()).reschedule(any(), any())
+    }
+
+    @Test
+    fun `dead execution uses recovery state decision instead of normal retry`() {
+        val completed = failure(0)
+        whenever(state.recoverDeadExecution(any(), any(), eq(false))).thenReturn(false)
+        handler.onDeadExecution(completed, operations)
+        verify(state).recoverDeadExecution(any(), any(), eq(false))
+        verify(state, never()).fail(any(), any(), any())
+        verify(operations).reschedule(completed, Schedule.NEVER)
+    }
+
+    @Test
+    fun `failure and dead execution handling run with the job id and requesting user in MDC`() {
+        whenever(jobs.findRequestedByUserId(jobId)).thenReturn("user-9")
+        val seen = mutableListOf<Pair<String?, String?>>()
+        whenever(state.fail(any(), any(), any())).thenAnswer {
+            seen.add(MDC.get(MDC_USER_ID_KEY) to MDC.get(MDC_ARCHIVE_JOB_ID_KEY))
+            true
+        }
+        whenever(state.recoverDeadExecution(any(), any(), any())).thenAnswer {
+            seen.add(MDC.get(MDC_USER_ID_KEY) to MDC.get(MDC_ARCHIVE_JOB_ID_KEY))
+            true
+        }
+
+        handler.onFailure(failure(0), operations)
+        handler.onDeadExecution(failure(0), operations)
+
+        assertThat(seen).containsExactly("user-9" to jobId.toString(), "user-9" to jobId.toString())
+        assertThat(MDC.get(MDC_USER_ID_KEY)).isNull()
+        assertThat(MDC.get(MDC_ARCHIVE_JOB_ID_KEY)).isNull()
     }
 
     private fun failure(previousFailures: Int, cause: ArkistointiProcessingException = ArkistointiProcessingException(unexpectedArchiveError())): ExecutionComplete {

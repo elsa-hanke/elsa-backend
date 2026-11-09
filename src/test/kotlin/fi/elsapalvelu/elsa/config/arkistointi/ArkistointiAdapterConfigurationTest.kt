@@ -5,15 +5,18 @@ import com.github.kagkarlsson.scheduler.boot.autoconfigure.DbSchedulerAutoConfig
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobLogContext
 import java.util.function.Supplier
 import javax.sql.DataSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -96,15 +99,80 @@ class ArkistointiAdapterConfigurationTest {
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = [
-        "application.arkistointi.hki.kaytossa=false",
-        "application.arkistointi.hki.metadata.cases.valmistuminen.async-enabled=false"
-    ])
-    fun `inactive or synchronous archiving permits startup without adapters`(property: String) {
-        runner().withPropertyValues(property).run { context ->
+    @Test
+    fun `inactive archiving permits startup without adapters`() {
+        runner().withPropertyValues("application.arkistointi.hki.kaytossa=false").run { context ->
             assertThat(context).hasNotFailed()
             verify(worker).start()
+        }
+    }
+
+    @Test
+    fun `synchronous archiving permits startup with a synchronous adapter`() {
+        runner().withPropertyValues("application.arkistointi.hki.metadata.cases.valmistuminen.async-enabled=false")
+            .run { context ->
+                assertThat(context).hasNotFailed()
+                verify(worker).start()
+            }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "turku, TURUN_YLIOPISTO, valmistuminen, true",
+        "turku, TURUN_YLIOPISTO, valmistuminen, false",
+        "turku, TURUN_YLIOPISTO, koejakso, true",
+        "turku, TURUN_YLIOPISTO, koejakso, false",
+        "uef, ITA_SUOMEN_YLIOPISTO, valmistuminen, true",
+        "uef, ITA_SUOMEN_YLIOPISTO, valmistuminen, false",
+        "uef, ITA_SUOMEN_YLIOPISTO, koejakso, true",
+        "uef, ITA_SUOMEN_YLIOPISTO, koejakso, false"
+    )
+    fun `missing synchronous adapter prevents startup regardless of worker`(
+        key: String, university: String, caseType: String, workerEnabled: Boolean
+    ) {
+        runner().withPropertyValues(
+            "db-scheduler.enabled=$workerEnabled",
+            "application.arkistointi.hki.kaytossa=false",
+            "application.arkistointi.$key.kaytossa=true",
+            "application.arkistointi.$key.metadata.cases.valmistuminen.async-enabled=true",
+            "application.arkistointi.$key.metadata.cases.koejakso.async-enabled=true",
+            "application.arkistointi.$key.metadata.cases.$caseType.async-enabled=false"
+        ).run { context ->
+            assertThat(context).hasFailed()
+            assertThat(context.startupFailure).hasRootCauseMessage(
+                "Synchronous archiving is enabled for $university / $caseType, " +
+                    "but no synchronous SynchronousArkistointiAdapter is registered; enable async archiving or register an adapter"
+            )
+            verify(worker, never()).start()
+            verifyNoInteractions(dataSource)
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["turku", "uef"])
+    fun `producer may enqueue every enabled case without a local delivery adapter`(university: String) {
+        runner().withPropertyValues(
+            "db-scheduler.enabled=false",
+            "application.arkistointi.hki.kaytossa=false",
+            "application.arkistointi.$university.kaytossa=true",
+            "application.arkistointi.$university.metadata.cases.valmistuminen.async-enabled=true",
+            "application.arkistointi.$university.metadata.cases.koejakso.async-enabled=true"
+        ).run { context ->
+            assertThat(context).hasNotFailed()
+            verify(worker, never()).start()
+            verifyNoInteractions(dataSource)
+        }
+    }
+
+    @Test
+    fun `disabled university and absent case metadata require no synchronous adapter`() {
+        runner().withPropertyValues(
+            "application.arkistointi.hki.kaytossa=false",
+            "application.arkistointi.oulu.kaytossa=true"
+        ).run { context ->
+            assertThat(context).hasNotFailed()
+            verify(worker).start()
+            verifyNoInteractions(dataSource)
         }
     }
 
@@ -139,11 +207,18 @@ class ArkistointiAdapterConfigurationTest {
         .withConfiguration(AutoConfigurations.of(DbSchedulerAutoConfiguration::class.java))
         .withUserConfiguration(
             BindingConfiguration::class.java, ArkistointiDbSchedulerConfiguration::class.java,
-            ArkistointiAdapterRegistry::class.java, ArkistointiConfigurationProvider::class.java
+            ArkistointiAdapterRegistry::class.java, ArkistointiConfigurationProvider::class.java,
+            ArkistointiRouteValidator::class.java
         )
         .withBean(DataSource::class.java, Supplier { dataSource })
         .withBean(Scheduler::class.java, Supplier { worker })
         .withBean(ArkistointiJobFailureHandler::class.java, Supplier { mock() })
+        .withBean(ArkistointiJobLogContext::class.java, Supplier { mock() })
+        .withBean(SynchronousArkistointiAdapter::class.java, Supplier {
+            mock<SynchronousArkistointiAdapter>().also {
+                whenever(it.yliopisto).thenReturn(YliopistoEnum.HELSINGIN_YLIOPISTO)
+            }
+        })
 
     private fun withAdapter(
         runner: ApplicationContextRunner,
