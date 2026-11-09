@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
@@ -45,7 +46,7 @@ class DynastyGraduationFaultMatrixIT {
     @Autowired private lateinit var ledger: DynastyStepLedger
     @Autowired private lateinit var jdbc: JdbcTemplate
     private val stepFixture get() = DynastyStepJdbcFixture(jdbc)
-    private val mapper = jacksonObjectMapper()
+    private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 
     enum class Fault {
         /** Dynasty rejects the request (HTTP 400): nothing was created and the ledger intent is released. */
@@ -142,7 +143,12 @@ class DynastyGraduationFaultMatrixIT {
             .sortedBy { STEPS.indexOf(it) }
 
     private fun age(jobId: UUID, step: String) {
-        jdbc.update("update arkistointi_dynasty_step set started_at = started_at - interval '1 hour' where job_id=? and step_key=?", jobId, step)
+        jdbc.execute("alter table arkistointi_dynasty_step disable trigger protect_dynasty_step")
+        try {
+            jdbc.update("update arkistointi_dynasty_step set started_at = started_at - interval '1 hour' where job_id=? and step_key=?", jobId, step)
+        } finally {
+            jdbc.execute("alter table arkistointi_dynasty_step enable trigger protect_dynasty_step")
+        }
     }
 
     /** What the worker leaves behind for a permanent failure. */
@@ -192,30 +198,56 @@ class DynastyGraduationFaultMatrixIT {
             val path = request.path!!
             if (path == "/token") return MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE)
             val body = request.body.clone().readUtf8()
-            val step = when {
-                path.startsWith("/api/v1/cases?") -> "CASE"
-                path == "/api/v1/cases/415/tasks" -> "TASK"
-                path == "/api/v1/documents" -> "DOCUMENT:" + DOCUMENT_FILE.find(body)!!.groupValues[1]
-                path == "/api/v1/cases/415/state/Archived" -> "ARCHIVE_CASE"
-                else -> return MockResponse().setResponseCode(404)
-            }
-            requests += step
-            if (step == "DOCUMENT:0") mainDocumentRequests += body else if (step.startsWith("DOCUMENT:")) attachmentRequests += body
-            val injected = fault?.takeIf { it.first == step }?.second
-            if (injected != null) fault = null
-            if (injected == Fault.REJECTED) return MockResponse().setResponseCode(400)
-            if (injected == Fault.UNCONFIRMED_NOT_CREATED) return MockResponse().setResponseCode(503)
-            val id = when {
-                step == "CASE" -> "415"
-                step == "TASK" -> TASK_ID
-                step == "ARCHIVE_CASE" -> ""
-                else -> (nextDocumentId++).toString()
-            }
+            val step = resolveStep(path, body) ?: return MockResponse().setResponseCode(404)
+            recordRequest(step, body)
+
+            val injected = popFault(step)
+            preCreationFaultResponse(injected)?.let { return it }
+
+            val id = generateId(step)
             created += step
             remoteIds[step] = id
             if (injected == Fault.UNCONFIRMED_CREATED) return MockResponse().setResponseCode(503)
-            return MockResponse().setBody(if (step == "TASK") "\"$id\"" else id)
+            return successResponse(step, id)
         }
+
+        private fun resolveStep(path: String, body: String): String? = when {
+            path.startsWith("/api/v1/cases?") -> "CASE"
+            path == "/api/v1/cases/415/tasks" -> "TASK"
+            path == "/api/v1/documents" -> "DOCUMENT:" + DOCUMENT_FILE.find(body)!!.groupValues[1]
+            path == "/api/v1/cases/415/state/Archived" -> "ARCHIVE_CASE"
+            else -> null
+        }
+
+        private fun recordRequest(step: String, body: String) {
+            requests += step
+            when {
+                step == "DOCUMENT:0" -> mainDocumentRequests += body
+                step.startsWith("DOCUMENT:") -> attachmentRequests += body
+            }
+        }
+
+        private fun popFault(step: String): Fault? {
+            val injected = fault?.takeIf { it.first == step }?.second
+            if (injected != null) fault = null
+            return injected
+        }
+
+        private fun preCreationFaultResponse(injected: Fault?): MockResponse? = when (injected) {
+            Fault.REJECTED -> MockResponse().setResponseCode(400)
+            Fault.UNCONFIRMED_NOT_CREATED -> MockResponse().setResponseCode(503)
+            else -> null
+        }
+
+        private fun generateId(step: String): String = when (step) {
+            "CASE" -> "415"
+            "TASK" -> TASK_ID
+            "ARCHIVE_CASE" -> ""
+            else -> (nextDocumentId++).toString()
+        }
+
+        private fun successResponse(step: String, id: String): MockResponse =
+            MockResponse().setBody(if (step == "TASK") "\"$id\"" else id)
     }
 
     companion object {

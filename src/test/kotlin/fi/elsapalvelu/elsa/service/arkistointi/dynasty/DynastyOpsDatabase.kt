@@ -5,6 +5,7 @@ import java.util.UUID
 import javax.sql.DataSource
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DriverManagerDataSource
+import org.testcontainers.containers.Container.ExecResult
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.MountableFile
 
@@ -28,10 +29,10 @@ class DynastyOpsDatabase {
 
     fun stop() = database.stop()
 
-    fun resolveStep(jobId: UUID, step: String, remote: String, action: String) =
+    fun resolveStep(jobId: UUID, step: String, remote: String, action: String): ExecResult =
         psql(RESOLVE_SCRIPT, "job_id=$jobId", "step_key=$step", "remote_id=$remote", "action=$action")
 
-    fun retryJob(jobId: UUID) = psql(RETRY_SCRIPT, "job_id=$jobId")
+    fun retryJob(jobId: UUID): ExecResult = psql(RETRY_SCRIPT, "job_id=$jobId")
 
     private fun copyScript(name: String, target: String) = database.copyFileToContainer(
         MountableFile.forHostPath(Path.of("ops/arkistointi/$name").toAbsolutePath().toString()), target
