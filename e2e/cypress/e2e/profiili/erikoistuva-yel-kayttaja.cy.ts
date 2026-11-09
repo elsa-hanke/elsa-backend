@@ -39,7 +39,7 @@ describe('Katseluoikeudet', () => {
     terveyskeskuskoulutusjakso_suoritettu: false,
     yliopisto_opintooikeus_id: "4321",
     tila: "AKTIIVINEN",
-    viimeinen_katselupaiva: "2026-11-05",
+    viimeinen_katselupaiva: "2026-12-24",
     yliopisto_id: 5,
     id: 507
   }
