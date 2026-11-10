@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.document
 
+import fi.elsapalvelu.elsa.service.arkistointi.support.ArchiveProcessingTestSupport
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.SchedulerName
 import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
@@ -13,7 +14,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobCreato
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.CreateArkistointiJobRequest
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
-import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessingIT
+import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobProcessingItBase
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobStateService
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -50,15 +51,14 @@ import org.springframework.transaction.support.TransactionTemplate
     "application.arkistointi.retry.max-delay=2s",
     "application.arkistointi.retry.max-attempts=3"
 ])
-@Import(ArkistointiJobProcessingIT.TestConfig::class)
-class ArkistointiAsiakirjaLoaderIT {
+@Import(ArkistointiJobProcessingItBase.TestConfig::class)
+class ArkistointiAsiakirjaLoaderIT : ArchiveProcessingTestSupport() {
     @Autowired private lateinit var creator: ArkistointiJobCreator
     @Autowired private lateinit var snapshots: ArkistointiAsiakirjaSnapshotService
     @Autowired private lateinit var jobs: ArkistointiJobRepository
     @Autowired private lateinit var em: EntityManager
     @Autowired private lateinit var transactions: TransactionTemplate
     @Autowired private lateinit var jdbc: JdbcTemplate
-    @Autowired private lateinit var adapter: ArkistointiJobProcessingIT.TestAdapter
     @Autowired private lateinit var task: OneTimeTask<Unit>
     @Autowired private lateinit var dataSource: DataSource
     @Autowired private lateinit var state: ArkistointiJobStateService

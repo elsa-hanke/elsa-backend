@@ -1,13 +1,12 @@
 package fi.elsapalvelu.elsa.service.arkistointi.koejakso
 
-import com.github.kagkarlsson.scheduler.Scheduler
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepository
-import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobScheduler
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiChecksum
@@ -15,9 +14,8 @@ import fi.elsapalvelu.elsa.service.arkistointi.support.AsyncArchiveItSupport
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
-import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonVastuuhenkilonArvioMapper
-import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
@@ -30,12 +28,10 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.http.MediaType
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.bean.override.convention.TestBean
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -45,6 +41,8 @@ import java.util.concurrent.ConcurrentHashMap
     "spring.datasource.url=jdbc:tc:postgresql:16.9:///dynastyKoejakso?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true",
     "application.arkistointi.turku.kaytossa=true",
     "application.arkistointi.uef.kaytossa=true",
+    "application.arkistointi.turku.metadata.cases.valmistuminen.async-enabled=true",
+    "application.arkistointi.uef.metadata.cases.valmistuminen.async-enabled=true",
     "application.arkistointi.turku.metadata.cases.koejakso.async-enabled=true",
     "application.arkistointi.uef.metadata.cases.koejakso.async-enabled=true",
     "application.arkistointi.turku.metadata.cases.koejakso.documents.arviointi.retention-period=20",
@@ -53,10 +51,12 @@ import java.util.concurrent.ConcurrentHashMap
 @Import(DynastyKoejaksoApprovalIT.Adapters::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
-    @Autowired private lateinit var scheduler: Scheduler
-    @Autowired private lateinit var assessments: KoejaksonVastuuhenkilonArvioRepository
-    @Autowired private lateinit var mapper: KoejaksonVastuuhenkilonArvioMapper
-    @Autowired private lateinit var deliveries: Deliveries
+
+
+    @Autowired private lateinit var registry: ArkistointiAdapterRegistry
+    @Autowired private lateinit var adapters: List<ArkistointiAdapter>
+    @TestBean(name = "turkuDynastyArkistointiAdapter", methodName = "createTurkuAdapter", enforceOverride = true)
+    private lateinit var turkuAdapter: ArkistointiAdapter
     @MockitoSpyBean private lateinit var jobScheduler: ArkistointiJobScheduler
     @MockitoBean lateinit var mail: MailService
 
@@ -67,10 +67,10 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
         val fixture = koejaksoFixture(university, CaseType.KOEJAKSO)
         approve(fixture, accepted).andExpect(status().isOk)
         val job = jobs.findByKey(key(university, fixture.second))!!
-        val payload = objectMapper.readValue(job.payload, KoejaksoArkistointiPayload::class.java)
-        assertThat(payload.university).isEqualTo(university)
+        val payload = ArchivePayloadReader(objectMapper).read(job.payload!!)
+        assertThat(payload.university).isEqualTo(university.name)
         assertThat(payload.caseId).isEqualTo(fixture.second)
-        assertThat(payload.koejaksoHyvaksytty).isEqualTo(accepted)
+        assertThat(objectMapper.readTree(job.payload).path("koejaksoHyvaksytty").booleanValue()).isEqualTo(accepted)
         val identity = payload.documents.single()
         assertThat(identity.recordType).isEqualTo(RecordType.ARVIOINTI)
         assertThat(identity.sourceDocumentId).isNotEqualTo(identity.snapshotDocumentId)
@@ -84,12 +84,12 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
         }
         // Change live data after commit: the adapter must still receive the original decision and PDF.
         transactions.executeWithoutResult { _ ->
-            assessments.findById(fixture.second).orElseThrow().koejaksoHyvaksytty = !accepted
+            vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().koejaksoHyvaksytty = !accepted
             em.find(Asiakirja::class.java, identity.sourceDocumentId).asiakirjaData!!.data = byteArrayOf(1, 2)
         }
         scheduler.triggerCheckForDueExecutions()
         awaitDelivered(job.id!!)
-        val delivered = deliveries.byJob.getValue(job.id!!)
+        val delivered = (registry.find(university) as TestAdapter).byJob.getValue(job.id!!)
         assertThat(delivered.university).isEqualTo(university)
         assertThat(delivered.caseType).isEqualTo(CaseType.KOEJAKSO)
         assertThat(delivered.key).isEqualTo(job.id)
@@ -117,8 +117,8 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
             }.whenever(jobScheduler).schedule(any(), any())
         }
         approve(fixture, true).andExpect(status().isInternalServerError)
-        assertThat(assessments.findById(fixture.second).orElseThrow().vastuuhenkiloHyvaksynyt).isFalse()
-        assertThat(assessments.findById(fixture.second).orElseThrow().vastuuhenkilonKuittausaika).isNull()
+        assertThat(vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().vastuuhenkiloHyvaksynyt).isFalse()
+        assertThat(vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().vastuuhenkilonKuittausaika).isNull()
         assertThat(jobs.findByKey(key(university, fixture.second))).isNull()
         assertThat(count("asiakirja")).isEqualTo(documentsBefore)
         assertThat(count("scheduled_tasks")).isEqualTo(tasksBefore)
@@ -135,48 +135,42 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
         assertThat(jobs.findByKey(key(university, fixture.second))).isNull()
         assertThat(count("asiakirja")).isEqualTo(documentsBefore)
         assertThat(count("scheduled_tasks")).isEqualTo(tasksBefore)
-        assertThat(assessments.findById(fixture.second).orElseThrow().vastuuhenkilonKorjausehdotus).isEqualTo("Korjattava")
+        assertThat(vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().vastuuhenkilonKorjausehdotus).isEqualTo("Korjattava")
         verifyNoInteractions(jobScheduler)
     }
 
-    private fun approve(fixture: Triple<Long, Long, String>, accepted: Boolean, correction: String? = null): org.springframework.test.web.servlet.ResultActions {
-        setSecurityContext(fixture.third, VASTUUHENKILO)
-        val dto = transactions.execute { _ ->
-            mapper.toDto(assessments.findById(fixture.second).orElseThrow()).apply {
-                koejaksoHyvaksytty = accepted
-                vastuuhenkilonKorjausehdotus = correction
-            }
-        }
-        return testMockMvc.perform(put("/api/vastuuhenkilo/koejakso/vastuuhenkilonarvio")
-            .contentType(MediaType.APPLICATION_JSON).content(convertObjectToJsonBytes(dto)).with(csrf()))
-    }
+    private fun approve(fixture: Triple<Long, Long, String>, accepted: Boolean, correction: String? = null) =
+        approveKoejaksonVastuuhenkilonArvio(fixture, accepted, correction)
 
     private fun key(university: YliopistoEnum, id: Long) = "koejakso-arvio:$university:$id"
     private fun count(table: String) = jdbc.queryForObject("select count(*) from $table", Long::class.java)
 
-    class Deliveries {
+    @Test
+    fun `Turku test bean replaces the production adapter in the registry`() {
+        assertThat(adapters.filter { it.university == YliopistoEnum.TURUN_YLIOPISTO }).containsExactly(turkuAdapter)
+        assertThat(registry.find(YliopistoEnum.TURUN_YLIOPISTO)).isSameAs(turkuAdapter)
+    }
+
+    class TestAdapter(override val university: YliopistoEnum) : ArkistointiAdapter {
         val byJob = ConcurrentHashMap<UUID, ArkistointiSubmission>()
+        override val supportedCaseTypes = setOf(CaseType.KOEJAKSO, CaseType.VALMISTUMINEN)
+        override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult {
+            check(byJob.putIfAbsent(pyynto.jobId, pyynto) == null) { "Unexpected duplicate delivery" }
+            return ArkistointiResult.Success("test:${pyynto.jobId}")
+        }
+    }
+
+    companion object {
+        @JvmStatic
+        fun createTurkuAdapter(): ArkistointiAdapter = TestAdapter(YliopistoEnum.TURUN_YLIOPISTO)
     }
 
     @TestConfiguration(proxyBeanMethods = false)
     class Adapters {
-        @Bean fun deliveries() = Deliveries()
-        @Bean fun turku(deliveries: Deliveries): ArkistointiAdapter = adapter(YliopistoEnum.TURUN_YLIOPISTO, deliveries)
-        @Bean fun uef(deliveries: Deliveries): ArkistointiAdapter = adapter(YliopistoEnum.ITA_SUOMEN_YLIOPISTO, deliveries)
+        @Bean fun uef(): ArkistointiAdapter = TestAdapter(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
 
         @Bean
         fun isolatedCache(customizer: org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer): javax.cache.CacheManager =
-            (javax.cache.Caching.getCachingProvider() as org.ehcache.jsr107.EhcacheCachingProvider).getCacheManager(
-                java.net.URI("urn:elsa:dynasty-koejakso-it"), org.ehcache.core.config.DefaultConfiguration(javaClass.classLoader)
-            ).also(customizer::customize)
-
-        private fun adapter(value: YliopistoEnum, deliveries: Deliveries) = object : ArkistointiAdapter {
-            override val university = value
-            override val supportedCaseTypes = setOf(CaseType.KOEJAKSO)
-            override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult {
-                check(deliveries.byJob.putIfAbsent(pyynto.jobId, pyynto) == null) { "Unexpected duplicate delivery" }
-                return ArkistointiResult.Success("test:${pyynto.jobId}")
-            }
-        }
+            AsyncArchiveItSupport.isolatedArchiveCache("urn:elsa:dynasty-koejakso-it", javaClass.classLoader, customizer)
     }
 }

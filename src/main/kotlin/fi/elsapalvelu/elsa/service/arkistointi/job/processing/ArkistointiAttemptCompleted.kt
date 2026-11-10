@@ -9,8 +9,8 @@ data class ArkistointiAttemptCompleted(
     val university: YliopistoEnum,
     val caseType: CaseType,
     val attempt: Int,
-    val outcome: Outcome,
+    val result: Result,
     val errorCode: String? = null
 ) {
-    enum class Outcome { SUCCESS, RETRYABLE_FAILURE, TERMINAL_FAILURE }
+    enum class Result { SUCCESS, RETRYABLE_FAILURE, TERMINAL_FAILURE }
 }

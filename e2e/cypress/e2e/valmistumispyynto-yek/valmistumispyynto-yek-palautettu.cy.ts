@@ -4,20 +4,20 @@ import {
   CORRECTION_PROPOSAL,
   fillContactInformation,
   fillLicensingInformation,
-  openYekGraduationRequest,
-  setupYekGraduationRequest,
-  submitGraduationRequest,
+  openYekValmistumispyynto,
+  setupYekValmistumispyynto,
+  submitValmistumispyynto,
 } from './valmistumispyynto-yek.helpers'
 
 describe('Palautetun YEK-valmistumispyynnön lähettäminen', () => {
-  beforeEach(setupYekGraduationRequest)
+  beforeEach(setupYekValmistumispyynto)
 
   it('YEK-koulutettava lähettää virkailijan palauttaman pyynnön uudelleen', () => {
     cy.task('db:seedReturnedYekValmistumispyynto', {
       email: E2E_ERIKOISTUVA_EMAIL,
       correctionProposal: CORRECTION_PROPOSAL,
     }).then((requestId) => {
-      openYekGraduationRequest()
+      openYekValmistumispyynto()
       cy.contains('Valmistumispyyntö on palautettu takaisin virkailijan toimesta.').should(
         'be.visible'
       )
@@ -26,7 +26,7 @@ describe('Palautetun YEK-valmistumispyynnön lähettäminen', () => {
       acceptRequirements()
       fillContactInformation('+358409876543')
       fillLicensingInformation()
-      submitGraduationRequest('PUT', 'putYekValmistumispyynto').should('eq', requestId)
+      submitValmistumispyynto('PUT', 'putYekValmistumispyynto').should('eq', requestId)
 
       cy.contains('Valmistumispyyntö lähetetty onnistuneesti').should('be.visible')
       cy.contains(

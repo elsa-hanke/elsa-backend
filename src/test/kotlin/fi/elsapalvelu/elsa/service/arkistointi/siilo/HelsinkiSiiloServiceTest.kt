@@ -16,6 +16,10 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import okio.ByteString.Companion.encodeUtf8
+import java.io.ByteArrayOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 class HelsinkiSiiloServiceTest {
 
@@ -68,6 +72,57 @@ class HelsinkiSiiloServiceTest {
             .contains("filename=\"${zipFile.fileName}\"")
             .contains("siilo-package")
         assertThat(zipFile).doesNotExist()
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `both delivery modes preserve binary ZIP bytes and multipart metadata`(async: Boolean) {
+        val output = ByteArrayOutputStream()
+        ZipOutputStream(output).use { zip ->
+            zip.putNextEntry(ZipEntry("document.bin"))
+            zip.write(byteArrayOf(0, 1, 127, -128, -1))
+            zip.closeEntry()
+        }
+        val bytes = output.toByteArray()
+        val file = createTemporaryZip("")
+        Files.write(file, bytes)
+        server.enqueue(MockResponse().setResponseCode(200))
+
+        if (async) service.lahetaAsync(file.toString(), CaseType.VALMISTUMINEN)
+        else service.laheta(file.toString(), CaseType.VALMISTUMINEN)
+
+        val request = server.takeRequest(5, TimeUnit.SECONDS)!!
+        assertThat(request.method).isEqualTo("POST")
+        assertThat(request.path).isEqualTo("/unisign/elsa/archive/siilo-123")
+        assertThat(request.getHeader("X-Api-Key")).isEqualTo("test-api-key")
+        val contentType = requireNotNull(request.getHeader("Content-Type"))
+        assertThat(contentType).startsWith("multipart/form-data; boundary=")
+        val boundary = contentType.substringAfter("boundary=")
+        val body = request.body.readByteString()
+        val contentStart = body.indexOf("\r\n\r\n".encodeUtf8()) + 4
+        assertThat(body.substring(0, contentStart).utf8())
+            .startsWith("--$boundary\r\n")
+            .contains("name=\"file\"; filename=\"${file.fileName}\"", "Content-Type: application/zip\r\n")
+        assertThat(body.substring(contentStart, contentStart + bytes.size).toByteArray()).isEqualTo(bytes)
+        assertThat(body.substring(contentStart + bytes.size).utf8()).isEqualTo("\r\n--$boundary--\r\n")
+        assertThat(Files.exists(file)).isEqualTo(async)
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [301, 302, 307, 308])
+    fun `async never follows redirects or replays the ZIP`(status: Int) {
+        server.enqueue(MockResponse().setResponseCode(status).addHeader("Location", server.url("/unexpected")))
+        server.enqueue(MockResponse().setResponseCode(200))
+        val file = createTemporaryZip("must-not-replay")
+
+        assertThatThrownBy { service.lahetaAsync(file.toString(), CaseType.VALMISTUMINEN) }
+            .isInstanceOfSatisfying(SiiloTransferException::class.java) {
+                assertThat(it.code).isEqualTo("SIILO_HTTP_REJECTED")
+                assertThat(it.httpStatus).isEqualTo(status)
+                assertThat(it.retryable).isFalse()
+            }
+        assertThat(server.requestCount).isEqualTo(1)
+        assertThat(file).exists()
     }
 
     @Test
@@ -134,6 +189,49 @@ class HelsinkiSiiloServiceTest {
     }
 
     @Test
+    fun `async connection refusal before request is retryable`() {
+        server.shutdown()
+        val file = createTemporaryZip("connection-failed")
+        assertThatThrownBy { service.lahetaAsync(file.toString(), CaseType.VALMISTUMINEN) }
+            .isInstanceOfSatisfying(SiiloTransferException::class.java) {
+                assertThat(it.code).isEqualTo("SIILO_CONNECTION_FAILED")
+                assertThat(it.retryable).isTrue()
+                assertThat(it.category).isEqualTo("CONNECT")
+            }
+    }
+
+    @Test
+    fun `async untrusted TLS certificate requires configuration repair before retry`() {
+        val certificate = okhttp3.tls.HeldCertificate.Builder().commonName("localhost").build()
+        val certificates = okhttp3.tls.HandshakeCertificates.Builder().heldCertificate(certificate).build()
+        server.useHttps(certificates.sslSocketFactory(), false)
+        properties.getArkistointi().getHki().host = server.url("/").toString().removeSuffix("/")
+        val file = createTemporaryZip("tls-failure")
+        assertThatThrownBy { service.lahetaAsync(file.toString(), CaseType.VALMISTUMINEN) }
+            .isInstanceOfSatisfying(SiiloTransferException::class.java) {
+                assertThat(it.code).isEqualTo("SIILO_CONNECTION_FAILED")
+                assertThat(it.retryable).isFalse()
+                assertThat(it.category).isEqualTo("TLS")
+                assertThat(it.cause).isNull()
+            }
+        assertThat(server.requestCount).isZero()
+    }
+
+    @Test
+    fun `async lost response after upload must not replay ZIP automatically`() {
+        server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST))
+        val file = createTemporaryZip("uploaded-zip")
+        assertThatThrownBy { service.lahetaAsync(file.toString(), CaseType.VALMISTUMINEN) }
+            .isInstanceOfSatisfying(SiiloTransferException::class.java) {
+                assertThat(it.code).isEqualTo("SIILO_DELIVERY_UNCONFIRMED")
+                assertThat(it.retryable).isFalse()
+                assertThat(it.cause).isNull()
+            }
+        assertThat(server.requestCount).isEqualTo(1)
+        assertThat(file).exists()
+    }
+
+    @Test
     fun `async accepts a response after the legacy fifteen second read timeout`() {
         properties.getArkistointi().getHki().asyncTransferTimeout = Duration.ofSeconds(40)
         server.enqueue(MockResponse().setResponseCode(200).setHeadersDelay(16, TimeUnit.SECONDS))
@@ -155,7 +253,7 @@ class HelsinkiSiiloServiceTest {
             .isInstanceOfSatisfying(SiiloTransferException::class.java) {
                 assertThat(it.code).isEqualTo("SIILO_DELIVERY_UNCONFIRMED")
                 assertThat(it.category).isEqualTo("TIMEOUT")
-                assertThat(it.retryable).isTrue()
+                assertThat(it.retryable).isFalse()
                 assertThat(it.cause).isNull()
             }
         assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofSeconds(3))

@@ -93,6 +93,7 @@ logging:
     org.thymeleaf: WARN
     org.xnio: WARN
     sun.rmi: WARN
+    com.github.kagkarlsson: INFO
     com.itextpdf.styledxmlparser.css.parse.syntax: OFF
     com.itextpdf.layout.renderer: OFF
     com.itextpdf.pdfa.PdfADocument: OFF
@@ -389,24 +390,33 @@ application:
       kaytossa: false
     turku:
       kaytossa: false
+      dynasty:
+        base-url: ${DYNASTY_TURKU_BASE_URL:}
+        token-url: ${DYNASTY_TURKU_TOKEN_URL:}
+        client-id: ${DYNASTY_TURKU_CLIENT_ID:}
+        client-secret: ${DYNASTY_TURKU_CLIENT_SECRET:}
+        organization: ${DYNASTY_TURKU_ORGANIZATION:}
+        case-schema-id: ${DYNASTY_TURKU_CASE_SCHEMA_ID:}
+        document-schema-id: ${DYNASTY_TURKU_DOCUMENT_SCHEMA_ID:}
+        call-timeout: 2m
+        in-progress-grace: 5m
+        allow-loopback-http-for-tests: false
       metadata:
         cases:
           koejakso:
             async-enabled: false
-            # Dynasty-specific metadata will be configured with its adapter.
             documents:
               arviointi:
-                retention-period: ""
+                retention-period: "-1"
           valmistuminen:
             async-enabled: false
-            # Document selection only; Dynasty-specific metadata will be configured with its adapter.
             documents:
               yhteenveto:
-                retention-period: ""
+                retention-period: "20"
               liite:
-                retention-period: ""
+                retention-period: "10"
               laillistamistodistus:
-                retention-period: ""
+                retention-period: "10"
     uef:
       kaytossa: false
       metadata:

@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.sahke
 
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
+
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -8,6 +10,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiTestData
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiDispatcher
 import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiServiceImpl
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
+import fi.elsapalvelu.elsa.service.arkistointi.support.arkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsiakirja
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiDocumentIdentity
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -34,7 +37,7 @@ class AsyncSahkePackageBuilderTest {
     private val mapper = jacksonObjectMapper()
     private val properties = ArkistointiTestData.createApplicationProperties()
     private val configuration = ArkistointiConfigurationProvider(properties)
-    private val builder = AsyncSahkePackageBuilder(SahkePayloadReader(mapper), configuration, SahkeMetadataBuilder(), SahkePakettiBuilder())
+    private val builder = AsyncSahkePackageBuilder(ArchivePayloadReader(mapper), configuration, SahkeMetadataBuilder(), SahkePakettiBuilder())
 
     @ParameterizedTest
     @CsvSource("VALMISTUMINEN,false,false", "VALMISTUMINEN,true,false", "KOEJAKSO,false,false",
@@ -46,7 +49,7 @@ class AsyncSahkePackageBuilderTest {
         val studyRight = input.opintooikeus
         val user = studyRight.erikoistuvaLaakari!!.kayttaja!!.user!!
         val payload = mapper.writeValueAsString(mapOf(
-            "valmistumispyyntoId" to 42, "caseId" to 42, "opintooikeusId" to studyRight.id,
+            "version" to 1, "caseId" to 42, "opintooikeusId" to studyRight.id,
             "university" to scenario.yliopisto.name, "yek" to yek,
             "traineeName" to user.getName(), "firstName" to user.firstName, "lastName" to user.lastName,
             "birthDate" to studyRight.erikoistuvaLaakari!!.syntymaaika.toString(),
@@ -62,7 +65,7 @@ class AsyncSahkePackageBuilderTest {
             LoadedArkistointiAsiakirja(document.id!! + 10000, record.type, index, document.nimi!!, document.tyyppi!!,
                 DigestUtils.sha256Hex(document.asiakirjaData!!.data), document.asiakirjaData!!.data!!)
         }
-        val submission = ArkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, caseType, payload, documents)
+        val submission = arkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, caseType, payload, documents)
         val legacy = SynchronousArkistointiServiceImpl(configuration, SahkeMetadataBuilder(), SahkePakettiBuilder(), mock<SynchronousArkistointiDispatcher>())
             .muodostaSahke(studyRight, input.asiakirjat, "42", "Reviewer", LocalDate.now().minusDays(1),
                 "Approver", LocalDate.now(), scenario.yliopisto, caseType)
@@ -100,7 +103,7 @@ class AsyncSahkePackageBuilderTest {
 
     @Test
     fun `university mismatch is rejected before writing files`() {
-        val submission = ArkistointiSubmission(UUID.randomUUID(), ArkistointiTestData.tamperePackageScenarios.first().yliopisto,
+        val submission = arkistointiSubmission(UUID.randomUUID(), ArkistointiTestData.tamperePackageScenarios.first().yliopisto,
             CaseType.VALMISTUMINEN, "{\"university\":\"HELSINGIN_YLIOPISTO\"}", emptyList())
         assertThatThrownBy { builder.build(submission, directory.resolve("invalid.zip")) }
             .isInstanceOf(IllegalArgumentException::class.java)
@@ -165,7 +168,7 @@ class AsyncSahkePackageBuilderTest {
         val packages = SahkePakettiBuilder()
         whenever(metadata.build(any(), any()))
             .thenThrow(MissingResourceException("private resource details", "private", "private"))
-        val subject = AsyncSahkePackageBuilder(SahkePayloadReader(mapper), configuration, metadata, packages)
+        val subject = AsyncSahkePackageBuilder(ArchivePayloadReader(mapper), configuration, metadata, packages)
 
         assertThatThrownBy { subject.build(validSubmission(), directory) }
             .isInstanceOfSatisfying(SahkePackageException::class.java) {
@@ -216,11 +219,11 @@ class AsyncSahkePackageBuilderTest {
         val payload = mapper.writeValueAsString(mapOf(
             "university" to scenario.yliopisto.name, "yek" to false,
             "approvalDate" to "2026-01-01", "opintooikeusId" to 1,
-            "valmistumispyyntoId" to 42, "caseId" to 42,
+            "version" to 1, "caseId" to 42,
             "documents" to documents.map {
                 ArkistointiDocumentIdentity(it.asiakirjaId + 10000, it.asiakirjaId, it.asiakirjatyyppi, it.jarjestysnumero)
             }
         ))
-        return ArkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, scenario.caseType, payload, documents)
+        return arkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, scenario.caseType, payload, documents)
     }
 }

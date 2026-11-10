@@ -637,10 +637,10 @@ class OpintosuorituksetPersistenceServiceIT {
 
     @Test
     fun shouldRepairIncorrectExamFromPeppiAndKeepRepeatedImportsUnchanged() {
-        persistIncorrectExam()
-        val snapshot = fetchExamSnapshot(mainPassed = false)
+        persistVirheellinenKuulustelu()
+        val snapshot = fetchKuulusteluSnapshot(mainPassed = false)
         saveExamSnapshot(snapshot)
-        val exam = findPeppiExam()
+        val exam = findPeppiKuulustelu()
         assertThat(exam.nimi_fi).isEqualTo("Valtakunnallinen kuulustelu")
         assertThat(exam.hyvaksytty).isFalse
         assertThat(exam.tyyppi!!.nimi).isEqualTo(OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
@@ -650,41 +650,41 @@ class OpintosuorituksetPersistenceServiceIT {
         val childTimes = exam.osakokonaisuudet!!.associate { it.id to it.muokkausaika }
 
         saveExamSnapshot(snapshot)
-        val unchanged = findPeppiExam()
+        val unchanged = findPeppiKuulustelu()
         assertThat(unchanged.muokkausaika).isEqualTo(parentTime)
         assertThat(unchanged.osakokonaisuudet!!.associate { it.id to it.muokkausaika }).isEqualTo(childTimes)
     }
 
     @Test
     fun shouldUpdateValidMainExamAndPreserveChildrenUntilASnapshotIsComplete() {
-        persistIncorrectExam()
-        saveExamSnapshot(fetchExamSnapshot(mainPassed = true))
-        val childIds = findPeppiExam().osakokonaisuudet!!.map { it.id }.toSet()
-        saveExamSnapshot(fetchExamSnapshot(mainPassed = false, incompleteChild = true))
-        val exam = findPeppiExam()
+        persistVirheellinenKuulustelu()
+        saveExamSnapshot(fetchKuulusteluSnapshot(mainPassed = true))
+        val childIds = findPeppiKuulustelu().osakokonaisuudet!!.map { it.id }.toSet()
+        saveExamSnapshot(fetchKuulusteluSnapshot(mainPassed = false, incompleteChild = true))
+        val exam = findPeppiKuulustelu()
         assertThat(exam.hyvaksytty).isFalse
         assertThat(exam.osakokonaisuudet!!.map { it.id }.toSet()).isEqualTo(childIds)
 
-        val complete = fetchExamSnapshot(mainPassed = false)
+        val complete = fetchKuulusteluSnapshot(mainPassed = false)
         complete.items!!.single().osakokonaisuudet = complete.items!!.single().osakokonaisuudet!!.take(1)
         saveExamSnapshot(complete)
-        assertThat(findPeppiExam().osakokonaisuudet).hasSize(1)
+        assertThat(findPeppiKuulustelu().osakokonaisuudet).hasSize(1)
     }
 
     @Test
     fun shouldLeaveAnExistingIncorrectRowUnchangedWhenPeppiHasNoMainExam() {
-        persistIncorrectExam()
-        val previousTime = findPeppiExam().muokkausaika
-        val snapshot = fetchExamSnapshot(mainPassed = true, includeMain = false)
+        persistVirheellinenKuulustelu()
+        val previousTime = findPeppiKuulustelu().muokkausaika
+        val snapshot = fetchKuulusteluSnapshot(mainPassed = true, includeMain = false)
         assertThat(snapshot.items).isEmpty()
         saveExamSnapshot(snapshot)
-        val exam = findPeppiExam()
+        val exam = findPeppiKuulustelu()
         assertThat(exam.nimi_fi).isEqualTo("Radiologia, kuvat")
         assertThat(exam.hyvaksytty).isTrue
         assertThat(exam.muokkausaika).isEqualTo(previousTime)
     }
 
-    private fun persistIncorrectExam() {
+    private fun persistVirheellinenKuulustelu() {
         val university = Yliopisto(nimi = YliopistoEnum.TURUN_YLIOPISTO)
         em.persist(university)
         val type = OpintosuoritusTyyppi(nimi = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU)
@@ -704,7 +704,7 @@ class OpintosuorituksetPersistenceServiceIT {
         em.clear()
     }
 
-    private fun fetchExamSnapshot(mainPassed: Boolean, incompleteChild: Boolean = false, includeMain: Boolean = true): OpintosuorituksetPersistenceDTO {
+    private fun fetchKuulusteluSnapshot(mainPassed: Boolean, incompleteChild: Boolean = false, includeMain: Boolean = true): OpintosuorituksetPersistenceDTO {
         val mapper = jacksonObjectMapper()
         fun record(id: String, name: String, passed: Boolean, date: String?) = mapOf(
             "id" to id,
@@ -741,7 +741,7 @@ class OpintosuorituksetPersistenceServiceIT {
         em.clear()
     }
 
-    private fun findPeppiExam(): Opintosuoritus = opintosuoritusRepository.findOneByOpintooikeusYliopistoOpintooikeusIdAndKurssikoodi(yliopistoOpintooikeusId, "ELOP0001")!!
+    private fun findPeppiKuulustelu(): Opintosuoritus = opintosuoritusRepository.findOneByOpintooikeusYliopistoOpintooikeusIdAndKurssikoodi(yliopistoOpintooikeusId, "ELOP0001")!!
 
     private fun persistSnapshot(incoming: OpintosuoritusDTO, replace: Boolean = true) {
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(

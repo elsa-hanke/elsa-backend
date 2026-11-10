@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20261107090000" author="elsa">
+        <comment>
+            User whose request enqueued the archive job. Used only to correlate asynchronous worker logs
+            with the HTTP request (MDC userId); nullable because the enqueuer may run without a user.
+        </comment>
+        <addColumn tableName="arkistointi_job">
+            <column name="requested_by_user_id" type="varchar(100)"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

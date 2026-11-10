@@ -64,7 +64,7 @@
               </b-td>
             </b-tr>
             <b-tr
-              v-for="(ok, childIndex) in examSubparts(o)"
+              v-for="(ok, childIndex) in kuulustelunOsakokonaisuudet(o)"
               :key="`exam-part-${ok.id || childIndex}`"
               class="ok-row exam-subpart-row py-2"
             >
@@ -176,7 +176,7 @@
       return name?.trim() ? name : o.nimi_fi || ''
     }
 
-    examSubparts(o: Opintosuoritus): OpintosuoritusOsakokonaisuus[] {
+    kuulustelunOsakokonaisuudet(o: Opintosuoritus): OpintosuoritusOsakokonaisuus[] {
       if (this.variant !== 'kuulustelu') return []
       const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
       return [...(o.osakokonaisuudet || [])].sort(

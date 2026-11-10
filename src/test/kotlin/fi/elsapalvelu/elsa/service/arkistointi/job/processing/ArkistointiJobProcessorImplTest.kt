@@ -43,7 +43,7 @@ class ArkistointiJobProcessorImplTest {
     private val descriptor = ArkistointiDocumentDescriptor(1L, RecordType.LIITE, 0, "private.pdf", "application/pdf", "a".repeat(64))
     private val document = LoadedArkistointiAsiakirja(1L, RecordType.LIITE, 0, descriptor.filename,
         descriptor.contentType, descriptor.sha256, byteArrayOf(1))
-    private val submission = ArkistointiSubmission(jobId, YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}", listOf(document))
+    private val submission = ArkistointiSubmission(jobId, YliopistoEnum.TURUN_YLIOPISTO, CaseType.VALMISTUMINEN, "{}", listOf(document), execution)
 
     @BeforeEach
     fun prepareSubmission() {
@@ -64,15 +64,23 @@ class ArkistointiJobProcessorImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["TOO_LONG", "TOO_LONG_UNICODE", "EMPTY", "BLANK", "NUL", "HIGH_SURROGATE", "LOW_SURROGATE"])
-    fun `invalid success response is a sanitized permanent failure before persistence`(kind: String) {
-        whenever(adapter.arkistoi(submission)).thenReturn(ArkistointiResult.Success(ArkistointiExternalIdTestData.value(kind)))
+    @ValueSource(booleans = [false, true])
+    fun `state response validation failure stays permanent even for resumable adapters`(resumable: Boolean) {
+        val externalId = "x".repeat(256)
+        val failure = ArkistointiProcessingException(
+            ArkistointiError.create("ARCHIVE_ADAPTER_RESPONSE_INVALID", "Arkiston vastaus on tarkistettava"), retryable = false
+        )
+        whenever(adapter.canResumeAfterSuccessPersistenceFailure).thenReturn(resumable)
+        whenever(adapter.arkistoi(submission)).thenReturn(ArkistointiResult.Success(externalId))
+        doThrow(failure).`when`(state).succeed(execution, externalId)
+
         val exception = assertThrows<ArkistointiProcessingException> { processor.process(execution) }
+
+        assertThat(exception).isSameAs(failure)
         assertThat(exception.retryable).isFalse()
         assertThat(exception.error.code).isEqualTo("ARCHIVE_ADAPTER_RESPONSE_INVALID")
-        assertThat(exception.error.description).doesNotContain("private-response")
         assertThat(exception.cause).isNull()
-        verify(state, never()).succeed(any(), anyOrNull())
+        verify(state).succeed(execution, externalId)
         verify(state, never()).fail(any(), any(), any())
     }
 
@@ -134,13 +142,15 @@ class ArkistointiJobProcessorImplTest {
         verify(state, never()).succeed(any(), anyOrNull())
     }
 
-    @Test
-    fun `success commit failure stays retryable without exposing the database exception`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `success commit failure respects transport replay safety without exposing database details`(resumable: Boolean) {
+        whenever(adapter.canResumeAfterSuccessPersistenceFailure).thenReturn(resumable)
         whenever(adapter.arkistoi(submission)).thenReturn(ArkistointiResult.Success("valid-id"))
         doThrow(IllegalStateException("private database detail")).`when`(state).succeed(execution, "valid-id")
         val exception = assertThrows<ArkistointiProcessingException> { processor.process(execution) }
-        assertThat(exception.retryable).isTrue()
-        assertThat(exception.error.code).isEqualTo("ARCHIVE_PROCESSING_FAILED")
+        assertThat(exception.retryable).isEqualTo(resumable)
+        assertThat(exception.error.code).isEqualTo("ARCHIVE_SUCCESS_PERSISTENCE_FAILED")
         assertThat(exception.cause).isNull()
         assertThat(exception.message).doesNotContain("private")
     }

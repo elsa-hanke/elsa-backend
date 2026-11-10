@@ -11,9 +11,9 @@ import {
   acceptRequirements,
   fillContactInformation,
   fillLicensingInformation,
-  openYekGraduationRequest,
-  setupYekGraduationRequest,
-  submitGraduationRequest,
+  openYekValmistumispyynto,
+  setupYekValmistumispyynto,
+  submitValmistumispyynto,
 } from './valmistumispyynto-yek.helpers'
 
 /** Virkailija has checked the request, so it is waiting for the vastuuhenkilö's approval. */
@@ -52,15 +52,15 @@ function checkAsVirkailijaAndLoginAsVastuuhenkilo(valmistumispyyntoId: number) {
 }
 
 describe('YEK-valmistumispyynnön hyväksyntä', () => {
-  beforeEach(setupYekGraduationRequest)
+  beforeEach(setupYekValmistumispyynto)
 
   it('YEK-valmistumispyyntö tarkistetaan, hyväksytään ja yhteenveto voidaan ladata', () => {
-    openYekGraduationRequest()
+    openYekValmistumispyynto()
     acceptRequirements()
     fillContactInformation('+358401234567')
     fillLicensingInformation()
 
-    submitGraduationRequest('POST', 'postYekValmistumispyynto').then(
+    submitValmistumispyynto('POST', 'postYekValmistumispyynto').then(
       (valmistumispyyntoId) => {
         cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
         cy.apiRequest({
@@ -145,12 +145,12 @@ describe('YEK-valmistumispyynnön hyväksyntä', () => {
   })
 
   it('YEK-valmistumispyyntö: päällekkäisen hyväksynnän syy "Hyväksyntä on jo käynnissä" näytetään', () => {
-    openYekGraduationRequest()
+    openYekValmistumispyynto()
     acceptRequirements()
     fillContactInformation('+358401234567')
     fillLicensingInformation()
 
-    submitGraduationRequest('POST', 'postYekValmistumispyynto').then((valmistumispyyntoId) => {
+    submitValmistumispyynto('POST', 'postYekValmistumispyynto').then((valmistumispyyntoId) => {
       checkAsVirkailijaAndLoginAsVastuuhenkilo(valmistumispyyntoId)
 
       // Another approval of the same valmistumispyyntö is already running: the server refuses

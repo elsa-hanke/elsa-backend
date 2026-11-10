@@ -63,7 +63,7 @@ export function expectPdfTextStateUnchanged(alias = 'beforePdfTextFailure') {
   })
 }
 
-export function createReview() {
+export function createKoejaksonVastuuhenkilonArvio() {
   return cy
     .apiRequest({
       method: 'POST',

@@ -41,6 +41,8 @@ Processor välittää tallennetun jobin ID:n arvona `ArkistointiSubmission.jobId
 Scheduler-rajapinta käyttää UUID:tä; db-schedulerin `task_instance` on sen kanoninen
 merkkijono. Processor saa `ArkistointiJobExecution`-olion, joka sisältää UUID:n
 sekä kyseisen scheduler-suorituksen version vanhentuneiden tulosten torjumiseksi.
+Sama execution-olio on pakollinen myös `ArkistointiSubmission`-pyynnössä;
+adapterit eivät saa toimitusta ilman suoritustunnistetta.
 Vastaanottajan idempotenssia käyttävä adapteri välittää UUID:n kanonisena
 merkkijonona sovitun deduplikointikäytännön mukaisesti. Tampereen Louhi-adapteri
 säilyttää nykyisen SFTP-protokollan: UUID on paikallinen toimitustunniste,
@@ -78,6 +80,11 @@ tarkistaa saman avaimen jo ennen PDF-tuotantoa, ilmoituksia ja snapshotien luont
 joten olemassa olevan jobin toistuva sisäinen käsittely ei luo ylimääräisiä kopioita.
 Hyväksynnän rivin lukitus ja creatorin lopullinen avaintarkistus säilyvät;
 pelkkä ennakkohaku ei korvaa niitä.
+`ArkistointiJobEnqueuer` kokoaa yhteisen ketjun: liiketoiminta-avain, ennakkohaku,
+snapshot-viitteet, payloadin sarjallistus ja creatorin kutsu. Sen `MANDATORY`-transaktio
+edellyttää hyväksynnän avointa transaktiota. Asiakirjat tuotetaan laiskasti vasta
+ennakkohaun jälkeen; valmistumisen yliopisto- ja asiatyyppikohtainen asiakirjavalinta
+tehdään ennen snapshot-viitteitä ja niiden järjestysnumeroita.
 Lisäykset lukitsevat saman job-rivin, joten rinnakkaiset viitelisäykset
 sarjallistuvat. Valmiiseen toimitukseen ei voi lisätä uusia viitteitä.
 Tarkistusten pakottaminen välittömiksi `SET CONSTRAINTS` -komennolla edellyttää,
@@ -249,7 +256,18 @@ edellyttää kyseistä asiatyyppiä tukevaa yliopiston adapteria.
 Adapteri ilmoittaa tuetut asiatyypit `supportedCaseTypes`-joukossa. Worker tarkistaa
 käynnistyessään jokaisen käyttöön otetun yliopisto–asiatyyppiparin. Jo jonossa oleva
 tukematon asiatyyppi päätyy tilaan `VAATII_TOIMENPITEITA` ilman lähetystä tai uusintaa.
-Pelkkä jobien tuottaminen ei edellytä paikallista toimitusadapteria.
+Uudet hyväksynnän payloadit käyttävät yhteistä `ArchiveApprovalPayload`-sopimusta,
+kokonaislukua `version=1` ja kaikille asiatyypeille samaa `caseId`-kenttää.
+JSON-kenttien nimet on kiinnitetty yhteisillä vakioilla ja Jackson-annotaatioilla.
+Lukija vaatii aina `version=1`- ja `caseId`-kentät. Puuttuva tai tuntematon versio,
+väärä version JSON-tyyppi tai virheellinen tunniste hylätään virheellä
+`ARCHIVE_PAYLOAD_INVALID`. Versiottomia payload-muotoja tai vanhoja tunnistealiaksia
+ei tueta.
+
+Pelkkä jobien tuottaminen ei edellytä paikallista asynkronista toimitusadapteria.
+Jokainen käytössä oleva synkroninen yliopisto–asiatyyppipari vaatii kuitenkin
+synkronisen adapterin myös silloin, kun paikallinen worker on pois käytöstä.
+Puuttuva hyväksynnän toimitusreitti estää sovelluksen käynnistyksen.
 
 Hyväksyntä, tavallisen ladattavan PDF:n luonti, sen muuttumaton snapshot, job ja
 `scheduled_tasks` tallentuvat samassa transaktiossa. Payload sisältää hyväksymishetken
@@ -467,7 +485,11 @@ vaatii yliopiston asynkronisen `service.arkistointi.job.delivery.ArkistointiAdap
 Puuttuva adapteri estää käynnistyksen ennen workerin aloitusta; ulkoiseen arkistoon
 ei tehdä käynnistystarkistuksessa verkkokutsua. Saman yliopiston adapterit eivät
 saa olla päällekkäisiä. Workerista erillinen jonoon kirjoittava solmu voi käyttää
-asetusta `db-scheduler.enabled=false` ilman paikallisia adaptereita.
+asetusta `db-scheduler.enabled=false` ilman paikallisia asynkronisia adaptereita.
+Kaikilla solmuilla `kaytossa=true` ja tapauskohtainen `async-enabled=false`
+vaatii yliopiston `SynchronousArkistointiAdapter`-beanin. Tarkistus tehdään ennen
+workerin käynnistystä ja myös ilman workeria; valitse async-reitti tai rekisteröi
+synkroninen adapteri ennen integraation käyttöönottoa.
 
 Jo jonossa olevan jobin puuttuva adapteri tallentaa turvallisen virhekoodin
 `ARCHIVE_ADAPTER_MISSING` ja tilan `VAATII_TOIMENPITEITA`, eikä sitä uusita
@@ -528,7 +550,7 @@ kaksi handleria voivat ehtiä tallentaa tilan ennen ajastuksen päivitystä.
 Ajastuksen päivityksessä kirjaston oma versiotarkistus sallii vain yhden onnistua;
 hävinnyt operaatio ei muuta uudempaa aikataulua tai kasvata laskuria uudelleen.
 
-Toimitus on at-least-once: jos ulkoinen arkisto hyväksyy aineiston mutta paikallinen onnistumisen tallennus keskeytyy, adapteria voidaan kutsua uudelleen samalla `ArkistointiSubmission.key`-avaimella. Adapterin ja vastaanottavan järjestelmän on estettävä kaksoistoimitus tällä avaimella atomisesti myös samanaikaisissa pyynnöissä: palautettavaksi tulkittu vanha suoritus voi edelleen olla verkkokutsussa uuden alkaessa. Pelkkä olemassaolon tarkistus ennen luontia ei riitä. Pelkkä db-scheduler ei takaa exactly-once-toimitusta. Adapterin virhekoodit ja kuvaukset eivät saa sisältää henkilötietoja, tiedostonimiä, tunnuksia tai HTTP-vastausten sisältöä.
+Toimitus on at-least-once: jos ulkoinen arkisto hyväksyy aineiston mutta paikallinen onnistumisen tallennus keskeytyy, adapteria voidaan kutsua uudelleen samalla `ArkistointiSubmission.key`-avaimella. Adapterin ja vastaanottavan järjestelmän on estettävä kaksoistoimitus tällä avaimella atomisesti myös samanaikaisissa pyynnöissä: heartbeat-katkossa vanha suoritus voi edelleen olla verkkokutsussa, joten aktiivinen job pysäköidään automaattisen uusinnan sijaan. Pelkkä olemassaolon tarkistus ennen luontia ei riitä. Pelkkä db-scheduler ei takaa exactly-once-toimitusta. Adapterin virhekoodit ja kuvaukset eivät saa sisältää henkilötietoja, tiedostonimiä, tunnuksia tai HTTP-vastausten sisältöä.
 
 Processor saa käynnistyksessä muuttumattoman suoritustunnisteen (`task_name`, `task_instance`, `version`). Sekä aloitus, onnistuminen että kaikki virhe- ja palautuskäsittelijän tilamuutokset lukitsevat ensin vastaavan poimitun `scheduled_tasks`-rivin ja sitten job-rivin samassa transaktiossa. Vanhentunut suoritus ei muuta jobia eikä uudempaa ajastusta; ennen lähetystä havaittu vanhentunut suoritus ei kutsu adapteria. Processorissa havaittu vanhentuminen päättyy ilman scheduler-rivin kuittausta, ja normaalissa kuittauksessa db-scheduler tarkistaa edelleen version. Lukitukset vapautuvat ennen verkkokutsua ja ennen db-schedulerin reschedule/remove-toimintoa. Versiotarkistus ei peruuta jo alkanutta ulkoista pyyntöä. Manuaalinen uusinta säilyttää pysäköidyn ajastusrivin ja kasvattaa sen versiota; riviä ei luoda uudelleen.
 
@@ -645,8 +667,9 @@ Siilo/Louhi-protokollan ja ZIP/XML-sisällön tarkistukset kuuluvat IT-testeihin
 Turun ja Itä-Suomen async-valmistumisen hyväksyntä kokoaa EL-, EHL- ja
 YEK-tapauksissa yhteenvedon, liitteet ja laillistamistodistuksen. Todistus
 kopioidaan hyväksymishetken tiedostosta alkuperäisine tavuineen ja metatietoineen.
-Sille luodaan oma Asiakirja ja muuttumaton snapshot; payloadin lähdetunniste on
-Asiakirjan tunniste, ei AsiakirjaData-tunniste. Puuttuva tai tyhjä todistus tai
+Sille luodaan suoraan yksi piilotettu, muuttumaton Asiakirja-snapshot ilman erillistä
+näkyvää kopiota. Todistuksen `sourceDocumentId` ja `snapshotDocumentId` ovat sama
+snapshotin Asiakirja-tunniste, eivät AsiakirjaData-tunnisteita. Puuttuva tai tyhjä todistus tai
 puutteelliset tiedostometatiedot peruuttavat async-hyväksymistransaktion.
 
 Molemmat integraatiot ja async ovat oletuksena pois käytöstä. Tyhjät
@@ -668,6 +691,49 @@ päätöksen ja oikean db-schedulerin suorituksen testiadapteriin asti sekä rol
 Tämä ei vielä sisällä Dynasty-lähetystä: oikeat adapterit ja arkiston metatiedot
 toteutetaan integraatiotehtävissä. Koulutussopimuksen asetuksia ei muuteta.
 
+### Archive payload validation
+
+Workers validate required snapshot fields and documents before delivery. An incomplete payload
+requires intervention: retrying the same job cannot supply missing historical data. Do not fill
+missing values from current student records or modify the immutable snapshot.
+
+### Missing heartbeat during archive delivery
+
+A missing heartbeat does not mean that the old worker or its external request has stopped.
+The dedicated dead-execution handler uses the persisted job state under the scheduler/job locks:
+
+- `ODOTTAA`: no processing has started, or a retryable failure was already committed; bounded automatic recovery is allowed.
+- `KASITTELYSSA`: delivery may be in flight. Park at `Schedule.NEVER` with `ARCHIVE_EXECUTION_LOST`;
+  never start a second delivery automatically. This also conservatively parks a crash during document loading,
+  because this state does not distinguish loading from sending.
+- `LAHETETTY`: preserve success and remove the scheduler task without sending again.
+- `VAATII_TOIMENPITEITA`: preserve the existing error and park without sending again.
+
+| Transport | Recovery after `ARCHIVE_EXECUTION_LOST` |
+| --- | --- |
+| Helsinki / Siilo | Stop/drain the old worker, then reconcile receipt with Siilo before retrying. No receiver deduplication is assumed. |
+| Tampere / Louhi | Stop/drain the old worker, then reconcile the SFTP transfer and downstream receipt before retrying. File presence alone does not prove downstream processing. |
+| Turku / Dynasty | Stop/drain the old worker, reconcile unfinished ledger steps in Dynasty, and use `dynasty-resolve-step.sql` where needed. Completed steps remain reusable. |
+
+Only retry the same job after establishing that replay is safe. If Siilo/Louhi already accepted it,
+do not resend: reconcile the local outcome separately. A late response from the lost worker cannot
+replace the parked job outcome; Dynasty may still record a confirmed remote ID in the original ledger step.
+Normal failures use transport-specific rules, not a shared network retry classifier:
+
+| Transport / stage | Automatic retry |
+| --- | --- |
+| Siilo async, I/O failure before HTTP request headers start | Allowed for transient connection failures; TLS errors require intervention. |
+| Siilo async, I/O failure after request headers start | Not allowed (`SIILO_DELIVERY_UNCONFIRMED`); reconcile receipt first. |
+| Siilo async, received HTTP error | Existing status policy applies (408/425/429/5xx retryable). This assumes those receiver responses permit replay; it is not proof of receiver deduplication. |
+| Louhi, CONNECT/LIST/WRITE | Existing SFTP failure/status classification; transient failures before publication may retry. |
+| Louhi, RENAME | Unknown outcome requires intervention; explicit SFTP refusals retain their specific classification. |
+| Dynasty, token request | Failure cannot have created an archive object; transient authentication-service failures may retry. |
+| Dynasty, mutation POST | DNS/connect failures before connection may retry; unknown delivery outcomes park with the unfinished ledger step. |
+
+These rules do not change the synchronous Siilo flow. A received HTTP status and an I/O failure
+without a response are separate outcomes; changing a receiver's HTTP-status retry contract requires
+receiver-specific evidence.
+
 ### Toimenpiteitä vaativan arkistoinnin uusinta
 
 `VAATII_TOIMENPITEITA` säilyttää ajastusrivin db-schedulerin `Schedule.NEVER`-ajassa
@@ -683,11 +749,13 @@ psql -v ON_ERROR_STOP=1 -v job_id=<UUID> -f ops/arkistointi/retry-job.sql
 ```
 
 Skripti lukitsee ensin ajastusrivin ja sitten jobin. Vain pysäköity,
-`VAATII_TOIMENPITEITA`-tilassa oleva tehtävä voidaan palauttaa. Sama SQL-lause
+`VAATII_TOIMENPITEITA`-tilassa oleva tehtävä voidaan palauttaa. Sama transaktio
 palauttaa tilaksi `ODOTTAA`, nollaa schedulerin virhelaskurin ja kasvattaa version.
 UUID, payload ja asiakirjat säilyvät; aiempi jobin virhe säilyy diagnoosia varten
-seuraavaan tulokseen asti. Yksi palautettu rivi tarkoittaa onnistunutta uusintaa;
-nolla riviä tarkoittaa, ettei tehtävä ollut uusittavissa. Worker poimii tehtävän
+onnistumiseen tai seuraavaan virheeseen asti. Onnistunut transaktio palauttaa
+rivin ja `retry scheduled`-tuloksen. Puuttuva ajastusrivi tai job, aktiivinen tai
+pysäköimätön tehtävä ja väärä jobin tila aiheuttavat selkeän virheen;
+transaktion muutokset perutaan. Worker poimii tehtävän
 normaalissa pollingissa, kun kapasiteettia on. Erillistä API-kutsua ei tarvita.
 
 Skripti ei luo puuttuvaa ajastusriviä. Ennen tätä muutosta poistettujen rivien
@@ -700,3 +768,85 @@ Ennen uusintaa selvitä, onko arkisto jo vastaanottanut epävarmaksi jääneen
 lähetyksen. Sama UUID säilyy, mutta vastaanottajan deduplikointi ratkaisee,
 voiko uusinta tuottaa kaksoistoimituksen. Älä muuta immutable payloadia tai
 snapshotteja palautuksen yhteydessä. Yliopiston pääkäyttäjärooli ei hallitse uusintaa.
+
+### Asynkronisen arkistoinnin lokien haku
+
+db-schedulerin työsäikeet eivät peri HTTP-pyynnön MDC-arvoja. `ArkistointiJobLogContext` asettaa
+siksi työsäikeelle `archiveJobId`- ja `userId`-kentät `execute()`-kutsun ja virhekäsittelijän ajaksi.
+`userId` luetaan jobin sarakkeesta `requested_by_user_id`, joka täytetään hyväksynnän yhteydessä
+pyynnön MDC:stä. Se on hyväksyvä käyttäjä, ei erikoistuva lääkäri.
+
+Haku AWS Logs Insightsissa:
+
+1. Hae `userId`-kentällä rivi `Arkistointi-job luotu [key=…, jobId=…]`. Se kirjoitetaan vasta
+   hyväksynnän commitin jälkeen.
+2. Hae sama `jobId` kentällä `archiveJobId`: tulokseen tulevat yrityksen alku
+   (`Archive attempt started`), Dynasty-vaiheet (`Dynasty step executed`, `reused from ledger`,
+   `failed`) ja yrityksen lopputulos.
+
+Rajaukset: db-schedulerin omat lokirivit (esim. käsittelemätön poikkeus ja kuollut suoritus)
+kirjoitetaan kontekstin ulkopuolella, joten niissä ei ole `userId`- eikä `archiveJobId`-kenttää;
+hae ne `jobId`:llä viestin tekstistä. Ennen tätä muutosta luoduilla jobeilla ja ilman
+pyyntökontekstia luoduilla jobeilla `requested_by_user_id` on tyhjä.
+
+### Turku Dynasty REST delivery
+
+Turku uses independent REST calls (case, task, main document, attachments, archive state),
+not the Helsinki/Tampere ZIP transport. It remains disabled by default. UEF has no
+production adapter until its university-specific mapping is supplied; SOPIMUS is unsupported.
+
+Configure `application.arkistointi.turku.dynasty` (URLs, client credentials, Organization,
+case/document schema UUIDs) before enabling the university and individual async case types.
+Credentials must come from secrets/environment. Test case/document schemas:
+`30e1cd27-54f9-44c1-9853-401cbdc871de` / `b11af6ae-afc6-42e8-b09b-6b37d3f29397`;
+production: `80cdec85-07fa-455b-9d7d-6c08ac1e2863` / `f9352666-327a-4262-b888-9c4c847590b6`.
+The configured `tutkintoasetukset` map must contain the customer-approved text for each
+regulation encountered. KOEJAKSO additionally requires vendor-confirmed
+`koejakso-publicity-class-id` and three `koejakso-secrecy-fields` entries (reason,
+100-year duration and date calculation basis). Do not enable it with guessed field names.
+Metadata validation completes before the first external create.
+
+Every mutation is preceded by a committed intent in `arkistointi_dynasty_step`.
+Completed steps are skipped on retry; external case ID becomes the job external ID.
+A stale scheduler execution cannot begin another step. A late successful response can
+complete only its original intent. An incomplete intent is never automatically replayed:
+recent intents wait; old or ambiguous outcomes require operator intervention.
+This avoids automatic duplicate creates at the cost of manual reconciliation. It cannot
+provide receiver-side exactly-once semantics. Even HTTP 429/503 and ambiguous final state
+changes are parked until replay guarantees are confirmed by Dynasty. Network failures
+before request headers start (including connection and total-call timeouts) permit
+automatic retry of a create. TLS failures before that point require configuration repair
+and an explicit job retry, but no remote reconciliation: the unsent intent is removed.
+Once request headers start, network failures retain the intent for reconciliation.
+Token acquisition remains separate and cannot create an archive object.
+
+For `DYNASTY_DELIVERY_UNCONFIRMED`/`DYNASTY_RESPONSE_INVALID`, inspect the Dynasty UI.
+Use `ops/arkistointi/dynasty-resolve-step.sql` to confirm a discovered remote ID, or discard
+an intent only after establishing that nothing was created. Stop/drain the old worker
+before discard so an in-flight request cannot create an object after reconciliation.
+The resolution script requires all four psql variables: `job_id`, `step_key`, `remote_id`, and `action`.
+Allowed steps are `CASE`, `TASK`, `DOCUMENT:<manifest order>`, and `ARCHIVE_CASE`.
+For `confirm`, use a canonical UUID for `TASK` or a positive bigint ID for `CASE`/`DOCUMENT`.
+Pass `remote_id=''` for `ARCHIVE_CASE` or `action=discard`. The task must be parked and unpicked,
+the job must require intervention, and the selected step must still be `ALOITETTU`.
+Invalid input or a state mismatch aborts the transaction; exactly one step must change.
+Then use the existing `retry-job.sql` after successful commit; never create another job to retry a delivery.
+Do not alter completed steps. The SQL scripts are operator procedures, not application retries.
+Ledger `started_at` and `completed_at` are PostgreSQL `timestamptz` values (absolute UTC instants).
+Intent age is evaluated against the database wall clock after locks are acquired; session time zones
+and the JVM clock do not participate in the decision.
+
+Before enabling Turku, check legacy jobs whose snapshots may lack Dynasty metadata:
+```sql
+select id, case_type, status from arkistointi_job
+where university = 'TURUN_YLIOPISTO' and status <> 'LAHETETTY';
+```
+Do not reconstruct missing approval metadata from subsequently modified live records.
+
+
+After a receiver reports success, a failure committing the local result is recorded as
+`ARCHIVE_SUCCESS_PERSISTENCE_FAILED`. Siilo and Louhi park for reconciliation; an automatic
+retry must not send the accepted package again. Before a manual retry, reconcile the remote
+receipt. Dynasty may retry automatically because completed ledger steps are reused without
+repeating their HTTP mutations. If failure persistence also fails, dead-execution recovery
+retains its existing conservative intervention policy.
