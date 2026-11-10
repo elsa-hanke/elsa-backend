@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.1...HEAD)
 
+- Dynasty client (TURKU integraatio) [`#811`](https://github.com/elsa-hanke/elsa-backend/pull/811)(9 November 2026)
 - Release/v2.5.x merge [`#817`](https://github.com/elsa-hanke/elsa-backend/pull/817)(4 November 2026)
 - Bump brace-expansion from 1.1.11 to 1.1.21 in /frontend [`#813`](https://github.com/elsa-hanke/elsa-backend/pull/813)(2 November 2026)
 - upgrade Cypress to version 16.2.1, spring boot 4.1.2, gradle 9.8.2 [`#812`](https://github.com/elsa-hanke/elsa-backend/pull/812)(2 November 2026)
