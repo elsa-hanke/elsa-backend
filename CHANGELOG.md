@@ -25,6 +25,12 @@
 - Korjaa hyväksyntöjen transaktionaalisuus ja sähköposti-ilmoitusten ajoitus [`#796`](https://github.com/elsa-hanke/elsa-backend/pull/796)(26 October 2026)
 - Dynasty - Vaihe 2, task 1 — Arkistoitavien asiakirjojen muuttumaton tallennus [`#783`](https://github.com/elsa-hanke/elsa-backend/pull/783)(26 October 2026)
 - Dynasty - Vaihe 1 - Asynkronisen arkistoinnin tietomalli ja db-scheduler-integraatio [`#782`](https://github.com/elsa-hanke/elsa-backend/pull/782)(24 October 2026)
+- fix: make feedback recipient configurable via environment variable [`#779`](https://github.com/elsa-hanke/elsa-backend/pull/779)(15 October 2026)
+- ELSA-1251 Erikoistuvan tili ei avaudu [`#767`](https://github.com/elsa-hanke/elsa-backend/pull/767)(7 October 2026)
+- ELSA-1245 Osasuoritusten siirtyminen Pepistä ELSAan [`#764`](https://github.com/elsa-hanke/elsa-backend/pull/764)(7 October 2026)
+- cypress e2e testit erikoismerkit [`#763`](https://github.com/elsa-hanke/elsa-backend/pull/763)(7 October 2026)
+- fix: Tila ei ohjaa käyttöoikeutta, joten tuntematon tila ei saa estää päättymispäivän, katseluajan ja asetuksen synkronointia (#762) [`#762`](https://github.com/elsa-hanke/elsa-backend/pull/762)(6 October 2026)
+- Tiedoston lataamisen tarkistuksen parannukset  [`#761`](https://github.com/elsa-hanke/elsa-backend/pull/761)(6 October 2026)
 
 ## [v2.5.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.0...v2.5.1) - 4 November 2026
 
