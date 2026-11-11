@@ -10,8 +10,6 @@ env:
     APPLICATION_ARKISTOINTI_HKI_METADATA_CONTACT_PHONE: 02941 911
     APPLICATION_ARKISTOINTI_HKI_METADATA_CONTACT_EMAIL: piia.huttunen@helsinki.fi
   parameter-store:
-    DYNASTY_TURKU_CLIENT_ID: /dev/application/dynasty/turku/clientid
-    DYNASTY_TURKU_CLIENT_SECRET: /dev/application/dynasty/turku/clientsecret
     APPLICATION_SECURITY_PEPPI_OULU_TOKEN: /dev/application/peppioulu/token
     APPLICATION_SECURITY_PEPPI_TURKU_API_KEY: /dev/application/peppiturku/apikey
     APPLICATION_SECURITY_PEPPI_TURKU_BASIC_AUTH_ENCODED_KEY: /dev/application/peppiturku/basicauthencodedkey
@@ -30,6 +28,8 @@ env:
     APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_PHONE: /dev/codebuild/arkistointi/tre/contact/phone
     APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_EMAIL: /dev/codebuild/arkistointi/tre/contact/email
     APPLICATION_ARKISTOINTI_HKI_API_KEY: /dev/application/siilo/apikey
+    APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_ID: /dev/application/dynasty/turku/clientid
+    APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_SECRET: /dev/application/dynasty/turku/clientsecret
 phases:
   install:
     runtime-versions:

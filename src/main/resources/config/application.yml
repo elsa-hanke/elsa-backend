@@ -392,8 +392,8 @@ application:
       dynasty:
         base-url: ${DYNASTY_TURKU_BASE_URL:https://asta.utu.fi/dynasty.externalinterface.archive.oauth}
         token-url: ${DYNASTY_TURKU_TOKEN_URL:https://asta.utu.fi/dynasty.identityserver/connect/token}
-        client-id: ${DYNASTY_TURKU_CLIENT_ID:}
-        client-secret: ${DYNASTY_TURKU_CLIENT_SECRET:}
+        client-id: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_ID:}
+        client-secret: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_SECRET:}
         organization: ${DYNASTY_TURKU_ORGANIZATION:0}
         case-schema-id: ${DYNASTY_TURKU_CASE_SCHEMA_ID:30e1cd27-54f9-44c1-9853-401cbdc871de}
         document-schema-id: ${DYNASTY_TURKU_DOCUMENT_SCHEMA_ID:b11af6ae-afc6-42e8-b09b-6b37d3f29397}

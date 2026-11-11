@@ -247,8 +247,8 @@ lähetetään ja asia siirretään Archived-tilaan. Vain tietokannan askelkirjan
 on mockattu. Testiaineiston nimissä on sama korrelaatiotunniste kuin muissa
 arkistoinnin ulkoisissa testeissä.
 
-Tunnukset annetaan ympäristömuuttujilla `DYNASTY_TURKU_CLIENT_ID` ja
-`DYNASTY_TURKU_CLIENT_SECRET`. CodeBuild lukee ne SSM Parameter Storesta
+Tunnukset annetaan ympäristömuuttujilla `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_ID` ja
+`APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_SECRET`. CodeBuild lukee ne SSM Parameter Storesta
 poluista `/dev/application/dynasty/turku/clientid` ja
 `/dev/application/dynasty/turku/clientsecret`, kuten dev-ympäristön ECS-palvelu.
 Osoitteet, organisaatio ja skeemat käyttävät
