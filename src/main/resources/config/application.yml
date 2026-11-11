@@ -388,7 +388,7 @@ application:
     oulu:
       kaytossa: false
     turku:
-      kaytossa: ${APPLICATION_ARKISTOINTI_TURKU_KAYTOSSA:true}
+      kaytossa: ${APPLICATION_ARKISTOINTI_TURKU_KAYTOSSA:false}
       dynasty:
         base-url: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_BASE_URL:https://asta.utu.fi/dynasty.externalinterface.archive.oauth}
         token-url: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_TOKEN_URL:https://asta.utu.fi/dynasty.identityserver/connect/token}
