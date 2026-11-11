@@ -10,8 +10,7 @@
             </span>
           </template>
           <div class="mt-3 mb-3">
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <p v-html="locale == 'sv' ? ak.kuvausSv : ak.kuvaus"></p>
+            <rich-text-content :html="locale == 'sv' ? ak.kuvausSv : ak.kuvaus" />
           </div>
         </elsa-accordian>
       </b-col>
@@ -33,11 +32,13 @@
 
   import ElsaAccordian from '@/components/accordian/accordian.vue'
   import ElsaPagination from '@/components/pagination/pagination.vue'
+  import RichTextContent from '@/components/rich-text-content/rich-text-content.vue'
   import { ArvioitavaKokonaisuus, Page } from '@/types'
   import { toastFail } from '@/utils/toast'
 
   @Component({
     components: {
+      RichTextContent,
       ElsaAccordian,
       ElsaPagination
     }

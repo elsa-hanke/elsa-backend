@@ -1,3 +1,5 @@
+import { assessmentToolTasks } from './assessment-tool'
+import { terveyskeskusTasks } from './terveyskeskus'
 import { kouluttajaTasks } from './kouluttaja'
 import { erikoistuvaLaakariTasks } from './erikoistuva'
 import { tyoskentelyjaksotTasks } from './tyoskentelyjakso'
@@ -9,14 +11,19 @@ import {opintoOikeusTasks} from './opintooikeus'
 import { valmistumispyyntoTasks } from './valmistumispyynto'
 import { yekDocumentTasks } from './yek-documents'
 import { accountMergeTasks } from './account-merge'
+import { accountMergeSearchTasks } from './account-merge-search'
 import { pdfTextTasks } from './pdf-text'
+import { pdfTasks } from './pdf'
+import { richTextTasks } from './rich-text'
 export { dbClient } from './db-client'
 
 export function registerDbTasks(on: Cypress.PluginEvents): void {
   on('task', {
+    ...assessmentToolTasks,
     ...kouluttajaTasks,
     ...erikoistuvaLaakariTasks,
     ...tyoskentelyjaksotTasks,
+    ...terveyskeskusTasks,
     ...pingTask,
     ...koejaksoTasks,
     ...vastuuhenkiloTasks,
@@ -25,6 +32,9 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
     ...valmistumispyyntoTasks,
     ...yekDocumentTasks,
     ...accountMergeTasks,
-    ...pdfTextTasks
+    ...accountMergeSearchTasks,
+    ...pdfTextTasks,
+    ...pdfTasks,
+    ...richTextTasks
   })
 }

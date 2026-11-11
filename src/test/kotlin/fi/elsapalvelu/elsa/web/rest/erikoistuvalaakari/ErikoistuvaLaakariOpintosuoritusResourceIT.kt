@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
-import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
@@ -13,7 +12,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -24,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional
 class ErikoistuvaLaakariOpintosuoritusResourceIT: ResourceIntegrationTestBase() {
 
     private lateinit var opintosuoritus: Opintosuoritus
-    private lateinit var user: User
 
     @Test
     @Transactional
@@ -109,7 +107,7 @@ class ErikoistuvaLaakariOpintosuoritusResourceIT: ResourceIntegrationTestBase() 
         val userDetails = mapOf<String, List<Any>>()
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            testSamlPrincipal(user.id, userDetails),
             "test",
             authorities
         )

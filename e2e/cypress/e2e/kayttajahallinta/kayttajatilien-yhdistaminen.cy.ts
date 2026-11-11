@@ -164,7 +164,7 @@ describe('Käyttäjätilien yhdistäminen säilyttää toisen erikoistujan koeja
       const draft = body.aloituskeskustelu as InitialDiscussion
       expect(draft.lahetetty).to.eq(false)
       expect(draft.lahikouluttaja.id).to.eq(
-        samePerson ? fixture.source.id : Cypress.env('kouluttajaId')
+        samePerson ? fixture.source.id : Cypress.expose('kouluttajaId')
       )
       expect(draft.lahiesimies.id).to.eq(fixture.source.id)
       return draft
@@ -266,7 +266,7 @@ describe('Käyttäjätilien yhdistäminen säilyttää toisen erikoistujan koeja
         koejaksonOsaamistavoitteet: OBJECTIVES
       })
       expect(body.aloituskeskustelu.lahikouluttaja).to.include({
-        id: Cypress.env('kouluttajaId'),
+        id: Cypress.expose('kouluttajaId'),
         sopimusHyvaksytty: false,
         kuittausaika: null
       })
@@ -277,7 +277,7 @@ describe('Käyttäjätilien yhdistäminen säilyttää toisen erikoistujan koeja
       })
       discussion = body.aloituskeskustelu
     })
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
     cy.then(() => cy.apiRequest({ method: 'PUT', url: APPROVAL_API, body: discussion })).then(
       ({ status, body }) => {
         expect(status).to.eq(200)

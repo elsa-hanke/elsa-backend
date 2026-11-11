@@ -8,13 +8,11 @@ import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.perustiedot.ErikoisalaRepository
-import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.service.dto.kayttaja.KayttajaYliopistoErikoisalaDTO
 import fi.elsapalvelu.elsa.service.dto.perustiedot.YliopistoDTO
 import fi.elsapalvelu.elsa.service.dto.kayttajahallinta.KayttajahallintaKayttajaDTO
-import fi.elsapalvelu.elsa.service.mapper.perustiedot.ErikoisalaMapper
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
@@ -29,7 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -49,8 +47,6 @@ private const val TEKNINEN_PAAKAYTTAJA_ROLE_PATH = "tekninen-paakayttaja"
 class PaakayttajaKayttajahallintaResourceIT: ResourceIntegrationTestBase() {
 
     @Autowired private lateinit var erikoisalaRepository: ErikoisalaRepository
-    @Autowired private lateinit var kayttajaRepository: KayttajaRepository
-    @Autowired private lateinit var erikoisalaMapper: ErikoisalaMapper
 
     private lateinit var yliopisto: Yliopisto
 
@@ -204,7 +200,7 @@ class PaakayttajaKayttajahallintaResourceIT: ResourceIntegrationTestBase() {
         yliopisto = persistYliopisto(DEFAULT_YLIOPISTO)
         val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(role))
         persistAndFlush(user)
-        val authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(user.id, mapOf<String, List<Any>>()), "test", listOf(SimpleGrantedAuthority(role)))
+        val authentication = Saml2Authentication(testSamlPrincipal(user.id, mapOf<String, List<Any>>()), "test", listOf(SimpleGrantedAuthority(role)))
 
         val kayttaja = KayttajaHelper.createEntity(em, user)
         if (role == OPINTOHALLINNON_VIRKAILIJA) {

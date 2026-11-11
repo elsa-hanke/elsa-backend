@@ -106,7 +106,7 @@ describe('Koejakson vastuuhenkilön arvio', () => {
       expect(response?.body?.erikoistuvanSahkoposti).to.eq(E2E_ERIKOISTUVA_EMAIL)
       expect(response?.body?.erikoistuvanPuhelinnumero).to.eq('+358401234567')
       expect(response?.body?.erikoistuvanKuittausaika).to.not.be.null
-      Cypress.env('vastuuhenkilonArvioId', response?.body?.id)
+      Cypress.expose('vastuuhenkilonArvioId', response?.body?.id)
     })
     cy.url().should('include', '/koejakso')
     cy.contains('Odottaa virkailijan hyväksyntää', {
@@ -114,10 +114,10 @@ describe('Koejakson vastuuhenkilön arvio', () => {
     }).should('be.visible')
 
     cy.then(() => {
-      const vastuuhenkilonArvioId = Cypress.env('vastuuhenkilonArvioId')
+      const vastuuhenkilonArvioId = Cypress.expose('vastuuhenkilonArvioId')
 
       // Finish: Virkailija tarkistaa arviointipyynnön
-      cy.loginAsVirkailija(Cypress.env('virkailijaToken'))
+      cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
       cy.apiRequest({
         method: 'GET',
         url: `/api/virkailija/koejakso/vastuuhenkilonarvio/${vastuuhenkilonArvioId}`,
@@ -145,7 +145,7 @@ describe('Koejakson vastuuhenkilön arvio', () => {
       })
 
       // Finish: Vastuuhenkilö hyväksyy koejakson arvion
-      cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+      cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
       cy.apiRequest({
         method: 'GET',
         url: `/api/vastuuhenkilo/koejakso/vastuuhenkilonarvio/${vastuuhenkilonArvioId}`,

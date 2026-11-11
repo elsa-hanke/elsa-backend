@@ -39,12 +39,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -133,7 +133,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
         )
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            testSamlPrincipal(user.id, userDetails),
             "test",
             authorities
         )
@@ -170,7 +170,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
         )
         val authorities = listOf(SimpleGrantedAuthority(KOULUTTAJA))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            testSamlPrincipal(user.id, userDetails),
             "test",
             authorities
         )
@@ -196,7 +196,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
         )
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(user.id, userDetails),
+            testSamlPrincipal(user.id, userDetails),
             "test",
             authorities
         )
@@ -306,7 +306,7 @@ class ErikoistuvaLaakariKoulutussuunnitelmaResourceIT {
         )
         val authorities = listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI))
         val authentication = Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal(userId ?: user.id, userDetails),
+            testSamlPrincipal(userId ?: user.id, userDetails),
             "test",
             authorities
         )

@@ -63,9 +63,7 @@ class JulkisetToiminnotResource(
 
     @GetMapping("/poissaolon-syyt")
     fun getPoissaolonSyyt(): ResponseEntity<List<PoissaolonSyyDTO>> {
-        return poissaolonSyyService.findAll().let {
-            ResponseEntity.ok(it)
-        } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        return ResponseEntity.ok(poissaolonSyyService.findAll())
     }
 
 }

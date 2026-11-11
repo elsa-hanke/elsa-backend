@@ -41,7 +41,7 @@ describe('Koulutusjakson muokkaaminen', () => {
       expect(response?.statusCode).to.eq(201)
       expect(response?.body?.id).to.be.a('number')
       expect(response?.body?.nimi).to.eq('Alkuperäinen E2E Koulutusjakso')
-      Cypress.env('koulutusjaksoId', response?.body?.id)
+      Cypress.expose('koulutusjaksoId', response?.body?.id)
     })
     // Luotu – sivu ohjaa koulutusjakson detail-sivulle
     cy.url().should('match', /\/koulutussuunnitelma\/koulutusjaksot\/\d+$/)
@@ -49,7 +49,7 @@ describe('Koulutusjakson muokkaaminen', () => {
 
     // 2. Siirtyminen muokkauslomakkeelle
     cy.then(() => {
-      cy.visit(`/koulutussuunnitelma/koulutusjaksot/${Cypress.env('koulutusjaksoId')}/muokkaus`)
+      cy.visit(`/koulutussuunnitelma/koulutusjaksot/${Cypress.expose('koulutusjaksoId')}/muokkaus`)
     })
     cy.get('[role="status"]', { timeout: 10000 }).should('not.exist')
 

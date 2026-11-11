@@ -52,7 +52,7 @@ export function pdfTextState() {
   return cy.task<Record<string, unknown>>('db:pdfTextState', {
     email: E2E_ERIKOISTUVA_EMAIL,
     kayttajaIds: ['kouluttajaId', 'vastuuhenkiloId', 'virkailijaId']
-      .map((key) => Number(Cypress.env(key)))
+      .map((key) => Number(Cypress.expose(key)))
       .filter((id) => Number.isFinite(id) && id > 0)
   })
 }

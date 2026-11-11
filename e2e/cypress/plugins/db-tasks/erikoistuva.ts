@@ -200,6 +200,13 @@ async function deletePaivakirjamerkintaRows(client: Client, el_id: number): Prom
 // ─── Opintooikeus cleanup ─────────────────────────────────────────────────────
 
 async function deleteOpintooikeusRows(client: Client, el_id: number): Promise<void> {
+  // Approval records can exist for either EL or YEK rights, including fixtures
+  // left by another spec. Remove them before deleting the parent study rights.
+  await client.query(
+    `DELETE FROM terveyskeskuskoulutusjakson_hyvaksynta
+     WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)`,
+    [el_id]
+  )
   await client.query(
     `DELETE FROM asiakirja
      WHERE opintooikeus_id IN (SELECT id FROM opintooikeus WHERE erikoistuva_laakari_id = $1)`,
@@ -266,6 +273,17 @@ async function deleteErikoistuvaLaakari(client: Client, ids: UserIds): Promise<v
  *                         käyttö" screen is always shown on the next login.
  */
 export const erikoistuvaLaakariTasks = {
+  // Reset graduation requests without invalidating the resident's cached login
+  // or removing the approved trial period needed by the next test case.
+  async 'db:cleanupValmistumispyynto'({ email }: { email: string }): Promise<null> {
+    return withDb(dbClient, async (client: Client) => {
+      const ids = await fetchUserIds(client, email)
+      if (!ids?.el_id) return null
+      await deleteValmistumispyyntoRows(client, ids.el_id)
+      return null
+    })
+  },
+
   async 'db:cleanupErikoistuva'({ email }: { email: string }): Promise<null> {
     return withDb(dbClient, async (client: any) => {
       const ids = await fetchUserIds(client, email)

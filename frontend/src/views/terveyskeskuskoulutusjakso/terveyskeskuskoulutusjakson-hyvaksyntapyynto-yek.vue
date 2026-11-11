@@ -83,6 +83,7 @@
     TerveyskeskuskoulutusjaksonHyvaksyntaForm
   } from '@/types'
   import { TerveyskeskuskoulutusjaksonTila } from '@/utils/constants'
+  import { hasTooManyTerveyskeskuskoulutusjaksoParts } from '@/utils/multipart'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -179,7 +180,16 @@
     ) {
       params.saving = true
 
+      if (hasTooManyTerveyskeskuskoulutusjaksoParts(submitData.form, true)) {
+        toastFail(this, this.$t('tyoskentelyjakson-liitteiden-osien-enimmaismaara-ylitetty'))
+        params.saving = false
+        return
+      }
+
+      let savedDocuments = false
+
       for (const asiakirjat of submitData.form.tyoskentelyjaksoAsiakirjat) {
+        if (asiakirjat.addedFiles.length === 0 && asiakirjat.deletedFiles.length === 0) continue
         const formData = new FormData()
         asiakirjat.addedFiles.forEach((file: File) =>
           formData.append(`addedFiles`, file, file.name)
@@ -199,15 +209,22 @@
               timeout: 120000
             }
           )
+          savedDocuments = true
+          asiakirjat.addedFiles.splice(0)
+          asiakirjat.deletedFiles.splice(0)
         } catch (err) {
           const axiosError = err as AxiosError<ElsaError>
           const message = axiosError?.response?.data?.message
+          const failure = message
+            ? `${this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')}: ${this.$t(message)}`
+            : this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')
           toastFail(
             this,
-            message
-              ? `${this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')}: ${this.$t(message)}`
-              : this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')
+            savedDocuments
+              ? `${failure}. ${this.$t('tyoskentelyjakson-liitteet-osittain-tallennettu')}`
+              : failure
           )
+          params.saving = false
           return
         }
       }
@@ -251,11 +268,14 @@
       } catch (err) {
         const axiosError = err as AxiosError<ElsaError>
         const message = axiosError?.response?.data?.message
+        const failure = message
+          ? `${this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')}: ${this.$t(message)}`
+          : this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')
         toastFail(
           this,
-          message
-            ? `${this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')}: ${this.$t(message)}`
-            : this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')
+          savedDocuments
+            ? `${failure}. ${this.$t('tyoskentelyjakson-liitteet-osittain-tallennettu')}`
+            : failure
         )
       }
       this.params.saving = false

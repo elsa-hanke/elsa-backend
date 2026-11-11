@@ -51,8 +51,7 @@
                 :label="$t('ohjeteksti-arviointityokalun-kayttoon')"
                 class="col-sm-12 col-md-12 pr-md-3"
               >
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <div v-html="form.ohjeteksti"></div>
+                <rich-text-content :html="form.ohjeteksti" />
               </elsa-form-group>
             </b-form-row>
             <b-form-row>
@@ -167,6 +166,7 @@
   import ElsaFormGroup from '@/components/form-group/form-group.vue'
   import ElsaConfirmationModal from '@/components/modal/confirmation-modal.vue'
   import ElsaFormMultiselect from '@/components/multiselect/multiselect.vue'
+  import RichTextContent from '@/components/rich-text-content/rich-text-content.vue'
   import ArviointityokaluLomakeKysymysForm from '@/forms/arviointityokalu-lomake-kysymys-form.vue'
   import { Arviointityokalu, Asiakirja } from '@/types'
   import { confirmExit } from '@/utils/confirm'
@@ -176,6 +176,7 @@
 
   @Component({
     components: {
+      RichTextContent,
       ArviointityokaluLomakeKysymysForm,
       AsiakirjatContent,
       ElsaButton,

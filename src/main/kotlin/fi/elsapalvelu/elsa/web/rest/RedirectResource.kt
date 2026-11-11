@@ -3,7 +3,11 @@ package fi.elsapalvelu.elsa.web.rest
 import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.config.LoginException
+import fi.elsapalvelu.elsa.security.LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE
+import fi.elsapalvelu.elsa.security.LoginNameMismatch
 import org.springframework.core.env.Environment
+import org.springframework.http.CacheControl
+import org.springframework.http.ResponseEntity
 import org.springframework.security.saml2.core.Saml2ErrorCodes
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException
 import org.springframework.security.web.WebAttributes
@@ -15,11 +19,28 @@ import org.springframework.web.servlet.view.RedirectView
 import tech.jhipster.config.JHipsterConstants
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
+import java.time.Clock
 
 @RestController
-class RedirectResource(private val env: Environment) {
+class RedirectResource(private val env: Environment, private val clock: Clock) {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+    @GetMapping("/api/julkinen/kirjautuminen/nimivirhe")
+    fun loginNameMismatch(request: HttpServletRequest): ResponseEntity<LoginNameMismatch> {
+        val session = request.getSession(false)
+        val exception = session?.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION) as? Saml2AuthenticationException
+        val mismatch = session?.getAttribute(LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE) as? LoginNameMismatch
+
+        return if (exception?.message == LoginException.VIRHEELLINEN_NIMI.name &&
+            mismatch != null && clock.instant().isBefore(mismatch.expiresAt)
+        ) {
+            ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(mismatch)
+        } else {
+            session?.removeAttribute(LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE)
+            ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build()
+        }
+    }
 
     @GetMapping("/")
     fun redirect2FrontendView(request: HttpServletRequest): RedirectView? {

@@ -178,9 +178,9 @@ class ErikoistujienSeurantaQueryService(
 
     private fun createSpecification(
         criteria: ErikoistujanEteneminenCriteria?,
-        spec: Specification<Opintooikeus?>? = null
-    ): Specification<Opintooikeus?> {
-        var specification: Specification<Opintooikeus?> = spec ?: Specification.unrestricted()
+        spec: Specification<Opintooikeus>? = null
+    ): Specification<Opintooikeus> {
+        var specification: Specification<Opintooikeus> = spec ?: Specification.unrestricted()
         criteria?.let { seurantaCriteria ->
             seurantaCriteria.asetusId?.let { asetusId ->
                 specification =

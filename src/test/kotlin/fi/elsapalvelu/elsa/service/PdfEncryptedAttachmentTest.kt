@@ -2,7 +2,8 @@ package fi.elsapalvelu.elsa.service
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
-import fi.elsapalvelu.elsa.service.impl.valmistuminen.PdfServiceImpl
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfCachingResourceRetriever
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfServiceImpl
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.web.rest.errors.InvalidPdfAttachmentException
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -24,7 +25,8 @@ class PdfEncryptedAttachmentTest {
         mock(SpringTemplateEngine::class.java),
         PdfGenerationMetricsService(SimpleMeterRegistry()),
         PdfContentValidator(),
-        mock(PdfTextFieldValidator::class.java)
+        mock(PdfTextFieldValidator::class.java),
+        mock(PdfCachingResourceRetriever::class.java)
     )
 
     @Test

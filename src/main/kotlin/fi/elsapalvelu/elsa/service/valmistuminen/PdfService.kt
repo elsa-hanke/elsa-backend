@@ -16,4 +16,10 @@ interface PdfService {
     fun yhdistaAsiakirjat(asiakirjat: List<Asiakirja>, outputStream: OutputStream)
 
     fun yhdistaPdf(source: InputStream, newPdf: InputStream, outputStream: OutputStream)
+
+    /**
+     * Opens an assembly that documents can be added to without rewriting the part already
+     * assembled. The caller is responsible for closing it (e.g. via [PdfAssembler.finish]).
+     */
+    fun openAssembler(firstDocument: ByteArray): PdfAssembler
 }

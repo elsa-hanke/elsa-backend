@@ -4,7 +4,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
-import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
+import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiPackage
 import org.springframework.stereotype.Component
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -17,7 +17,7 @@ class SahkePakettiBuilder {
         metadataResult: SahkeMetadataResult,
         opintooikeus: Opintooikeus?,
         zipMetadata: Boolean
-    ): ArkistointiResult {
+    ): ArkistointiPackage {
         val mapper = createXmlMapper()
         val metadata = metadataResult.metadata
         val user = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user
@@ -39,7 +39,7 @@ class SahkePakettiBuilder {
         }
 
         val metadataBytes = if (zipMetadata) null else mapper.writeValueAsBytes(metadata)
-        return ArkistointiResult(filePath, metadataBytes)
+        return ArkistointiPackage(filePath, metadataBytes)
     }
 
     private fun createXmlMapper(): XmlMapper = XmlMapper().apply {

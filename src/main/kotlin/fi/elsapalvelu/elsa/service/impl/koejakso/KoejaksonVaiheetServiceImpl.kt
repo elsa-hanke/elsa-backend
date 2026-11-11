@@ -17,7 +17,7 @@ import fi.elsapalvelu.elsa.repository.kayttaja.*
 import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.service.koejakso.KoejaksonVaiheetService
 import fi.elsapalvelu.elsa.service.koejakso.KoejaksonVastuuhenkilonArvioQueryService
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.*
 import fi.elsapalvelu.elsa.service.dto.koejakso.*
@@ -68,7 +68,7 @@ class KoejaksonVaiheetServiceImpl(
     private val kayttajaRepository: KayttajaRepository,
     private val koejaksonVastuuhenkilonArvioQueryService: KoejaksonVastuuhenkilonArvioQueryService,
     private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
-    private val arkistointiService: ArkistointiService
+    private val arkistointiService: SynchronousArkistointiService
 ) : KoejaksonVaiheetService {
 
     override fun findAllByKouluttajaKayttajaUserId(

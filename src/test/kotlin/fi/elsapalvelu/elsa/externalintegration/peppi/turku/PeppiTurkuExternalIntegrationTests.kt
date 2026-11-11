@@ -18,11 +18,12 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
+import org.springframework.boot.jackson2.autoconfigure.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Profile
 import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(classes = [PeppiTurkuExternalIntegrationTestApplication::class])
@@ -47,6 +48,7 @@ class PeppiTurkuExternalIntegrationTests : FetchingServiceExternalIntegrationBas
 }
 
 @SpringBootConfiguration
+@Profile("external-integration")
 @EnableAutoConfiguration
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
@@ -58,6 +60,8 @@ class PeppiTurkuExternalIntegrationTests : FetchingServiceExternalIntegrationBas
     PeppiTurkuOpintosuorituksetFetchingServiceImpl::class
 )
 class PeppiTurkuExternalIntegrationTestApplication {
+    // Application integrations still use Jackson 2 through Boot 4 compatibility support.
+    @Suppress("DEPRECATION", "Deprecation")
     @Bean
     fun jacksonCustomizer(): Jackson2ObjectMapperBuilderCustomizer =
         Jackson2ObjectMapperBuilderCustomizer {

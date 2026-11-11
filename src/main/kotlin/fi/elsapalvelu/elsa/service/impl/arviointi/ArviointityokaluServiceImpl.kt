@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.arviointi
 
+import fi.elsapalvelu.elsa.service.RichTextHtmlSanitizer
 import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.domain.arviointi.Arviointityokalu
@@ -69,6 +70,7 @@ class ArviointityokaluServiceImpl(
     ): ArviointityokaluDTO? {
         return arviointityokaluRepository.findById(arviointityokaluDTO.id.required())
             .orElse(null)?.let { vanhaArviointityokalu ->
+                vanhaArviointityokalu.ohjeteksti = RichTextHtmlSanitizer.sanitize(vanhaArviointityokalu.ohjeteksti)
                 vanhaArviointityokalu.kaytossa = false
                 arviointityokaluRepository.save(vanhaArviointityokalu)
                 val now = Instant.now()
@@ -77,7 +79,7 @@ class ArviointityokaluServiceImpl(
                     alkuperainenId = vanhaArviointityokalu.alkuperainenId ?: vanhaArviointityokalu.id.required(),
                     versio = vanhaArviointityokalu.versio + 1,
                     nimi = arviointityokaluDTO.nimi,
-                    ohjeteksti = arviointityokaluDTO.ohjeteksti,
+                    ohjeteksti = RichTextHtmlSanitizer.sanitize(arviointityokaluDTO.ohjeteksti),
                     tila = arviointityokaluDTO.tila,
                     kaytossa = true,
                     luontiaika = vanhaArviointityokalu.luontiaika,

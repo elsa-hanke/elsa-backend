@@ -1,0 +1,124 @@
+[
+  {
+    "name": "mixed-case",
+    "html": "<a href=\"JaVaScRiPt:alert(1)\">safe</a>",
+    "text": "safe",
+    "contains": [],
+    "blockedLink": true
+  },
+  {
+    "name": "spaces",
+    "html": "<a href=\"  javascript:alert(1)\">safe</a>",
+    "text": "safe",
+    "contains": [],
+    "blockedLink": true
+  },
+  {
+    "name": "tab",
+    "html": "<a href=\"java\tscript:alert(1)\">safe</a>",
+    "text": "safe",
+    "contains": [],
+    "blockedLink": true
+  },
+  {
+    "name": "newline",
+    "html": "<a href=\"java\nscript:alert(1)\">safe</a>",
+    "text": "safe",
+    "contains": [],
+    "blockedLink": true
+  },
+  {
+    "name": "decimal",
+    "html": "<a href=\"&#106;avascript:alert(1)\">safe</a>",
+    "text": "safe",
+    "contains": [],
+    "blockedLink": true
+  },
+  {
+    "name": "hex",
+    "html": "<a href=\"jav&#x61;script:alert(1)\">safe</a>",
+    "text": "safe",
+    "contains": [],
+    "blockedLink": true
+  },
+  {
+    "name": "data",
+    "html": "<a href=\"data:text/html,evil\">safe</a>",
+    "text": "safe",
+    "contains": [],
+    "blockedLink": true
+  },
+  {
+    "name": "vbscript",
+    "html": "<a href=\"vbscript:evil\">safe</a>",
+    "text": "safe",
+    "contains": [],
+    "blockedLink": true
+  },
+  {
+    "name": "event-handlers",
+    "html": "<p onclick=\"alert(1)\">safe<img src=x onerror=alert(1)></p>",
+    "text": "safe",
+    "contains": []
+  },
+  {
+    "name": "active-elements",
+    "html": "<p>safe</p><script>alert(1)</script><iframe src=\"/evil\"></iframe><svg onload=\"alert(1)\"></svg><form><input autofocus onfocus=\"alert(1)\"></form>",
+    "text": "safe",
+    "contains": []
+  },
+  {
+    "name": "noscript-mutation",
+    "html": "<noscript><p title=\"</noscript><img src=x onerror=alert(1)>\">safe</p>",
+    "text": "safe",
+    "contains": []
+  },
+  {
+    "name": "mathml-mutation",
+    "html": "<math><mtext><table><mglyph><style><!--</style><img title=\"--><img src=x onerror=alert(1)>\"></mglyph></table></mtext></math><p>safe</p>",
+    "text": "safe",
+    "contains": []
+  },
+  {
+    "name": "css",
+    "html": "<p id=\"x\" style=\"background:url(https://evil.example);position:fixed\">safe</p>",
+    "text": "safe",
+    "contains": []
+  },
+  {
+    "name": "invalid-table-attrs",
+    "html": "<table><tbody><tr><th scope=\"x\">safe</th><td colspan=\"2 onclick=alert(1)\" rowspan=\"999999\">cell</td></tr></tbody></table><ol start=\"abc\"><li>list</li></ol>",
+    "text": "safe",
+    "contains": []
+  },
+  {
+    "name": "valid-table-attrs",
+    "html": "<table><tbody><tr><th scope=\"col\">safe</th><td colspan=\"2\" rowspan=\"3\">cell</td></tr></tbody></table><ol start=\"2\"><li>list</li></ol>",
+    "text": "safe",
+    "contains": [
+      "scope=\"col\"",
+      "colspan=\"2\"",
+      "rowspan=\"3\"",
+      "start=\"2\""
+    ]
+  },
+  {
+    "name": "tinymce-table-roundtrip",
+    "html": "<h2>Hyvää &amp; tärkeää</h2><p><strong>Ensimmäinen</strong>&nbsp;<em>uutinen</em></p><table style=\"border-collapse: collapse; width: 100%;\" border=\"1\"><colgroup><col style=\"width:50%;\"><col style=\"width:50%;\"></colgroup><tbody><tr><td colspan=\"2\">Tieto</td></tr></tbody></table><p><a href=\"https://example.org/ohje\" target=\"_blank\" rel=\"noopener\">Ohje</a></p>",
+    "text": "Hyvää",
+    "contains": [
+      "<h2>",
+      "<strong>Ensimmäinen</strong>",
+      "<table>",
+      "colspan=\"2\"",
+      "href=\"https://example.org/ohje\""
+    ]
+  },
+  {
+    "name": "unknown-scheme-with-digits",
+    "html": "<a href=\"h323:example.org\">safe</a>",
+    "text": "safe",
+    "contains": [],
+    "blockedLink": true
+  }
+]

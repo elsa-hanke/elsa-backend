@@ -490,35 +490,34 @@ class KayttajaServiceImpl(
 
         val activeAuthority = kayttaja.user.required().activeAuthority.required().name.toString()
         if ((activeAuthority == Authority(OPINTOHALLINNON_VIRKAILIJA).name)) {
+            val yliopistoId = kayttaja.yliopistot.firstOrNull()?.id
+                ?: throw EntityNotFoundException("Käyttäjälle ei löydy yliopistoa")
             val erikoistuvat = kayttajaQueryService.findByCriteriaAndAuthorities(
-                activeAuthority,
                 criteria,
                 pageable,
                 kayttaja.user?.langKey,
                 listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA),
-                kayttaja.yliopistot.map { it.id }.toList(),
-                true
+                true,
+                traineeYliopistoId = yliopistoId
             )
             val kouluttajat = kayttajaQueryService.findByCriteriaAndAuthorities(
-                null,
                 criteria,
                 pageable,
                 kayttaja.user?.langKey,
                 listOf(KOULUTTAJA),
-                kayttaja.yliopistot.map { it.id }.toList(),
-                false
+                false,
+                traineeYliopistoId = yliopistoId,
+                allowTrainerWithoutTraineeAccount = true
             )
             val combinedContent = (erikoistuvat.content + kouluttajat.content).distinctBy { it.kayttajaId }
             return PageImpl(combinedContent, pageable, erikoistuvat.totalElements + kouluttajat.totalElements)
         } else {
             // tekninen pääkäyttäjä
             return kayttajaQueryService.findByCriteriaAndAuthorities(
-                activeAuthority,
                 criteria,
                 pageable,
                 kayttaja.user?.langKey,
                 listOf(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA, KOULUTTAJA),
-                kayttaja.yliopistot.map { it.id }.toList(),
                 true
             )
         }

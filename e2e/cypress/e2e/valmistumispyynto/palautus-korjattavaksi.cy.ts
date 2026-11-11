@@ -34,15 +34,15 @@ describe('Valmistumispyynnön palautus', () => {
       kouluttajaEmail: KOULUTTAJA_EMAIL,
     })
     cy.submitValmistumispyyntoViaUi().then((id) => {
-      Cypress.env('valmistumispyyntoId', id)
+      Cypress.expose('valmistumispyyntoId', id)
     })
   })
 
   it('vastuuhenkilö palauttaa valmistumispyynnön ja erikoistuja lähettää sen korjattuna uudelleen', () => {
-    cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+    cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
     cy.apiRequest({
       method: 'PUT',
-      url: `/api/vastuuhenkilo/valmistumispyynnon-arviointi/${Cypress.env('valmistumispyyntoId')}`,
+      url: `/api/vastuuhenkilo/valmistumispyynnon-arviointi/${Cypress.expose('valmistumispyyntoId')}`,
       body: {
         osaaminenRiittavaValmistumiseen: false,
         korjausehdotus: KORJAUSEHDOTUS,

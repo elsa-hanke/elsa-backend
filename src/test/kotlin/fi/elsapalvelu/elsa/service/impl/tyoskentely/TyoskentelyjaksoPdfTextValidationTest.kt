@@ -29,7 +29,9 @@ class TyoskentelyjaksoPdfTextValidationTest {
         asiakirjaMapper = asiakirjaMapper,
         tyoskentelyjaksonPituusCounterService = mock(),
         opintooikeusRepository = opintooikeusRepository,
-        pdfTextFieldValidator = PdfTextTestSupport.fieldValidator()
+        pdfTextFieldValidator = PdfTextTestSupport.fieldValidator(),
+        asiakirjaRepository = mock(),
+        koulutusjaksoRepository = mock()
     )
 
     @ParameterizedTest

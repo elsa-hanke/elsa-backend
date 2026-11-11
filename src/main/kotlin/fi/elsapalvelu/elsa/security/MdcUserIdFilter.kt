@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.MDC
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
+import org.springframework.security.core.AuthenticatedPrincipal
 import org.springframework.web.filter.OncePerRequestFilter
 
 const val MDC_USER_ID_KEY = "userId"
@@ -28,7 +28,7 @@ class MdcUserIdFilter : OncePerRequestFilter() {
     ) {
         val userId = try {
             val principal = SecurityContextHolder.getContext().authentication?.principal
-            if (principal is Saml2AuthenticatedPrincipal) principal.name else null
+            if (principal is AuthenticatedPrincipal) principal.name else null
         } catch (_: Exception) {
             null
         }

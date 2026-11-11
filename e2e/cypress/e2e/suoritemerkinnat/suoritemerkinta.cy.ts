@@ -47,11 +47,11 @@ describe('Suoritemerkintä', () => {
     cy.wait('@suoritemerkintaPost', { timeout: 15000 }).then(({ response }) => {
       expect(response?.statusCode).to.eq(201)
       expect(response?.body).to.have.length(1)
-      Cypress.env('suoritemerkintaId', response?.body?.[0]?.id)
+      Cypress.expose('suoritemerkintaId', response?.body?.[0]?.id)
     })
 
     cy.then(() => {
-      cy.visit(`/suoritemerkinnat/${Cypress.env('suoritemerkintaId')}`)
+      cy.visit(`/suoritemerkinnat/${Cypress.expose('suoritemerkintaId')}`)
     })
     cy.contains('h1', 'Suoritemerkintä').should('be.visible')
     cy.contains('E2E Testisairaala').should('be.visible')

@@ -5,13 +5,13 @@ import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto.Companion.fromValmistumispyyntoErikoistuja
+import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyynnonTarkistusRepository
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.constants.ERIKOISALA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.enumeration.ValmistumispyynnonTila
-import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.suoritteet.VanhentuneetSuorituksetDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.UusiValmistumispyyntoDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusDTO
@@ -28,8 +28,14 @@ import fi.elsapalvelu.elsa.service.mapper.valmistuminen.ValmistumispyynnonTarkis
 import fi.elsapalvelu.elsa.service.mapper.valmistuminen.ValmistumispyyntoMapper
 import fi.elsapalvelu.elsa.service.mapper.valmistuminen.ValmistumispyyntoOsaamisenArviointiMapper
 import fi.elsapalvelu.elsa.service.valmistuminen.ValmistumispyyntoService
+import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
+import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
+import fi.elsapalvelu.elsa.web.rest.errors.ValmistumispyynnonHyvaksyntaKaynnissaException
 import jakarta.persistence.EntityNotFoundException
+import jakarta.persistence.LockTimeoutException
+import jakarta.persistence.PessimisticLockException
 import org.slf4j.LoggerFactory
+import org.springframework.dao.PessimisticLockingFailureException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -38,7 +44,6 @@ import org.springframework.web.multipart.MultipartFile
 import java.time.Clock
 import java.time.LocalDate
 
-@Suppress("TooManyFunctions") // ValmistumispyyntoService declares 22 operations.
 @Service
 @Transactional
 class ValmistumispyyntoServiceImpl(
@@ -55,7 +60,6 @@ class ValmistumispyyntoServiceImpl(
     private val tilaService: ValmistumispyynnonTilaService,
     private val osapuoliService: ValmistumispyynnonOsapuoliService,
     private val arviointienTilaService: ValmistumispyynnonArviointienTilaService,
-    private val asiakirjaService: ValmistumispyynnonAsiakirjaService,
     private val viimeistelyService: ValmistumispyynnonViimeistelyService,
     private val ilmoitusService: ValmistumispyynnonIlmoitusService,
     private val tarkistusService: ValmistumispyynnonTarkistusService
@@ -127,7 +131,7 @@ class ValmistumispyyntoServiceImpl(
                 erikoistujanKuittausaika = LocalDate.now()
             )
             valmistumispyyntoRepository.save(valmistumispyynto).let { saved ->
-                if (saved.opintooikeus?.erikoisala?.id != YEK_ERIKOISALA_ID) {
+                if (!saved.isYek()) {
                     val vastuuhenkiloOsaamisenArvioijaUser =
                         osapuoliService.haeOsaamisenArvioija(
                         opintooikeus.yliopisto?.id.required(),
@@ -163,7 +167,7 @@ class ValmistumispyyntoServiceImpl(
                 erikoistujanKuittausaika = LocalDate.now()
                 this.selvitysVanhentuneistaSuorituksista = uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista
 
-                if (opintooikeus.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                if (opintooikeus.isYek()) {
                     virkailijanPalautusaika = null
                 } else if (vastuuhenkiloOsaamisenArvioijaKuittausaika != null) {
                     virkailijanPalautusaika = null
@@ -171,7 +175,7 @@ class ValmistumispyyntoServiceImpl(
                 }
             }.let {
                 valmistumispyyntoRepository.save(it).let { saved ->
-                    if (it.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID) {
+                    if (it.isYek()) {
                         ilmoitusService.lahetaIlmoitusVirkailijanTarkastuksesta(saved)
                     } else if (saved.vastuuhenkiloOsaamisenArvioijaKuittausaika == null) {
                         val vastuuhenkiloOsaamisenArvioijaUser =
@@ -232,6 +236,11 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = osapuoliService.haeYliopisto(kayttaja)
         log.info("Kayttaja ja yliopisto haettu [valmistumispyyntoId=$id, yliopistoId=${yliopisto.id}]")
 
+        // The row lock must be taken before anything else loads the valmistumispyynto, so the state
+        // checked below is the locked, current one. It is held until this transaction ends.
+        lukitseValmistumispyynto(id)
+        log.info("Valmistumispyynto lukittu hyvaksyntaa varten [valmistumispyyntoId=$id]")
+
         val valmistumispyynto = osapuoliService.haeValmistumispyynto(
             id,
             kayttaja,
@@ -239,6 +248,16 @@ class ValmistumispyyntoServiceImpl(
             VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
         )
         log.info("Valmistumispyynto haettu [valmistumispyyntoId=$id]")
+
+        // The controller checks this before the transaction starts, but an approval that finished
+        // in between must not be repeated.
+        if (!osapuoliService.onkoLopullinenHyvaksyntaAvoin(valmistumispyynto)) {
+            throw BadRequestAlertException(
+                "Valmistumispyyntö ei ole muokattavissa.",
+                VALMISTUMISPYYNTO_ENTITY_NAME,
+                "dataillegal.valmistumispyynto-ei-ole-muokattavissa"
+            )
+        }
 
         osapuoliService.paivitaYhteystiedot(
             kayttaja.user,
@@ -285,6 +304,19 @@ class ValmistumispyyntoServiceImpl(
         }
     }
 
+
+    private fun lukitseValmistumispyynto(id: Long): Valmistumispyynto {
+        val lukittu = try {
+            valmistumispyyntoRepository.findByIdForHyvaksynta(id)
+        } catch (ex: PessimisticLockingFailureException) {
+            throw ValmistumispyynnonHyvaksyntaKaynnissaException(id, ex)
+        } catch (ex: PessimisticLockException) {
+            throw ValmistumispyynnonHyvaksyntaKaynnissaException(id, ex)
+        } catch (ex: LockTimeoutException) {
+            throw ValmistumispyynnonHyvaksyntaKaynnissaException(id, ex)
+        }
+        return lukittu ?: throw osapuoliService.valmistumispyyntoaEiLoydy()
+    }
 
     override fun updateTarkistusByVirkailijaUserId(id: Long, userId: String, valmistumispyynnonTarkistusDTO: ValmistumispyynnonTarkistusUpdateDTO,
         laillistamistodistus: MultipartFile?): ValmistumispyynnonTarkistusDTO? {
@@ -456,7 +488,7 @@ class ValmistumispyyntoServiceImpl(
         val yliopisto = osapuoliService.haeYliopisto(kayttaja)
         val tarkistus = valmistumispyynnonTarkistusRepository.findByValmistumispyyntoIdForHyvaksyja(id, yliopisto.id.required())
             ?: throw osapuoliService.valmistumispyyntoaEiLoydy()
-        val yek = tarkistus.valmistumispyynto?.opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
+        val yek = tarkistus.valmistumispyynto?.opintooikeus.isYek()
         if (tilaService.haeVastuuhenkilonRoolit(kayttaja, yek).isEmpty()) {
             throw osapuoliService.valmistumispyyntoaEiLoydy()
         }
@@ -499,36 +531,6 @@ class ValmistumispyyntoServiceImpl(
         )
         return arviointienTilaService.haeArviointienTila(valmistumispyynto)
     }
-
-    override fun getValmistumispyynnonAsiakirja(
-        userId: String,
-        valmistumispyyntoId: Long,
-        asiakirjaId: Long
-    ): AsiakirjaDTO? = asiakirjaService.haeValmistumispyynnonAsiakirja(
-        userId,
-        valmistumispyyntoId,
-        asiakirjaId
-    )
-
-    override fun getValmistumispyynnonAsiakirjaVirkailija(
-        valmistumispyyntoId: Long,
-        yliopistoId: Long?,
-        asiakirjaId: Long
-    ): AsiakirjaDTO? = asiakirjaService.haeValmistumispyynnonAsiakirjaVirkailijalle(
-        valmistumispyyntoId,
-        yliopistoId,
-        asiakirjaId
-    )
-
-    override fun getValmistumispyynnonTyoskentelyjaksoAsiakirja(
-        userId: String,
-        valmistumispyyntoId: Long,
-        asiakirjaId: Long
-    ): AsiakirjaDTO? = asiakirjaService.haeTyoskentelyjaksonAsiakirja(
-        userId,
-        valmistumispyyntoId,
-        asiakirjaId
-    )
 
     override fun onkoLahetetty(opintooikeusId: Long): Boolean {
         val valmistumispyynto = valmistumispyyntoRepository.findByOpintooikeusId(opintooikeusId)

@@ -119,8 +119,7 @@
                 {{ kokonaisuus.arvioitavaKokonaisuus.kategoria.nimi }}:
                 {{ kokonaisuus.arvioitavaKokonaisuus.nimi }}
                 <elsa-popover :title="kokonaisuus.arvioitavaKokonaisuus.nimi">
-                  <!-- eslint-disable-next-line vue/no-v-html -->
-                  <p v-html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
+                  <rich-text-content :html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
                 </elsa-popover>
               </b-td>
               <b-td>
@@ -320,8 +319,7 @@
             {{ kokonaisuus.arvioitavaKokonaisuus.kategoria.nimi }}:
             {{ kokonaisuus.arvioitavaKokonaisuus.nimi }}
             <elsa-popover :title="kokonaisuus.arvioitavaKokonaisuus.nimi">
-              <!-- eslint-disable-next-line vue/no-v-html -->
-              <p v-html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
+              <rich-text-content :html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
             </elsa-popover>
           </elsa-form-group>
         </div>
@@ -371,6 +369,7 @@
                 :allowed-file-types="['application/pdf']"
                 :is-text-button="true"
                 :file-upload-texts="fileUploadTexts"
+                :pending-files-count="addedFiles.length"
                 @selectedFiles="onArviointiFileAdded"
               />
               <asiakirjat-content
@@ -422,8 +421,7 @@
               {{ kokonaisuus.arvioitavaKokonaisuus.kategoria.nimi }}:
               {{ kokonaisuus.arvioitavaKokonaisuus.nimi }}
               <elsa-popover :title="kokonaisuus.arvioitavaKokonaisuus.nimi">
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <p v-html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
+                <rich-text-content :html="kokonaisuus.arvioitavaKokonaisuus.kuvaus" />
               </elsa-popover>
             </elsa-form-group>
             <elsa-form-group :label="arviointiAsteikonNimi" :required="true" class="col-lg-12">
@@ -506,6 +504,7 @@
             :button-text="$t('lisaa-liitetiedosto')"
             :wrong-file-type-error-message="$t('sallitut-tiedostoformaatit-pdf')"
             :allowed-file-types="['application/pdf']"
+            :pending-files-count="addedFiles.length"
             @selectedFiles="onArviointiFileAdded"
           />
           <asiakirjat-content
@@ -617,6 +616,7 @@
   import ElsaConfirmationModal from '@/components/modal/confirmation-modal.vue'
   import ElsaFormMultiselect from '@/components/multiselect/multiselect.vue'
   import ElsaPopover from '@/components/popover/popover.vue'
+  import RichTextContent from '@/components/rich-text-content/rich-text-content.vue'
   import TyokertymalaskuriModal from '@/components/tyokertymalaskuri/tyokertymalaskuri-modal.vue'
   import UserAvatar from '@/components/user-avatar/user-avatar.vue'
   import ElsaVaativuustasoTooltipContent from '@/components/vaativuustaso/vaativuustaso-tooltip-content.vue'
@@ -645,6 +645,7 @@
 
   @Component({
     components: {
+      RichTextContent,
       ElsaConfirmationModal,
       ElsaAccordian,
       ArviointityokaluKysymysLomakeVastauksilla,

@@ -51,6 +51,8 @@ class KayttajaResource(
 ) {
 
     @GetMapping("/kayttaja")
+    // Legacy SAML principal compatibility; migrate with login, logout and impersonation.
+    @Suppress("DEPRECATION", "Deprecation")
     fun getKayttaja(principal: Principal?): UserDTO {
         val userId = userService.getAuthenticatedUser(principal).id.required()
         val user = userService.getUser(userId)

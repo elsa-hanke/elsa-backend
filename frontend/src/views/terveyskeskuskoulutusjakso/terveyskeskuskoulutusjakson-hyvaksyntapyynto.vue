@@ -82,6 +82,7 @@
     TerveyskeskuskoulutusjaksonHyvaksyntaForm
   } from '@/types'
   import { TerveyskeskuskoulutusjaksonTila } from '@/utils/constants'
+  import { hasTooManyTerveyskeskuskoulutusjaksoParts } from '@/utils/multipart'
   import { toastFail, toastSuccess } from '@/utils/toast'
 
   @Component({
@@ -168,8 +169,6 @@
     get asiakirjaDataEndpointUrl() {
       return 'erikoistuva-laakari/asiakirjat/'
     }
-    successfulUploads: Record<number, string[]> = {}
-
     async onSubmit(
       submitData: {
         hyvaksynta: TerveyskeskuskoulutusjaksonHyvaksyminen
@@ -178,63 +177,52 @@
       params: { saving: boolean }
     ) {
       params.saving = true
-      const uploadPromises: Promise<void>[] = []
+
+      if (hasTooManyTerveyskeskuskoulutusjaksoParts(submitData.form, false)) {
+        toastFail(this, this.$t('tyoskentelyjakson-liitteiden-osien-enimmaismaara-ylitetty'))
+        params.saving = false
+        return
+      }
+
+      let savedDocuments = false
 
       for (const asiakirjat of submitData.form.tyoskentelyjaksoAsiakirjat) {
-        for (const file of asiakirjat.addedFiles) {
-          if (asiakirjat.id !== null && asiakirjat.id !== undefined) {
-            const alreadyUploaded = this.successfulUploads[asiakirjat.id]?.includes(file.name)
-            if (alreadyUploaded) continue // dont send again
-          }
+        while (asiakirjat.addedFiles.length > 0 || asiakirjat.deletedFiles.length > 0) {
+          const file = asiakirjat.addedFiles[0]
           const formData = new FormData()
-          formData.append('addedFiles', file, file.name)
+          if (file) formData.append('addedFiles', file, file.name)
           asiakirjat.deletedFiles.forEach((fileId: number) =>
             formData.append('deletedFiles', String(fileId))
           )
 
-          const uploadPromise = axios
-            .put(`erikoistuva-laakari/tyoskentelyjaksot/${asiakirjat.id}/asiakirjat`, formData, {
-              headers: { 'Content-Type': 'multipart/form-data' },
-              timeout: 120000
-            })
-            .then(() => {
-              if (asiakirjat.id !== undefined && asiakirjat.id !== null) {
-                if (!this.successfulUploads[asiakirjat.id]) {
-                  this.successfulUploads[asiakirjat.id] = []
-                }
-                this.successfulUploads[asiakirjat.id].push(file.name)
+          try {
+            await axios.put(
+              `erikoistuva-laakari/tyoskentelyjaksot/${asiakirjat.id}/asiakirjat`,
+              formData,
+              {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 120000
               }
-            })
-            .catch((err) => {
-              const axiosError = err as AxiosError<ElsaError>
-              console.error('Asiakirjan lähetysvirhe:', axiosError)
-
-              const status = axiosError?.response?.status
-              const message = axiosError?.response?.data?.message?.toLowerCase() || ''
-
-              const isFileMissingLikely = status === 404 || status === 500
-
-              const errorMessage = isFileMissingLikely
-                ? `${this.$t('asiakirja-ei-loydy-uudelleennimeaminen-virhe')}: ${file.name}`
-                : message
-                ? `${this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')}: ${this.$t(
-                    message
-                  )}`
-                : this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')
-
-              toastFail(this, errorMessage)
-              throw err
-            })
-
-          uploadPromises.push(uploadPromise)
+            )
+            savedDocuments = true
+            if (file) asiakirjat.addedFiles.shift()
+            asiakirjat.deletedFiles.splice(0)
+          } catch (err) {
+            const axiosError = err as AxiosError<ElsaError>
+            const message = axiosError?.response?.data?.message
+            const failure = message
+              ? `${this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')}: ${this.$t(message)}`
+              : this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')
+            toastFail(
+              this,
+              savedDocuments
+                ? `${failure}. ${this.$t('tyoskentelyjakson-liitteet-osittain-tallennettu')}`
+                : failure
+            )
+            params.saving = false
+            return
+          }
         }
-      }
-
-      try {
-        await Promise.all(uploadPromises)
-      } catch {
-        params.saving = false
-        return
       }
 
       try {
@@ -276,11 +264,14 @@
       } catch (err) {
         const axiosError = err as AxiosError<ElsaError>
         const message = axiosError?.response?.data?.message
+        const failure = message
+          ? `${this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')}: ${this.$t(message)}`
+          : this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')
         toastFail(
           this,
-          message
-            ? `${this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')}: ${this.$t(message)}`
-            : this.$t('terveyskeskuskoulutusjakson-lahetys-epaonnistui')
+          savedDocuments
+            ? `${failure}. ${this.$t('tyoskentelyjakson-liitteet-osittain-tallennettu')}`
+            : failure
         )
       }
       this.params.saving = false

@@ -1,7 +1,7 @@
 describe('Virkailijan pakolliset kentät', () => {
   before(() => {
     cy.prepareVirkailijaE2e()
-    cy.then(() => cy.loginAsVirkailija(Cypress.env('virkailijaToken')))
+    cy.then(() => cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined)))
   })
 
   it('tyhjää virkailijalomaketta ei lähetetä ja pakolliset kentät osoitetaan', () => {

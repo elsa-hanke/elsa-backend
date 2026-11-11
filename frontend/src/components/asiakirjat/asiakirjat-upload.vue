@@ -70,6 +70,9 @@
             {{ $t('asiakirjan-tallentaminen-epaonnistui') }}
           </h4>
           <ul>
+            <li v-if="maxFilesCountExceeded">
+              {{ maxPartsExceededMessage || $t('asiakirjojen-enimmaismaara-ylitetty') }}
+            </li>
             <li v-if="duplicateFilesInCurrentView.length > 0">
               {{ $t('asiakirja-samanniminen-tiedosto') }}
             </li>
@@ -86,6 +89,9 @@
             <li v-if="filesExceedingMaxSize.length > 0">
               {{ $t('asiakirjan-maksimi-tiedostokoko-ylitetty') }}
             </li>
+            <li v-if="filesWithInvalidNames.length > 0">
+              {{ $t('asiakirjan-tiedostonimi-ei-kelvollinen') }}
+            </li>
             <li v-if="emptyFiles.length > 0">
               {{ $t('error.dataillegal.tiedosto-on-tyhja') }}
             </li>
@@ -99,6 +105,9 @@
             {{ $t('asiakirjojen-tallentaminen-epaonnistui') }}
           </h4>
           <div class="mb-3">{{ $t('yhtakaan-tiedostoa-ei-tallennettu') }}</div>
+          <div v-if="maxFilesCountExceeded" class="mb-2">
+            {{ maxPartsExceededMessage || $t('asiakirjojen-enimmaismaara-ylitetty') }}
+          </div>
           <div v-if="maxFilesTotalSizeExceeded" class="mb-2">
             {{ $t('asiakirjojen-yhteenlaskettu-koko-ylitetty') }}
           </div>
@@ -138,6 +147,14 @@
               </li>
             </ul>
           </span>
+          <span v-if="filesWithInvalidNames.length > 0">
+            {{ $t('asiakirjan-tiedostonimi-ei-kelvollinen') }}
+            <ul>
+              <li v-for="(file, index) in filesWithInvalidNames" :key="index">
+                {{ file.name }}
+              </li>
+            </ul>
+          </span>
           <span v-if="emptyFiles.length > 0">
             {{ $t('error.dataillegal.tiedosto-on-tyhja') }}
             <ul>
@@ -165,6 +182,9 @@
 
   import { FileUploadText } from '@/types'
 
+  // Match FileValidationServiceImpl: JS and Kotlin String.length count UTF-16 units.
+  const maxFileNameLength = 255
+  const maxFilesPerRequest = 90
   // Maksimi tiedostokoko 20 Mt
   const maxFileSize = 20 * 1024 * 1024
   const maxFilesTotalSize = 100 * 1024 * 1024
@@ -174,7 +194,9 @@
   @Component
   export default class AsiakirjatUpload extends Vue {
     maxFilesTotalSizeExceeded = false
+    maxFilesCountExceeded = false
     filesExceedingMaxSize: File[] = []
+    filesWithInvalidNames: File[] = []
     filesOfWrongType: File[] = []
     duplicateFilesInCurrentView: File[] = []
     duplicateFilesInOtherViews: File[] = []
@@ -200,6 +222,16 @@
     @Prop({ required: false, type: String })
     wrongFileTypeErrorMessage?: string
 
+    // Only files waiting to be uploaded count; already saved documents do not.
+    @Prop({ required: false, type: Number, default: 0 })
+    pendingFilesCount!: number
+
+    @Prop({ required: false, type: Number, default: maxFilesPerRequest })
+    maxPartsPerRequest!: number
+
+    @Prop({ required: false, type: String })
+    maxPartsExceededMessage?: string
+
     @Prop({ required: false, type: Boolean, default: true })
     allowMultiplesFiles!: boolean
 
@@ -222,10 +254,13 @@
       const inputElement = e.target as HTMLInputElement
       const fileArray = [...(inputElement?.files ?? [])]
       this.selectedFilesCount = fileArray.length
+      this.maxFilesCountExceeded =
+        this.pendingFilesCount + fileArray.length > this.maxPartsPerRequest
       // Chromea varten. Muutoin heti perään valittu sama tiedosto ei laukaise koko eventtiä.
       inputElement.value = ''
       this.maxFilesTotalSizeExceeded = this.getIsTotalFileSizeExceeded(fileArray)
       this.filesExceedingMaxSize = this.getFilesExceedingMaxSize(fileArray)
+      this.filesWithInvalidNames = this.getFilesWithInvalidNames(fileArray)
       this.filesOfWrongType = this.getFilesOfWrongType(fileArray)
       this.duplicateFilesInCurrentView = this.getduplicateFilesInCurrentView(fileArray)
       this.duplicateFilesInOtherViews = this.getduplicateFilesInOtherViews(fileArray)
@@ -244,6 +279,10 @@
 
     getFilesExceedingMaxSize(files: File[]): File[] {
       return files.filter((file) => file.size > maxFileSize)
+    }
+
+    getFilesWithInvalidNames(files: File[]): File[] {
+      return files.filter((file) => !file.name.trim() || file.name.length > maxFileNameLength)
     }
 
     getFilesOfWrongType(files: File[]): File[] {
@@ -269,7 +308,9 @@
 
     onDismissAlert() {
       this.maxFilesTotalSizeExceeded = false
+      this.maxFilesCountExceeded = false
       this.filesExceedingMaxSize = []
+      this.filesWithInvalidNames = []
       this.filesOfWrongType = []
       this.duplicateFilesInCurrentView = []
       this.duplicateFilesInOtherViews = []
@@ -283,8 +324,10 @@
 
     get hasErrors() {
       return (
+        this.maxFilesCountExceeded ||
         this.maxFilesTotalSizeExceeded ||
         this.filesExceedingMaxSize.length > 0 ||
+        this.filesWithInvalidNames.length > 0 ||
         this.filesOfWrongType.length > 0 ||
         this.duplicateFilesInCurrentView.length > 0 ||
         this.duplicateFilesInOtherViews.length > 0 ||

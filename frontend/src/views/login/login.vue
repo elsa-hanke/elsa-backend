@@ -27,6 +27,12 @@
             <p class="mt-4 mb-0">
               {{ $t('kirjautuminen-virhe-lisatiedot.virheellinen-nimi-ohje') }}
             </p>
+            <dl v-if="nameMismatch" class="mt-3 mb-0" data-cy="login-name-mismatch">
+              <dt>{{ $t('kirjautuminen-virhe-lisatiedot.kutsussa-oleva-nimi') }}</dt>
+              <dd data-cy="invitation-name">{{ nameMismatch.invitationName }}</dd>
+              <dt>{{ $t('kirjautuminen-virhe-lisatiedot.tunnistautumisessa-saatu-nimi') }}</dt>
+              <dd data-cy="authenticated-name">{{ nameMismatch.authenticatedName }}</dd>
+            </dl>
             <p class="mt-4 mb-0">
               {{ $t('kirjautuminen-virhe-lisatiedot.virheellinen-nimi-ota-yhteys') }}
             </p>
@@ -56,8 +62,7 @@
                 class="text-muted text-size-md mr-2"
               />
             </em>
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div v-html="ilmoitus.teksti"></div>
+            <rich-text-content :html="ilmoitus.teksti" />
           </div>
         </b-alert>
       </b-col>
@@ -105,13 +110,20 @@
   import { Component, Vue } from 'vue-property-decorator'
 
   import { ELSA_API_LOCATION } from '@/api'
-  import { getIlmoitukset, getSeuraavaPaivitys } from '@/api/julkinen'
+  import {
+    getIlmoitukset,
+    getSeuraavaPaivitys,
+    getLoginNameMismatch,
+    LoginNameMismatch
+  } from '@/api/julkinen'
   import ElsaButton from '@/components/button/button.vue'
+  import RichTextContent from '@/components/rich-text-content/rich-text-content.vue'
   import { Ilmoitus } from '@/types'
 
   @Component({
     components: {
-      ElsaButton
+      ElsaButton,
+      RichTextContent
     }
   })
   export default class Login extends Vue {
@@ -120,8 +132,18 @@
     HuoltokatkoDate = ''
     HuoltokatkoTime = ''
     ilmoitukset: Ilmoitus[] | null = null
+    nameMismatch: LoginNameMismatch | null = null
 
     async mounted() {
+      if (this.invalidName) {
+        try {
+          const response = await getLoginNameMismatch()
+          this.nameMismatch = response.data || null
+        } catch {
+          // Keep the existing error and contact instructions if details are unavailable.
+          this.nameMismatch = null
+        }
+      }
       this.handleHuoltokatkoDates((await getSeuraavaPaivitys()).data)
       this.ilmoitukset = (await getIlmoitukset()).data
     }

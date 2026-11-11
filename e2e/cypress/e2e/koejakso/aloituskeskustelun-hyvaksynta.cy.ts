@@ -83,7 +83,7 @@ describe('Aloituskeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käy
     })
     expect(lomake.erikoistuvanKuittausaika).to.eq(aloituskeskustelu.erikoistuvanKuittausaika)
     expect(lomake.lahikouluttaja).to.include({
-      id: Cypress.env('kouluttajaId'),
+      id: Cypress.expose('kouluttajaId'),
       sopimusHyvaksytty: kouluttajaHyvaksytty
     })
     expect(lomake.lahiesimies).to.include({
@@ -118,7 +118,7 @@ describe('Aloituskeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käy
     }).then((result) => {
       const kayttajaId = Number(result.kayttajaId)
       expect(Number.isSafeInteger(kayttajaId), 'supervisor database ID').to.eq(true)
-      expect(kayttajaId).to.be.greaterThan(0).and.not.eq(Cypress.env('kouluttajaId'))
+      expect(kayttajaId).to.be.greaterThan(0).and.not.eq(Cypress.expose('kouluttajaId'))
       expect(result.token).to.be.a('string').and.not.be.empty
       esihenkiloId = kayttajaId
       esihenkiloToken = result.token
@@ -157,7 +157,7 @@ describe('Aloituskeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käy
             koejaksonPaattymispaiva: paikallinenPaiva(loppu),
             suoritettuKokoaikatyossa: true,
             koejaksonOsaamistavoitteet: TAVOITTEET,
-            lahikouluttaja: { id: Cypress.env('kouluttajaId'), sopimusHyvaksytty: false },
+            lahikouluttaja: { id: Cypress.expose('kouluttajaId'), sopimusHyvaksytty: false },
             lahiesimies: { id: esihenkiloId, sopimusHyvaksytty: false },
             lahetetty: true
           }
@@ -179,7 +179,7 @@ describe('Aloituskeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käy
 
   it('kouluttaja hyväksyy vahvistuksesta ja jättää lähiesihenkilön hyväksynnän odottamaan', () => {
     let kouluttajanKuittausaika: string
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
     seuraaHyvaksyntaa()
     avaaLomake().then((lomake) => tarkistaHyvaksynnat(lomake, false, false))
     cy.get(SIVU).contains('p', TAVOITTEET).should('be.visible')
@@ -230,7 +230,7 @@ describe('Aloituskeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käy
     let kouluttajanKuittausaika: string
     let esihenkilonKuittausaika: string
     // Trainer approval was covered above; prepare this case independently.
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
     cy.apiRequest({ method: 'PUT', url: API, body: aloituskeskustelu }).then(({ status, body }) => {
       expect(status).to.eq(200)
       tarkistaHyvaksynnat(body, true, false)
@@ -257,7 +257,7 @@ describe('Aloituskeskustelun hyväksyminen kouluttajan ja lähiesihenkilön käy
       expect(request.body.lahiesimies.sopimusHyvaksytty).to.eq(true)
       expect(request.body.lahiesimies.kuittausaika).to.match(/^\d{4}-\d{2}-\d{2}$/)
       expect(request.body.lahikouluttaja).to.include({
-        id: Cypress.env('kouluttajaId'),
+        id: Cypress.expose('kouluttajaId'),
         sopimusHyvaksytty: true,
         kuittausaika: kouluttajanKuittausaika
       })

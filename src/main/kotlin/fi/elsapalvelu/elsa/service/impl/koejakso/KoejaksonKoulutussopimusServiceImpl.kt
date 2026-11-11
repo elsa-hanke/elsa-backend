@@ -40,7 +40,7 @@ import fi.elsapalvelu.elsa.service.seuranta.*
 import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
 import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonKoulutussopimusDTO
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
@@ -77,7 +77,7 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
     private val pdfService: PdfService,
     private val opintooikeusService: OpintooikeusService,
-    private val arkistointiService: ArkistointiService,
+    private val arkistointiService: SynchronousArkistointiService,
     private val koulutussopimusPdfTextValidator: KoulutussopimusPdfTextValidator,
     private val logger: Logger = LoggerFactory.getLogger(KoejaksonKoulutussopimusServiceImpl::class.java)
 ) : KoejaksonKoulutussopimusService {

@@ -6,6 +6,7 @@ import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
+import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.repository.koulutus.OpintosuoritusRepository
 import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository
@@ -114,7 +115,7 @@ class ValmistumispyynnonTarkistusService(
             id,
             KaytannonKoulutusTyyppi.TUTKIMUSTYO
         )
-        if (opintooikeus.onYek()) {
+        if (opintooikeus.isYek()) {
             val tyoskentelyjaksot =
                 tyoskentelyjaksoService.findAllByOpintooikeusIdWithKeskeytykset(id)
             dto.tyoskentelyjaksot = TyoskentelyjaksotKoulutustyypitDTO(
@@ -150,7 +151,7 @@ class ValmistumispyynnonTarkistusService(
             }
 
         val opintoopas = opintooikeus.opintoopas
-        dto.teoriakoulutusSuoritettu = if (opintooikeus.onYek()) {
+        dto.teoriakoulutusSuoritettu = if (opintooikeus.isYek()) {
             if (opintosuoritukset.nykyiset.any {
                     it.tyyppi?.nimi == OpintosuoritusTyyppiEnum.YEK_TEORIAKOULUTUS
                 }
@@ -221,13 +222,13 @@ class ValmistumispyynnonTarkistusService(
         val nykyisetOpintosuoritukset = opintosuoritusRepository
             .findAllByOpintooikeusId(opintooikeus.id.required())
             .filter {
-                if (opintooikeus.onYek()) {
+                if (opintooikeus.isYek()) {
                     it.tyyppi?.nimi in YEK_OPINTOSUORITUSTYYPIT
                 } else {
                     it.tyyppi?.nimi !in YEK_OPINTOSUORITUSTYYPIT
                 }
             }
-        val yekOpintosuoritukset = if (opintooikeus.onYek()) {
+        val yekOpintosuoritukset = if (opintooikeus.isYek()) {
             emptyList()
         } else {
             opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(
@@ -240,8 +241,6 @@ class ValmistumispyynnonTarkistusService(
 
     private fun haeOpintooikeus(id: Long) = opintooikeusRepository.findByIdOrNull(id)
         ?: throw EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR)
-
-    private fun Opintooikeus.onYek() = erikoisala?.id == YEK_ERIKOISALA_ID
 
     private data class OlennaisetOpintosuoritukset(
         val nykyiset: List<Opintosuoritus>,

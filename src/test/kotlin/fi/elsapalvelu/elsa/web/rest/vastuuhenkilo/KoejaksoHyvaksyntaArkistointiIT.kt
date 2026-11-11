@@ -3,15 +3,14 @@ package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
-import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
+import fi.elsapalvelu.elsa.web.rest.helpers.YliopistoHelper
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiService
-import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiResult
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiService
+import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiPackage
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -38,7 +37,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -60,9 +59,6 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
     private lateinit var transactionTemplate: TransactionTemplate
 
     @Autowired
-    private lateinit var asiakirjaRepository: AsiakirjaRepository
-
-    @Autowired
     private lateinit var koulutussopimusRepository: KoejaksonKoulutussopimusRepository
 
     @Autowired
@@ -75,7 +71,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
     private lateinit var vastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
 
     @MockitoBean
-    private lateinit var arkistointiService: ArkistointiService
+    private lateinit var arkistointiService: SynchronousArkistointiService
 
     @Suppress("UnusedPrivateProperty")
     @MockitoBean
@@ -294,8 +290,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
         em.flush()
         setSecurityContext(vastuuhenkiloUser.id!!, VASTUUHENKILO)
 
-        val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
-        em.persist(yliopisto)
+        val yliopisto = YliopistoHelper.createReferenceData(em, YliopistoEnum.TAMPEREEN_YLIOPISTO)
 
         val erikoistuvaUser = KayttajaResourceWithMockUserIT.createEntity(
             authority = Authority(ERIKOISTUVA_LAAKARI)
@@ -344,7 +339,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             koulutussopimusId = requireNotNull(vaiheet.koulutussopimus.id),
             vastuuhenkilonArvioId = requireNotNull(vastuuhenkilonArvio.id)
         )
-    }!!.also { fixture = it }
+    }.also { fixture = it }
 
     private fun approveVastuuhenkilonArvio(current: KoejaksoFixture) = testMockMvc.perform(
         put(ARVIO_ENDPOINT)
@@ -367,7 +362,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
                     koejaksoHyvaksytty = true
                     vastuuhenkilonKorjausehdotus = null
                 }
-        }!!
+        }
 
     private fun koulutussopimusDto(id: Long): KoejaksonKoulutussopimusDTO =
         transactionTemplate.execute { _ ->
@@ -377,7 +372,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
                     vastuuhenkilo?.kuittausaika = LocalDate.now()
                     korjausehdotus = null
                 }
-        }!!
+        }
 
     private fun stubSuccessfulArchiving() {
         stubSuccessfulPackageBuilding()
@@ -390,7 +385,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
                 anyOrNull(), any(), anyOrNull(), anyOrNull(), anyOrNull(),
                 anyOrNull(), anyOrNull(), anyOrNull(), any()
             )
-        ).thenReturn(ArkistointiResult(TEST_ZIP_PATH, null))
+        ).thenReturn(ArkistointiPackage(TEST_ZIP_PATH, null))
     }
 
     private fun assertGeneratedDocumentWasArchived(
@@ -434,7 +429,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             asiakirjaRepository.findAllByOpintooikeusId(opintooikeusId).map { document ->
                 document.toPersistedDocument()
             }
-        }!!
+        }
         assertThat(documents).hasSize(1)
         return documents.single().also { document ->
             assertThat(document.id).isNotNull()
@@ -448,7 +443,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             vastuuhenkilonArvioRepository.findById(id).orElseThrow().let { arvio ->
                 ApprovalState(arvio.vastuuhenkiloHyvaksynyt, arvio.vastuuhenkilonKuittausaika, arvio.koejaksoHyvaksytty)
             }
-        }!!
+        }
         assertThat(state.hyvaksytty).isTrue()
         assertThat(state.kuittausaika).isNotNull()
         assertThat(state.koejaksoHyvaksytty).isTrue()
@@ -459,7 +454,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             koulutussopimusRepository.findById(id).orElseThrow().let { sopimus ->
                 ApprovalState(sopimus.vastuuhenkiloHyvaksynyt, sopimus.vastuuhenkilonKuittausaika)
             }
-        }!!
+        }
         assertThat(state.hyvaksytty).isTrue()
         assertThat(state.kuittausaika).isNotNull()
     }
@@ -469,7 +464,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             vastuuhenkilonArvioRepository.findById(current.vastuuhenkilonArvioId).orElseThrow().let { arvio ->
                 ApprovalState(arvio.vastuuhenkiloHyvaksynyt, arvio.vastuuhenkilonKuittausaika, arvio.koejaksoHyvaksytty)
             }
-        }!!
+        }
         assertThat(state.hyvaksytty).isFalse()
         assertThat(state.kuittausaika).isNull()
         assertThat(state.koejaksoHyvaksytty).isNull()
@@ -481,7 +476,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
             koulutussopimusRepository.findById(current.koulutussopimusId).orElseThrow().let { sopimus ->
                 ApprovalState(sopimus.vastuuhenkiloHyvaksynyt, sopimus.vastuuhenkilonKuittausaika)
             }
-        }!!
+        }
         assertThat(state.hyvaksytty).isFalse()
         assertThat(state.kuittausaika).isNull()
         assertNoPersistedDocuments(current.opintooikeusId)
@@ -490,7 +485,7 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
     private fun assertNoPersistedDocuments(opintooikeusId: Long) {
         val documents = transactionTemplate.execute { _ ->
             asiakirjaRepository.findAllByOpintooikeusId(opintooikeusId)
-        }!!
+        }
         assertThat(documents).isEmpty()
     }
 

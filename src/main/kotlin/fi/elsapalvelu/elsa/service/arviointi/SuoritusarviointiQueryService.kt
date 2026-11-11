@@ -57,8 +57,8 @@ class SuoritusarviointiQueryService(
             .map(suoritusarviointiMapper::toDto)
     }
 
-    private fun createSpecification(criteria: SuoritusarviointiCriteria?, spec: Specification<Suoritusarviointi?>? = null): Specification<Suoritusarviointi?> {
-        var specification: Specification<Suoritusarviointi?> = spec ?: Specification.unrestricted()
+    private fun createSpecification(criteria: SuoritusarviointiCriteria?, spec: Specification<Suoritusarviointi>? = null): Specification<Suoritusarviointi> {
+        var specification: Specification<Suoritusarviointi> = spec ?: Specification.unrestricted()
         if (criteria != null) {
             if (criteria.id != null) {
                 specification = specification.and { root, _, cb -> cb.equal(root.get(Suoritusarviointi_.id), criteria.id.required().equals) }

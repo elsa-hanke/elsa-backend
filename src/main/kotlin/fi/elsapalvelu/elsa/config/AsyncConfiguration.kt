@@ -24,7 +24,7 @@ class AsyncConfiguration(private val taskExecutionProperties: TaskExecutionPrope
             corePoolSize = taskExecutionProperties.pool.coreSize
             maxPoolSize = taskExecutionProperties.pool.maxSize
             queueCapacity = taskExecutionProperties.pool.queueCapacity
-            threadNamePrefix = taskExecutionProperties.threadNamePrefix
+            setThreadNamePrefix(taskExecutionProperties.threadNamePrefix)
         }
         return ExceptionHandlingAsyncTaskExecutor(executor)
     }

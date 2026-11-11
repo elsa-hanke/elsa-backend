@@ -1,24 +1,20 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
-import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.extensions.isYek
 import fi.elsapalvelu.elsa.required
-import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
 import fi.elsapalvelu.elsa.service.mail.TransactionalMailService
-import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 
 @Service
 class ValmistumispyynnonIlmoitusService(
     private val transactionalMailService: TransactionalMailService,
     private val applicationProperties: ApplicationProperties,
-    private val kayttajaRepository: KayttajaRepository
+    private val osapuoliService: ValmistumispyynnonOsapuoliService
 ) {
 
     fun lahetaIlmoitusUudestaValmistumispyynnosta(
@@ -37,7 +33,7 @@ class ValmistumispyynnonIlmoitusService(
     }
 
     fun lahetaIlmoitusVirkailijanTarkastuksesta(valmistumispyynto: Valmistumispyynto) {
-        val yek = valmistumispyynto.onYek()
+        val yek = valmistumispyynto.isYek()
         transactionalMailService.sendEmailFromTemplate(
             to = haeYliopisto(valmistumispyynto)
                 .getOpintohallintoEmailAddress(applicationProperties),
@@ -56,9 +52,13 @@ class ValmistumispyynnonIlmoitusService(
     }
 
     fun lahetaIlmoitusHyvaksyjalle(valmistumispyynto: Valmistumispyynto) {
-        val yek = valmistumispyynto.onYek()
+        val yek = valmistumispyynto.isYek()
+        val opintooikeus = valmistumispyynto.opintooikeus.required()
         transactionalMailService.sendEmailFromTemplate(
-            haeHyvaksyja(valmistumispyynto),
+            osapuoliService.haeHyvaksyja(
+                opintooikeus.yliopisto?.id.required(),
+                opintooikeus.erikoisala?.id.required()
+            ).user.required(),
             templateName = if (yek) {
                 "valmistumispyyntoTarkastettavissaYek.html"
             } else {
@@ -88,7 +88,7 @@ class ValmistumispyynnonIlmoitusService(
             transactionalMailService.sendEmailFromTemplate(
                 haeYliopisto(valmistumispyynto)
                     .getOpintohallintoEmailAddress(applicationProperties),
-                templateName = if (valmistumispyynto.onYek()) {
+                templateName = if (valmistumispyynto.isYek()) {
                     "valmistumispyyntoPalautettuMuutYek.html"
                 } else {
                     "valmistumispyyntoPalautettuMuut.html"
@@ -101,7 +101,7 @@ class ValmistumispyynnonIlmoitusService(
     }
 
     fun lahetaIlmoitusHyvaksynnasta(valmistumispyynto: Valmistumispyynto) {
-        val yek = valmistumispyynto.onYek()
+        val yek = valmistumispyynto.isYek()
         val titleKey = if (yek) {
             "email.yekValmistumispyyntoHyvaksytty.title"
         } else {
@@ -130,30 +130,6 @@ class ValmistumispyynnonIlmoitusService(
         )
     }
 
-    private fun haeHyvaksyja(valmistumispyynto: Valmistumispyynto): User {
-        val opintooikeus = valmistumispyynto.opintooikeus.required()
-        val yliopistoId = opintooikeus.yliopisto?.id.required()
-        val erikoisalaId = opintooikeus.erikoisala?.id.required()
-        val hyvaksyja = if (valmistumispyynto.onYek()) {
-            kayttajaRepository.findOneByAuthoritiesYliopistoAndVastuuhenkilonTehtavatyyppi(
-                listOf(VASTUUHENKILO),
-                yliopistoId,
-                VastuuhenkilonTehtavatyyppiEnum.YEK_VALMISTUMINEN
-            )
-        } else {
-            kayttajaRepository.findOneByAuthoritiesYliopistoErikoisalaAndVastuuhenkilonTehtavatyyppi(
-                listOf(VASTUUHENKILO),
-                yliopistoId,
-                erikoisalaId,
-                VastuuhenkilonTehtavatyyppiEnum.VALMISTUMISPYYNNON_HYVAKSYNTA
-            )
-        }
-        return hyvaksyja?.user
-            ?: throw EntityNotFoundException(
-                "Vastuuhenkilöä, joka hyväksyisi valmistumispyynnon, ei löydy."
-            )
-    }
-
     private fun haeErikoistuja(valmistumispyynto: Valmistumispyynto) =
         valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user.required()
 
@@ -163,7 +139,4 @@ class ValmistumispyynnonIlmoitusService(
 
     private fun haeYliopisto(valmistumispyynto: Valmistumispyynto): YliopistoEnum =
         valmistumispyynto.opintooikeus?.yliopisto?.nimi.required()
-
-    private fun Valmistumispyynto.onYek() =
-        opintooikeus?.erikoisala?.id == YEK_ERIKOISALA_ID
 }

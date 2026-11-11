@@ -13,7 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertNotNull
@@ -99,7 +99,7 @@ class UserServiceIT {
         usernamePasswordAuthenticationToken.details = userDetails
 
         return Saml2Authentication(
-            DefaultSaml2AuthenticatedPrincipal("sub", userDetails),
+            testSamlPrincipal("sub", userDetails),
             "test",
             authorities
         )

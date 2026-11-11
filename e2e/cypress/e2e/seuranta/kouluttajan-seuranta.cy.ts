@@ -24,7 +24,7 @@ describe('Kouluttajan seuranta', () => {
   })
 
   it('Kouluttaja tarkistaa seurantasivun', () => {
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
     cy.visit('/etusivu')
     cy.get('.mt-5').should('be.visible')
     cy.get('.btn > div').should('be.visible').click()

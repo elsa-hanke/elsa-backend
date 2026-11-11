@@ -98,9 +98,9 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
 
     private fun createSpecification(
         criteria: NimiErikoisalaAndAvoinCriteria?,
-        spec: Specification<TerveyskeskuskoulutusjaksonHyvaksynta?>? = null
-    ): Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> {
-        var specification: Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> =
+        spec: Specification<TerveyskeskuskoulutusjaksonHyvaksynta>? = null
+    ): Specification<TerveyskeskuskoulutusjaksonHyvaksynta> {
+        var specification: Specification<TerveyskeskuskoulutusjaksonHyvaksynta> =
             spec ?: Specification.unrestricted()
         criteria?.let {
             it.erikoisalaId?.let { erikoisalaId ->
@@ -117,8 +117,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
         return specification
     }
 
-    fun buildErikoisalaSpecification(erikoisalaId: Long): Specification<TerveyskeskuskoulutusjaksonHyvaksynta?>? {
-        return Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> { root, _, cb ->
+    fun buildErikoisalaSpecification(erikoisalaId: Long): Specification<TerveyskeskuskoulutusjaksonHyvaksynta> {
+        return Specification<TerveyskeskuskoulutusjaksonHyvaksynta> { root, _, cb ->
             val opintooikeus: Join<TerveyskeskuskoulutusjaksonHyvaksynta, Opintooikeus> =
                 root.join("opintooikeus")
             val erikoisala: Join<Opintooikeus, Erikoisala> = opintooikeus.join("erikoisala")
@@ -126,8 +126,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaQueryService(
         }
     }
 
-    fun buildExcludedErikoisalaSpecification(excludedErikoisalaId: Long): Specification<TerveyskeskuskoulutusjaksonHyvaksynta?>? {
-        return Specification<TerveyskeskuskoulutusjaksonHyvaksynta?> { root, _, cb ->
+    fun buildExcludedErikoisalaSpecification(excludedErikoisalaId: Long): Specification<TerveyskeskuskoulutusjaksonHyvaksynta> {
+        return Specification<TerveyskeskuskoulutusjaksonHyvaksynta> { root, _, cb ->
             val opintooikeus: Join<TerveyskeskuskoulutusjaksonHyvaksynta, Opintooikeus> =
                 root.join("opintooikeus")
             val erikoisala: Join<Opintooikeus, Erikoisala> = opintooikeus.join("erikoisala")

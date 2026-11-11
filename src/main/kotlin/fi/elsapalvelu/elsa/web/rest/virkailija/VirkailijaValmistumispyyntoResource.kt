@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyynnonTarkistusUpdateDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoListItemDTO
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistumispyynnonAsiakirjaService
 import fi.elsapalvelu.elsa.web.rest.VALMISTUMISPYYNTO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.Valid
@@ -30,6 +31,7 @@ class VirkailijaValmistumispyyntoResource(
     private val userService: UserService,
     private val kayttajaService: KayttajaService,
     private val valmistumispyyntoService: ValmistumispyyntoService,
+    private val valmistumispyynnonAsiakirjaService: ValmistumispyynnonAsiakirjaService,
     private val asiakirjaService: AsiakirjaService
 ) {
     @GetMapping("/valmistumispyynnot")
@@ -96,7 +98,7 @@ class VirkailijaValmistumispyyntoResource(
     ): ResponseEntity<ByteArray> {
         val user = userService.getAuthenticatedUser(principal)
         val kayttaja = kayttajaService.findByUserId(user.id.required())
-        val asiakirja = valmistumispyyntoService.getValmistumispyynnonAsiakirjaVirkailija(
+        val asiakirja = valmistumispyynnonAsiakirjaService.haeValmistumispyynnonAsiakirjaVirkailijalle(
             valmistumispyyntoId,
             kayttaja.orElse(null)?.yliopistot?.firstOrNull()?.id,
             asiakirjaId

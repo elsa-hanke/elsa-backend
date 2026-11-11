@@ -34,7 +34,6 @@ spring:
       poolName: Hikari
       auto-commit: false
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
   # Replace by 'prod, faker' to add the faker context and have sample data loaded in production
   liquibase:

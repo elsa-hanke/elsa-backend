@@ -21,7 +21,6 @@ import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
-import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.GrantedAuthority
@@ -43,7 +42,7 @@ class YekKoulutettavaAsiakirjaResource(
 
     @PostMapping("/asiakirjat")
     fun createAsiakirjat(
-      @Valid @RequestParam files: List<MultipartFile>,
+      @RequestParam files: List<MultipartFile>,
       principal: Principal?
     ): ResponseEntity<List<AsiakirjaDTO>> {
         val user = userService.getAuthenticatedUser(principal)

@@ -70,7 +70,7 @@ describe('Väliarvioinnin täyttäminen ja hyväksyminen kouluttajan käyttölii
     expect(lomake.id).to.eq(valiarviointi.id)
     expect(lomake.erikoistuvanKuittausaika).to.eq(valiarviointi.erikoistuvanKuittausaika)
     expect(lomake.lahikouluttaja).to.include({
-      id: Cypress.env('kouluttajaId'),
+      id: Cypress.expose('kouluttajaId'),
       sopimusHyvaksytty: kouluttajaHyvaksytty
     })
     expect(lomake.lahiesimies).to.include({
@@ -184,7 +184,7 @@ describe('Väliarvioinnin täyttäminen ja hyväksyminen kouluttajan käyttölii
     }).then((result) => {
       const kayttajaId = Number(result.kayttajaId)
       expect(Number.isSafeInteger(kayttajaId), 'supervisor database ID').to.eq(true)
-      expect(kayttajaId).to.be.greaterThan(0).and.not.eq(Cypress.env('kouluttajaId'))
+      expect(kayttajaId).to.be.greaterThan(0).and.not.eq(Cypress.expose('kouluttajaId'))
       esihenkiloId = kayttajaId
     })
   })
@@ -218,7 +218,7 @@ describe('Väliarvioinnin täyttäminen ja hyväksyminen kouluttajan käyttölii
             vahvuudet: '',
             kehittamistoimenpiteet: '',
             korjausehdotus: '',
-            lahikouluttaja: { id: Cypress.env('kouluttajaId'), sopimusHyvaksytty: false },
+            lahikouluttaja: { id: Cypress.expose('kouluttajaId'), sopimusHyvaksytty: false },
             lahiesimies: { id: esihenkiloId, sopimusHyvaksytty: false }
           }
         }).then(({ status: createdStatus, body: createdBody }) => {
@@ -230,7 +230,7 @@ describe('Väliarvioinnin täyttäminen ja hyväksyminen kouluttajan käyttölii
         })
       }
     )
-    cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+    cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
     const hyvaksyntapyynto = cy.spy().as('hyvaksyntapyynto')
     cy.intercept('PUT', `**${API}`, (request) => {
       hyvaksyntapyynto(request.body)

@@ -47,14 +47,14 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
       sopimusId = id
 
       // Trainer approval is setup; this spec exercises the responsible person's UI.
-      cy.loginAsKouluttaja(Cypress.env('kouluttajaToken'))
+      cy.task<string | null>('tokens:get', 'kouluttajaToken', { log: false }).then((token) => cy.loginAsKouluttaja(token ?? undefined))
       cy.apiRequest({
         method: 'GET',
         url: `/api/kouluttaja/koejakso/koulutussopimus/${id}`
       }).then(({ status, body }) => {
         expect(status).to.eq(200)
         expect(body.kouluttajat).to.have.length(1)
-        expect(body.kouluttajat[0].kayttajaId).to.eq(Cypress.env('kouluttajaId'))
+        expect(body.kouluttajat[0].kayttajaId).to.eq(Cypress.expose('kouluttajaId'))
         cy.apiRequest({
           method: 'PUT',
           url: '/api/kouluttaja/koejakso/koulutussopimus',
@@ -82,7 +82,7 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
         })
       })
 
-      cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+      cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
       // Observe real approval requests without stubbing their responses.
       const hyvaksyntapyynto = cy.spy().as('hyvaksyntapyynto')
       cy.intercept('PUT', HYVAKSYNTA_URL, (request) => {
@@ -96,7 +96,7 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
         expect(response?.statusCode).to.eq(200)
         expect(response?.body.id).to.eq(id)
         expect(response?.body.kouluttajat[0].sopimusHyvaksytty).to.eq(true)
-        expect(response?.body.vastuuhenkilo.id).to.eq(Cypress.env('vastuuhenkiloId'))
+        expect(response?.body.vastuuhenkilo.id).to.eq(Cypress.expose('vastuuhenkiloId'))
         expect(response?.body.vastuuhenkilo.sopimusHyvaksytty).to.eq(false)
         expect(response?.body.vastuuhenkilo.kuittausaika).to.be.null
       })
@@ -169,7 +169,7 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
     cy.wait('@hyvaksyKoulutussopimus').then(({ request, response }) => {
       expect(request.body.id).to.eq(sopimusId)
       expect(request.body.lahetetty).to.eq(true)
-      expect(request.body.vastuuhenkilo.id).to.eq(Cypress.env('vastuuhenkiloId'))
+      expect(request.body.vastuuhenkilo.id).to.eq(Cypress.expose('vastuuhenkiloId'))
       expect(request.body.kouluttajat[0].sopimusHyvaksytty).to.eq(true)
       VASTUUHENKILON_TIEDOT.forEach(({ property, value }) => {
         expect(request.body.vastuuhenkilo[property], property).to.eq(value)
@@ -187,7 +187,7 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
     cy.wait('@haeKoulutussopimus').then(({ response }) => {
       expect(response?.statusCode).to.eq(200)
       expect(response?.body.id).to.eq(sopimusId)
-      expect(response?.body.vastuuhenkilo.id).to.eq(Cypress.env('vastuuhenkiloId'))
+      expect(response?.body.vastuuhenkilo.id).to.eq(Cypress.expose('vastuuhenkiloId'))
       expect(response?.body.vastuuhenkilo.sopimusHyvaksytty).to.eq(true)
       expect(response?.body.vastuuhenkilo.kuittausaika).to.eq(vastuuhenkilonKuittausaika)
       VASTUUHENKILON_TIEDOT.forEach(({ property, value }) => {
@@ -212,7 +212,7 @@ describe('Koulutussopimuksen hyväksyminen vastuuhenkilön käyttöliittymässä
       expect(response?.body.koulutusSopimuksenTila).to.eq('HYVAKSYTTY')
       const sopimus = response?.body.koulutussopimus
       expect(sopimus.id).to.eq(sopimusId)
-      expect(sopimus.vastuuhenkilo.id).to.eq(Cypress.env('vastuuhenkiloId'))
+      expect(sopimus.vastuuhenkilo.id).to.eq(Cypress.expose('vastuuhenkiloId'))
       expect(sopimus.vastuuhenkilo.sopimusHyvaksytty).to.eq(true)
       expect(sopimus.vastuuhenkilo.kuittausaika).to.eq(vastuuhenkilonKuittausaika)
       expect(sopimus.kouluttajat[0].sopimusHyvaksytty).to.eq(true)

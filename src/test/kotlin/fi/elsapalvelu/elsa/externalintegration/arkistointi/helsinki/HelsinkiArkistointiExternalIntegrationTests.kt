@@ -2,9 +2,9 @@ package fi.elsapalvelu.elsa.externalintegration.arkistointi.helsinki
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.ExternalIntegrationTestSupport
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfigurationProvider
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiDispatcher
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiServiceImpl
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiDispatcher
+import fi.elsapalvelu.elsa.service.arkistointi.SynchronousArkistointiServiceImpl
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiTestData
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiTestScenario
 import fi.elsapalvelu.elsa.service.arkistointi.louhi.LouhiArkistointiAdapter
@@ -19,7 +19,6 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.Mockito
@@ -29,6 +28,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Profile
 import org.springframework.test.context.ActiveProfiles
 import java.nio.file.Paths
 import java.util.stream.Stream
@@ -39,11 +39,10 @@ import java.util.stream.Stream
  */
 @SpringBootTest(classes = [HelsinkiArkistointiExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class HelsinkiArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport() {
 
     @Autowired
-    private lateinit var arkistointiService: ArkistointiServiceImpl
+    private lateinit var arkistointiService: SynchronousArkistointiServiceImpl
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("deliveryScenarios")
@@ -84,6 +83,7 @@ class HelsinkiArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppo
 }
 
 @SpringBootConfiguration
+@Profile("external-integration")
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
     HelsinkiSiiloService::class,
@@ -92,8 +92,8 @@ class HelsinkiArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppo
     ArkistointiConfigurationProvider::class,
     SahkeMetadataBuilder::class,
     SahkePakettiBuilder::class,
-    ArkistointiDispatcher::class,
-    ArkistointiServiceImpl::class,
+    SynchronousArkistointiDispatcher::class,
+    SynchronousArkistointiServiceImpl::class,
     ArkistointiMetricsService::class,
     AlertPublisherServiceImpl::class
 )

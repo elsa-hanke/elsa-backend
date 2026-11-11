@@ -1,47 +1,13 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
-import fi.elsapalvelu.elsa.domain.tyoskentely.*
-import fi.elsapalvelu.elsa.domain.arviointi.*
-import fi.elsapalvelu.elsa.domain.suoritteet.*
-import fi.elsapalvelu.elsa.domain.koulutus.*
-import fi.elsapalvelu.elsa.domain.seuranta.*
-import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
-import fi.elsapalvelu.elsa.domain.koejakso.*
-import fi.elsapalvelu.elsa.domain.tyoskentely.*
-import fi.elsapalvelu.elsa.domain.arviointi.*
-import fi.elsapalvelu.elsa.domain.suoritteet.*
-import fi.elsapalvelu.elsa.domain.koulutus.*
-import fi.elsapalvelu.elsa.domain.seuranta.*
-import fi.elsapalvelu.elsa.domain.valmistuminen.*
-import fi.elsapalvelu.elsa.domain.kayttaja.*
-import fi.elsapalvelu.elsa.domain.perustiedot.*
-import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.repository.koejakso.*
-import fi.elsapalvelu.elsa.repository.tyoskentely.*
-import fi.elsapalvelu.elsa.repository.arviointi.*
-import fi.elsapalvelu.elsa.repository.suoritteet.*
-import fi.elsapalvelu.elsa.repository.koulutus.*
-import fi.elsapalvelu.elsa.repository.seuranta.*
-import fi.elsapalvelu.elsa.repository.valmistuminen.*
 import fi.elsapalvelu.elsa.repository.kayttaja.*
-import fi.elsapalvelu.elsa.repository.perustiedot.*
 import fi.elsapalvelu.elsa.security.*
-import fi.elsapalvelu.elsa.service.mapper.*
 import fi.elsapalvelu.elsa.service.mapper.koejakso.*
-import fi.elsapalvelu.elsa.service.mapper.tyoskentely.*
-import fi.elsapalvelu.elsa.service.mapper.arviointi.*
-import fi.elsapalvelu.elsa.service.mapper.suoritteet.*
-import fi.elsapalvelu.elsa.service.mapper.koulutus.*
-import fi.elsapalvelu.elsa.service.mapper.seuranta.*
-import fi.elsapalvelu.elsa.service.mapper.valmistuminen.*
-import fi.elsapalvelu.elsa.service.mapper.kayttaja.*
-import fi.elsapalvelu.elsa.service.mapper.perustiedot.*
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -50,7 +16,6 @@ import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper.DEFAULT_NIMIKE
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.core.IsNull
 import org.junit.jupiter.api.*
-import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
@@ -75,14 +40,12 @@ class ErikoistuvaLaakariKoejaksoResourceIT : ResourceIntegrationTestBase() {
     @Autowired private lateinit var koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository
     @Autowired private lateinit var koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
     @Autowired private lateinit var koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository
-    @Autowired private lateinit var kayttajaRepository: KayttajaRepository
     @Autowired private lateinit var koejaksonKoulutussopimusMapper: KoejaksonKoulutussopimusMapper
     @Autowired private lateinit var koejaksonAloituskeskusteluMapper: KoejaksonAloituskeskusteluMapper
     @Autowired private lateinit var koejaksonValiarviointiMapper: KoejaksonValiarviointiMapper
     @Autowired private lateinit var koejaksonKehittamistoimenpiteetMapper: KoejaksonKehittamistoimenpiteetMapper
     @Autowired private lateinit var koejaksonLoppukeskusteluMapper: KoejaksonLoppukeskusteluMapper
     @Autowired private lateinit var koejaksonVastuuhenkilonArvioMapper: KoejaksonVastuuhenkilonArvioMapper
-    @Autowired private lateinit var objectMapper: ObjectMapper
 
     private lateinit var koejaksonKoulutussopimus: KoejaksonKoulutussopimus
     private lateinit var koejaksonAloituskeskustelu: KoejaksonAloituskeskustelu
@@ -90,17 +53,11 @@ class ErikoistuvaLaakariKoejaksoResourceIT : ResourceIntegrationTestBase() {
     private lateinit var koejaksonKehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet
     private lateinit var koejaksonLoppukeskustelu: KoejaksonLoppukeskustelu
     private lateinit var koejaksonVastuuhenkilonArvio: KoejaksonVastuuhenkilonArvio
-    private lateinit var user: User
     private lateinit var erikoistuvaLaakari: ErikoistuvaLaakari
     private lateinit var tempFile: File
 
     // convenience alias so all existing test calls compile unchanged
     private val restKoejaksoMockMvc get() = testMockMvc
-
-    @BeforeEach
-    fun setup() {
-        MockitoAnnotations.openMocks(this)
-    }
 
     @Test
     @Transactional
@@ -236,7 +193,7 @@ class ErikoistuvaLaakariKoejaksoResourceIT : ResourceIntegrationTestBase() {
         assertThat(sopimus.koejaksonAlkamispaiva).isEqualTo(koejaksonKoulutussopimusDTO.koejaksonAlkamispaiva)
         assertThat(sopimus.lahetetty).isEqualTo(koejaksonKoulutussopimusDTO.lahetetty)
         assertThat(sopimus.muokkauspaiva).isNotNull
-        assertEquals(sopimus.vastuuhenkilo?.nimike, DEFAULT_NIMIKE)
+        assertEquals(DEFAULT_NIMIKE, sopimus.vastuuhenkilo?.nimike)
         assertThat(sopimus.vastuuhenkiloHyvaksynyt).isFalse
         assertThat(sopimus.vastuuhenkilonKuittausaika).isNull()
         assertThat(sopimus.korjausehdotus).isNull()

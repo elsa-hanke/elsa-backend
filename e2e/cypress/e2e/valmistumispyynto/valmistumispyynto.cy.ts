@@ -1,5 +1,12 @@
 import { E2E_ERIKOISTUVA_EMAIL, KOULUTTAJA_EMAIL, VASTUUHENKILO_EMAIL, VIRKAILIJA_EMAIL } from '../../support/commands/credentials'
 
+import {
+  APPROVAL_IN_PROGRESS_ALIAS,
+  APPROVAL_IN_PROGRESS_TOAST,
+  stubApprovalInProgress,
+} from '../../support/approval-in-progress'
+import { downloadPdfPages, expectTextInOrder } from '../../support/pdf'
+
 export {}
 
 // Käyttötapaus 13.
@@ -24,6 +31,12 @@ const VIRKAILIJA_ETUNIMI     = 'Daniel'
 const VIRKAILIJA_SUKUNIMI    = 'Siekkinen'
 
 describe('Valmistumispyyntö', () => {
+  let historicalAssessment: { assessmentId: number; toolId: number; blockId: number; categoryId: number } | undefined
+
+  after(() => {
+    if (historicalAssessment) cy.task('db:cleanupOwnerlessGraduationAssessment', historicalAssessment)
+  })
+
   // ── Esialustetaan tietokanta testisarjaa varten ──────────────────────────────
   before(() => {
     cy.prepareKoejaksoE2e({
@@ -56,6 +69,11 @@ describe('Valmistumispyyntö', () => {
       erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL,
       kouluttajaEmail: KOULUTTAJA_EMAIL,
     })
+
+    // The koejakso fixture approves forms but does not create a working period.
+    cy.task<{ tyoskentelyjaksoId: number } | null>('db:seedTyoskentelyjakso', {
+      email: E2E_ERIKOISTUVA_EMAIL,
+    }).should('not.be.null')
 
     const today = new Date()
     const dd = String(today.getDate()).padStart(2, '0')
@@ -126,7 +144,7 @@ describe('Valmistumispyyntö', () => {
     cy.wait('@postValmistumispyynto').then(({ response }) => {
       expect(response?.statusCode).to.eq(201)
       expect(response?.body?.id).to.be.a('number')
-      Cypress.env('valmistumispyyntoId', response?.body?.id)
+      Cypress.expose('valmistumispyyntoId', response?.body?.id)
     })
 
     cy.contains('Valmistumispyyntö lähetetty', { timeout: 15000 }).should('be.visible')
@@ -135,10 +153,10 @@ describe('Valmistumispyyntö', () => {
     }).should('be.visible')
 
     cy.then(() => {
-      const valmistumispyyntoId = Cypress.env('valmistumispyyntoId')
+      const valmistumispyyntoId = Cypress.expose('valmistumispyyntoId')
 
       // 3. Vastuuhenkilö arvioi erikoistujan osaamisen.
-      cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+      cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
       cy.apiRequest({
         method: 'GET',
         url: `/api/vastuuhenkilo/valmistumispyynnon-arviointi/${valmistumispyyntoId}`,
@@ -156,7 +174,7 @@ describe('Valmistumispyyntö', () => {
       })
 
       // 4. Virkailija tarkistaa valmistumispyynnön tiedot.
-      cy.loginAsVirkailija(Cypress.env('virkailijaToken'))
+      cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
       cy.apiRequest({
         method: 'GET',
         url: `/api/virkailija/valmistumispyynnon-tarkistus/${valmistumispyyntoId}`,
@@ -188,7 +206,7 @@ describe('Valmistumispyyntö', () => {
       })
 
       // 5. Vastuuhenkilö hyväksyy valmistumisen.
-      cy.loginAsVastuuhenkilo(Cypress.env('vastuuhenkiloToken'))
+      cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
       cy.apiRequest({
         method: 'GET',
         url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
@@ -278,15 +296,95 @@ describe('Valmistumispyyntö', () => {
           'täyttäjää poistamaan tai korvaamaan merkit ja yritä hyväksyntää uudelleen.'
       ).should('be.visible')
 
-      cy.apiRequest({
-        method: 'PUT',
-        url: `/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`,
-        body: {},
-        timeout: 120000,
-      }).then(({ status, body }) => {
-        expect(status).to.eq(200)
+      // Another approval of the same valmistumispyyntö is already running: the server refuses
+      // with 409 and the approver sees the root cause ("approval already in progress"), not a
+      // generic failure. The page stays usable so the approval can be retried.
+      cy.contains('.toast-body', 'sisältää merkkejä')
+        .closest('.toast')
+        .find('button.close')
+        .click()
+      cy.get('.toast-body').should('not.exist')
+
+      stubApprovalInProgress(valmistumispyyntoId)
+
+      cy.contains('button', 'Hyväksy').click()
+      cy.get('#confirm-send').should('be.visible').contains('button', 'Hyväksy').click()
+      cy.wait(`@${APPROVAL_IN_PROGRESS_ALIAS}`).its('response.statusCode').should('eq', 409)
+      cy.contains('.toast-body', APPROVAL_IN_PROGRESS_TOAST).should('be.visible')
+      cy.location('pathname').should(
+        'eq',
+        `/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`
+      )
+
+      cy.contains('.toast-body', APPROVAL_IN_PROGRESS_TOAST)
+        .closest('.toast').find('button.close').click()
+      cy.get('.toast-body').should('not.exist')
+
+      // Seed just before approval so earlier API requests cannot warm Hibernate's cache.
+      cy.task<{ assessmentId: number; toolId: number; blockId: number; categoryId: number }>('db:seedOwnerlessGraduationAssessment', {
+        valmistumispyyntoId,
+        reviewerEmail: KOULUTTAJA_EMAIL,
+      }).then((fixture) => { historicalAssessment = fixture })
+
+      cy.intercept('PUT', `**/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`)
+        .as('approveWithHistoricalAssessment')
+      cy.contains('button', 'Hyväksy').click()
+      cy.get('#confirm-send').should('be.visible').contains('button', 'Hyväksy').click()
+      cy.wait('@approveWithHistoricalAssessment', { responseTimeout: 120000 }).then(({ response }) => {
+        expect(response?.statusCode).to.eq(200)
+        const body = response!.body
         expect(body.valmistumispyynto.tila).to.eq('HYVAKSYTTY')
+        expect(body.valmistumispyynto.yhteenvetoAsiakirjaId).to.be.a('number')
+        expect(body.valmistumispyynto.liitteetAsiakirjaId).to.be.a('number')
+        expect(body.valmistumispyynto.erikoistujanTiedotAsiakirjaId).to.be.a('number')
+
+        // The assessment archive PDF is internal; the approver API exposes only
+        // the summary and attachments. Read this document from the test DB.
+        cy.task<string>('db:readGraduationAssessmentPdf', { valmistumispyyntoId })
+          .then((base64) => cy.task<string[]>('pdfPages', { base64 }))
+          .then((pages) => {
+            expect(pages.join(' ')).to.include('E2E historical ownerless assessment')
+          })
+
+        // Regression guard for PDF generation: the summary keeps its sections and data.
+        downloadPdfPages(
+          `/api/vastuuhenkilo/valmistumispyynto/${valmistumispyyntoId}/asiakirja/${body.valmistumispyynto.yhteenvetoAsiakirjaId}`
+        ).then((pages) => {
+          expect(pages.length).to.be.greaterThan(0)
+          const text = pages.join(' ')
+          expectTextInOrder(
+            text,
+            'Erikoistumiskoulutuksen valmistumisen yhteenveto',
+            'Erikoistuva lääkäri',
+            'Osaamisen arviointi',
+            'Opintohallinnon virkailijan yhteenveto',
+            'E2E virkailijan yhteenveto.',
+            'Työskentelyjaksot',
+            'Koulutukset',
+            'Muut tarkistukset',
+            'Tarkistanut'
+          )
+        })
+
+        // The attachments PDF is a valid, parseable PDF.
+        downloadPdfPages(
+          `/api/vastuuhenkilo/valmistumispyynto/${valmistumispyyntoId}/asiakirja/${body.valmistumispyynto.liitteetAsiakirjaId}`
+        ).its('length').should('be.greaterThan', 0)
       })
+
+      cy.location('pathname').should('eq', '/valmistumispyynnot')
+      cy.intercept('GET', `**/api/vastuuhenkilo/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`)
+        .as('getApprovedGraduation')
+      cy.visit(`/valmistumispyynnon-hyvaksynta/${valmistumispyyntoId}`)
+      cy.wait('@getApprovedGraduation').then(({ response }) => {
+        expect(response?.statusCode).to.eq(200)
+        expect(response?.body.valmistumispyynto.tila).to.eq('HYVAKSYTTY')
+        expect(response?.body.valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika).to.not.be.null
+      })
+      cy.contains('Valmistumispyyntö on hyväksytty vastuuhenkilön toimesta.').should('be.visible')
+      cy.reload()
+      cy.wait('@getApprovedGraduation').its('response.body.valmistumispyynto.tila').should('eq', 'HYVAKSYTTY')
+      cy.contains('Valmistumispyyntö on hyväksytty vastuuhenkilön toimesta.').should('be.visible')
     })
   })
 })

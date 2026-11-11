@@ -5,7 +5,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
 
     kapt "org.mapstruct:mapstruct-processor:${mapstructVersion}"
-    kapt "org.hibernate:hibernate-jpamodelgen:${hibernateVersion}"
+    kapt "org.hibernate.orm:hibernate-processor:${hibernateVersion}"
 
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:${kotlinVersion}"
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")

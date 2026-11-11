@@ -71,9 +71,9 @@ class KoejaksonVastuuhenkilonArvioQueryService(
 
     private fun createSpecification(
         criteria: NimiErikoisalaAndAvoinCriteria?,
-        spec: Specification<KoejaksonVastuuhenkilonArvio?>? = null
-    ): Specification<KoejaksonVastuuhenkilonArvio?> {
-        var specification: Specification<KoejaksonVastuuhenkilonArvio?> = spec ?: Specification.unrestricted()
+        spec: Specification<KoejaksonVastuuhenkilonArvio>? = null
+    ): Specification<KoejaksonVastuuhenkilonArvio> {
+        var specification: Specification<KoejaksonVastuuhenkilonArvio> = spec ?: Specification.unrestricted()
         criteria?.let {
             it.erikoisalaId?.let { erikoisalaId ->
                 specification = specification.and(
@@ -84,8 +84,8 @@ class KoejaksonVastuuhenkilonArvioQueryService(
         return specification
     }
 
-    fun buildErikoisalaSpecification(erikoisalaId: Long): Specification<KoejaksonVastuuhenkilonArvio?>? {
-        return Specification<KoejaksonVastuuhenkilonArvio?> { root, _, cb ->
+    fun buildErikoisalaSpecification(erikoisalaId: Long): Specification<KoejaksonVastuuhenkilonArvio> {
+        return Specification<KoejaksonVastuuhenkilonArvio> { root, _, cb ->
             val opintooikeus: Join<KoejaksonVastuuhenkilonArvio, Opintooikeus> =
                 root.join("opintooikeus")
             val erikoisala: Join<Opintooikeus, Erikoisala> = opintooikeus.join("erikoisala")

@@ -70,7 +70,6 @@ class KouluttajaKoejaksoResourceIT : ResourceIntegrationTestBase() {
     private lateinit var koejaksonValiarviointi: KoejaksonValiarviointi
     private lateinit var koejaksonKehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet
     private lateinit var koejaksonLoppukeskustelu: KoejaksonLoppukeskustelu
-    private lateinit var user: User
 
     @Test
     fun getKoejaksotByKouluttaja() {

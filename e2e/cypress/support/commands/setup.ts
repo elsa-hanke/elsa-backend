@@ -78,12 +78,12 @@ declare global {
       seedKoejaksoSupportUsers(options?: KoejaksoSetupOptions): void
 
       /**
-       * Seeds a single kouluttaja support user and optionally stores its token in Cypress.env.
+       * Seeds a single kouluttaja support user and optionally stores its token in the Node process.
        */
       seedKouluttajaUser(user: SeedUser, tokenEnvKey?: string): void
 
       /**
-       * Seeds a single vastuuhenkilo support user and optionally stores its token in Cypress.env.
+       * Seeds a single vastuuhenkilo support user and optionally stores its token in the Node process.
        */
       seedVastuuhenkiloUser(
         user: SeedVastuuhenkilo,
@@ -122,9 +122,9 @@ Cypress.Commands.add('resetKoejaksoE2eState', (erikoistuvaEmail = E2E_ERIKOISTUV
 
 const seedKouluttaja = (user: SeedUser, storeTokens: boolean) => {
   return cy.task('db:seedKouluttaja', user).then((result: any) => {
-    Cypress.env('kouluttajaId', Number(result?.kayttajaId))
+    Cypress.expose('kouluttajaId', Number(result?.kayttajaId))
     if (storeTokens) {
-      Cypress.env('kouluttajaToken', result?.token)
+      cy.task('tokens:set', { key: 'kouluttajaToken', token: result?.token ?? null }, { log: false })
     }
   })
 }
@@ -132,16 +132,16 @@ const seedKouluttaja = (user: SeedUser, storeTokens: boolean) => {
 Cypress.Commands.add('seedKouluttajaUser', (user: SeedUser, tokenEnvKey?: string) => {
   cy.task('db:seedKouluttaja', user).then((result: any) => {
     if (tokenEnvKey) {
-      Cypress.env(tokenEnvKey, result?.token)
+      cy.task('tokens:set', { key: tokenEnvKey, token: result?.token ?? null }, { log: false })
     }
   })
 })
 
 const seedVastuuhenkilo = (user: SeedVastuuhenkilo, storeTokens: boolean) => {
   return cy.task('db:seedVastuuhenkilo', user).then((result: any) => {
-    Cypress.env('vastuuhenkiloId', Number(result?.kayttajaId))
+    Cypress.expose('vastuuhenkiloId', Number(result?.kayttajaId))
     if (storeTokens) {
-      Cypress.env('vastuuhenkiloToken', result?.token)
+      cy.task('tokens:set', { key: 'vastuuhenkiloToken', token: result?.token ?? null }, { log: false })
     }
   })
 }
@@ -149,17 +149,17 @@ const seedVastuuhenkilo = (user: SeedVastuuhenkilo, storeTokens: boolean) => {
 Cypress.Commands.add('seedVastuuhenkiloUser', (user: SeedVastuuhenkilo, tokenEnvKey?: string) => {
   return cy.task<SeededUser>('db:seedVastuuhenkilo', user).then((result) => {
     if (tokenEnvKey) {
-      Cypress.env(tokenEnvKey, result?.token)
+      cy.task('tokens:set', { key: tokenEnvKey, token: result?.token ?? null }, { log: false })
     }
-    return result
+    return cy.wrap<SeededUser>(result, { log: false })
   })
 })
 
 const seedVirkailija = (user: SeedUser, storeTokens: boolean) => {
   return cy.task('db:seedVirkailija', user).then((result: any) => {
-    Cypress.env('virkailijaId', Number(result?.kayttajaId))
+    Cypress.expose('virkailijaId', Number(result?.kayttajaId))
     if (storeTokens) {
-      Cypress.env('virkailijaToken', result?.token)
+      cy.task('tokens:set', { key: 'virkailijaToken', token: result?.token ?? null }, { log: false })
     }
   })
 }
@@ -246,8 +246,8 @@ Cypress.Commands.add('prepareVirkailijaE2e', (options: VirkailijaSetupOptions = 
   }
   cy.task('db:cleanupVirkailija', { email: VIRKAILIJA_EMAIL })
   cy.task('db:seedVirkailija', defaultVirkailija).then((result: any) => {
-    Cypress.env('virkailijaId', Number(result?.kayttajaId))
-    Cypress.env('virkailijaToken', result?.token)
+    Cypress.expose('virkailijaId', Number(result?.kayttajaId))
+    cy.task('tokens:set', { key: 'virkailijaToken', token: result?.token ?? null }, { log: false })
   })
 })
 

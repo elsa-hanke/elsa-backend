@@ -1,15 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
-import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
-import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
-import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
-import fi.elsapalvelu.elsa.repository.tyoskentely.KeskeytysaikaRepository
-import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.service.mapper.tyoskentely.KeskeytysaikaMapper
+import fi.elsapalvelu.elsa.web.rest.API_TYOSKENTELYJAKSOT
 import fi.elsapalvelu.elsa.web.rest.ResourceIntegrationTestBase
 import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
@@ -22,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
+import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -34,20 +29,11 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import kotlin.test.assertNotNull
 
-private const val API_TYOSKENTELYJAKSOT = "/api/erikoistuva-laakari/tyoskentelyjaksot"
-
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class ErikoistuvaLaakariKeskeytysaikaResourceIT: ResourceIntegrationTestBase() {
 
-    @Autowired private lateinit var tyoskentelyjaksoRepository: TyoskentelyjaksoRepository
-    @Autowired private lateinit var keskeytysaikaRepository: KeskeytysaikaRepository
     @Autowired private lateinit var keskeytysaikaMapper: KeskeytysaikaMapper
-    @Autowired private lateinit var erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository
-
-    private lateinit var tyoskentelyjakso: Tyoskentelyjakso
-    private lateinit var keskeytysaika: Keskeytysaika
-    private lateinit var user: User
 
     @Test
     fun createKeskeytysaika() {
@@ -278,7 +264,7 @@ class ErikoistuvaLaakariKeskeytysaikaResourceIT: ResourceIntegrationTestBase() {
     fun initTest(userId: String? = null, kaytannonKoulutus: KaytannonKoulutusTyyppi? = ErikoistuvaLaakariTyoskentelyjaksoHelper.DEFAULT_KAYTANNON_KOULUTUS) {
         user = KayttajaResourceWithMockUserIT.createEntity()
         persistAndFlush(user)
-        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(DefaultSaml2AuthenticatedPrincipal(userId ?: user.id, mapOf<String, List<Any>>()),
+        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(testSamlPrincipal(userId ?: user.id, mapOf<String, List<Any>>()),
             "test", listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI)))
         tyoskentelyjakso = ErikoistuvaLaakariTyoskentelyjaksoHelper.createEntity(em, user, kaytannonKoulutus = kaytannonKoulutus)
     }

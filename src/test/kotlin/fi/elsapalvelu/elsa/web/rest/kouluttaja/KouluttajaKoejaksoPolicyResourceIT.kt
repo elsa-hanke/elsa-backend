@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.kouluttaja
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
-import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonAloituskeskustelu
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKehittamistoimenpiteet
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
@@ -57,7 +56,6 @@ class KouluttajaKoejaksoPolicyResourceIT : ResourceIntegrationTestBase() {
     private lateinit var koejaksonValiarviointi: KoejaksonValiarviointi
     private lateinit var koejaksonKehittamistoimenpiteet: KoejaksonKehittamistoimenpiteet
     private lateinit var koejaksonLoppukeskustelu: KoejaksonLoppukeskustelu
-    private lateinit var user: User
 
     @Test
     fun getAloituskeskusteluAsEsimies() {

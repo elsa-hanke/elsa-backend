@@ -10,7 +10,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiConfiguration
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.apache.commons.codec.digest.DigestUtils

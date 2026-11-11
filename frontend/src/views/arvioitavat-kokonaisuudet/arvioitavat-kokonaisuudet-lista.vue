@@ -7,8 +7,7 @@
             {{ locale == 'sv' ? ak.nimiSv : ak.nimi }}
           </template>
           <div class="mt-3 mb-3">
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <p v-html="locale == 'sv' ? ak.kuvausSv : ak.kuvaus"></p>
+            <rich-text-content :html="locale == 'sv' ? ak.kuvausSv : ak.kuvaus" />
           </div>
         </elsa-accordian>
       </b-col>
@@ -20,10 +19,12 @@
   import { Component, Vue, Prop } from 'vue-property-decorator'
 
   import ElsaAccordian from '@/components/accordian/accordian.vue'
+  import RichTextContent from '@/components/rich-text-content/rich-text-content.vue'
   import { ArvioitavaKokonaisuus } from '@/types'
 
   @Component({
     components: {
+      RichTextContent,
       ElsaAccordian
     }
   })

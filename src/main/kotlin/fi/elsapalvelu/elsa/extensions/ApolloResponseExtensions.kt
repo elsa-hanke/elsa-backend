@@ -9,6 +9,8 @@ import com.apollographql.apollo.exception.ApolloHttpException
 import org.slf4j.Logger
 
 private const val GRAPHQL_NO_VALUE_PRESENT_ERROR = "Unexpected Internal Error: No value present"
+private const val GRAPHQL_INVOCATION_TARGET_EXCEPTION_ERROR =
+    "Unexpected Internal Error: java.lang.reflect.InvocationTargetException"
 private const val PRIVATE_PERSON_BY_PERSONAL_IDENTITY_CODE = "private_person_by_personal_identity_code"
 private const val PERSON_NOT_FOUND_ERROR = "Person not found with personal identity code"
 private const val HTTP_NOT_FOUND = 404
@@ -16,7 +18,8 @@ private const val HTTP_NOT_FOUND = 404
 fun <D : Operation.Data> ApolloResponse<D>.checkErrors(
     context: String,
     log: Logger,
-    onAuthenticationResult: (authenticated: Boolean) -> Unit = {}
+    onAuthenticationResult: (authenticated: Boolean) -> Unit = {},
+    onInvocationTargetExceptionResult: (isInvocationTargetException: Boolean) -> Unit = {}
 ): ApolloResponse<D> {
     // Network / parsing error
     exception?.let { ex ->
@@ -31,6 +34,9 @@ fun <D : Operation.Data> ApolloResponse<D>.checkErrors(
 
     val authenticationFailed = hasGraphQlErrorCode("UNAUTHENTICATED")
     onAuthenticationResult(!authenticationFailed)
+
+    val isInvocationTargetException = hasOnlyInvocationTargetExceptionGraphQLErrors()
+    onInvocationTargetExceptionResult(isInvocationTargetException)
 
     // GraphQL-level errors
     if (hasErrors()) {
@@ -49,6 +55,10 @@ fun <D : Operation.Data> ApolloResponse<D>.checkErrors(
             log.warn("$context. Henkilöä ei löytynyt yliopiston järjestelmästä.")
             return this
         }
+        if (isInvocationTargetException) {
+            log.warn("$context. GraphQL-virheet: $errMsg")
+            return this
+        }
 
         log.error("$context. GraphQL-virheet: $errMsg")
         throw RuntimeException("$context. GraphQL-virheet: $errMsg")
@@ -59,6 +69,9 @@ fun <D : Operation.Data> ApolloResponse<D>.checkErrors(
 
 private fun <D : Operation.Data> ApolloResponse<D>.hasOnlyNoValuePresentGraphQLErrors(): Boolean =
     errors?.all { it.message.contains(GRAPHQL_NO_VALUE_PRESENT_ERROR) } == true
+
+private fun <D : Operation.Data> ApolloResponse<D>.hasOnlyInvocationTargetExceptionGraphQLErrors(): Boolean =
+    errors?.all { it.message.contains(GRAPHQL_INVOCATION_TARGET_EXCEPTION_ERROR) } == true
 
 private fun <D : Operation.Data> ApolloResponse<D>.hasOnlyPersonNotFoundGraphQLErrors(): Boolean =
     errors?.all { it.isPersonNotFoundGraphQlError() } == true

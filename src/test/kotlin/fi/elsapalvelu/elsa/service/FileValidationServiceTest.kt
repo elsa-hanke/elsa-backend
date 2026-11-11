@@ -105,7 +105,7 @@ class FileValidationServiceTest {
 
     @Test
     fun `retains the existing filename length check`() {
-        val name = "a".repeat(256) + ".pdf"
+        val name = "ä".repeat(252) + ".pdf"
         val file = MockMultipartFile("file", name, MediaType.APPLICATION_PDF_VALUE, PdfTestData.certificate())
         assertError("tiedosto-ei-ole-kelvollinen", true) { file }
         assertError("tiedosto-ei-ole-kelvollinen", false) { file }
@@ -124,10 +124,12 @@ class FileValidationServiceTest {
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
     fun `accepts the maximum original filename length and ignores the form field length`(withOpintooikeus: Boolean) {
-        validate(
-            MockMultipartFile("field".repeat(100), "a".repeat(251) + ".pdf", MediaType.APPLICATION_PDF_VALUE, PdfTestData.certificate()),
-            withOpintooikeus
-        )
+        listOf("a", "ä", "漢").forEach { character ->
+            validate(
+                MockMultipartFile("field".repeat(100), character.repeat(251) + ".pdf", MediaType.APPLICATION_PDF_VALUE, PdfTestData.certificate()),
+                withOpintooikeus
+            )
+        }
     }
 
     private fun pdf(data: ByteArray) =

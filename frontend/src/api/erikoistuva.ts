@@ -34,6 +34,7 @@ import {
   Valmistumispyynto,
   Suoritusarviointi
 } from '@/types'
+import { runActiveContextChange } from '@/utils/active-context-channel'
 import { wrapToFormData } from '@/utils/functions'
 
 export async function getErikoistuvaLaakari() {
@@ -380,7 +381,8 @@ export async function getErikoistumisenEdistyminen() {
 
 export async function patchOpintooikeusKaytossa(opintooikeusId: number) {
   const path = `erikoistuva-laakari/opinto-oikeus/${opintooikeusId}`
-  return await axios.patch(path)
+  // ELSAINSI-73: tämä välilehti latautuu itse uudelleen, muut välilehdet synkronoidaan
+  return await runActiveContextChange(() => axios.patch(path))
 }
 
 export async function getAvoimetAsiat() {

@@ -1,5 +1,9 @@
 package fi.elsapalvelu.elsa.service.mapper.arviointi
 
+import fi.elsapalvelu.elsa.service.RichTextHtmlSanitizer
+import org.mapstruct.AfterMapping
+import org.mapstruct.MappingTarget
+
 import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavaKokonaisuus
 import fi.elsapalvelu.elsa.service.dto.arviointi.ArvioitavaKokonaisuusDTO
 import org.mapstruct.*
@@ -41,4 +45,16 @@ interface ArvioitavaKokonaisuusMapper :
         Mapping(target = "id", source = "id")
     )
     fun toDtoIdSet(arvioitavaKokonaisuus: Set<ArvioitavaKokonaisuus>): Set<ArvioitavaKokonaisuusDTO>
+
+    @AfterMapping
+    fun sanitizeDto(@MappingTarget dto: ArvioitavaKokonaisuusDTO) {
+        dto.kuvaus = RichTextHtmlSanitizer.sanitize(dto.kuvaus)
+        dto.kuvausSv = RichTextHtmlSanitizer.sanitize(dto.kuvausSv)
+    }
+
+    @AfterMapping
+    fun sanitizeEntity(source: ArvioitavaKokonaisuusDTO, @MappingTarget entity: ArvioitavaKokonaisuus) {
+        entity.kuvaus = RichTextHtmlSanitizer.sanitize(source.kuvaus ?: entity.kuvaus)
+        entity.kuvausSv = RichTextHtmlSanitizer.sanitize(source.kuvausSv ?: entity.kuvausSv)
+    }
 }

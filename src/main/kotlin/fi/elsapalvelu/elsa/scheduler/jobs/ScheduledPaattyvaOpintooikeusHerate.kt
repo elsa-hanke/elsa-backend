@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.time.Clock
 import java.time.DayOfWeek
 import java.time.Duration
 import java.time.Instant
@@ -29,7 +30,8 @@ data class PaattyvaOikeus(
 class ScheduledPaattyvaOpintooikeusHerate(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val mailService: MailService,
-    private val opintooikeusHerateRepository: OpintooikeusHerateRepository
+    private val opintooikeusHerateRepository: OpintooikeusHerateRepository,
+    private val clock: Clock
 ) : AbstractTriggerableJob() {
 
     override val jobName = "paattyvaOpintooikeusHerate"
@@ -42,8 +44,8 @@ class ScheduledPaattyvaOpintooikeusHerate(
 
     override fun runJob() {
         log.info("PaattyvaOpintooikeusHerate käynnistetty")
-        val timestamp = LocalDateTime.now()
-        val today = LocalDate.now()
+        val timestamp = LocalDateTime.now(clock)
+        val today = LocalDate.now(clock)
         val monday = today.with(DayOfWeek.MONDAY)
         val sunday = today.with(DayOfWeek.SUNDAY)
         val paattyvatOikeudet = listOf(
@@ -67,7 +69,7 @@ class ScheduledPaattyvaOpintooikeusHerate(
         }
         log.info(
             "PaattyvaOpintooikeusHerate valmis ${
-                Duration.between(timestamp, LocalDateTime.now()).toSeconds()
+                Duration.between(timestamp, LocalDateTime.now(clock)).toSeconds()
             } sekunnissa"
         )
     }
@@ -121,8 +123,8 @@ class ScheduledPaattyvaOpintooikeusHerate(
                         erikoistuvaLaakari = paattyvaOikeus.erikoistuvaLaakari
                     )
             if (paattyvaOikeus.maaraaikainen) {
-                opintooikeusHerate.maaraaikainenPaattymassaHerateLahetetty = Instant.now()
-            } else opintooikeusHerate.paattymassaHerateLahetetty = Instant.now()
+                opintooikeusHerate.maaraaikainenPaattymassaHerateLahetetty = Instant.now(clock)
+            } else opintooikeusHerate.paattymassaHerateLahetetty = Instant.now(clock)
             opintooikeusHerateRepository.save(opintooikeusHerate)
         } catch (e: Exception) {
             log.error(

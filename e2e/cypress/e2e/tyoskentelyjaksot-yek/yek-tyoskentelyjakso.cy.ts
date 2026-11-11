@@ -129,7 +129,7 @@ describe('YEK työskentelyjakso', () => {
     cy.wait('@yekTyoskentelyjaksoPost', { timeout: 15000 }).then(({ response }) => {
       expect(response?.statusCode).to.eq(201)
       expect(response?.body?.id).to.be.a('number')
-      Cypress.env('yekTyoskentelyjaksoId', response?.body?.id)
+      Cypress.expose('yekTyoskentelyjaksoId', response?.body?.id)
     })
 
     cy.url().should('match', /\/yektyoskentelyjaksot\/\d+$/)

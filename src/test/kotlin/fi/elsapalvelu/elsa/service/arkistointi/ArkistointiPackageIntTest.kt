@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi
 
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkePakettiBuilder
 import org.assertj.core.api.Assertions.assertThat
@@ -13,13 +14,13 @@ import java.util.zip.ZipFile
 
 class ArkistointiPackageIntTest {
 
-    private val service = ArkistointiServiceImpl(
+    private val service = SynchronousArkistointiServiceImpl(
         configurationProvider = ArkistointiConfigurationProvider(
             ArkistointiTestData.createApplicationProperties()
         ),
         metadataBuilder = SahkeMetadataBuilder(),
         pakettiBuilder = SahkePakettiBuilder(),
-        dispatcher = Mockito.mock(ArkistointiDispatcher::class.java)
+        dispatcher = Mockito.mock(SynchronousArkistointiDispatcher::class.java)
     )
 
     @ParameterizedTest(name = "{0}")

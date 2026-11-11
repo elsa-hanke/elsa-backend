@@ -6,22 +6,15 @@ import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
-import fi.elsapalvelu.elsa.domain.*
-import fi.elsapalvelu.elsa.domain.koejakso.*
-import fi.elsapalvelu.elsa.domain.tyoskentely.*
 import fi.elsapalvelu.elsa.domain.arviointi.*
 import fi.elsapalvelu.elsa.domain.suoritteet.*
 import fi.elsapalvelu.elsa.domain.koulutus.*
-import fi.elsapalvelu.elsa.domain.seuranta.*
-import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.domain.kayttaja.AvoinAsiaTyyppiEnum
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
 import fi.elsapalvelu.elsa.extensions.pattern
-import fi.elsapalvelu.elsa.repository.*
 import fi.elsapalvelu.elsa.repository.koejakso.*
-import fi.elsapalvelu.elsa.repository.tyoskentely.*
 import fi.elsapalvelu.elsa.repository.arviointi.*
 import fi.elsapalvelu.elsa.repository.suoritteet.*
 import fi.elsapalvelu.elsa.repository.koulutus.*
@@ -29,28 +22,14 @@ import fi.elsapalvelu.elsa.repository.seuranta.*
 import fi.elsapalvelu.elsa.repository.valmistuminen.*
 import fi.elsapalvelu.elsa.repository.kayttaja.*
 import fi.elsapalvelu.elsa.repository.perustiedot.*
-import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.koejakso.*
 import fi.elsapalvelu.elsa.service.tyoskentely.*
 import fi.elsapalvelu.elsa.service.arviointi.*
-import fi.elsapalvelu.elsa.service.suoritteet.*
 import fi.elsapalvelu.elsa.service.koulutus.*
-import fi.elsapalvelu.elsa.service.seuranta.*
 import fi.elsapalvelu.elsa.service.valmistuminen.*
 import fi.elsapalvelu.elsa.service.kayttaja.*
-import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.constants.KAYTTAJA_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.ErikoistujanEteneminenCriteria
-import fi.elsapalvelu.elsa.service.dto.*
-import fi.elsapalvelu.elsa.service.dto.koejakso.*
-import fi.elsapalvelu.elsa.service.dto.tyoskentely.*
-import fi.elsapalvelu.elsa.service.dto.arviointi.*
-import fi.elsapalvelu.elsa.service.dto.suoritteet.*
-import fi.elsapalvelu.elsa.service.dto.koulutus.*
-import fi.elsapalvelu.elsa.service.dto.seuranta.*
-import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
-import fi.elsapalvelu.elsa.service.dto.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.mapper.arviointi.ArviointiasteikkoMapper
 import jakarta.persistence.EntityNotFoundException
@@ -64,7 +43,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
-@Suppress("TooManyFunctions", "LongParameterList", "LargeClass")
+@Suppress("TooManyFunctions", "LongParameterList")
 @Service
 @Transactional
 class EtusivuServiceImpl(
@@ -198,7 +177,7 @@ class EtusivuServiceImpl(
         // Suoritusarvioinnit
         val suoritusarvioinnitMap = getSuoritusarvioinnitMap(opintooikeus.id.required())
         eteneminen.arviointienKeskiarvo = getArviointienKeskiarvo(suoritusarvioinnitMap)
-        eteneminen.arviointienLkm = getArvioitavatKokonaisuudetVahintaanYksiArvioLkm(suoritusarvioinnitMap)
+        eteneminen.arviointienLkm = suoritusarvioinnitMap.keys.size
         eteneminen.arvioitavienKokonaisuuksienLkm = getArvioitavienKokonaisuuksienLkm(opintooikeus, suoritusarvioinnitMap.keys)
 
         // Seurantajaksot
@@ -290,7 +269,7 @@ class EtusivuServiceImpl(
 
                 ErikoistumisenEdistyminenDTO(
                     getArviointienKeskiarvo(suoritusarvioinnitMap),
-                    getArvioitavatKokonaisuudetVahintaanYksiArvioLkm(suoritusarvioinnitMap),
+                    suoritusarvioinnitMap.keys.size,
                     getArvioitavienKokonaisuuksienLkm(it, arvioitavatKokonaisuudetWithArviointi),
                     arviointiasteikko,
                     getSuoritemerkinnatLkm(suoritemerkinnatMap),
@@ -390,8 +369,6 @@ class EtusivuServiceImpl(
 
     private fun getArviointienKeskiarvo(suoritusarvioinnitMap: Map<ArvioitavaKokonaisuus, Int>): Double? =
         if (suoritusarvioinnitMap.isNotEmpty()) suoritusarvioinnitMap.values.sumOf { it } / suoritusarvioinnitMap.keys.size.toDouble() else null
-
-    private fun getArvioitavatKokonaisuudetVahintaanYksiArvioLkm(suoritusarvioinnitMap: Map<ArvioitavaKokonaisuus, Int>): Int = suoritusarvioinnitMap.keys.size
 
     private fun getArvioitavienKokonaisuuksienLkm(
         opintooikeus: Opintooikeus,
@@ -721,13 +698,12 @@ class EtusivuServiceImpl(
         valmistumispyyntoRepository.findByOpintooikeusId(opintooikeusId)?.let {
             if (it.vastuuhenkiloOsaamisenArvioijaPalautusaika != null || it.virkailijanPalautusaika != null || it.vastuuhenkiloHyvaksyjaPalautusaika != null) {
                 avoimetAsiatList.add(AvoinAsiaDTO(it.id, tyyppi = AvoinAsiaTyyppiEnum.VALMISTUMISPYYNTO, asia = messageSource.getMessage("avoimetasiat.valmistumispyynto",
-                            arrayOf(), locale), pvm = getValmistumispyynnonPalautusaika(it)))
+                            arrayOf(), locale), pvm = it.vastuuhenkiloOsaamisenArvioijaPalautusaika
+                    ?: it.virkailijanPalautusaika ?: it.vastuuhenkiloHyvaksyjaPalautusaika
+                ))
             }
         }
     }
-
-    private fun getValmistumispyynnonPalautusaika(valmistumispyynto: Valmistumispyynto) =
-        valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika ?: valmistumispyynto.virkailijanPalautusaika ?: valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika
 
     private fun mapKoulutettavanEdistyminen(opintooikeus: Opintooikeus): KoulutettavanEteneminenDTO {
         val yekSuoritukset = opintosuoritusRepository.findAllByErikoistuvaLaakariIdAndErikoisalaId(opintooikeus.erikoistuvaLaakari?.id.required(), YEK_ERIKOISALA_ID)

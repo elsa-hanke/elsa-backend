@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service
 
-import fi.elsapalvelu.elsa.service.impl.valmistuminen.PdfServiceImpl
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfCachingResourceRetriever
+import fi.elsapalvelu.elsa.service.impl.valmistuminen.pdf.PdfServiceImpl
 import fi.elsapalvelu.elsa.service.metrics.PdfGenerationMetricsService
 import fi.elsapalvelu.elsa.web.rest.errors.UnsupportedPdfCharactersException
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -25,7 +26,8 @@ class PdfTextGenerationTest {
         templateEngine,
         PdfGenerationMetricsService(SimpleMeterRegistry()),
         PdfContentValidator(),
-        PdfTextTestSupport.fieldValidator()
+        PdfTextTestSupport.fieldValidator(),
+        PdfCachingResourceRetriever()
     ).apply {
         colorProfile = ClassPathResource("sRGB_CS_profile.icm")
         liberationSerifFont = ClassPathResource("fonts/LiberationSerif-Regular.ttf")
