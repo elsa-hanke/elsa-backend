@@ -29,6 +29,8 @@ application:
       kaytossa: false
       host: 127.0.0.1
       user: unused-e2e
+    turku:
+      kaytossa: false
     hki:
       kaytossa: true
       metadata:

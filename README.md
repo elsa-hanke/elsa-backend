@@ -240,6 +240,27 @@ Opintotietointegraatioiden testihenkilöt annetaan `EXTERNAL_INTEGRATION_<PALVEL
 
 Arkistoinnin ulkoiset testit luovat oikeita testiaineistoja Helsingin Siiloon ja Tampereen Louheen. Tapaus- ja tiedostonimet sisältävät `CODEBUILD_BUILD_ID`:stä muodostetun korrelaatiotunnisteen, jotta lähetykset voidaan jäljittää.
 
+Turun Dynasty-testit lähettävät EL-, EHL- ja YEK-valmistumisen yhteenvedon,
+liitteet ja laillistamistodistuksen oikeina PDF-tiedostoina. Testi käyttää oikeaa
+OAuth-asiakasta ja arkistointiadapteria: asia ja tehtävä luodaan, asiakirjat
+lähetetään ja asia siirretään Archived-tilaan. Vain tietokannan askelkirjanpito
+on mockattu. Testiaineiston nimissä on sama korrelaatiotunniste kuin muissa
+arkistoinnin ulkoisissa testeissä.
+
+Tunnukset annetaan ympäristömuuttujilla `DYNASTY_TURKU_CLIENT_ID` ja
+`DYNASTY_TURKU_CLIENT_SECRET`. CodeBuild lukee ne SSM Parameter Storesta
+poluista `/dev/application/dynasty/turku/clientid` ja
+`/dev/application/dynasty/turku/clientsecret`, kuten dev-ympäristön ECS-palvelu.
+Osoitteet, organisaatio ja skeemat käyttävät
+`application.yml`:n kanssa samoja oletusarvoja ja `DYNASTY_TURKU_*`-muuttujia.
+Koejaksoa ei lähetetä, koska sen Dynasty-salassapitoasetukset odottavat vahvistusta.
+Testiaineistossa ei ole tutkintoasetusta, joten vahvistamatonta asetusmäppäystä
+ei tarvita. Pelkät Turun Dynasty-testit voi suorittaa komennolla:
+
+```
+./gradlew externalIntegrationTests --tests '*TurkuArkistointiExternalIntegrationTests'
+```
+
 ### Koejakson asynkroninen arkistointi
 
 `service.arkistointi.koejakso.KoejaksoArkistointiService` liittää kaksi nykyistä

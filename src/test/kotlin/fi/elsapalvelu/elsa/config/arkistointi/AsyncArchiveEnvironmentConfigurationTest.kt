@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -16,9 +17,26 @@ import org.springframework.core.env.SystemEnvironmentPropertySource
 import java.util.stream.Stream
 
 class AsyncArchiveEnvironmentConfigurationTest {
+    @Test
+    fun `default test configuration imports shared archive defaults`() {
+        runner().withPropertyValues(
+            "spring.config.location=classpath:/config/",
+            "spring.profiles.active=test"
+        ).run { context ->
+            assertThat(context).hasNotFailed()
+            val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
+            flows.forEach { (university, caseTypes) ->
+                caseTypes.forEach { caseType ->
+                    assertThat(provider.getConfiguration(university, caseType).case.asyncEnabled)
+                        .describedAs("$university / $caseType").isFalse()
+                }
+            }
+        }
+    }
+
     @ParameterizedTest
     @MethodSource("universities")
-    fun `shipped configuration keeps all supported async flows disabled`(university: YliopistoEnum) {
+    fun `shipped configuration enables supported async flows except UEF`(university: YliopistoEnum) {
         runner().run { context ->
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
@@ -30,24 +48,26 @@ class AsyncArchiveEnvironmentConfigurationTest {
             }
             flows.getValue(university).forEach { caseType ->
                 assertThat(provider.getConfiguration(university, caseType).case.asyncEnabled)
-                    .describedAs("$university / $caseType").isFalse()
+                    .describedAs("$university / $caseType")
+                    .isEqualTo(university != YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
             }
         }
     }
 
     @ParameterizedTest
     @MethodSource("universityFlows")
-    fun `ECS environment variable enables only the selected university and flow`(
+    fun `ECS environment variable overrides only the selected university and flow`(
         university: YliopistoEnum, caseType: CaseType
     ) {
         val prefix = environmentPrefixes.getValue(university)
+        val enabled = university == YliopistoEnum.ITA_SUOMEN_YLIOPISTO
         runner(mapOf(
-            // Enable both universities so university isolation is not hidden by kaytossa=false.
+            // Enable all universities so isolation is not hidden by kaytossa=false.
             "APPLICATION_ARKISTOINTI_TRE_KAYTOSSA" to "true",
             "APPLICATION_ARKISTOINTI_TURKU_KAYTOSSA" to "true",
             "APPLICATION_ARKISTOINTI_UEF_KAYTOSSA" to "true",
             "APPLICATION_ARKISTOINTI_HKI_KAYTOSSA" to "true",
-            "APPLICATION_ARKISTOINTI_${prefix}_METADATA_CASES_${caseType.name}_ASYNCENABLED" to "true"
+            "APPLICATION_ARKISTOINTI_${prefix}_METADATA_CASES_${caseType.name}_ASYNCENABLED" to enabled.toString()
         )).run { context ->
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
@@ -55,9 +75,42 @@ class AsyncArchiveEnvironmentConfigurationTest {
                 caseTypes.forEach { otherCase ->
                     assertThat(provider.isAsyncEnabled(otherUniversity, otherCase))
                         .describedAs("$otherUniversity / $otherCase")
-                        .isEqualTo(otherUniversity == university && otherCase == caseType)
+                        .isEqualTo(if (otherUniversity == university && otherCase == caseType) {
+                            enabled
+                        } else {
+                            otherUniversity != YliopistoEnum.ITA_SUOMEN_YLIOPISTO
+                        })
                 }
             }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("universityFlows")
+    fun `shared test configuration disables async and allows explicit opt in`(
+        university: YliopistoEnum, caseType: CaseType
+    ) {
+        val testRunner = runner().withPropertyValues(
+            "spring.config.location=file:src/main/resources/config/,classpath:/config/application-archive-test.yml"
+        )
+        testRunner.run { context ->
+            assertThat(context).hasNotFailed()
+            val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
+            flows.forEach { (otherUniversity, caseTypes) ->
+                caseTypes.forEach { otherCase ->
+                    assertThat(provider.getConfiguration(otherUniversity, otherCase).case.asyncEnabled)
+                        .describedAs("$otherUniversity / $otherCase").isFalse()
+                }
+            }
+        }
+        val key = environmentPrefixes.getValue(university).lowercase()
+        testRunner.withPropertyValues(
+            "application.arkistointi.$key.kaytossa=true",
+            "application.arkistointi.$key.metadata.cases.${caseType.name.lowercase()}.async-enabled=true"
+        ).run { context ->
+            assertThat(context).hasNotFailed()
+            val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
+            assertThat(provider.isAsyncEnabled(university, caseType)).isTrue()
         }
     }
 

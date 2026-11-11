@@ -198,7 +198,7 @@ class ArkistointiAdapterConfigurationTest {
     private fun runner() = ApplicationContextRunner()
         .withInitializer(ConfigDataApplicationContextInitializer())
         .withPropertyValues(
-            "spring.config.location=file:src/main/resources/config/",
+            "spring.config.location=file:src/main/resources/config/,classpath:/config/application-archive-test.yml",
             "spring.profiles.active=adapter-validation-test",
             "db-scheduler.delay-startup-until-context-ready=false",
             "application.arkistointi.hki.kaytossa=true",
