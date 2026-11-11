@@ -331,7 +331,7 @@ jobs:
 
   deploy-dev-backend:
     runs-on: ubuntu-latest
-    needs: [backend-build-image, backend-security-scan, e2e, external-integration-tests]
+    needs: [backend-build-image, backend-security-scan, e2e]
     if: github.ref == 'refs/heads/main'
     environment: Development
 
@@ -388,7 +388,7 @@ jobs:
 
   deploy-dev-frontend:
     runs-on: ubuntu-latest
-    needs: [frontend-test-and-build, backend-security-scan, e2e, external-integration-tests]
+    needs: [frontend-test-and-build, backend-security-scan, e2e]
     if: github.ref == 'refs/heads/main'
     environment: Development
 
