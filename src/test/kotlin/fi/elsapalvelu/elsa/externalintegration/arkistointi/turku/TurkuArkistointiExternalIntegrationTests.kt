@@ -4,13 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
-import fi.elsapalvelu.elsa.config.arkistointi.DynastyClientConfiguration
 import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.externalintegration.ExternalIntegrationTestSupport
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiTestData
 import fi.elsapalvelu.elsa.service.arkistointi.ArkistointiTestScenario
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyStepExecutor
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyStepKey
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyStepLedger
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.TurkuDynastyArkistointiAdapter
@@ -27,6 +27,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.valmistuminen.ValmistuminenArkist
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.assertj.core.api.Assertions.assertThat
+import okhttp3.OkHttpClient
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -48,6 +49,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 @SpringBootTest(classes = [TurkuArkistointiExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
@@ -135,13 +137,24 @@ class TurkuArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport(
 @Profile("external-integration")
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
-    DynastyClientConfiguration::class,
     TurkuDynastyArkistointiAdapter::class,
     TurkuDynastyMetadataMapper::class,
     ArchivePayloadReader::class,
     DynastyStepExecutor::class
 )
 class TurkuArkistointiExternalIntegrationTestApplication {
+    @Bean
+    fun turkuDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper): DynastyClient {
+        val settings = properties.getArkistointi().getTurku().dynasty
+        val transport = OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .callTimeout(settings.callTimeout).readTimeout(settings.callTimeout)
+            .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false)
+            .addInterceptor(DynastyTrafficLoggingInterceptor(settings))
+            .build()
+        return DynastyClient(settings, mapper, transport)
+    }
+
     @Bean
     fun objectMapper(): ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 
