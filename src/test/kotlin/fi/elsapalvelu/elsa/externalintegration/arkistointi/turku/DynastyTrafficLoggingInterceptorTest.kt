@@ -36,7 +36,7 @@ class DynastyTrafficLoggingInterceptorTest {
 
             assertThat(logs).hasSize(3)
             assertThat(logs[0]).isEqualTo("Dynasty request: POST ${server.url("/connect/token")}")
-            assertThat(logs[1]).contains("HTTP 400")
+            assertThat(logs[1]).contains("HTTP 400", "protocol=http/1.1")
             assertThat(logs[2]).contains("invalid_client", "Unknown [REDACTED] [REDACTED]")
             assertThat(logs.joinToString()).doesNotContain("test-client-id", "test-client-secret", "unexpected-token")
             assertThat(server.requestCount).isEqualTo(1)

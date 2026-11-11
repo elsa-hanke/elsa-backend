@@ -253,6 +253,10 @@ Verkkovirheistä tulostetaan poikkeuksen tyyppi, viesti ja syyketju myös silloi
 kun OAuth-palvelimelta ei saada HTTP-vastausta. Tunnukset ja bearer-tokenit
 peitetään; pyyntöjen runkoja ja onnistuneita OAuth-vastausten runkoja ei lokiteta.
 Tämä diagnostiikka on käytössä vain Turun ulkoisissa integraatiotesteissä.
+Turun ulkoisten testien HTTP-asiakas käyttää vain HTTP/1.1:tä, jotta CodeBuildissa
+havaitun OAuth-palvelimen HTTP/2 `INTERNAL_ERROR` -virheen yhteys protokollaan
+voidaan tarkistaa. Vastauksen protokolla näkyy INFO-lokissa. Tuotantoasiakkaan
+protokollavalinta ei muutu tällä testikohtaisella asetuksella.
 
 Tunnukset annetaan ympäristömuuttujilla `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_ID` ja
 `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_SECRET`. CodeBuild lukee ne SSM Parameter Storesta

@@ -20,7 +20,8 @@ class DynastyTrafficLoggingInterceptor(
         output("Dynasty request: $target")
         try {
             val response = chain.proceed(request)
-            output("Dynasty response: $target, HTTP ${response.code}, contentType=${redact(response.header("Content-Type").orEmpty(), secrets)}")
+            val contentType = redact(response.header("Content-Type").orEmpty(), secrets)
+            output("Dynasty response: $target, HTTP ${response.code}, protocol=${response.protocol}, contentType=$contentType")
             if (!response.isSuccessful) {
                 logErrorBody(response, secrets)
             }

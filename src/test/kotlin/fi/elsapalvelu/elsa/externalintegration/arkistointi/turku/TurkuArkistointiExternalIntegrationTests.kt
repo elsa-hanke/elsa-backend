@@ -28,6 +28,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.assertj.core.api.Assertions.assertThat
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -147,6 +148,7 @@ class TurkuArkistointiExternalIntegrationTestApplication {
     fun turkuDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper): DynastyClient {
         val settings = properties.getArkistointi().getTurku().dynasty
         val transport = OkHttpClient.Builder()
+            .protocols(listOf(Protocol.HTTP_1_1))
             .connectTimeout(15, TimeUnit.SECONDS)
             .callTimeout(settings.callTimeout).readTimeout(settings.callTimeout)
             .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false)
