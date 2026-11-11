@@ -28,7 +28,6 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
@@ -52,7 +51,6 @@ import java.util.UUID
 
 @SpringBootTest(classes = [TurkuArkistointiExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
-@Disabled
 class TurkuArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport() {
     @Autowired
     private lateinit var adapter: TurkuDynastyArkistointiAdapter
