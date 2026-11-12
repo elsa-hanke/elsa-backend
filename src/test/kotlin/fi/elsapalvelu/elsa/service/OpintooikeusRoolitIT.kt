@@ -24,7 +24,7 @@ import kotlin.test.assertEquals
 
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
-class OpintooikeusStaffRoleIT {
+class OpintooikeusRoolitIT {
     @Autowired private lateinit var opintooikeusService: OpintooikeusService
     @Autowired private lateinit var em: EntityManager
     @Autowired private lateinit var clock: Clock
@@ -36,7 +36,7 @@ class OpintooikeusStaffRoleIT {
         "ROLE_TEKNINEN_PAAKAYTTAJA, true", "ROLE_TEKNINEN_PAAKAYTTAJA, false",
         "ROLE_ADMIN, true", "ROLE_ADMIN, false"
     )
-    fun `staff role survives reconciliation with no selected right`(role: String, validRights: Boolean) {
+    fun `henkilökunnan rooli säilyy ilman käytössä olevaa opintooikeutta`(role: String, validRights: Boolean) {
         val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(role))
         user.activeAuthority = Authority(role)
         em.persist(user)
@@ -68,7 +68,7 @@ class OpintooikeusStaffRoleIT {
         assertEquals(if (validRights) 1 else 0, selected)
     }
     @Test
-    fun `reconciliation does not merge a stale user over current staff roles or profile`() {
+    fun `roolien tarkistus ei korvaa ajantasaisia käyttäjätietoja vanhalla User-oliolla`() {
         val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority("ROLE_KOULUTTAJA"))
         user.activeAuthority = Authority("ROLE_KOULUTTAJA")
         em.persist(user)

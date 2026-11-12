@@ -59,23 +59,31 @@ class KayttajaResource(
         val authorities =
             (principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
 
+        user.impersonated =
+            authorities.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED) || authorities.contains(
+                ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+            )
         val samlPrincipal = principal.principal as Saml2AuthenticatedPrincipal
         val yekOikeus = samlPrincipal.getFirstAttribute("yek") as Boolean?
         val opintooikeusId = samlPrincipal.getFirstAttribute("opintooikeusId") as Long?
 
-        if (yekOikeus == true) {
-            user.activeAuthority = YEK_KOULUTETTAVA
-        } else if (opintooikeusId != null) {
-            user.activeAuthority = ERIKOISTUVA_LAAKARI
+        if (user.impersonated == true) {
+            if (yekOikeus == true) {
+                user.activeAuthority = YEK_KOULUTETTAVA
+            } else if (opintooikeusId != null) {
+                user.activeAuthority = ERIKOISTUVA_LAAKARI
+            }
+        } else {
+            // Käyttöliittymässä näytetään vain nykyisen istunnon sallimat roolit.
+            user.authorities = user.authorities?.filter { it in authorities }?.toSet()
+            if (user.activeAuthority !in user.authorities.orEmpty()) {
+                user.activeAuthority = null
+            }
         }
         if (user.activeAuthority == null) {
             user.activeAuthority = user.authorities?.firstOrNull()
         }
 
-        user.impersonated =
-            authorities.contains(ERIKOISTUVA_LAAKARI_IMPERSONATED) || authorities.contains(
-                ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
-            )
         return user
     }
 

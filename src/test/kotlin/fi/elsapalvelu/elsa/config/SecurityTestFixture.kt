@@ -25,7 +25,7 @@ internal fun testSecurityConfiguration(
     opintotietodataPersistenceService: OpintotietodataPersistenceService = mock(OpintotietodataPersistenceService::class.java),
     kayttajaRepository: KayttajaRepository = mock(KayttajaRepository::class.java),
     userRepository: UserRepository = mock(UserRepository::class.java),
-    loginRepositories: TestLoginRepositories = TestLoginRepositories()
+    kirjautumisenRepositories: KirjautumisenTestRepositories = KirjautumisenTestRepositories()
 ) = SecurityConfiguration(
     mock(CorsFilter::class.java),
     applicationProperties,
@@ -35,8 +35,8 @@ internal fun testSecurityConfiguration(
     opintotietodataPersistenceService,
     opintosuorituksetServices,
     opintosuorituksetPersistenceService,
-    loginRepositories.verificationTokens,
-    loginRepositories.studyRights,
+    kirjautumisenRepositories.verificationTokenRepository,
+    kirjautumisenRepositories.opintooikeusRepository,
     kayttajaRepository,
     userRepository,
     mock(KouluttajavaltuutusRepository::class.java),
@@ -45,9 +45,9 @@ internal fun testSecurityConfiguration(
     DirectTestDispatcher
 )
 
-internal class TestLoginRepositories(
-    val verificationTokens: VerificationTokenRepository = mock(VerificationTokenRepository::class.java),
-    val studyRights: OpintooikeusRepository = mock(OpintooikeusRepository::class.java)
+internal class KirjautumisenTestRepositories(
+    val verificationTokenRepository: VerificationTokenRepository = mock(VerificationTokenRepository::class.java),
+    val opintooikeusRepository: OpintooikeusRepository = mock(OpintooikeusRepository::class.java)
 )
 
 private object DirectTestDispatcher : CoroutineDispatcher() {

@@ -65,7 +65,7 @@ import java.util.Optional
 import javax.xml.namespace.QName
 
 class SuomifiAuthenticationConversionTest {
-    private val rights = mock(OpintooikeusRepository::class.java)
+    private val opintooikeusRepository = mock(OpintooikeusRepository::class.java)
     private val userService = mock(UserService::class.java)
     private val opintooikeusService = mock(OpintooikeusService::class.java)
     private val kayttajaRepository = mock(KayttajaRepository::class.java)
@@ -83,7 +83,7 @@ class SuomifiAuthenticationConversionTest {
         opintooikeusService = opintooikeusService,
         kayttajaRepository = kayttajaRepository,
         userRepository = userRepository,
-        loginRepositories = TestLoginRepositories(verificationTokenRepository, rights)
+        kirjautumisenRepositories = KirjautumisenTestRepositories(verificationTokenRepository, opintooikeusRepository)
     )
 
     @BeforeEach
@@ -140,8 +140,8 @@ class SuomifiAuthenticationConversionTest {
     fun traineeWithoutCurrentStudyRightCannotLogIn() {
         existingUser(userWithRole(ERIKOISTUVA_LAAKARI), KayttajatilinTila.AKTIIVINEN)
 
-        whenever(rights.findAllByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(Opintooikeus()))
-        assertThatThrownBy { configurationWithRealRoleService().convertAuthentication(responseToken()) }
+        whenever(opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(Opintooikeus()))
+        assertThatThrownBy { configurationWithOpintooikeusService().convertAuthentication(responseToken()) }
             .hasMessage(LoginException.EI_OPINTO_OIKEUTTA.name)
     }
 
@@ -162,7 +162,7 @@ class SuomifiAuthenticationConversionTest {
         }
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
 
-        val authentication = configurationWithRealRoleService().convertAuthentication(responseToken())
+        val authentication = configurationWithOpintooikeusService().convertAuthentication(responseToken())
 
         assertThat(authentication.authorities.map { it.authority }).containsExactly(KOULUTTAJA)
         assertThat(user.activeAuthority?.name).isEqualTo(KOULUTTAJA)
@@ -185,7 +185,7 @@ class SuomifiAuthenticationConversionTest {
         val user = userWithRole(VASTUUHENKILO).apply { activeAuthority = null }
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
 
-        configurationWithRealRoleService().convertAuthentication(responseToken())
+        configurationWithOpintooikeusService().convertAuthentication(responseToken())
 
         assertThat(user.activeAuthority?.name).isEqualTo(VASTUUHENKILO)
         verify(userRepository).save(user)
@@ -245,7 +245,7 @@ class SuomifiAuthenticationConversionTest {
         "ROLE_ERIKOISTUVA_LAAKARI, true",
         "ROLE_ERIKOISTUVA_LAAKARI, false"
     )
-    fun trainerLoginRestoresMissingStudyRole(role: String, integrationsEnabled: Boolean) {
+    fun kouluttajanKirjautuminenPalauttaaPuuttuvanRoolin(role: String, integrationsEnabled: Boolean) {
         val user = userWithRole(KOULUTTAJA)
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
         properties.getStudyDataIntegrations().enabled = integrationsEnabled
@@ -264,7 +264,7 @@ class SuomifiAuthenticationConversionTest {
 
     @ParameterizedTest
     @ValueSource(strings = ["ROLE_YEK_KOULUTETTAVA", ERIKOISTUVA_LAAKARI])
-    fun hakaTrainerLoginRestoresStudyRoleWithoutHetu(role: String) {
+    fun hakaKirjautuminenPalauttaaKouluttajanRoolitIlmanHetua(role: String) {
         val user = userWithRole(KOULUTTAJA)
         properties.getStudyDataIntegrations().enabled = true
         whenever(userService.findExistingUser(any(), any(), isNull(), eq("trainer@tuni.fi"))).thenReturn(user)
@@ -285,13 +285,13 @@ class SuomifiAuthenticationConversionTest {
 
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
-    fun trainerWithoutStudyRightsKeepsTrainerAccess(integrationsEnabled: Boolean) {
+    fun kouluttajanKirjautuminenIlmanOpintooikeutta(integrationsEnabled: Boolean) {
         val user = userWithRole(KOULUTTAJA)
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
         properties.getStudyDataIntegrations().enabled = integrationsEnabled
         whenever(userRepository.findByIdWithAuthorities(user.id!!)).thenReturn(Optional.of(user))
 
-        val authentication = configurationWithRealRoleService().convertAuthentication(responseToken())
+        val authentication = configurationWithOpintooikeusService().convertAuthentication(responseToken())
 
         verify(userRepository, never()).save(any())
         assertThat(authentication.authorities.map { it.authority }).containsExactly(KOULUTTAJA)
@@ -309,7 +309,7 @@ class SuomifiAuthenticationConversionTest {
         "ROLE_YEK_KOULUTETTAVA, true, false",
         "ROLE_YEK_KOULUTETTAVA, true, true"
     )
-    fun expiredStudyOnlyAccountGetsStudyRightError(role: String, haka: Boolean, integrationsEnabled: Boolean) {
+    fun paattynytOpintooikeusEstaaKirjautumisenIlmanMuitaRooleja(role: String, haka: Boolean, integrationsEnabled: Boolean) {
         val user = userWithRole(role)
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
         properties.getStudyDataIntegrations().enabled = integrationsEnabled
@@ -318,8 +318,8 @@ class SuomifiAuthenticationConversionTest {
             whenever(userService.findExistingUser(any(), any(), isNull(), eq("trainer@tuni.fi"))).thenReturn(user)
         }
 
-        whenever(rights.findAllByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(Opintooikeus()))
-        assertThatThrownBy { configurationWithRealRoleService().convertAuthentication(responseToken(haka)) }
+        whenever(opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(Opintooikeus()))
+        assertThatThrownBy { configurationWithOpintooikeusService().convertAuthentication(responseToken(haka)) }
             .hasMessage(LoginException.EI_OPINTO_OIKEUTTA.name)
         assertThat(user.authorities).isEmpty()
         assertThat(user.activeAuthority).isNull()
@@ -328,7 +328,7 @@ class SuomifiAuthenticationConversionTest {
 
     @ParameterizedTest
     @ValueSource(strings = [KOULUTTAJA, VASTUUHENKILO, "ROLE_OPINTOHALLINNON_VIRKAILIJA", "ROLE_TEKNINEN_PAAKAYTTAJA"])
-    fun staffLoginAlwaysReconcilesStudyRoles(role: String) {
+    fun henkilokunnanKirjautuminenTarkistaaOpintooikeudet(role: String) {
         val user = userWithRole(role)
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
         doAnswer {
@@ -349,7 +349,7 @@ class SuomifiAuthenticationConversionTest {
         "ROLE_ERIKOISTUVA_LAAKARI, false", "ROLE_ERIKOISTUVA_LAAKARI, true",
         "ROLE_YEK_KOULUTETTAVA, false", "ROLE_YEK_KOULUTETTAVA, true"
     )
-    fun studyOnlyAccountCanLogInAfterRenewalOfExistingRight(role: String, haka: Boolean) {
+    fun kirjautuminenOnnistuuSamanOpintooikeudenUusimisenJalkeen(role: String, haka: Boolean) {
         val user = userWithRole(role)
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
         if (haka) {
@@ -357,15 +357,15 @@ class SuomifiAuthenticationConversionTest {
         }
         val right = Opintooikeus(id = 1L, kaytossa = true,
             erikoisala = Erikoisala(id = if (role == ERIKOISTUVA_LAAKARI) 50L else 61L))
-        whenever(rights.findAllByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(right))
-        val login = configurationWithRealRoleService()
+        whenever(opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(right))
+        val login = configurationWithOpintooikeusService()
 
         assertThatThrownBy { login.convertAuthentication(responseToken(haka)) }
             .hasMessage(LoginException.EI_OPINTO_OIKEUTTA.name)
         assertThat(user.authorities).isEmpty()
 
         // Import renews the existing right; it does not create a right or restore its role itself.
-        whenever(rights.findAllValidByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(right))
+        whenever(opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(right))
         val authentication = login.convertAuthentication(responseToken(haka))
 
         assertThat(authentication.authorities.map { it.authority }).containsExactly(role)
@@ -374,14 +374,14 @@ class SuomifiAuthenticationConversionTest {
     }
 
     @Test
-    fun accountWithoutRolesOrStudyRightsGetsAccessError() {
+    fun kayttajaIlmanRoolejaJaOpintooikeuksiaEiVoiKirjautua() {
         val user = userWithRole(KOULUTTAJA).apply {
             authorities.clear()
             activeAuthority = null
         }
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
 
-        assertThatThrownBy { configurationWithRealRoleService().convertAuthentication(responseToken()) }
+        assertThatThrownBy { configurationWithOpintooikeusService().convertAuthentication(responseToken()) }
             .hasMessage(LoginException.EI_KAYTTO_OIKEUTTA.name)
     }
 
@@ -392,11 +392,12 @@ class SuomifiAuthenticationConversionTest {
         "ROLE_OPINTOHALLINNON_VIRKAILIJA, false", "ROLE_OPINTOHALLINNON_VIRKAILIJA, true",
         "ROLE_TEKNINEN_PAAKAYTTAJA, false", "ROLE_TEKNINEN_PAAKAYTTAJA, true"
     )
-    fun staffLoginSurvivesReconciliationFailureWithoutStudyAccess(role: String, mixedRoles: Boolean) {
+    fun henkilokunnanKirjautuminenOnnistuuTarkistusvirheestaHuolimatta(role: String, mixedRoles: Boolean) {
         val user = userWithRole(role)
         if (mixedRoles) {
             user.authorities.add(Authority(ERIKOISTUVA_LAAKARI))
             user.authorities.add(Authority("ROLE_YEK_KOULUTETTAVA"))
+            user.activeAuthority = Authority("ROLE_YEK_KOULUTETTAVA")
         }
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
         doAnswer {
@@ -409,11 +410,16 @@ class SuomifiAuthenticationConversionTest {
 
         assertThat(authentication.authorities.map { it.authority }).containsExactly(role)
         verify(userRepository, never()).save(any())
+        if (mixedRoles) {
+            verify(userService).updateRooli(role, user.id!!)
+        } else {
+            verify(userService, never()).updateRooli(any(), any())
+        }
     }
 
     @ParameterizedTest
     @ValueSource(strings = [ERIKOISTUVA_LAAKARI, "ROLE_YEK_KOULUTETTAVA", ""])
-    fun reconciliationFailureDoesNotGrantStudyOnlyOrRolelessAccess(role: String) {
+    fun tarkistusvirheEiSalliKirjautumistaPelkillaKoulutettavanRooleillaTaiIlmanRooleja(role: String) {
         val user = userWithRole(role)
         if (role.isEmpty()) user.authorities.clear()
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
@@ -424,14 +430,28 @@ class SuomifiAuthenticationConversionTest {
             .hasMessage("study service unavailable")
     }
 
-    private fun configurationWithRealRoleService(): SecurityConfiguration {
+    @Test
+    fun henkilokunnanRoolinAktivointivirheEiSalliKirjautumistaVaarallaAktiivisellaRoolilla() {
+        val user = userWithRole(KOULUTTAJA).apply { activeAuthority = Authority("ROLE_YEK_KOULUTETTAVA") }
+        existingUser(user, KayttajatilinTila.AKTIIVINEN)
+        doAnswer { error("opintooikeuksien tarkistus epäonnistui") }
+            .whenever(opintooikeusService).checkOpintooikeusAndRoles(user)
+        doAnswer { error("roolin aktivointi epäonnistui") }
+            .whenever(userService).updateRooli(KOULUTTAJA, user.id!!)
+
+        assertThatThrownBy { configuration.convertAuthentication(responseToken()) }
+            .hasMessage("roolin aktivointi epäonnistui")
+    }
+
+    private fun configurationWithOpintooikeusService(): SecurityConfiguration {
         val service = OpintooikeusServiceImpl(
-            rights, mock(OpintooikeusMapper::class.java), mock(ErikoistuvaLaakariRepository::class.java),
+            opintooikeusRepository, mock(OpintooikeusMapper::class.java), mock(ErikoistuvaLaakariRepository::class.java),
             Clock.systemUTC(), mock(OpintoopasRepository::class.java), userRepository
         )
         return testSecurityConfiguration(
             applicationProperties = properties, userService = userService, opintooikeusService = service,
-            kayttajaRepository = kayttajaRepository, userRepository = userRepository, loginRepositories = TestLoginRepositories(studyRights = rights)
+            kayttajaRepository = kayttajaRepository, userRepository = userRepository,
+            kirjautumisenRepositories = KirjautumisenTestRepositories(opintooikeusRepository = opintooikeusRepository)
         )
     }
 

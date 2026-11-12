@@ -28,6 +28,8 @@ import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.MockitoAnnotations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -368,6 +370,58 @@ class KayttajaResourceIT {
                 MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(MockMvcResultMatchers.jsonPath("\$.authorities").value(ERIKOISTUVA_LAAKARI))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [KOULUTTAJA, VASTUUHENKILO, OPINTOHALLINNON_VIRKAILIJA, TEKNINEN_PAAKAYTTAJA])
+    @Transactional
+    fun kayttajanRoolitJaAktiivinenRooliVastaavatIstunnonOikeuksia(rooli: String) {
+        initTest(rooli)
+        user.authorities.add(Authority(ERIKOISTUVA_LAAKARI))
+        user.authorities.add(Authority(YEK_KOULUTETTAVA))
+        user.activeAuthority = Authority(YEK_KOULUTETTAVA)
+        em.flush()
+        em.clear()
+
+        restKayttajaMockMvc.perform(MockMvcRequestBuilders.get("/api/kayttaja"))
+            .andExpect(status().isOk)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.authorities").value(org.hamcrest.Matchers.contains(rooli)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.activeAuthority").value(rooli))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.impersonated").value(false))
+
+        val persisted = userRepository.findByIdWithAuthorities(user.id!!).orElseThrow()
+        assertThat(persisted.authorities.map { it.name }).containsExactlyInAnyOrder(rooli, ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA)
+        assertThat(persisted.activeAuthority?.name).isEqualTo(YEK_KOULUTETTAVA)
+    }
+
+    @Test
+    @Transactional
+    fun kayttajanIstunnossaSallittuAktiivinenRooliSailyy() {
+        initTest(YEK_KOULUTETTAVA)
+        user.activeAuthority = Authority(YEK_KOULUTETTAVA)
+        em.flush()
+
+        restKayttajaMockMvc.perform(MockMvcRequestBuilders.get("/api/kayttaja"))
+            .andExpect(status().isOk)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.authorities").value(org.hamcrest.Matchers.contains(YEK_KOULUTETTAVA)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.activeAuthority").value(YEK_KOULUTETTAVA))
+    }
+
+    @Test
+    @Transactional
+    fun yekKoulutettavanImpersonoinninAktiivinenRooliSailyy() {
+        initTest(YEK_KOULUTETTAVA)
+        user.activeAuthority = Authority(KOULUTTAJA)
+        em.flush()
+        TestSecurityContextHolder.getContext().authentication = Saml2Authentication(
+            testSamlPrincipal(user.id, mapOf("yek" to listOf(true), "opintooikeusId" to listOf(1L))),
+            "test", listOf(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI_IMPERSONATED))
+        )
+
+        restKayttajaMockMvc.perform(MockMvcRequestBuilders.get("/api/kayttaja"))
+            .andExpect(status().isOk)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.activeAuthority").value(YEK_KOULUTETTAVA))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.impersonated").value(true))
     }
 
     @Test

@@ -378,8 +378,8 @@ class SecurityConfiguration(
             kayttaja.tila = KayttajatilinTila.AKTIIVINEN
             kayttajaRepository.save(kayttaja)
         }
-        val loginAuthorities = reconcileLoginAuthorities(accountUser)
-        if (loginAuthorities.isEmpty()) {
+        val kirjautuvanKayttajanRoolit = tarkistaKirjautuvanKayttajanRoolit(accountUser)
+        if (kirjautuvanKayttajanRoolit.isEmpty()) {
             val error = if (opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(accountUser.id.required()).isNotEmpty()) {
                 LoginException.EI_OPINTO_OIKEUTTA
             } else {
@@ -390,21 +390,24 @@ class SecurityConfiguration(
         }
 
         return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal, registrationId), token.saml2Response,
-            loginAuthorities.map { SimpleGrantedAuthority(it.name.required()) })
+            kirjautuvanKayttajanRoolit.map { SimpleGrantedAuthority(it.name.required()) })
     }
 
-    private fun reconcileLoginAuthorities(user: User): Set<Authority> {
-        val staffRoles = setOf(KOULUTTAJA, VASTUUHENKILO, OPINTOHALLINNON_VIRKAILIJA, TEKNINEN_PAAKAYTTAJA, ADMIN)
-        val staffAuthorities = user.authorities.filter { it.name in staffRoles }.toSet()
+    private fun tarkistaKirjautuvanKayttajanRoolit(user: User): Set<Authority> {
+        val henkilokunnanRoolit = user.authorities.filter { it.name in HENKILOKUNNAN_ROOLIT }.toSet()
+        val aktiivinenRooli = user.activeAuthority
         return try {
-            // Always reconcile: persisted study rights, rather than a role whitelist, determine study access.
+            // Opinto-oikeudet tarkistetaan jokaisella kirjautumisella riippumatta käyttäjän nykyisistä rooleista.
             opintooikeusService.checkOpintooikeusAndRoles(user)
             user.authorities.toSet()
         } catch (ex: Exception) {
-            if (staffAuthorities.isEmpty()) throw ex
-            // Retain established staff access without granting unverified study roles or saving a fallback User.
+            if (henkilokunnanRoolit.isEmpty()) throw ex
+            // Tarkistusvirheessä sallitaan vain henkilökunnan aiemmat roolit ilman User-olion yhdistämistä tietokantaan.
             log.warn("Opinto-oikeuksien tarkistus epäonnistui käyttäjälle {}. Kirjautuminen vain henkilökunnan rooleilla.", user.id, ex)
-            staffAuthorities
+            if (aktiivinenRooli !in henkilokunnanRoolit) {
+                userService.updateRooli(henkilokunnanRoolit.first().name.required(), user.id.required())
+            }
+            henkilokunnanRoolit
         }
     }
 

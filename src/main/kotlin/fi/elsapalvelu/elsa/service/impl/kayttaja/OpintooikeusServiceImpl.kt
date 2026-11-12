@@ -15,9 +15,7 @@ import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
-import fi.elsapalvelu.elsa.security.ADMIN
-import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
-import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
+import fi.elsapalvelu.elsa.security.HENKILOKUNNAN_ROOLIT
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
@@ -386,8 +384,7 @@ private fun getPreferredOpintooikeus(validOikeudet: List<Opintooikeus>): Opintoo
 private fun getPreferredAuthority(user: User, validOikeudet: List<Opintooikeus>): Authority? {
     // Säilytetään valittu henkilökunnan rooli myös tuonnin jälkeisessä täsmäytyksessä.
     val activeAuthority = user.activeAuthority
-    val staffRoles = setOf(KOULUTTAJA, VASTUUHENKILO, OPINTOHALLINNON_VIRKAILIJA, TEKNINEN_PAAKAYTTAJA, ADMIN)
-    if (activeAuthority?.name in staffRoles && activeAuthority in user.authorities) {
+    if (activeAuthority?.name in HENKILOKUNNAN_ROOLIT && activeAuthority in user.authorities) {
         return activeAuthority
     }
     val authorityNames = user.authorities.map { it.name }
