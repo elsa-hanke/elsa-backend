@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.1...HEAD)
 
+- Bump node-forge from 1.4.2 to 1.4.3 in /frontend [`#818`](https://github.com/elsa-hanke/elsa-backend/pull/818)(11 November 2026)
 - Dynasty client (TURKU integraatio) [`#811`](https://github.com/elsa-hanke/elsa-backend/pull/811)(9 November 2026)
 - Release/v2.5.x merge [`#817`](https://github.com/elsa-hanke/elsa-backend/pull/817)(4 November 2026)
 - Bump brace-expansion from 1.1.11 to 1.1.21 in /frontend [`#813`](https://github.com/elsa-hanke/elsa-backend/pull/813)(2 November 2026)
