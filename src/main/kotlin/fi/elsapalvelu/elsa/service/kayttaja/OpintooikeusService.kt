@@ -20,8 +20,6 @@ interface OpintooikeusService {
 
     fun findAllByTerveyskoulutusjaksoSuorittamatta(): List<Opintooikeus>
 
-    fun onOikeus(user: User): Boolean
-
     fun checkOpintooikeusAndRoles(user: User)
 
     fun reconcileOpintooikeusKaytossaAfterImport(userId: String)
