@@ -15,6 +15,9 @@ import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
+import fi.elsapalvelu.elsa.security.ADMIN
+import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
+import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
@@ -114,30 +117,24 @@ class OpintooikeusServiceImpl(
         return opintooikeusRepository.findAllByTerveyskoulutusjaksoSuorittamatta()
     }
 
-    override fun onOikeus(user: User): Boolean {
-        if (opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
-                user.id.required()
-            ).any()
-        ) {
-            return true
-        }
-
-        return false
-    }
-
     override fun checkOpintooikeusAndRoles(user: User) {
-        // Tarkistetaan, että käyttäjällä on aktiivinen rooli (muuten kaikkia käyttäjätietoja ei välttämättä pystytä noutamaa)
-        // ja lisätään väliaikainen ROLE_USER-rooli, mikäli roolia ei ole
-        if (user.activeAuthority == null) {
-            val authority = user.authorities.firstOrNull() ?: Authority("ROLE_USER")
-            userRepository.setActiveAuthorityIfNull(user.id.required(), authority)
-        }
+        val currentUser = userRepository.findByIdWithAuthorities(user.id.required())
+            .orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
         val validOikeudet = opintooikeusRepository.findAllValidByErikoistuvaLaakariKayttajaUserId(
-            user.id.required()
+            currentUser.id.required()
         )
 
-        updateRoles(validOikeudet, user)
-        checkOpintooikeusKaytossaValid(validOikeudet, user)
+        updateRoles(validOikeudet, currentUser)
+        checkOpintooikeusKaytossaValid(validOikeudet, currentUser)
+        if (currentUser.activeAuthority == null && currentUser.authorities.isNotEmpty()) {
+            currentUser.activeAuthority = currentUser.authorities.first()
+            userRepository.save(currentUser)
+        }
+        // The caller may have supplied a detached snapshot; never merge its unrelated fields into the current User.
+        if (user !== currentUser) {
+            user.authorities = currentUser.authorities.toMutableSet()
+            user.activeAuthority = currentUser.activeAuthority
+        }
     }
 
     override fun reconcileOpintooikeusKaytossaAfterImport(userId: String) {
@@ -251,6 +248,8 @@ class OpintooikeusServiceImpl(
     }
 
     private fun updateRoles(validOikeudet: List<Opintooikeus>, user: User) {
+        val previousAuthorities = user.authorities.toSet()
+        val previousActiveAuthority = user.activeAuthority
         val yekOikeus = validOikeudet.map { it.erikoisala?.id }.contains(YEK_ERIKOISALA_ID)
         val elOikeus = validOikeudet.any { it.erikoisala?.id != YEK_ERIKOISALA_ID }
         val authorities = user.authorities
@@ -291,7 +290,9 @@ class OpintooikeusServiceImpl(
             }
         }
 
-        userRepository.save(user)
+        if (user.authorities != previousAuthorities || user.activeAuthority != previousActiveAuthority) {
+            userRepository.save(user)
+        }
     }
 
     private fun checkOpintooikeusKaytossaValid(validOikeudet: List<Opintooikeus>, user: User) {
@@ -383,8 +384,14 @@ private fun getPreferredOpintooikeus(validOikeudet: List<Opintooikeus>): Opintoo
 }
 
 private fun getPreferredAuthority(user: User, validOikeudet: List<Opintooikeus>): Authority? {
+    // Säilytetään valittu henkilökunnan rooli myös tuonnin jälkeisessä täsmäytyksessä.
+    val activeAuthority = user.activeAuthority
+    val staffRoles = setOf(KOULUTTAJA, VASTUUHENKILO, OPINTOHALLINNON_VIRKAILIJA, TEKNINEN_PAAKAYTTAJA, ADMIN)
+    if (activeAuthority?.name in staffRoles && activeAuthority in user.authorities) {
+        return activeAuthority
+    }
     val authorityNames = user.authorities.map { it.name }
-    // Oletusroolin prioriteetti on EL, vastuuhenkilö, kouluttaja ja YEK. Muita rooleja ei poisteta.
+    // Muuten oletusroolin prioriteetti on EL, vastuuhenkilö, kouluttaja ja YEK.
     val preferredAuthorityName = when {
         validOikeudet.any { it.erikoisala?.id != YEK_ERIKOISALA_ID } &&
             authorityNames.contains(ERIKOISTUVA_LAAKARI) -> ERIKOISTUVA_LAAKARI

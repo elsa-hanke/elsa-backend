@@ -43,7 +43,7 @@ class LoginNameMismatchTest {
         val config = testSecurityConfiguration(
             userService = userService,
             userRepository = userRepository,
-            verificationTokenRepository = tokenRepository
+            loginRepositories = TestLoginRepositories(verificationTokens = tokenRepository)
         )
         val findUser = SecurityConfiguration::class.java.getDeclaredMethod(
             "findLoginUser", Cipher::class.java, SecretKey::class.java,

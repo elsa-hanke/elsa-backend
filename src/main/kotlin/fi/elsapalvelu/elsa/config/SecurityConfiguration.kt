@@ -374,33 +374,38 @@ class SecurityConfiguration(
         }
 
         val accountUser = kayttaja.user.required()
-
-        // Erikoistuvalla lääkärillä täytyy olla olemassaoleva opinto-oikeus
-        if (hasErikoistuvaLaakariRole(accountUser) && !opintooikeusService.onOikeus(accountUser)) {
-            if (hasKouluttajaRole(accountUser)) {
-                accountUser.authorities = accountUser.authorities.filter { it.name != ERIKOISTUVA_LAAKARI }.toMutableSet()
-                accountUser.activeAuthority = Authority(name = KOULUTTAJA)
-                userRepository.save(accountUser)
-            } else {
-                log.error("Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. " + "Käyttäjällä ei ole voimassaolevaa " +
-                        "opinto-oikeutta, opinto-oikeuden tila ei salli kirjautumista tai opinto-oikeuden erikoisala ei ole liittynyt Elsaan."
-                )
-                throw Exception(LoginException.EI_OPINTO_OIKEUTTA.name)
-            }
-        }
-
         if (hasVastuuhenkiloRole(accountUser) && kayttaja.tila == KayttajatilinTila.KUTSUTTU) {
             kayttaja.tila = KayttajatilinTila.AKTIIVINEN
             kayttajaRepository.save(kayttaja)
         }
-
-        if (accountUser.activeAuthority == null) {
-            accountUser.activeAuthority = accountUser.authorities.first()
-            userRepository.save(accountUser)
+        val loginAuthorities = reconcileLoginAuthorities(accountUser)
+        if (loginAuthorities.isEmpty()) {
+            val error = if (opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(accountUser.id.required()).isNotEmpty()) {
+                LoginException.EI_OPINTO_OIKEUTTA
+            } else {
+                LoginException.EI_KAYTTO_OIKEUTTA
+            }
+            log.warn("Kirjautuminen epäonnistui käyttäjälle {}: {}", accountUser.id, error.name)
+            throw Exception(error.name)
         }
 
         return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal, registrationId), token.saml2Response,
-            kayttaja.user.required().authorities.map { SimpleGrantedAuthority(it.name.required()) })
+            loginAuthorities.map { SimpleGrantedAuthority(it.name.required()) })
+    }
+
+    private fun reconcileLoginAuthorities(user: User): Set<Authority> {
+        val staffRoles = setOf(KOULUTTAJA, VASTUUHENKILO, OPINTOHALLINNON_VIRKAILIJA, TEKNINEN_PAAKAYTTAJA, ADMIN)
+        val staffAuthorities = user.authorities.filter { it.name in staffRoles }.toSet()
+        return try {
+            // Always reconcile: persisted study rights, rather than a role whitelist, determine study access.
+            opintooikeusService.checkOpintooikeusAndRoles(user)
+            user.authorities.toSet()
+        } catch (ex: Exception) {
+            if (staffAuthorities.isEmpty()) throw ex
+            // Retain established staff access without granting unverified study roles or saving a fallback User.
+            log.warn("Opinto-oikeuksien tarkistus epäonnistui käyttäjälle {}. Kirjautuminen vain henkilökunnan rooleilla.", user.id, ex)
+            staffAuthorities
+        }
     }
 
     @Suppress("DEPRECATION", "Deprecation")
@@ -442,9 +447,6 @@ class SecurityConfiguration(
                 fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id.required(), hetu)
 
                 existingUser = userRepository.findByIdWithAuthorities(existingUser.id.required()).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
-                if (hasErikoistuvaLaakariRole(existingUser) || hasYekKoulutettavaRole(existingUser)) {
-                    opintooikeusService.checkOpintooikeusAndRoles(existingUser)
-                }
             }
         }
 

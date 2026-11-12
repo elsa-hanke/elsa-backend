@@ -3,9 +3,16 @@ package fi.elsapalvelu.elsa.config
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
 import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.kayttaja.VerificationToken
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.koulutus.OpintoopasRepository
+import fi.elsapalvelu.elsa.service.impl.kayttaja.OpintooikeusServiceImpl
+import fi.elsapalvelu.elsa.service.mapper.kayttaja.OpintooikeusMapper
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.VerificationTokenRepository
@@ -22,9 +29,14 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.isNull
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -47,11 +59,13 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
+import java.time.Clock
 import java.util.Base64
 import java.util.Optional
 import javax.xml.namespace.QName
 
 class SuomifiAuthenticationConversionTest {
+    private val rights = mock(OpintooikeusRepository::class.java)
     private val userService = mock(UserService::class.java)
     private val opintooikeusService = mock(OpintooikeusService::class.java)
     private val kayttajaRepository = mock(KayttajaRepository::class.java)
@@ -69,7 +83,7 @@ class SuomifiAuthenticationConversionTest {
         opintooikeusService = opintooikeusService,
         kayttajaRepository = kayttajaRepository,
         userRepository = userRepository,
-        verificationTokenRepository = verificationTokenRepository
+        loginRepositories = TestLoginRepositories(verificationTokenRepository, rights)
     )
 
     @BeforeEach
@@ -126,7 +140,8 @@ class SuomifiAuthenticationConversionTest {
     fun traineeWithoutCurrentStudyRightCannotLogIn() {
         existingUser(userWithRole(ERIKOISTUVA_LAAKARI), KayttajatilinTila.AKTIIVINEN)
 
-        assertThatThrownBy { configuration.convertAuthentication(responseToken()) }
+        whenever(rights.findAllByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(Opintooikeus()))
+        assertThatThrownBy { configurationWithRealRoleService().convertAuthentication(responseToken()) }
             .hasMessage(LoginException.EI_OPINTO_OIKEUTTA.name)
     }
 
@@ -147,7 +162,7 @@ class SuomifiAuthenticationConversionTest {
         }
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
 
-        val authentication = configuration.convertAuthentication(responseToken())
+        val authentication = configurationWithRealRoleService().convertAuthentication(responseToken())
 
         assertThat(authentication.authorities.map { it.authority }).containsExactly(KOULUTTAJA)
         assertThat(user.activeAuthority?.name).isEqualTo(KOULUTTAJA)
@@ -170,7 +185,7 @@ class SuomifiAuthenticationConversionTest {
         val user = userWithRole(VASTUUHENKILO).apply { activeAuthority = null }
         existingUser(user, KayttajatilinTila.AKTIIVINEN)
 
-        configuration.convertAuthentication(responseToken())
+        configurationWithRealRoleService().convertAuthentication(responseToken())
 
         assertThat(user.activeAuthority?.name).isEqualTo(VASTUUHENKILO)
         verify(userRepository).save(user)
@@ -223,11 +238,209 @@ class SuomifiAuthenticationConversionTest {
         verify(persistenceService).create(any(), any(), eq("010101-123N"), eq("Test"), eq("User"), eq(listOf(studyData)))
     }
 
+    @ParameterizedTest
+    @CsvSource(
+        "ROLE_YEK_KOULUTETTAVA, true",
+        "ROLE_YEK_KOULUTETTAVA, false",
+        "ROLE_ERIKOISTUVA_LAAKARI, true",
+        "ROLE_ERIKOISTUVA_LAAKARI, false"
+    )
+    fun trainerLoginRestoresMissingStudyRole(role: String, integrationsEnabled: Boolean) {
+        val user = userWithRole(KOULUTTAJA)
+        existingUser(user, KayttajatilinTila.AKTIIVINEN)
+        properties.getStudyDataIntegrations().enabled = integrationsEnabled
+        whenever(userRepository.findByIdWithAuthorities(user.id!!)).thenReturn(Optional.of(user))
+        doAnswer {
+            user.authorities.add(Authority(role))
+            null
+        }.whenever(opintooikeusService).checkOpintooikeusAndRoles(user)
+
+        val authentication = configuration.convertAuthentication(responseToken())
+
+        verify(opintooikeusService).checkOpintooikeusAndRoles(user)
+        assertThat(authentication.authorities.map { it.authority }).containsExactlyInAnyOrder(KOULUTTAJA, role)
+        assertThat(user.activeAuthority?.name).isEqualTo(KOULUTTAJA)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["ROLE_YEK_KOULUTETTAVA", ERIKOISTUVA_LAAKARI])
+    fun hakaTrainerLoginRestoresStudyRoleWithoutHetu(role: String) {
+        val user = userWithRole(KOULUTTAJA)
+        properties.getStudyDataIntegrations().enabled = true
+        whenever(userService.findExistingUser(any(), any(), isNull(), eq("trainer@tuni.fi"))).thenReturn(user)
+        whenever(kayttajaRepository.findOneByUserIdWithAuthorities(user.id!!))
+            .thenReturn(Optional.of(Kayttaja(tila = KayttajatilinTila.AKTIIVINEN, user = user)))
+        doAnswer {
+            user.authorities.add(Authority(role))
+            null
+        }.whenever(opintooikeusService).checkOpintooikeusAndRoles(user)
+
+        val authentication = configuration.convertAuthentication(responseToken(haka = true))
+
+        verify(opintooikeusService).checkOpintooikeusAndRoles(user)
+        assertThat(authentication.authorities.map { it.authority }).containsExactlyInAnyOrder(KOULUTTAJA, role)
+        assertThat(user.activeAuthority?.name).isEqualTo(KOULUTTAJA)
+        assertThat(authentication.principal).extracting("relyingPartyRegistrationId").isEqualTo("haka-tampere")
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun trainerWithoutStudyRightsKeepsTrainerAccess(integrationsEnabled: Boolean) {
+        val user = userWithRole(KOULUTTAJA)
+        existingUser(user, KayttajatilinTila.AKTIIVINEN)
+        properties.getStudyDataIntegrations().enabled = integrationsEnabled
+        whenever(userRepository.findByIdWithAuthorities(user.id!!)).thenReturn(Optional.of(user))
+
+        val authentication = configurationWithRealRoleService().convertAuthentication(responseToken())
+
+        verify(userRepository, never()).save(any())
+        assertThat(authentication.authorities.map { it.authority }).containsExactly(KOULUTTAJA)
+        assertThat(user.activeAuthority?.name).isEqualTo(KOULUTTAJA)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "ROLE_ERIKOISTUVA_LAAKARI, false, false",
+        "ROLE_ERIKOISTUVA_LAAKARI, false, true",
+        "ROLE_ERIKOISTUVA_LAAKARI, true, false",
+        "ROLE_ERIKOISTUVA_LAAKARI, true, true",
+        "ROLE_YEK_KOULUTETTAVA, false, false",
+        "ROLE_YEK_KOULUTETTAVA, false, true",
+        "ROLE_YEK_KOULUTETTAVA, true, false",
+        "ROLE_YEK_KOULUTETTAVA, true, true"
+    )
+    fun expiredStudyOnlyAccountGetsStudyRightError(role: String, haka: Boolean, integrationsEnabled: Boolean) {
+        val user = userWithRole(role)
+        existingUser(user, KayttajatilinTila.AKTIIVINEN)
+        properties.getStudyDataIntegrations().enabled = integrationsEnabled
+        whenever(userRepository.findByIdWithAuthorities(user.id!!)).thenReturn(Optional.of(user))
+        if (haka) {
+            whenever(userService.findExistingUser(any(), any(), isNull(), eq("trainer@tuni.fi"))).thenReturn(user)
+        }
+
+        whenever(rights.findAllByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(Opintooikeus()))
+        assertThatThrownBy { configurationWithRealRoleService().convertAuthentication(responseToken(haka)) }
+            .hasMessage(LoginException.EI_OPINTO_OIKEUTTA.name)
+        assertThat(user.authorities).isEmpty()
+        assertThat(user.activeAuthority).isNull()
+        verify(userRepository).save(user)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [KOULUTTAJA, VASTUUHENKILO, "ROLE_OPINTOHALLINNON_VIRKAILIJA", "ROLE_TEKNINEN_PAAKAYTTAJA"])
+    fun staffLoginAlwaysReconcilesStudyRoles(role: String) {
+        val user = userWithRole(role)
+        existingUser(user, KayttajatilinTila.AKTIIVINEN)
+        doAnswer {
+            user.authorities.add(Authority("ROLE_YEK_KOULUTETTAVA"))
+            null
+        }.whenever(opintooikeusService).checkOpintooikeusAndRoles(user)
+
+        val authentication = configuration.convertAuthentication(responseToken())
+
+        verify(opintooikeusService).checkOpintooikeusAndRoles(user)
+        assertThat(authentication.authorities.map { it.authority })
+            .containsExactlyInAnyOrder(role, "ROLE_YEK_KOULUTETTAVA")
+        assertThat(user.activeAuthority?.name).isEqualTo(role)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "ROLE_ERIKOISTUVA_LAAKARI, false", "ROLE_ERIKOISTUVA_LAAKARI, true",
+        "ROLE_YEK_KOULUTETTAVA, false", "ROLE_YEK_KOULUTETTAVA, true"
+    )
+    fun studyOnlyAccountCanLogInAfterRenewalOfExistingRight(role: String, haka: Boolean) {
+        val user = userWithRole(role)
+        existingUser(user, KayttajatilinTila.AKTIIVINEN)
+        if (haka) {
+            whenever(userService.findExistingUser(any(), any(), isNull(), eq("trainer@tuni.fi"))).thenReturn(user)
+        }
+        val right = Opintooikeus(id = 1L, kaytossa = true,
+            erikoisala = Erikoisala(id = if (role == ERIKOISTUVA_LAAKARI) 50L else 61L))
+        whenever(rights.findAllByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(right))
+        val login = configurationWithRealRoleService()
+
+        assertThatThrownBy { login.convertAuthentication(responseToken(haka)) }
+            .hasMessage(LoginException.EI_OPINTO_OIKEUTTA.name)
+        assertThat(user.authorities).isEmpty()
+
+        // Import renews the existing right; it does not create a right or restore its role itself.
+        whenever(rights.findAllValidByErikoistuvaLaakariKayttajaUserId("user-123")).thenReturn(listOf(right))
+        val authentication = login.convertAuthentication(responseToken(haka))
+
+        assertThat(authentication.authorities.map { it.authority }).containsExactly(role)
+        assertThat(user.activeAuthority?.name).isEqualTo(role)
+        assertThat(right.id).isEqualTo(1L)
+    }
+
+    @Test
+    fun accountWithoutRolesOrStudyRightsGetsAccessError() {
+        val user = userWithRole(KOULUTTAJA).apply {
+            authorities.clear()
+            activeAuthority = null
+        }
+        existingUser(user, KayttajatilinTila.AKTIIVINEN)
+
+        assertThatThrownBy { configurationWithRealRoleService().convertAuthentication(responseToken()) }
+            .hasMessage(LoginException.EI_KAYTTO_OIKEUTTA.name)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "ROLE_KOULUTTAJA, false", "ROLE_KOULUTTAJA, true",
+        "ROLE_VASTUUHENKILO, false", "ROLE_VASTUUHENKILO, true",
+        "ROLE_OPINTOHALLINNON_VIRKAILIJA, false", "ROLE_OPINTOHALLINNON_VIRKAILIJA, true",
+        "ROLE_TEKNINEN_PAAKAYTTAJA, false", "ROLE_TEKNINEN_PAAKAYTTAJA, true"
+    )
+    fun staffLoginSurvivesReconciliationFailureWithoutStudyAccess(role: String, mixedRoles: Boolean) {
+        val user = userWithRole(role)
+        if (mixedRoles) {
+            user.authorities.add(Authority(ERIKOISTUVA_LAAKARI))
+            user.authorities.add(Authority("ROLE_YEK_KOULUTETTAVA"))
+        }
+        existingUser(user, KayttajatilinTila.AKTIIVINEN)
+        doAnswer {
+            // Even a partially executed reconciliation cannot grant study access in the fallback session.
+            user.authorities.add(Authority("ROLE_YEK_KOULUTETTAVA"))
+            error("study service unavailable")
+        }.whenever(opintooikeusService).checkOpintooikeusAndRoles(user)
+
+        val authentication = configuration.convertAuthentication(responseToken())
+
+        assertThat(authentication.authorities.map { it.authority }).containsExactly(role)
+        verify(userRepository, never()).save(any())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [ERIKOISTUVA_LAAKARI, "ROLE_YEK_KOULUTETTAVA", ""])
+    fun reconciliationFailureDoesNotGrantStudyOnlyOrRolelessAccess(role: String) {
+        val user = userWithRole(role)
+        if (role.isEmpty()) user.authorities.clear()
+        existingUser(user, KayttajatilinTila.AKTIIVINEN)
+        doAnswer { error("study service unavailable") }
+            .whenever(opintooikeusService).checkOpintooikeusAndRoles(user)
+
+        assertThatThrownBy { configuration.convertAuthentication(responseToken()) }
+            .hasMessage("study service unavailable")
+    }
+
+    private fun configurationWithRealRoleService(): SecurityConfiguration {
+        val service = OpintooikeusServiceImpl(
+            rights, mock(OpintooikeusMapper::class.java), mock(ErikoistuvaLaakariRepository::class.java),
+            Clock.systemUTC(), mock(OpintoopasRepository::class.java), userRepository
+        )
+        return testSecurityConfiguration(
+            applicationProperties = properties, userService = userService, opintooikeusService = service,
+            kayttajaRepository = kayttajaRepository, userRepository = userRepository, loginRepositories = TestLoginRepositories(studyRights = rights)
+        )
+    }
+
     private fun existingUser(user: User, state: KayttajatilinTila): Kayttaja {
         val kayttaja = Kayttaja(tila = state, user = user)
         whenever(userService.findExistingUser(any(), any(), eq("010101-123N"), isNull())).thenReturn(user)
         whenever(kayttajaRepository.findOneByUserIdWithAuthorities("user-123"))
             .thenReturn(Optional.of(kayttaja))
+        whenever(userRepository.findByIdWithAuthorities("user-123")).thenReturn(Optional.of(user))
         return kayttaja
     }
 
@@ -242,8 +455,9 @@ class SuomifiAuthenticationConversionTest {
         )
     }
 
-    private fun responseToken(): OpenSaml5AuthenticationProvider.ResponseToken {
-        val registration = RelyingPartyRegistration.withRegistrationId("suomifi")
+    private fun responseToken(haka: Boolean = false): OpenSaml5AuthenticationProvider.ResponseToken {
+        val registrationId = if (haka) "haka-tampere" else "suomifi"
+        val registration = RelyingPartyRegistration.withRegistrationId(registrationId)
             .entityId("https://elsapalvelu.fi/saml/suomifi")
             .assertionConsumerServiceLocation("https://elsapalvelu.fi/login/saml2/sso/suomifi")
             .assertingPartyMetadata {
@@ -262,7 +476,11 @@ class SuomifiAuthenticationConversionTest {
             attributeStatements.add(saml<AttributeStatement>(AttributeStatement.DEFAULT_ELEMENT_NAME).apply {
                 attributes.add(attribute("urn:oid:2.5.4.42", "Test"))
                 attributes.add(attribute("urn:oid:2.5.4.4", "User"))
-                attributes.add(attribute("urn:oid:1.2.246.21", "010101-123N"))
+                if (haka) {
+                    attributes.add(attribute("urn:oid:1.3.6.1.4.1.5923.1.1.1.6", "trainer@tuni.fi"))
+                } else {
+                    attributes.add(attribute("urn:oid:1.2.246.21", "010101-123N"))
+                }
             })
         }
         val response = saml<Response>(Response.DEFAULT_ELEMENT_NAME).apply { assertions.add(assertion) }
