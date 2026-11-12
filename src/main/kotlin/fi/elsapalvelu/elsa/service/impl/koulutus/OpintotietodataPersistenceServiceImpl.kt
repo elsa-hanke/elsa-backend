@@ -644,7 +644,7 @@ class OpintotietodataPersistenceServiceImpl(
         sukunimi: String
     ): LocalDate? {
         return opintotietodataDTOs.firstOrNull { it.syntymaaika != null }?.syntymaaika ?: run {
-            log.error(
+            log.warn(
                 "Erikoistuja: $etunimi $sukunimi. Kelvollista syntymäaikaa ei löytynyt yhdestäkään " +
                     "opintotietojärjestelmästä, jossa erikoistujalla on opinto-oikeus. Yliopisto(t): ${
                         opintotietodataDTOs.map { it.opintooikeudet.orEmpty() }.flatten()
