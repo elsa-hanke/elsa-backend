@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.1...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.2...HEAD)
 
 - Bump node-forge from 1.4.2 to 1.4.3 in /frontend [`#818`](https://github.com/elsa-hanke/elsa-backend/pull/818)(11 November 2026)
 - Dynasty client (TURKU integraatio) [`#811`](https://github.com/elsa-hanke/elsa-backend/pull/811)(9 November 2026)
@@ -32,6 +32,10 @@
 - cypress e2e testit erikoismerkit [`#763`](https://github.com/elsa-hanke/elsa-backend/pull/763)(7 October 2026)
 - fix: Tila ei ohjaa käyttöoikeutta, joten tuntematon tila ei saa estää päättymispäivän, katseluajan ja asetuksen synkronointia (#762) [`#762`](https://github.com/elsa-hanke/elsa-backend/pull/762)(6 October 2026)
 - Tiedoston lataamisen tarkistuksen parannukset  [`#761`](https://github.com/elsa-hanke/elsa-backend/pull/761)(6 October 2026)
+
+## [v2.5.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.1...v2.5.2) - 12 November 2026
+
+- ELSA-1279 Erikoistujan tili ei näy [`#820`](https://github.com/elsa-hanke/elsa-backend/pull/820)(12 November 2026)
 
 ## [v2.5.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.0...v2.5.1) - 4 November 2026
 
