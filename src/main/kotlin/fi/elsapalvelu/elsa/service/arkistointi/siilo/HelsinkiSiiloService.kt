@@ -53,6 +53,7 @@ class HelsinkiSiiloService(
             .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).build()
         try {
             client.newCall(request).execute().use { response ->
+                log.info("Archive delivery response received [transport=SIILO, httpStatus={}]", response.code)
                 if (!response.isSuccessful) {
                     val retryable = response.code in setOf(408, 425, 429) || response.code in 500..599
                     throw SiiloTransferException("SIILO_HTTP_REJECTED", retryable, response.code)

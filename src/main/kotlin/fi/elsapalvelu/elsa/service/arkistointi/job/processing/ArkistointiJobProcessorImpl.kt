@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmissio
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaErrorCategory
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaLoader
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -19,6 +20,7 @@ class ArkistointiJobProcessorImpl(
     private val loader: ArkistointiAsiakirjaLoader,
     private val adapters: ArkistointiAdapterRegistry
 ) : ArkistointiJobProcessor {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     override fun process(execution: ArkistointiJobExecution) {
@@ -49,6 +51,7 @@ class ArkistointiJobProcessorImpl(
             prepared.jobId, prepared.university, prepared.caseType, prepared.payload,
             prepared.asiakirjat.map(loader::load), execution
         )
+        log.info("Archive documents loaded and verified [documentCount={}]", submission.asiakirjat.size)
         // This narrows the stale-send window. Lost active executions are parked: an in-flight send cannot be cancelled by fencing.
         if (!state.checkBeforeSend(execution)) {
             return
