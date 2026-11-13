@@ -25,7 +25,9 @@ class AsyncSahkeDelivery(private val builder: AsyncSahkePackageBuilder) {
         }
         val directory = Files.createTempDirectory("elsa-${transport.lowercase()}-")
         return try {
-            send(builder.build(submission, directory))
+            val archive = builder.build(submission, directory)
+            log.info("Archive SÄHKE package prepared and delivery started [transport={}]", transport)
+            send(archive)
         } catch (exception: SahkePackageException) {
             invalid("${transport}_${exception.failure.name}")
         } finally {
