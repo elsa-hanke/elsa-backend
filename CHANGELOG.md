@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.2...HEAD)
 
+- arkistointi: add archive delivery logging for Siilo [`#823`](https://github.com/elsa-hanke/elsa-backend/pull/823)(13 November 2026)
+- ELSA-1279 Erikoistujan tili ei näy (#820) [`#821`](https://github.com/elsa-hanke/elsa-backend/pull/821)(12 November 2026)
 - Bump node-forge from 1.4.2 to 1.4.3 in /frontend [`#818`](https://github.com/elsa-hanke/elsa-backend/pull/818)(11 November 2026)
 - Dynasty client (TURKU integraatio) [`#811`](https://github.com/elsa-hanke/elsa-backend/pull/811)(9 November 2026)
 - Release/v2.5.x merge [`#817`](https://github.com/elsa-hanke/elsa-backend/pull/817)(4 November 2026)
