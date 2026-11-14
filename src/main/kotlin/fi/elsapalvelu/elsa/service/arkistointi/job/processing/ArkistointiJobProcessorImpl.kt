@@ -26,7 +26,14 @@ class ArkistointiJobProcessorImpl(
     override fun process(execution: ArkistointiJobExecution) {
         try {
             processSubmission(execution)
+        } catch (exception: ParkArkistointiExecutionException) {
+            throw exception
+        } catch (exception: StaleArkistointiExecutionException) {
+            throw exception
+        } catch (exception: ArkistointiProcessingException) {
+            throw exception
         } catch (exception: Exception) {
+            log.error("Archive processing failed [jobId={}]", execution.jobId, exception)
             throw processingFailure(exception)
         }
     }
@@ -92,7 +99,8 @@ class ArkistointiJobProcessorImpl(
         } catch (exception: ArkistointiProcessingException) {
             // State validation failures must keep their classification, even for resumable adapters.
             throw exception
-        } catch (_: Exception) {
+        } catch (exception: Exception) {
+            log.error("Archive success persistence failed [jobId={}]", execution.jobId, exception)
             // Acceptance is known, but the commit may have failed or its acknowledgement was lost.
             // Only a resumable adapter may be invoked again automatically.
             throw ArkistointiProcessingException(

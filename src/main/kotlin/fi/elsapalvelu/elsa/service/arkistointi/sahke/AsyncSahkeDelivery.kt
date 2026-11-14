@@ -29,6 +29,7 @@ class AsyncSahkeDelivery(private val builder: AsyncSahkePackageBuilder) {
             log.info("Archive SÄHKE package prepared and delivery started [transport={}]", transport)
             send(archive)
         } catch (exception: SahkePackageException) {
+            log.error("Archive package preparation failed [transport={}]", transport, exception)
             invalid("${transport}_${exception.failure.name}")
         } finally {
             try {

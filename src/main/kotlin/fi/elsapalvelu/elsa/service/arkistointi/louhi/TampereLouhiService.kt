@@ -112,7 +112,7 @@ class TampereLouhiService internal constructor(
         val session = try {
             sessionFactory.session
         } catch (exception: Exception) {
-            throw LouhiTransferException.from(exception, LouhiTransferStage.CONNECT)
+            throw transferFailure(exception, LouhiTransferStage.CONNECT, policy)
         }
         val deadline = try {
             if (policy == LouhiExecutionPolicy.ASYNC) deadlines.schedule(
@@ -120,7 +120,7 @@ class TampereLouhiService internal constructor(
             ) else null
         } catch (exception: Exception) {
             closeSession(session)
-            throw LouhiTransferException.from(exception, LouhiTransferStage.CONNECT)
+            throw transferFailure(exception, LouhiTransferStage.CONNECT, policy)
         }
         var stage = LouhiTransferStage.LIST
         try {
@@ -138,13 +138,22 @@ class TampereLouhiService internal constructor(
             session.rename(targetPath, "$finished/$subFolder/${file.name}")
             log.info("Louhi package transfer completed")
         } catch (exception: ResponseStatusException) {
+            if (policy == LouhiExecutionPolicy.ASYNC) log.error("Louhi transfer failed [stage={}]", stage, exception)
             throw exception
         } catch (exception: Exception) {
-            throw LouhiTransferException.from(exception, stage)
+            throw transferFailure(exception, stage, policy)
         } finally {
             deadline?.cancel(false)
             closeSession(session)
         }
+    }
+
+    private fun transferFailure(exception: Exception, stage: LouhiTransferStage, policy: LouhiExecutionPolicy): LouhiTransferException {
+        val failure = LouhiTransferException.from(exception, stage)
+        if (policy == LouhiExecutionPolicy.ASYNC) {
+            log.error("Louhi transfer failed [stage={}, reason={}, sftpStatus={}]", stage, failure.reason, failure.sftpStatus, exception)
+        }
+        return failure
     }
 
     private fun closeSession(session: Session<SftpClient.DirEntry>) {

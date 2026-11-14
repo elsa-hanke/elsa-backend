@@ -56,7 +56,9 @@ class HelsinkiSiiloService(
                 log.info("Archive delivery response received [transport=SIILO, httpStatus={}]", response.code)
                 if (!response.isSuccessful) {
                     val retryable = response.code in setOf(408, 425, 429) || response.code in 500..599
-                    throw SiiloTransferException("SIILO_HTTP_REJECTED", retryable, response.code)
+                    val failure = SiiloTransferException("SIILO_HTTP_REJECTED", retryable, response.code)
+                    log.error("Siilo transfer failed [httpStatus={}]", response.code, failure)
+                    throw failure
                 }
                 // Do not log or deserialize the remote body: it can contain personal data.
             }
@@ -65,13 +67,16 @@ class HelsinkiSiiloService(
             // No receiver deduplication is assumed for replaying the ZIP.
             val failure = progress.failure(exception)
             val code = if (failure.definitelyNotSent) "SIILO_CONNECTION_FAILED" else "SIILO_DELIVERY_UNCONFIRMED"
+            log.error("Siilo transfer failed [errorCode={}, category={}]", code, siiloIoCategory(exception), exception)
             throw SiiloTransferException(code, failure.retryable, category = siiloIoCategory(exception))
         }
     }
 
     private fun requireAsyncConfiguration(valid: Boolean) {
         if (!valid) {
-            throw SiiloTransferException("SIILO_CONFIGURATION_INVALID", false)
+            val failure = SiiloTransferException("SIILO_CONFIGURATION_INVALID", false)
+            log.error("Siilo configuration invalid", failure)
+            throw failure
         }
     }
 

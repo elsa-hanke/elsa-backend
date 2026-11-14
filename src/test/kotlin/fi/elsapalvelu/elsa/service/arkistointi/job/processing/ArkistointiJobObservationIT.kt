@@ -91,7 +91,8 @@ class ArkistointiJobObservationIT {
         assertThat(observedCommittedState).isTrue()
         assertThat(errors()).isEqualTo(errorsBefore)
         verify(observer).onCompleted(ArkistointiAttemptCompleted(execution.jobId, YliopistoEnum.TURUN_YLIOPISTO,
-            CaseType.VALMISTUMINEN, 3, ArkistointiAttemptCompleted.Result.RETRYABLE_FAILURE, "UNAVAILABLE"))
+            CaseType.VALMISTUMINEN, 3, ArkistointiAttemptCompleted.Result.RETRYABLE_FAILURE, "UNAVAILABLE", failure().description,
+            17, 62, "test-approver"))
         verify(alerts).publishAlert(any(), any())
     }
 
@@ -162,8 +163,8 @@ class ArkistointiJobObservationIT {
             YliopistoHelper.createReferenceData(em, university)
             val source = AsiakirjaHelper.createEntity(em)
             em.persist(source)
-            creator.create(CreateArkistointiJobRequest(university, CaseType.VALMISTUMINEN, "{}", "observation-${UUID.randomUUID()}",
-                listOf(snapshots.createReference(source, RecordType.YHTEENVETO, 0)))).id!!
+            creator.create(CreateArkistointiJobRequest(university, CaseType.VALMISTUMINEN, """{"caseId":17,"opintooikeusId":62}""", "observation-${UUID.randomUUID()}",
+                listOf(snapshots.createReference(source, RecordType.YHTEENVETO, 0)), requestedByUserId = "test-approver")).id!!
         }
         transactions.executeWithoutResult {
             jdbc.update("update scheduled_tasks set picked = true, consecutive_failures = ? where task_instance = ?", previousFailures, id.toString())
