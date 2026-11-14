@@ -35,12 +35,16 @@ class ArkistointiJobObserverTest {
     }
 
     @Test
-    fun `threshold warning says automatic retries continue and includes safe identity only`() {
-        val event = event(3)
+    fun `threshold alert includes Finnish case details and transport diagnostics`() {
+        val event = event(3).copy(caseId = 17, opintooikeusId = 62, requestedByUserId = "test-vastuuhenkilo-tampere",
+            errorDescription = "Louhi-siirto epaonnistui [stage=CONNECT, reason=AUTHENTICATION_FAILED, status=null]")
         observer.onCompleted(event)
         val message = argumentCaptor<String>()
-        verify(alerts).publishAlert(any(), message.capture())
-        assertThat(message.firstValue).contains("Automaattiset yritykset jatkuvat", event.jobId.toString(), "attempt=3", "UNAVAILABLE")
+        verify(alerts).publishAlert(org.mockito.kotlin.eq("Tampereen yliopisto: arkistointi viivästyy"), message.capture())
+        assertThat(message.firstValue).contains(event.jobId.toString(), "Yritys: 3", "UNAVAILABLE",
+            "Asia: Valmistumispyyntö", "Asian tunniste: 17", "Opinto-oikeuden tunniste: 62",
+            "Arkistointipalvelu: Louhi", "CONNECT / AUTHENTICATION_FAILED", "test-vastuuhenkilo-tampere")
+        assertThat(message.firstValue).doesNotContain("Ympäristö", "Toimintaohje", "Automaattiset")
         assertThat(registry.find("arkistointi.errors.total").counter()).isNull()
     }
 
@@ -49,8 +53,8 @@ class ArkistointiJobObserverTest {
     fun `terminal outcomes always alert without a duplicate threshold warning`(attempt: Int) {
         observer.onCompleted(event(attempt).copy(result = ArkistointiAttemptCompleted.Result.TERMINAL_FAILURE))
         val message = argumentCaptor<String>()
-        verify(alerts).publishAlert(any(), message.capture())
-        assertThat(message.firstValue).contains("Automaattiset yritykset on lopetettu")
+        verify(alerts).publishAlert(org.mockito.kotlin.eq("Tampereen yliopisto: arkistointi vaatii toimenpiteitä"), message.capture())
+        assertThat(message.firstValue).contains("Yritys: $attempt")
         assertThat(registry.get("arkistointi.errors.total").counter().count()).isEqualTo(1.0)
         assertThat(registry.get("arkistointi.async.attempts.total").tag("outcome", "TERMINAL_FAILURE").counter().count()).isEqualTo(1.0)
     }
@@ -102,10 +106,34 @@ class ArkistointiJobObserverTest {
 
     @Test
     fun `malformed error code cannot inject arbitrary text into alert`() {
-        observer.onCompleted(event(3).copy(errorCode = "private/file.pdf\nsecret"))
+        observer.onCompleted(event(3).copy(errorCode = "private/file.pdf\nsecret", errorDescription = "private/file.pdf\nsecret", requestedByUserId = "secret\ninjected"))
         val message = argumentCaptor<String>()
         verify(alerts).publishAlert(any(), message.capture())
         assertThat(message.firstValue).contains("ARCHIVE_ERROR_UNSPECIFIED").doesNotContain("private", "secret", "file.pdf")
+    }
+
+    @Test
+    fun `Helsinki alert includes Siilo HTTP status and Finnish contract name`() {
+        observer.onCompleted(event(3).copy(university = YliopistoEnum.HELSINGIN_YLIOPISTO, caseType = CaseType.SOPIMUS,
+            errorCode = "SIILO_HTTP_REJECTED", errorDescription = "Siilo-toimitus epaonnistui [status=503, category=null]"))
+        val message = argumentCaptor<String>()
+        verify(alerts).publishAlert(org.mockito.kotlin.eq("Helsingin yliopisto: arkistointi viivästyy"), message.capture())
+        assertThat(message.firstValue).contains("Arkistointipalvelu: Siilo", "Asia: Koejakson koulutussopimus", "HTTP 503")
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [
+        "LOUHI_TRANSFER_FAILED: Louhi-siirto epaonnistui [stage=CONNECT, reason=AUTHENTICATION_FAILED, status=null]",
+        "SIILO_HTTP_REJECTED: Siilo-toimitus epaonnistui [status=503, category=null]"
+    ])
+    fun `exhausted retries retain the original transport diagnostics in the terminal alert`(failure: String) {
+        observer.onCompleted(event(25).copy(result = ArkistointiAttemptCompleted.Result.TERMINAL_FAILURE,
+            errorCode = "ARCHIVE_RETRIES_EXHAUSTED",
+            errorDescription = "Arkistoinnin enimmainen yritysmaara saavutettiin. $failure"))
+        val message = argumentCaptor<String>()
+        verify(alerts).publishAlert(any(), message.capture())
+        assertThat(message.firstValue).contains("ARCHIVE_RETRIES_EXHAUSTED",
+            if (failure.startsWith("LOUHI")) "CONNECT / AUTHENTICATION_FAILED" else "HTTP 503")
     }
 
     private fun event(attempt: Int) = ArkistointiAttemptCompleted(

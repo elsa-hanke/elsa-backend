@@ -94,7 +94,7 @@ class ArkistointiJobStateService(
         val terminal = stopRetrying || unknownDelivery
         val retry = recordFailure(job, recordedError, terminal)
         val result = if (terminal) ArkistointiAttemptCompleted.Result.TERMINAL_FAILURE else ArkistointiAttemptCompleted.Result.RETRYABLE_FAILURE
-        publishAttemptCompleted(job, attempt, result, recordedError.code)
+        publishAttemptCompleted(job, attempt, result, recordedError)
         return retry
     }
 
@@ -103,8 +103,19 @@ class ArkistointiJobStateService(
         return jobs.findByIdForStateChange(execution.jobId)?.status == ArkistointiJobStatus.VAATII_TOIMENPITEITA
     }
 
-    private fun publishAttemptCompleted(job: ArkistointiJob, attempt: Int, outcome: ArkistointiAttemptCompleted.Result, code: String? = null) {
-        events.publishEvent(ArkistointiAttemptCompleted(job.id.required(), job.university.required(), job.caseType.required(), attempt, outcome, code))
+    private fun publishAttemptCompleted(
+        job: ArkistointiJob, attempt: Int, outcome: ArkistointiAttemptCompleted.Result, error: ArkistointiError? = null
+    ) {
+        val payload = try {
+            mapper.readTree(job.payload.orEmpty())
+        } catch (_: JsonProcessingException) {
+            null
+        }
+        events.publishEvent(ArkistointiAttemptCompleted(
+            job.id.required(), job.university.required(), job.caseType.required(), attempt, outcome, error?.code,
+            error?.description, payload?.get("caseId")?.asText()?.toLongOrNull(),
+            payload?.get("opintooikeusId")?.asText()?.toLongOrNull(), job.requestedByUserId
+        ))
     }
 
     private fun recordFailure(job: ArkistointiJob, error: ArkistointiError, stopRetrying: Boolean): Boolean {

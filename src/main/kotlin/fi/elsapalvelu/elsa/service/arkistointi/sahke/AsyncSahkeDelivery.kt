@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.sahke
 
+import fi.elsapalvelu.elsa.service.arkistointi.logging.archiveLogException
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
@@ -29,6 +30,7 @@ class AsyncSahkeDelivery(private val builder: AsyncSahkePackageBuilder) {
             log.info("Archive SÄHKE package prepared and delivery started [transport={}]", transport)
             send(archive)
         } catch (exception: SahkePackageException) {
+            log.error("Archive package preparation failed [transport={}]", transport, archiveLogException(exception))
             invalid("${transport}_${exception.failure.name}")
         } finally {
             try {

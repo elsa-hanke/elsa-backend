@@ -1,5 +1,12 @@
 package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
+import fi.elsapalvelu.elsa.security.MDC_USER_ID_KEY
+import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.apache.sshd.sftp.client.SftpClient
 import org.apache.sshd.sftp.common.SftpException
 import org.assertj.core.api.Assertions.assertThat
@@ -32,6 +39,31 @@ class TampereLouhiServiceTest {
     fun tearDown() {
         service.close()
         temporaryFile?.let(Files::deleteIfExists)
+    }
+
+    @Test
+    fun `async connection failure logs original stack trace with requesting user`() {
+        val logger = LoggerFactory.getLogger(TampereLouhiService::class.java) as Logger
+        val appender = ListAppender<ILoggingEvent>().also { it.start(); logger.addAppender(it) }
+        val previousContext = MDC.getCopyOfContextMap()
+        val failure = IllegalStateException("Test connection failed", java.net.ConnectException("Test connection refused"))
+        whenever(sessionFactory.session).thenThrow(failure)
+        val zipFile = createTemporaryZip("failed-package")
+        try {
+            MDC.put(MDC_USER_ID_KEY, "test-approver")
+            MDC.put("archiveJobId", "test-job")
+            assertThatThrownBy { service.laheta(zipFile.toString(), false, LouhiExecutionPolicy.ASYNC) }
+                .isInstanceOf(LouhiTransferException::class.java)
+            val error = appender.list.single { it.level == Level.ERROR }
+            assertThat(error.formattedMessage).contains("CONNECT", "CONNECTION_REFUSED")
+            assertThat(error.throwableProxy.message).isEqualTo(failure.javaClass.name)
+            assertThat(error.throwableProxy.stackTraceElementProxyArray).isNotEmpty
+            assertThat(error.mdcPropertyMap).containsEntry(MDC_USER_ID_KEY, "test-approver").containsEntry("archiveJobId", "test-job")
+        } finally {
+            logger.detachAppender(appender)
+            appender.stop()
+            if (previousContext == null) MDC.clear() else MDC.setContextMap(previousContext)
+        }
     }
 
     @ParameterizedTest
