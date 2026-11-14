@@ -56,7 +56,7 @@ class TampereLouhiServiceTest {
                 .isInstanceOf(LouhiTransferException::class.java)
             val error = appender.list.single { it.level == Level.ERROR }
             assertThat(error.formattedMessage).contains("CONNECT", "CONNECTION_REFUSED")
-            assertThat(error.throwableProxy.className).isEqualTo(failure.javaClass.name)
+            assertThat(error.throwableProxy.message).isEqualTo(failure.javaClass.name)
             assertThat(error.throwableProxy.stackTraceElementProxyArray).isNotEmpty
             assertThat(error.mdcPropertyMap).containsEntry(MDC_USER_ID_KEY, "test-approver").containsEntry("archiveJobId", "test-job")
         } finally {

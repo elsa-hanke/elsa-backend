@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
+import fi.elsapalvelu.elsa.service.arkistointi.logging.archiveLogException
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.LouhiTransferProperties
 import jakarta.annotation.PreDestroy
@@ -138,7 +139,7 @@ class TampereLouhiService internal constructor(
             session.rename(targetPath, "$finished/$subFolder/${file.name}")
             log.info("Louhi package transfer completed")
         } catch (exception: ResponseStatusException) {
-            if (policy == LouhiExecutionPolicy.ASYNC) log.error("Louhi transfer failed [stage={}]", stage, exception)
+            if (policy == LouhiExecutionPolicy.ASYNC) log.error("Louhi transfer failed [stage={}]", stage, archiveLogException(exception))
             throw exception
         } catch (exception: Exception) {
             throw transferFailure(exception, stage, policy)
@@ -151,7 +152,7 @@ class TampereLouhiService internal constructor(
     private fun transferFailure(exception: Exception, stage: LouhiTransferStage, policy: LouhiExecutionPolicy): LouhiTransferException {
         val failure = LouhiTransferException.from(exception, stage)
         if (policy == LouhiExecutionPolicy.ASYNC) {
-            log.error("Louhi transfer failed [stage={}, reason={}, sftpStatus={}]", stage, failure.reason, failure.sftpStatus, exception)
+            log.error("Louhi transfer failed [stage={}, reason={}, sftpStatus={}]", stage, failure.reason, failure.sftpStatus, archiveLogException(exception))
         }
         return failure
     }

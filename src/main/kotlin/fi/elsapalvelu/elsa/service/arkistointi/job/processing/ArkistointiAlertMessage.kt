@@ -13,10 +13,13 @@ internal object ArkistointiAlertMessage {
     private val siiloDetails = Regex(
         "Siilo-toimitus epaonnistui \\[status=(null|[0-9]{3}), category=(null|TIMEOUT|DNS|CONNECT|TLS|IO)\\]"
     )
+    private val exhaustedPrefix = Regex("^Arkistoinnin enimmainen yritysmaara saavutettiin\\. [A-Z][A-Z0-9_]{0,99}: ")
     private val safeUserId = Regex("[a-zA-Z0-9@._-]{1,100}")
 
     fun diagnostics(event: ArkistointiAttemptCompleted): String {
-        val description = event.errorDescription.orEmpty()
+        val description = event.errorDescription.orEmpty().let {
+            if (event.errorCode == "ARCHIVE_RETRIES_EXHAUSTED") exhaustedPrefix.replaceFirst(it, "") else it
+        }
         louhiDetails.matchEntire(description)?.let {
             val (stage, reason, status) = it.destructured
             return "$stage / $reason" + if (status == "null") "" else " / SFTP $status"

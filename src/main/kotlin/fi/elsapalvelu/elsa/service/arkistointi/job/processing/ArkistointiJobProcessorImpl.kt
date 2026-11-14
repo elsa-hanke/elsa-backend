@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.processing
 
+import fi.elsapalvelu.elsa.service.arkistointi.logging.archiveLogException
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
@@ -33,7 +34,7 @@ class ArkistointiJobProcessorImpl(
         } catch (exception: ArkistointiProcessingException) {
             throw exception
         } catch (exception: Exception) {
-            log.error("Archive processing failed [jobId={}]", execution.jobId, exception)
+            log.error("Archive processing failed [jobId={}]", execution.jobId, archiveLogException(exception))
             throw processingFailure(exception)
         }
     }
@@ -100,7 +101,7 @@ class ArkistointiJobProcessorImpl(
             // State validation failures must keep their classification, even for resumable adapters.
             throw exception
         } catch (exception: Exception) {
-            log.error("Archive success persistence failed [jobId={}]", execution.jobId, exception)
+            log.error("Archive success persistence failed [jobId={}]", execution.jobId, archiveLogException(exception))
             // Acceptance is known, but the commit may have failed or its acknowledgement was lost.
             // Only a resumable adapter may be invoked again automatically.
             throw ArkistointiProcessingException(

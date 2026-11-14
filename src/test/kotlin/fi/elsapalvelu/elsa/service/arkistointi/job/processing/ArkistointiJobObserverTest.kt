@@ -121,6 +121,21 @@ class ArkistointiJobObserverTest {
         assertThat(message.firstValue).contains("Arkistointipalvelu: Siilo", "Asia: Koejakson koulutussopimus", "HTTP 503")
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = [
+        "LOUHI_TRANSFER_FAILED: Louhi-siirto epaonnistui [stage=CONNECT, reason=AUTHENTICATION_FAILED, status=null]",
+        "SIILO_HTTP_REJECTED: Siilo-toimitus epaonnistui [status=503, category=null]"
+    ])
+    fun `exhausted retries retain the original transport diagnostics in the terminal alert`(failure: String) {
+        observer.onCompleted(event(25).copy(result = ArkistointiAttemptCompleted.Result.TERMINAL_FAILURE,
+            errorCode = "ARCHIVE_RETRIES_EXHAUSTED",
+            errorDescription = "Arkistoinnin enimmainen yritysmaara saavutettiin. $failure"))
+        val message = argumentCaptor<String>()
+        verify(alerts).publishAlert(any(), message.capture())
+        assertThat(message.firstValue).contains("ARCHIVE_RETRIES_EXHAUSTED",
+            if (failure.startsWith("LOUHI")) "CONNECT / AUTHENTICATION_FAILED" else "HTTP 503")
+    }
+
     private fun event(attempt: Int) = ArkistointiAttemptCompleted(
         UUID.randomUUID(), YliopistoEnum.TAMPEREEN_YLIOPISTO, CaseType.VALMISTUMINEN,
         attempt, ArkistointiAttemptCompleted.Result.RETRYABLE_FAILURE, "UNAVAILABLE"
