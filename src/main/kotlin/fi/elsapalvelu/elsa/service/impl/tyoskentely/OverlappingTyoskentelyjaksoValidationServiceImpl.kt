@@ -4,6 +4,7 @@ import fi.elsapalvelu.elsa.required
 
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
+import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyyTyyppi
 import fi.elsapalvelu.elsa.extensions.isInRange
@@ -15,7 +16,7 @@ import fi.elsapalvelu.elsa.service.constants.HYVAKSILUETTAVAT_DAYS
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.HyvaksiluettavatCounterData
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
-import jakarta.transaction.Transactional
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.stereotype.Service
 import java.time.ZoneId
 import kotlin.math.abs
@@ -23,7 +24,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 class OverlappingTyoskentelyjaksoValidationServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val keskeytysaikaRepository: KeskeytysaikaRepository,
@@ -33,6 +34,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
     override fun validateTyoskentelyjakso(opintooikeusId: Long, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO): Boolean {
         val tyoskentelyjaksoEndDate = tyoskentelyjaksoDTO.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
         val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(opintooikeusId, tyoskentelyjaksoEndDate)
+            .map(::copyForValidation)
 
         if (tyoskentelyjaksot.isEmpty()) return true
 
@@ -58,7 +60,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
             tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(
                 opintooikeusId,
                 tyoskentelyjaksoEndDate
-            )
+            ).map(::copyForValidation)
 
         if (tyoskentelyjaksot.size == 1) return true
 
@@ -89,7 +91,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
             tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(
                 opintooikeusId,
                 tyoskentelyjaksoEndDate
-            )
+            ).map(::copyForValidation)
 
         if (tyoskentelyjaksot.size == 1) return true
 
@@ -191,6 +193,30 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
             }
         }
         return true
+    }
+
+    // Never apply hypothetical changes to managed entities: validation can join a write transaction.
+    // Absences need separate objects and a separate collection to avoid dirty checking and orphan removal.
+    private fun copyForValidation(source: Tyoskentelyjakso): Tyoskentelyjakso {
+        val copy = Tyoskentelyjakso(
+            id = source.id,
+            alkamispaiva = source.alkamispaiva,
+            paattymispaiva = source.paattymispaiva,
+            osaaikaprosentti = source.osaaikaprosentti,
+            suoritusarvioinnit = source.suoritusarvioinnit.toMutableSet(),
+            suoritemerkinnat = source.suoritemerkinnat.toMutableSet()
+        )
+        copy.keskeytykset = source.keskeytykset.map { absence ->
+            Keskeytysaika(
+                id = absence.id,
+                alkamispaiva = absence.alkamispaiva,
+                paattymispaiva = absence.paattymispaiva,
+                poissaoloprosentti = absence.poissaoloprosentti,
+                poissaolonSyy = absence.poissaolonSyy,
+                tyoskentelyjakso = copy
+            )
+        }.toMutableSet()
+        return copy
     }
 
     private fun updateExistingTyoskentelyjaksoIfExists(
