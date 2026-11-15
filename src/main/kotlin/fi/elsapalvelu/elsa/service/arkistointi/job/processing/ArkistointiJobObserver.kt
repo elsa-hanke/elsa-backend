@@ -17,7 +17,7 @@ class ArkistointiJobObserver(
     private val alerts: AlertPublisherService,
     properties: ApplicationProperties
 ) {
-    private val alertAfterAttempts = properties.getArkistointi().retry.also { it.validate() }.alertAfterAttempts
+    private val alertAttempts = properties.getArkistointi().retry.also { it.validate() }.alertAttempts.toSet()
     private val log = LoggerFactory.getLogger(javaClass)
 
     /** Best effort after commit: telemetry must never turn a committed delivery into a scheduler failure. */
@@ -44,7 +44,7 @@ class ArkistointiJobObserver(
                 publish(event, code, terminal = true)
             }
             RETRYABLE_FAILURE ->
-                if (event.attempt == alertAfterAttempts) {
+                if (event.attempt in alertAttempts) {
                     log.warn("Archive delivery delayed [{}]", details)
                     publish(event, code, terminal = false)
                 } else {

@@ -26,7 +26,7 @@ class ArkistointiJobObserverTest {
     private val observer = ArkistointiJobObserver(metrics, alerts, ApplicationProperties())
 
     @ParameterizedTest
-    @ValueSource(ints = [1, 2, 4, 24])
+    @ValueSource(ints = [1, 2, 4, 9, 11, 19, 21, 24])
     fun `ordinary retry failures record metrics without alerts`(attempt: Int) {
         observer.onCompleted(event(attempt))
         verifyNoInteractions(alerts)
@@ -34,14 +34,15 @@ class ArkistointiJobObserverTest {
         assertThat(registry.get("arkistointi.async.attempts.total").tag("outcome", "RETRYABLE_FAILURE").counter().count()).isEqualTo(1.0)
     }
 
-    @Test
-    fun `threshold alert includes Finnish case details and transport diagnostics`() {
-        val event = event(3).copy(caseId = 17, opintooikeusId = 62, requestedByUserId = "test-vastuuhenkilo-tampere",
+    @ParameterizedTest
+    @ValueSource(ints = [3, 10, 20])
+    fun `threshold alert includes Finnish case details and transport diagnostics`(attempt: Int) {
+        val event = event(attempt).copy(caseId = 17, opintooikeusId = 62, requestedByUserId = "test-vastuuhenkilo-tampere",
             errorDescription = "Louhi-siirto epaonnistui [stage=CONNECT, reason=AUTHENTICATION_FAILED, status=null]")
         observer.onCompleted(event)
         val message = argumentCaptor<String>()
         verify(alerts).publishAlert(org.mockito.kotlin.eq("Tampereen yliopisto: arkistointi viivästyy"), message.capture())
-        assertThat(message.firstValue).contains(event.jobId.toString(), "Yritys: 3", "UNAVAILABLE",
+        assertThat(message.firstValue).contains(event.jobId.toString(), "Yritys: $attempt", "UNAVAILABLE",
             "Asia: Valmistumispyyntö", "Asian tunniste: 17", "Opinto-oikeuden tunniste: 62",
             "Arkistointipalvelu: Louhi", "CONNECT / AUTHENTICATION_FAILED", "test-vastuuhenkilo-tampere")
         assertThat(message.firstValue).doesNotContain("Ympäristö", "Toimintaohje", "Automaattiset")
@@ -49,7 +50,7 @@ class ArkistointiJobObserverTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = [1, 3, 25])
+    @ValueSource(ints = [1, 3, 10, 20, 25])
     fun `terminal outcomes always alert without a duplicate threshold warning`(attempt: Int) {
         observer.onCompleted(event(attempt).copy(result = ArkistointiAttemptCompleted.Result.TERMINAL_FAILURE))
         val message = argumentCaptor<String>()
@@ -87,12 +88,16 @@ class ArkistointiJobObserverTest {
 
     @Test
     fun `alert threshold is configurable`() {
-        val properties = ApplicationProperties().apply { getArkistointi().retry.alertAfterAttempts = 2 }
+        val properties = ApplicationProperties().apply { getArkistointi().retry.alertAttempts = listOf(2, 5) }
         val configured = ArkistointiJobObserver(metrics, alerts, properties)
         configured.onCompleted(event(1))
         verifyNoInteractions(alerts)
         configured.onCompleted(event(2))
+        configured.onCompleted(event(3))
+        configured.onCompleted(event(4))
         verify(alerts).publishAlert(any(), any())
+        configured.onCompleted(event(5))
+        verify(alerts, org.mockito.kotlin.times(2)).publishAlert(any(), any())
     }
 
     @Test

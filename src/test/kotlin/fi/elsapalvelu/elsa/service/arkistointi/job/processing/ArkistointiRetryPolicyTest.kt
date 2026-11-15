@@ -97,7 +97,7 @@ class ArkistointiRetryPolicyTest {
     @Test
     fun `invalid limits and delays fail validation`() {
         val invalid = listOf<ArkistointiRetryProperties.() -> Unit>(
-            { maxAttempts = 0 }, { alertAfterAttempts = 0 }, { initialDelay = Duration.ZERO },
+            { maxAttempts = 0 }, { alertAttempts = listOf(0) }, { alertAttempts = listOf(-1) }, { alertAttempts = emptyList() }, { initialDelay = Duration.ZERO },
             { maxDelay = Duration.ofSeconds(1) }, { multiplier = Double.NaN }, { multiplier = 0.5 },
             { jitterFactor = -0.1 }, { jitterFactor = 1.0 }, { jitterFactor = Double.NaN }, { jitterFactor = Double.POSITIVE_INFINITY }
         )
@@ -115,13 +115,13 @@ class ArkistointiRetryPolicyTest {
             .withProperty("application.arkistointi.retry.max-delay", "12s")
             .withProperty("application.arkistointi.retry.multiplier", "3")
             .withProperty("application.arkistointi.retry.jitter-factor", "0")
-            .withProperty("application.arkistointi.retry.alert-after-attempts", "4")
+            .withProperty("application.arkistointi.retry.alert-attempts", "2,4,6")
         Binder.get(environment).bind("application", Bindable.ofInstance(application))
 
         val policy = ArkistointiDbSchedulerConfiguration().arkistointiRetryPolicy(application)
 
         assertThat(policy.maxAttempts).isEqualTo(7)
-        assertThat(application.getArkistointi().retry.alertAfterAttempts).isEqualTo(4)
+        assertThat(application.getArkistointi().retry.alertAttempts).containsExactly(2, 4, 6)
         assertThat((0..2).map(policy::delay))
             .containsExactly(Duration.ofSeconds(3), Duration.ofSeconds(9), Duration.ofSeconds(12))
         application.getArkistointi().retry.apply {
