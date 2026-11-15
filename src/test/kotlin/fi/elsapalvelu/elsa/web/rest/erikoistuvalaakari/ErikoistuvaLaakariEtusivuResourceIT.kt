@@ -90,41 +90,41 @@ class ErikoistuvaLaakariEtusivuResourceIT {
 
         erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user, erikoisala = erikoisala)
 
-        em.persist(TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user))
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user).also(em::persist)
 
         arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala)
         em.persist(arvioitavanKokonaisuudenKategoria)
 
-        arvioitavaKokonaisuus1 = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvioitavanKokonaisuudenKategoria)
+        arvioitavaKokonaisuus1 = ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = arvioitavanKokonaisuudenKategoria)
         em.persist(arvioitavaKokonaisuus1)
         arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus1)
 
-        arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvioitavanKokonaisuudenKategoria)
+        arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = arvioitavanKokonaisuudenKategoria)
         em.persist(arvioitavaKokonaisuus2)
         arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus2)
 
         val suoritusarviointi1 = SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 2,
-            arvioitavaKokonaisuus = arvioitavaKokonaisuus1)
+            arvioitavaKokonaisuus = arvioitavaKokonaisuus1, tyoskentelyjakso = tyoskentelyjakso)
         em.persist(suoritusarviointi1)
 
         val suoritusarviointi2 = SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 3,
-            arvioitavaKokonaisuus = arvioitavaKokonaisuus2)
+            arvioitavaKokonaisuus = arvioitavaKokonaisuus2, tyoskentelyjakso = tyoskentelyjakso)
         em.persist(suoritusarviointi2)
 
         suoritteenKategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
         em.persist(suoritteenKategoria)
 
-        suorite1 = SuoriteHelper.createEntity(em, existingKategoria = suoritteenKategoria, vaadittuLkm = 1)
+        suorite1 = SuoriteHelper.createEntity(em, kategoria = suoritteenKategoria, vaadittuLkm = 1)
         em.persist(suorite1)
         suoritteenKategoria.suoritteet.add(suorite1)
 
-        suorite2 = SuoriteHelper.createEntity(em, existingKategoria = suoritteenKategoria, vaadittuLkm = 5)
+        suorite2 = SuoriteHelper.createEntity(em, kategoria = suoritteenKategoria, vaadittuLkm = 5)
         em.persist(suorite2)
         suoritteenKategoria.suoritteet.add(suorite2)
 
-        suoritemerkinta = SuoritemerkintaHelper.createEntity(em, erikoisala, erikoistuvaLaakari.kayttaja?.user, existingSuorite = suorite1)
+        suoritemerkinta = SuoritemerkintaHelper.createEntity(em, erikoisala, erikoistuvaLaakari.kayttaja?.user, suorite = suorite1, tyoskentelyjakso = tyoskentelyjakso)
         em.persist(suoritemerkinta)
-        em.persist(SuoritemerkintaHelper.createEntity(em, erikoisala, erikoistuvaLaakari.kayttaja?.user, existingSuorite = suorite2))
+        em.persist(SuoritemerkintaHelper.createEntity(em, erikoisala, erikoistuvaLaakari.kayttaja?.user, suorite = suorite2, tyoskentelyjakso = tyoskentelyjakso))
         em.persist(TeoriakoulutusHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, LocalDate.ofEpochDay(0), LocalDate.ofEpochDay(5), 37.5))
         em.persist(TeoriakoulutusHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, LocalDate.ofEpochDay(5), LocalDate.ofEpochDay(10), 20.0))
 
@@ -442,7 +442,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
 
         // Katseluoikeus päättyy 28.2.1970
         val katseluoikeus =
-            KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(58L))
+            KouluttajavaltuutusHelper.createEntity(em, opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(), paattymispaiva = LocalDate.ofEpochDay(58L))
         em.persist(katseluoikeus)
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/avoimet-asiat"))
@@ -459,7 +459,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
 
         // Katseluoikeus päättyy 1.3.1970
         val katseluoikeus =
-            KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(59L))
+            KouluttajavaltuutusHelper.createEntity(em, opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(), paattymispaiva = LocalDate.ofEpochDay(59L))
         em.persist(katseluoikeus)
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/avoimet-asiat"))
@@ -475,7 +475,7 @@ class ErikoistuvaLaakariEtusivuResourceIT {
 
         // Katseluoikeus päättyy 1.3.1970
         val katseluoikeus =
-            KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(29L))
+            KouluttajavaltuutusHelper.createEntity(em, opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(), paattymispaiva = LocalDate.ofEpochDay(29L))
         em.persist(katseluoikeus)
 
         restEtusivuMockMvc.perform(get("$ENDPOINT_URL/avoimet-asiat"))

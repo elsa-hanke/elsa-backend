@@ -186,13 +186,13 @@ class KouluttajaEtusivuResourceIT {
                 paattymispaiva = LocalDate.now().plusMonths(6), valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa(),
                 valtuutettu = kouluttaja, valtuutuksenLuontiaika = Instant.now(), valtuutuksenMuokkausaika = Instant.now()))
 
-        tyoskentelyjaksoRepository.saveAndFlush(TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user))
+        val tyoskentelyjakso = tyoskentelyjaksoRepository.saveAndFlush(TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user))
 
         val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala1)
         arvioitavanKokonaisuudenKategoriaRepository.save(arvioitavanKokonaisuudenKategoria)
-        val arvioitavaKokonaisuus1 = ArvioitavaKokonaisuusHelper.createEntity(em)
+        val arvioitavaKokonaisuus1 = ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = arvioitavanKokonaisuudenKategoria)
         arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus1)
-        val arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em)
+        val arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = arvioitavanKokonaisuudenKategoria)
         arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus2)
 
         arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus1)
@@ -200,13 +200,14 @@ class KouluttajaEtusivuResourceIT {
 
         // Vain korkein arvosana lasketaan
         suoritusarviointiRepository.save(SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 2,
-            arvioitavaKokonaisuus = arvioitavaKokonaisuus1))
+            arvioitavaKokonaisuus = arvioitavaKokonaisuus1, tyoskentelyjakso = tyoskentelyjakso))
         suoritusarviointiRepository.save(SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 4,
-                arvioitavaKokonaisuus = arvioitavaKokonaisuus1))
+                arvioitavaKokonaisuus = arvioitavaKokonaisuus1, tyoskentelyjakso = tyoskentelyjakso))
 
         suoritusarviointiRepository.save(
-            SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 3, arvioitavaKokonaisuus = arvioitavaKokonaisuus2))
-        suoritemerkintaRepository.save(SuoritemerkintaHelper.createEntity(em))
+            SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 3,
+                arvioitavaKokonaisuus = arvioitavaKokonaisuus2, tyoskentelyjakso = tyoskentelyjakso))
+        suoritemerkintaRepository.save(SuoritemerkintaHelper.createEntity(em, tyoskentelyjakso = tyoskentelyjakso))
         seurantajaksoRepository.save(SeurantajaksoHelper.createEntity(erikoistuvaLaakari, kouluttaja))
 
         val seurantajakso = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, kouluttaja)
@@ -460,7 +461,7 @@ class KouluttajaEtusivuResourceIT {
         initMockTime()
 
         // Katseluoikeus päättyy 28.2.1970
-        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(58L))
+        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, valtuutettu = kouluttaja, paattymispaiva = LocalDate.ofEpochDay(58L))
         em.persist(katseluoikeus)
 
         restEtusivuMockMvc.perform(
@@ -479,7 +480,7 @@ class KouluttajaEtusivuResourceIT {
         initMockTime()
 
         // Katseluoikeus päättyy 1.3.1970
-        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(59L))
+        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, valtuutettu = kouluttaja, paattymispaiva = LocalDate.ofEpochDay(59L))
         em.persist(katseluoikeus)
 
         restEtusivuMockMvc.perform(
@@ -498,7 +499,7 @@ class KouluttajaEtusivuResourceIT {
         initMockTime()
 
         // Katseluoikeus päättyy 1.3.1970
-        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, paattymispaiva = LocalDate.ofEpochDay(29L))
+        val katseluoikeus = KouluttajavaltuutusHelper.createEntity(em, valtuutettu = kouluttaja, paattymispaiva = LocalDate.ofEpochDay(29L))
         em.persist(katseluoikeus)
 
         restEtusivuMockMvc.perform(

@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.arviointi.Arviointiasteikko
 import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.koulutus.Opintoopas
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
@@ -45,17 +44,9 @@ object OpintoopasHelper {
             em: EntityManager,
             voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
             voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLO_PAATTYY,
-            erikoisala: Erikoisala
+            erikoisala: Erikoisala,
+            arviointiasteikko: Arviointiasteikko = luoArviointiasteikko(em)
         ): Opintoopas {
-            val arviointiasteikko: Arviointiasteikko
-            if (em.findAll(Arviointiasteikko::class).isEmpty()) {
-                arviointiasteikko = ArviointiasteikkoHelper.createEntity()
-                em.persist(arviointiasteikko)
-                em.flush()
-            } else {
-                arviointiasteikko = em.findAll(Arviointiasteikko::class).get(0)
-            }
-
             val opintoopas = Opintoopas(
                 nimi = DEFAULT_NIMI,
                 voimassaoloAlkaa = voimassaoloAlkaa,
@@ -99,4 +90,13 @@ object OpintoopasHelper {
 
         }
 
+    private fun luoArviointiasteikko(em: EntityManager): Arviointiasteikko {
+        val arviointiasteikko = ArviointiasteikkoHelper.createEntity()
+        em.persist(arviointiasteikko)
+        arviointiasteikko.tasot.forEach { taso ->
+            taso.arviointiasteikko = arviointiasteikko
+            em.persist(taso)
+        }
+        return arviointiasteikko
+    }
 }

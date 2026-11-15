@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.suoritteet.Suorite
 import fi.elsapalvelu.elsa.domain.suoritteet.SuoritteenKategoria
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
@@ -28,7 +27,7 @@ object SuoriteHelper {
         erikoisala: Erikoisala? = null,
         voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLON_ALKAMISPAIVA,
         voimassaoloPaattyy: LocalDate? = DEFAULT_VOIMASSAOLON_PAATTYMISPAIVA,
-        existingKategoria: SuoritteenKategoria? = null,
+        kategoria: SuoritteenKategoria? = null,
         vaadittuLkm: Int? = null
     ): Suorite {
         val suorite = Suorite(
@@ -38,38 +37,21 @@ object SuoriteHelper {
             vaadittulkm = vaadittuLkm
         )
 
-        val suoritteenKategoria = existingKategoria ?: run {
-            if (em.findAll(SuoritteenKategoria::class).isEmpty()) {
-                SuoritteenKategoriaHelper.createEntity(em, erikoisala).also {
-                    em.persist(it)
-                    em.flush()
-                }
-            } else {
-                em.findAll(SuoritteenKategoria::class).first()
-            }
-        }
+        val suoritteenKategoria = kategoria ?: SuoritteenKategoriaHelper.createEntity(em, erikoisala).also(em::persist)
 
         suorite.kategoria = suoritteenKategoria
 
         return suorite
     }
 
-    fun createUpdatedEntity(em: EntityManager): Suorite {
+    fun createUpdatedEntity(em: EntityManager, kategoria: SuoritteenKategoria? = null): Suorite {
         val suorite = Suorite(
             nimi = UPDATED_NIMI,
             voimassaolonAlkamispaiva = UPDATED_VOIMASSAOLON_ALKAMISPAIVA,
             voimassaolonPaattymispaiva = UPDATED_VOIMASSAOLON_PAATTYMISPAIVA
         )
 
-        val suoritteenKategoria =
-            if (em.findAll(SuoritteenKategoria::class).isEmpty()) {
-                SuoritteenKategoriaHelper.createUpdatedEntity(em).also {
-                    em.persist(it)
-                    em.flush()
-                }
-            } else {
-                em.findAll(SuoritteenKategoria::class).first()
-            }
+        val suoritteenKategoria = kategoria ?: SuoritteenKategoriaHelper.createUpdatedEntity(em).also(em::persist)
 
         suorite.kategoria = suoritteenKategoria
 

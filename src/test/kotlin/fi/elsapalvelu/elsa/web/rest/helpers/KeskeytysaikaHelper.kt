@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import jakarta.persistence.EntityManager
 
@@ -20,17 +19,14 @@ object KeskeytysaikaHelper {
 
     fun createEntity(
         em: EntityManager,
-        tyoskentelyjakso: Tyoskentelyjakso
+        tyoskentelyjakso: Tyoskentelyjakso,
+        poissaolonSyy: PoissaolonSyy = PoissaolonSyyHelper.createEntity().also(em::persist)
     ): Keskeytysaika {
         val keskeytysaika = Keskeytysaika(
             alkamispaiva = DEFAULT_ALKAMISPAIVA,
             paattymispaiva = DEFAULT_PAATTYMISPAIVA,
             poissaoloprosentti = DEFAULT_POISSAOLOPROSENTTI
         )
-
-        val poissaolonSyy = getOrCreatePoissaolonSyy(em) {
-            PoissaolonSyyHelper.createEntity()
-        }
 
         keskeytysaika.poissaolonSyy = poissaolonSyy
         keskeytysaika.tyoskentelyjakso = tyoskentelyjakso
@@ -40,7 +36,8 @@ object KeskeytysaikaHelper {
 
     fun createUpdatedEntity(
         em: EntityManager,
-        tyoskentelyjakso: Tyoskentelyjakso
+        tyoskentelyjakso: Tyoskentelyjakso,
+        poissaolonSyy: PoissaolonSyy = PoissaolonSyyHelper.createUpdatedEntity().also(em::persist)
     ): Keskeytysaika {
         val keskeytysaika = Keskeytysaika(
             alkamispaiva = UPDATED_ALKAMISPAIVA,
@@ -48,31 +45,10 @@ object KeskeytysaikaHelper {
             poissaoloprosentti = UPDATED_POISSAOLOPROSENTTI
         )
 
-        val poissaolonSyy = getOrCreatePoissaolonSyy(em) {
-            PoissaolonSyyHelper.createUpdatedEntity()
-        }
-
         keskeytysaika.poissaolonSyy = poissaolonSyy
         keskeytysaika.tyoskentelyjakso = tyoskentelyjakso
 
         return keskeytysaika
     }
 
-    private fun getOrCreatePoissaolonSyy(
-        em: EntityManager,
-        create: () -> PoissaolonSyy
-    ): PoissaolonSyy {
-        val existing = em.findAll(PoissaolonSyy::class)
-
-        return if (existing.isEmpty()) {
-            create().also {
-                em.persist(it)
-                em.flush()
-            }
-        } else {
-            // Unordered queries return different rows across databases. Keep the
-            // fixture's baseline absence reason stable regardless of row order.
-            existing.minBy { requireNotNull(it.id) }
-        }
-    }
 }

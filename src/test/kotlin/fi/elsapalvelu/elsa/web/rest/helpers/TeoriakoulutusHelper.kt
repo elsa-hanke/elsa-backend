@@ -1,9 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
 import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
@@ -40,7 +39,8 @@ object TeoriakoulutusHelper {
         alkamispaiva: LocalDate = DEFAULT_ALKAMISPAIVA,
         paattymispaiva: LocalDate = DEFAULT_PAATTYMISPAIVA,
         erikoistumiseenHyvaksyttavaTuntimaara: Double? =
-            DEFAULT_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA
+            DEFAULT_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA,
+        opintooikeus: Opintooikeus = Testisuhteet.opintooikeus(em, user)
     ): Teoriakoulutus {
         val teoriakoulutus = Teoriakoulutus(
             koulutuksenNimi = DEFAULT_KOULUTUKSEN_NIMI,
@@ -51,21 +51,12 @@ object TeoriakoulutusHelper {
                 erikoistumiseenHyvaksyttavaTuntimaara
         )
 
-        val erikoistuvaLaakari =
-            em.findAll(ErikoistuvaLaakari::class)
-                .firstOrNull { it.kayttaja?.user == user }
-                ?: ErikoistuvaLaakariHelper.createEntity(em, user).also {
-                    em.persist(it)
-                    em.flush()
-                }
-
-        teoriakoulutus.opintooikeus =
-            erikoistuvaLaakari.getOpintooikeusKaytossa()
+        teoriakoulutus.opintooikeus = opintooikeus
 
         return teoriakoulutus
     }
 
-    fun createUpdatedEntity(em: EntityManager): Teoriakoulutus {
+    fun createUpdatedEntity(opintooikeus: Opintooikeus): Teoriakoulutus {
         val teoriakoulutus = Teoriakoulutus(
             koulutuksenNimi = UPDATED_KOULUTUKSEN_NIMI,
             koulutuksenPaikka = UPDATED_KOULUTUKSEN_PAIKKA,
@@ -75,20 +66,7 @@ object TeoriakoulutusHelper {
                 UPDATED_ERIKOISTUMISEEN_HYVAKSYTTAVA_TUNTIMAARA
         )
 
-        val existing = em.findAll(ErikoistuvaLaakari::class)
-
-        val erikoistuvaLaakari =
-            if (existing.isEmpty()) {
-                ErikoistuvaLaakariHelper.createUpdatedEntity(em).also {
-                    em.persist(it)
-                    em.flush()
-                }
-            } else {
-                existing.first()
-            }
-
-        teoriakoulutus.opintooikeus =
-            erikoistuvaLaakari.getOpintooikeusKaytossa()
+        teoriakoulutus.opintooikeus = opintooikeus
 
         return teoriakoulutus
     }

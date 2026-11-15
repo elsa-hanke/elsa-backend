@@ -141,7 +141,7 @@ class TyoskentelyjaksoServiceDeleteIT {
     fun deleteOwnTyoskentelyjaksoWithSuoritusarviointiReturnsFalseAndKeepsReferences() {
         em.detach(tyoskentelyjakso)
         suoritusarviointiRepository.saveAndFlush(
-            SuoritusarviointiHelper.createEntity(em, owner)
+            SuoritusarviointiHelper.createEntity(em, owner, tyoskentelyjakso = em.find(Tyoskentelyjakso::class.java, tyoskentelyjaksoId))
         )
 
         val result = tyoskentelyjaksoService.delete(tyoskentelyjaksoId, ownerOpintooikeusId)

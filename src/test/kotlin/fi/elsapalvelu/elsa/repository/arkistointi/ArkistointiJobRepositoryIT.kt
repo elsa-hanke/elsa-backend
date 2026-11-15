@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.repository.arkistointi
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
@@ -38,7 +39,7 @@ class ArkistointiJobRepositoryIT {
 
     @Test
     fun `job ja asiakirjaviite tallennetaan ja haetaan`() {
-        val asiakirja = AsiakirjaHelper.createEntity(entityManager)
+        val asiakirja = AsiakirjaHelper.createEntity(entityManager, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(entityManager, YliopistoEnum.TURUN_YLIOPISTO))
         entityManager.persist(asiakirja)
         val job = uusiJob("tallennus-1")
         job.createdAt = null

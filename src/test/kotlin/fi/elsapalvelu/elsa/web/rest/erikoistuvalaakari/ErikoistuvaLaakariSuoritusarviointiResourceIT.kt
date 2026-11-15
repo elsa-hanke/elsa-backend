@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
+import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavanKokonaisuudenKategoriaHelper
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
@@ -85,14 +87,19 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
     fun setup() {
         MockitoAnnotations.openMocks(this)
 
+        val kategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(
+            em, erikoisala = Testisuhteet.akuuttilaaketiede(em)
+        ).also(em::persist)
+
         // Lisätään voimassaoleva EPA-osaamisalue ja päättymistä ei määritetty
-        em.persist(ArvioitavaKokonaisuusHelper.createEntity(em, LocalDate.ofEpochDay(0L), null))
+        em.persist(ArvioitavaKokonaisuusHelper.createEntity(em, LocalDate.ofEpochDay(0L), null, kategoria = kategoria))
         // Lisätään voimassaoleva EPA-osaamisalue ja päättyminen määritetty
         em.persist(
             ArvioitavaKokonaisuusHelper.createEntity(
                 em,
                 LocalDate.ofEpochDay(0L),
-                LocalDate.ofEpochDay(20L)
+                LocalDate.ofEpochDay(20L),
+                kategoria = kategoria
             )
         )
         // Lisätään EPA-osaamisalue jonka voimassaolo ei ole alkanut vielä
@@ -100,7 +107,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             ArvioitavaKokonaisuusHelper.createEntity(
                 em,
                 LocalDate.ofEpochDay(15L),
-                LocalDate.ofEpochDay(20L)
+                LocalDate.ofEpochDay(20L),
+                kategoria = kategoria
             )
         )
         // Lisätään EPA-osaamisalue, jonka voimassaolo on jo päättynyt
@@ -108,7 +116,8 @@ class ErikoistuvaLaakariSuoritusarviointiResourceIT {
             ArvioitavaKokonaisuusHelper.createEntity(
                 em,
                 LocalDate.ofEpochDay(0L),
-                LocalDate.ofEpochDay(5L)
+                LocalDate.ofEpochDay(5L),
+                kategoria = kategoria
             )
         )
 

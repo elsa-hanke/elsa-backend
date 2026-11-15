@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.koejakso
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -205,7 +206,7 @@ open class KoejaksoArchiveItBase : ResourceIntegrationTestBase() {
         val university = YliopistoHelper.createReferenceData(em, YliopistoEnum.TAMPEREEN_YLIOPISTO)
         val traineeUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI))
         em.persist(traineeUser)
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user = traineeUser, yliopisto = university)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user = traineeUser, yliopisto = university, erikoisala = Testisuhteet.akuuttilaaketiede(em))
         val hyvaksyja = createVastuuhenkiloForKoejakso(erikoistuvaLaakari, user = approverUser)
         val trainerUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(KOULUTTAJA)).also(em::persist)
         val kouluttaja = KayttajaHelper.createEntity(em, trainerUser).also(em::persist)

@@ -179,12 +179,11 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
      * otherwise as an *arviointiAsiakirja*.
      */
     private fun persistSuoritusarviointiWithAsiakirja(tyyppi: String, data: ByteArray, itsearviointi: Boolean = false) {
-        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
-        tyoskentelyjakso.opintooikeus = opintooikeus
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus = opintooikeus)
         em.persist(tyoskentelyjakso)
         em.flush()
 
-        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em)
+        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em, tyoskentelyjakso = tyoskentelyjakso)
         em.persist(suoritusarviointi)
         em.flush()
 
@@ -196,8 +195,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     }
 
     private fun persistTyoskentelyjaksoWithAsiakirja(data: ByteArray) {
-        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
-        tyoskentelyjakso.opintooikeus = opintooikeus
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus = opintooikeus)
         em.persist(tyoskentelyjakso)
         em.flush()
 
@@ -514,12 +512,11 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     fun approvalSucceedsWithMixedAttachmentsByMergingOnlyPdf() {
         persistKoulutussuunnitelma()
 
-        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
-        tyoskentelyjakso.opintooikeus = opintooikeus
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus = opintooikeus)
         em.persist(tyoskentelyjakso)
         em.flush()
 
-        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em)
+        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em, tyoskentelyjakso = tyoskentelyjakso)
         em.persist(suoritusarviointi)
         em.flush()
 
@@ -616,8 +613,7 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     fun approvalMergesPdfAttachmentsIntoLiitteetPdfPreservingPageOrder() {
         persistKoulutussuunnitelma()
 
-        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
-        tyoskentelyjakso.opintooikeus = opintooikeus
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus = opintooikeus)
         em.persist(tyoskentelyjakso)
         em.flush()
 
@@ -772,28 +768,27 @@ class VastuuhenkiloValmistumispyyntoLiiteIT {
     }
 
     private fun persistTyoskentelyjakso(): Tyoskentelyjakso {
-        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
-        tyoskentelyjakso.opintooikeus = opintooikeus
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus = opintooikeus)
         em.persist(tyoskentelyjakso)
         em.flush()
         return tyoskentelyjakso
     }
 
     private fun persistSuoritusarviointi() {
-        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em)
+        val tyoskentelyjakso = persistTyoskentelyjakso()
+        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em, tyoskentelyjakso = tyoskentelyjakso)
         em.persist(suoritusarviointi)
         em.flush()
     }
 
-    private fun persistSuoritemerkinta(tyoskentelyjakso: Tyoskentelyjakso, lisatiedot: String, suorituspaiva: LocalDate, existingSuorite: Suorite? = null) {
-        val suorite = existingSuorite ?: SuoriteHelper.createEntity(em, opintooikeus.erikoisala).also {
+    private fun persistSuoritemerkinta(tyoskentelyjakso: Tyoskentelyjakso, lisatiedot: String, suorituspaiva: LocalDate, suorite: Suorite? = null) {
+        val kaytettavaSuorite = suorite ?: SuoriteHelper.createEntity(em, opintooikeus.erikoisala).also {
             em.persist(it)
             em.flush()
         }
         val suoritemerkinta = SuoritemerkintaHelper.createEntity(em, erikoisala = opintooikeus.erikoisala, suorituspaiva = suorituspaiva,
-            existingSuorite = suorite
+            suorite = kaytettavaSuorite, tyoskentelyjakso = tyoskentelyjakso
         )
-        suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
         suoritemerkinta.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
         suoritemerkinta.lisatiedot = lisatiedot
         em.persist(suoritemerkinta)
