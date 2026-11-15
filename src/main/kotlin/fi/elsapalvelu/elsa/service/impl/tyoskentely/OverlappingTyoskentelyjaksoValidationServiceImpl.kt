@@ -12,16 +12,13 @@ import fi.elsapalvelu.elsa.repository.tyoskentely.KeskeytysaikaRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
 import fi.elsapalvelu.elsa.service.tyoskentely.OverlappingTyoskentelyjaksoValidationService
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksonPituusCounterService
-import fi.elsapalvelu.elsa.service.constants.HYVAKSILUETTAVAT_DAYS
+import fi.elsapalvelu.elsa.service.tyoskentely.PoissaolonHyvaksilukulaskuri
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.HyvaksiluettavatCounterData
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.stereotype.Service
 import java.time.ZoneId
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
 @Service
 @Transactional(readOnly = true)
@@ -109,7 +106,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         )
     }
 
-    @Suppress("CyclomaticComplexMethod", "LoopWithTooManyJumpStatements")
+    @Suppress("LoopWithTooManyJumpStatements")
     private fun validateTyoskentelyaika(existingTyoskentelyjaksoId: Long?, tyoskentelyjaksoStartDate: LocalDate, tyoskentelyjaksoEndDate: LocalDate,
         tyoskentelyjaksot: List<Tyoskentelyjakso>, osaaikaProsentti: Double? = null): Boolean {
         var hyvaksiluettavatCounterData: HyvaksiluettavatCounterData? = null
@@ -146,44 +143,9 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
                         date.isInRange(keskeytysaika.alkamispaiva.required(), keskeytysaika.paattymispaiva)
                     }
 
-                keskeytyksetForCurrentDate.forEach {
-                    val keskeytysaikaFactor = it.poissaoloprosentti.required().toDouble() / 100.0 * (tyoskentelyjakso.osaaikaprosentti.required().toDouble() / 100.0)
-                    val vahennetaanKerran = it.poissaolonSyy.required().vahennetaanKerran
-
-                    when (it.poissaolonSyy?.vahennystyyppi) {
-                        PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN -> {
-                            overallTyoskentelyaikaFactorForCurrentDate -= keskeytysaikaFactor
-                        }
-                        PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI -> {
-                            val counterData = getHyvaksiluettavatCounterData(tyoskentelyjaksot, date.minusDays(1))
-                            if (vahennetaanKerran) {
-                                counterData.hyvaksiluettavatDays.putIfAbsent(it.poissaolonSyy.required(), HYVAKSILUETTAVAT_DAYS)
-                            }
-                            if (!counterData.hyvaksiluettavatPerYearMap.keys.contains(date.year)) {
-                                counterData.hyvaksiluettavatPerYearMap[date.year] = HYVAKSILUETTAVAT_DAYS
-                            }
-
-                            // Tarkistetaan hyväksiluettavat päivät vuosittaisesta määrästä ja
-                            // vain kerran hyväksyttävien keskeytyksien (vanhempainvapaat) osalta
-                            // poissaolokohtaisesta määrästä. Hyväksiluetaan näistä niin paljon kuin
-                            // pystytään ja päivitetään molemmat laskurit.
-                            val hyvaksiluettavaFactor = if (vahennetaanKerran) min(
-                                counterData.hyvaksiluettavatPerYearMap.getValue(date.year),
-                                counterData.hyvaksiluettavatDays.getValue(it.poissaolonSyy.required())
-                            ) else counterData.hyvaksiluettavatPerYearMap.getValue(date.year)
-                            val reducedFactor = hyvaksiluettavaFactor - keskeytysaikaFactor
-                            if (reducedFactor < 0) overallTyoskentelyaikaFactorForCurrentDate -= abs(
-                                reducedFactor
-                            )
-                            counterData.hyvaksiluettavatPerYearMap[date.year] =
-                                max(0.0, counterData.hyvaksiluettavatPerYearMap.getValue(date.year) - keskeytysaikaFactor)
-                            if (vahennetaanKerran) {
-                                counterData.hyvaksiluettavatDays[it.poissaolonSyy.required()] =
-                                    max(0.0, counterData.hyvaksiluettavatDays.getValue(it.poissaolonSyy.required()) - keskeytysaikaFactor)
-                            }
-                        }
-                        else -> {
-                        }
+                keskeytyksetForCurrentDate.forEach { keskeytysaika ->
+                    overallTyoskentelyaikaFactorForCurrentDate -= laskePoissaolonVahennys(keskeytysaika, tyoskentelyjakso, date) {
+                        getHyvaksiluettavatCounterData(tyoskentelyjaksot, date.minusDays(1))
                     }
                 }
             }
@@ -193,6 +155,23 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
             }
         }
         return true
+    }
+
+    private fun laskePoissaolonVahennys(
+        keskeytysaika: Keskeytysaika,
+        tyoskentelyjakso: Tyoskentelyjakso,
+        paiva: LocalDate,
+        haeHyvaksiluettavienPaivienSaldo: () -> HyvaksiluettavatCounterData
+    ): Double {
+        val poissaolopaivat = keskeytysaika.poissaoloprosentti.required().toDouble() / 100.0 * (tyoskentelyjakso.osaaikaprosentti.required().toDouble() / 100.0)
+        val poissaolonSyy = keskeytysaika.poissaolonSyy.required()
+        return when (poissaolonSyy.vahennystyyppi) {
+            PoissaolonSyyTyyppi.VAHENNETAAN_SUORAAN -> poissaolopaivat
+            PoissaolonSyyTyyppi.VAHENNETAAN_YLIMENEVA_AIKA_PER_VUOSI -> PoissaolonHyvaksilukulaskuri.laskePaivittaisestaTyoskentelyajastaVahennettavaOsuus(
+                poissaolopaivat, paiva.year, poissaolonSyy, haeHyvaksiluettavienPaivienSaldo()
+            )
+            else -> 0.0
+        }
     }
 
     // Never apply hypothetical changes to managed entities: validation can join a write transaction.
@@ -206,13 +185,13 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
             suoritusarvioinnit = source.suoritusarvioinnit.toMutableSet(),
             suoritemerkinnat = source.suoritemerkinnat.toMutableSet()
         )
-        copy.keskeytykset = source.keskeytykset.map { absence ->
+        copy.keskeytykset = source.keskeytykset.map { keskeytysaika ->
             Keskeytysaika(
-                id = absence.id,
-                alkamispaiva = absence.alkamispaiva,
-                paattymispaiva = absence.paattymispaiva,
-                poissaoloprosentti = absence.poissaoloprosentti,
-                poissaolonSyy = absence.poissaolonSyy,
+                id = keskeytysaika.id,
+                alkamispaiva = keskeytysaika.alkamispaiva,
+                paattymispaiva = keskeytysaika.paattymispaiva,
+                poissaoloprosentti = keskeytysaika.poissaoloprosentti,
+                poissaolonSyy = keskeytysaika.poissaolonSyy,
                 tyoskentelyjakso = copy
             )
         }.toMutableSet()
