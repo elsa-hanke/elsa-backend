@@ -23,10 +23,15 @@ application:
     archive-stub-enabled: true
   arkistointi:
     # Placeholder connection settings for beans used elsewhere in the application.
-    # The E2E profile replaces async delivery adapters; TRE job creation stays disabled.
-    # Registering its test adapter does not add Tampere Cypress UI scenarios.
+    # The E2E profile replaces async delivery adapters for Helsinki and Tampere.
     tre:
-      kaytossa: false
+      kaytossa: true
+      metadata:
+        cases:
+          valmistuminen:
+            async-enabled: true
+          koejakso:
+            async-enabled: true
       host: 127.0.0.1
       user: unused-e2e
     turku:

@@ -69,6 +69,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @SpringBootTest(classes = [ElsaBackendApp::class], properties = [
     "spring.datasource.url=jdbc:tc:postgresql:16.9:///tampereAsyncApproval?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true",
     "application.arkistointi.tre.kaytossa=true",
+    "application.arkistointi.retry.initial-delay=1s",
+    "application.arkistointi.retry.max-delay=2s",
+    "application.arkistointi.retry.jitter-factor=0",
     "application.arkistointi.hki.kaytossa=false",
     "application.arkistointi.tre.metadata.zip-metadata=true",
     "application.arkistointi.tre.metadata.organisation=TAU",
@@ -94,7 +97,9 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
     @Autowired private lateinit var packageBuilder: AsyncSahkePackageBuilder
     @Autowired private lateinit var failureHandler: ArkistointiJobFailureHandler
     @Autowired private lateinit var arkistointiJobLogContext: ArkistointiJobLogContext
+    @Autowired private lateinit var archiveTask: com.github.kagkarlsson.scheduler.task.helper.OneTimeTask<Unit>
     @Autowired private lateinit var dataSource: DataSource
+    @MockitoBean lateinit var alerts: fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
     @MockitoBean lateinit var mail: MailService
     @TestBean(methodName = "createTransport") lateinit var tampereLouhiService: TampereLouhiService
 
@@ -186,6 +191,151 @@ class TampereAsyncApprovalIT : AsyncArchiveItSupport() {
                     }
                 }
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `real authentication failures preserve approval trace user and notify until recovery or exhaustion`(recover: Boolean) {
+        val logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
+        val logs = java.util.concurrent.CopyOnWriteArrayList<ch.qos.logback.classic.spi.ILoggingEvent>()
+        val capture = captureRetryLogs(logger, logs)
+        server.authenticationAllowed = false
+        var worker: Scheduler? = null
+        try {
+            val fixture = createValmistumispyyntoFixture("EL", YliopistoEnum.TAMPEREEN_YLIOPISTO, false)
+            setSecurityContext(fixture.second, VASTUUHENKILO)
+            approveValmistumispyynto(fixture.first).andExpect(status().isOk)
+            val key = "valmistuminen:TAMPEREEN_YLIOPISTO:${fixture.first}"
+            val job = jobs.findByKey(key)!!
+            val id = job.id!!
+            assertThat(job.requestedByUserId).isEqualTo(fixture.second)
+            worker = retryWorker()
+            assertThat(jdbc.queryForObject("select vastuuhenkilo_hyvaksyja_kuittausaika is not null from valmistumispyynto where id=?",
+                Boolean::class.javaObjectType, fixture.first)).isTrue()
+            val originalPayload = job.payload
+            val snapshots = jdbc.queryForList("select asiakirja_id, sha256 from arkistointi_job_asiakirja where job_id=? order by jarjestys", id)
+            assertThat(snapshots).hasSize(2)
+            failAuthentication(requireNotNull(worker), id, if (recover) 3 else 25)
+            if (recover) {
+                requireNotNull(worker).stop()
+                val scheduleBeforeRestart = jdbc.queryForMap("select execution_time, consecutive_failures from scheduled_tasks where task_instance=?", id.toString())
+                worker = retryWorker(start = false)
+                assertThat(jdbc.queryForMap("select execution_time, consecutive_failures from scheduled_tasks where task_instance=?", id.toString()))
+                    .isEqualTo(scheduleBeforeRestart)
+                server.authenticationAllowed = true
+                requireNotNull(worker).start()
+                requireNotNull(worker).triggerCheckForDueExecutions()
+                awaitDelivered(id)
+                val delivered = jobs.findById(id).orElseThrow()
+                assertThat(delivered.errorCode).isNull()
+                assertThat(delivered.lastError).isNull()
+                val folder = server.remote.resolve("Finished/ELSA")
+                val zip = Files.list(folder).use { paths -> paths.filter { it.toString().endsWith(".zip") }.toList().single() }
+                assertSavedPackage(id, zipEntries(Files.readAllBytes(zip)))
+                Files.delete(zip)
+            } else {
+                assertThat(jobs.findById(id).orElseThrow().errorCode).isEqualTo("ARCHIVE_RETRIES_EXHAUSTED")
+                val before = logs.count { it.formattedMessage.startsWith("Louhi transfer failed") }
+                pollAndAwait()
+                assertThat(logs.count { it.formattedMessage.startsWith("Louhi transfer failed") }).isEqualTo(before)
+            }
+            val saved = jobs.findById(id).orElseThrow()
+            assertThat(saved.payload).isEqualTo(originalPayload)
+            assertThat(jdbc.queryForList("select asiakirja_id, sha256 from arkistointi_job_asiakirja where job_id=? order by jarjestys", id))
+                .isEqualTo(snapshots)
+            assertRetryAlertsAndTrace(id, fixture.first, fixture.second, recover, logs)
+            if (recover) assertSecondApprover(requireNotNull(worker), fixture.second, logs)
+        } finally {
+            worker?.stop()
+            server.authenticationAllowed = true
+            logger.detachAppender(capture)
+            capture.stop()
+        }
+    }
+
+    private fun captureRetryLogs(
+        logger: ch.qos.logback.classic.Logger,
+        logs: MutableList<ch.qos.logback.classic.spi.ILoggingEvent>
+    ): ch.qos.logback.core.AppenderBase<ch.qos.logback.classic.spi.ILoggingEvent> =
+        object : ch.qos.logback.core.AppenderBase<ch.qos.logback.classic.spi.ILoggingEvent>() {
+            override fun append(event: ch.qos.logback.classic.spi.ILoggingEvent) {
+                event.prepareForDeferredProcessing()
+                logs.add(event)
+            }
+        }.also { it.start(); logger.addAppender(it) }
+
+    private fun failAuthentication(worker: Scheduler, id: UUID, count: Int) {
+        for (attempt in 1..count) {
+            worker.triggerCheckForDueExecutions()
+            if (attempt == 25) awaitParked(id) else {
+                await().atMost(Duration.ofSeconds(30)).untilAsserted {
+                    assertThat(jdbc.queryForObject("select consecutive_failures from scheduled_tasks where task_instance=?",
+                        Int::class.javaObjectType, id.toString())).isEqualTo(attempt)
+                    assertThat(worker.currentlyExecuting).isEmpty()
+                }
+                val waiting = jobs.findById(id).orElseThrow()
+                assertThat(waiting.status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
+                assertThat(waiting.errorCode).isEqualTo("LOUHI_TRANSFER_FAILED")
+                assertThat(waiting.lastError).contains("AUTHENTICATION_FAILED")
+                val due = jdbc.queryForObject("select execution_time from scheduled_tasks where task_instance=?",
+                    java.time.OffsetDateTime::class.java, id.toString())!!.toInstant()
+                assertThat(due).isAfter(waiting.updatedAt)
+                val failedAt = jdbc.queryForObject("select last_failure from scheduled_tasks where task_instance=?",
+                    java.time.OffsetDateTime::class.java, id.toString())!!.toInstant()
+                assertThat(Duration.between(failedAt, due)).isEqualTo(Duration.ofSeconds(if (attempt == 1) 1 else 2))
+                await().atMost(Duration.ofSeconds(5)).until { !Instant.now().isBefore(due) }
+            }
+        }
+    }
+
+    private fun assertRetryAlertsAndTrace(
+        id: UUID, caseId: Long, userId: String, recover: Boolean,
+        logs: List<ch.qos.logback.classic.spi.ILoggingEvent>
+    ) {
+        val subjects = org.mockito.kotlin.argumentCaptor<String>()
+        val bodies = org.mockito.kotlin.argumentCaptor<String>()
+        org.mockito.kotlin.verify(alerts, org.mockito.kotlin.times(if (recover) 1 else 4)).publishAlert(subjects.capture(), bodies.capture())
+        assertThat(bodies.allValues.map { Regex("Yritys: (\\d+)").find(it)!!.groupValues[1].toInt() })
+            .containsExactlyElementsOf(if (recover) listOf(3) else listOf(3, 10, 20, 25))
+        bodies.allValues.forEach { body ->
+            assertThat(body).contains(id.toString(), userId, "AUTHENTICATION_FAILED", "Asian tunniste: $caseId")
+        }
+        assertThat(subjects.lastValue).contains(if (recover) "viivästyy" else "vaatii toimenpiteitä")
+        val traced = logs.filter { it.mdcPropertyMap["archiveJobId"] == id.toString() }
+        assertThat(traced.filter { it.formattedMessage.startsWith("Archive attempt started") }).isNotEmpty
+        traced.forEach { assertThat(it.mdcPropertyMap["userId"]).isEqualTo(userId) }
+        val errors = logs.filter { it.formattedMessage.startsWith("Louhi transfer failed") && it.mdcPropertyMap["archiveJobId"] == id.toString() }
+        assertThat(errors).hasSize(if (recover) 3 else 25)
+        errors.forEach {
+            assertThat(it.mdcPropertyMap["userId"]).isEqualTo(userId)
+            assertThat(it.throwableProxy).isNotNull()
+            assertThat(it.formattedMessage).contains("AUTHENTICATION_FAILED")
+        }
+    }
+
+    private fun assertSecondApprover(worker: Scheduler, previousUser: String, logs: List<ch.qos.logback.classic.spi.ILoggingEvent>) {
+        val fixture = createValmistumispyyntoFixture("EL", YliopistoEnum.TAMPEREEN_YLIOPISTO, false)
+        assertThat(fixture.second).isNotEqualTo(previousUser)
+        setSecurityContext(fixture.second, VASTUUHENKILO)
+        approveValmistumispyynto(fixture.first).andExpect(status().isOk)
+        val job = jobs.findByKey("valmistuminen:TAMPEREEN_YLIOPISTO:${fixture.first}")!!
+        worker.triggerCheckForDueExecutions()
+        awaitDelivered(job.id!!)
+        assertThat(job.requestedByUserId).isEqualTo(fixture.second)
+        val traced = logs.filter { it.mdcPropertyMap["archiveJobId"] == job.id.toString() }
+        assertThat(traced).isNotEmpty
+        traced.forEach { assertThat(it.mdcPropertyMap["userId"]).isEqualTo(fixture.second) }
+        Files.list(server.remote.resolve("Finished/ELSA")).use { paths ->
+            paths.filter { it.toString().endsWith(".zip") }.forEach(Files::delete)
+        }
+    }
+
+    private fun retryWorker(start: Boolean = true): Scheduler {
+        val autoCommit = object : DelegatingDataSource(dataSource) {
+            override fun getConnection(): java.sql.Connection = super.getConnection().apply { autoCommit = true }
+        }
+        return Scheduler.create(autoCommit, archiveTask).threads(1).pollingInterval(Duration.ofHours(1))
+            .build().also { if (start) it.start() }
     }
 
     private fun shutdownSubmission(): ArkistointiSubmission {

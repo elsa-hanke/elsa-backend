@@ -2,11 +2,38 @@ import { createHash } from 'node:crypto'
 import { dbClient, withDb } from './db-client'
 import { ensureYliopistoErikoisalaLink } from './kayttaja-utils'
 import { fetchUserIdsByEmailOrLogin } from './user-utils'
-import { E2E_ERIKOISTUVA_EMAIL, VASTUUHENKILO_EMAIL } from '../../support/commands/credentials'
+import { E2E_ERIKOISTUVA_EMAIL, VASTUUHENKILO_EMAIL, KOULUTTAJA_EMAIL, VIRKAILIJA_EMAIL } from '../../support/commands/credentials'
 
 const hash = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex')
 
 export const asyncArchiveTasks = {
+  async 'archive:selectUniversity'(university: string) {
+    if (!['HELSINGIN_YLIOPISTO', 'TAMPEREEN_YLIOPISTO'].includes(university)) {
+      throw new Error('Unsupported E2E university')
+    }
+    return withDb(dbClient, async (client) => {
+      await client.query('BEGIN')
+      try {
+        const target = await client.query('SELECT id FROM yliopisto WHERE nimi=$1', [university])
+        if (target.rowCount !== 1) throw new Error('Missing university')
+        const id = target.rows[0].id
+        await client.query(`UPDATE opintooikeus SET yliopisto_id=$1
+          WHERE kaytossa AND erikoistuva_laakari_id IN (SELECT el.id FROM erikoistuva_laakari el
+          JOIN kayttaja k ON k.id=el.kayttaja_id JOIN jhi_user u ON u.id=k.user_id WHERE u.email=$2)`,
+          [id, E2E_ERIKOISTUVA_EMAIL])
+        const emails = [VASTUUHENKILO_EMAIL, KOULUTTAJA_EMAIL, VIRKAILIJA_EMAIL]
+        await client.query(`UPDATE kayttaja_yliopisto_erikoisala SET yliopisto_id=$1
+          WHERE kayttaja_id IN (SELECT k.id FROM kayttaja k JOIN jhi_user u ON u.id=k.user_id WHERE u.email=ANY($2))`, [id, emails])
+        await client.query(`UPDATE rel_kayttaja__yliopisto SET yliopisto_id=$1
+          WHERE kayttaja_id IN (SELECT k.id FROM kayttaja k JOIN jhi_user u ON u.id=k.user_id WHERE u.email=ANY($2))`, [id, emails])
+        await client.query('COMMIT')
+        return null
+      } catch (error) {
+        await client.query('ROLLBACK')
+        throw error
+      }
+    })
+  },
   async 'archive:read'({
     key,
     sourceIds = {}

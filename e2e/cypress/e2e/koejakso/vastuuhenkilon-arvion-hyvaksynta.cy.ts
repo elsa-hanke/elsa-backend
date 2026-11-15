@@ -83,7 +83,8 @@ const tarkistaPaatosNakyvissa = (hyvaksytty: boolean) => {
     .should('be.visible')
 }
 
-describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () => {
+function registerKoejaksoApprovalTests(university: string) {
+describe(`${university}: Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä`, () => {
   let arvio: Arvio
 
   const tarkistaAiemmatTiedot = (tallennettu: Arvio) => {
@@ -151,6 +152,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
   })
 
   beforeEach(() => {
+    cy.task('archive:selectUniversity', university)
     cy.loginAsErikoistuva()
     cy.task('db:cleanupKoejakso', { erikoistuvaEmail: E2E_ERIKOISTUVA_EMAIL })
     cy.task('db:ensureLoppukeskusteluHyvaksytty', {
@@ -290,7 +292,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
   paatokset.forEach(({ nimi, hyvaksytty }) => {
     it(nimi, () => {
       let kuittausaika: string
-      cy.then(() => assertArchiveAbsent('koejakso-arvio', 'HELSINGIN_YLIOPISTO', arvio.id))
+      cy.then(() => assertArchiveAbsent('koejakso-arvio', university, arvio.id))
       taytaYhteystiedot()
       valitsePaatos(hyvaksytty)
       if (!hyvaksytty) {
@@ -339,7 +341,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
         tarkistaTallennettuPaatos(response?.body, hyvaksytty, kuittausaika)
         assertArchiveProcessed({
           prefix: 'koejakso-arvio',
-          university: 'HELSINGIN_YLIOPISTO',
+          university,
           caseId: arvio.id,
           caseType: 'KOEJAKSO',
           types: ['ARVIOINTI'],
@@ -365,7 +367,7 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
           method: 'PUT', url: API, body: tallennettu, failOnStatusCode: false
         }).its('status').should('eq', 400)
         assertArchiveProcessed({
-          prefix: 'koejakso-arvio', university: 'HELSINGIN_YLIOPISTO',
+          prefix: 'koejakso-arvio', university,
           caseId: arvio.id, caseType: 'KOEJAKSO', types: ['ARVIOINTI'],
           metadata: { caseId: arvio.id, koejaksoHyvaksytty: hyvaksytty, approvalDate: kuittausaika }
         })
@@ -396,3 +398,8 @@ describe('Vastuuhenkilön lopullinen koejaksoarvio käyttöliittymässä', () =>
     })
   })
 })
+
+}
+
+registerKoejaksoApprovalTests('HELSINGIN_YLIOPISTO')
+registerKoejaksoApprovalTests('TAMPEREEN_YLIOPISTO')
