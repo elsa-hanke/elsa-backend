@@ -82,6 +82,8 @@ class KouluttajaSuoritusarviointiResourceIT {
     fun updateSuoritusarviointi() {
         initTest()
         initMockFile()
+        val firstCompletionDate = LocalDate.of(2020, 1, 2)
+        suoritusarviointi.arviointiAika = firstCompletionDate
 
         suoritusarviointiRepository.saveAndFlush(suoritusarviointi)
 
@@ -117,11 +119,13 @@ class KouluttajaSuoritusarviointiResourceIT {
                 .with(csrf())
         ).andExpect(status().isOk)
 
+        em.flush()
+        em.clear()
         val suoritusarviointiList = suoritusarviointiRepository.findAll()
         assertThat(suoritusarviointiList).hasSize(databaseSizeBeforeUpdate)
         val testSuoritusarviointi = suoritusarviointiList[suoritusarviointiList.size - 1]
         assertThat(testSuoritusarviointi.arviointiPerustuu).isEqualTo(ArvioinninPerustuminen.LASNA)
-        assertThat(testSuoritusarviointi.arviointiAika).isEqualTo(UPDATED_TAPAHTUMAN_AJANKOHTA)
+        assertThat(testSuoritusarviointi.arviointiAika).isEqualTo(firstCompletionDate)
         assertThat(testSuoritusarviointi.arviointityokalut).isEqualTo(arviointityokalut)
         assertThat(testSuoritusarviointi.sanallinenArviointi).isEqualTo(UPDATED_LISATIEDOT)
         assertThat(testSuoritusarviointi.arvioitavatKokonaisuudet.first().arviointiasteikonTaso).isEqualTo(5)

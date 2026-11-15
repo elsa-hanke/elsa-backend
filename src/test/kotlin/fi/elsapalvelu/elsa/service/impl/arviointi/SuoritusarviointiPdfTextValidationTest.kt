@@ -46,7 +46,8 @@ class SuoritusarviointiPdfTextValidationTest {
         asiakirjaMapper = mock(),
         arviointityokaluKysymysRepository = kysymysRepository,
         arviointityokaluKysymysVaihtoehtoRepository = mock(),
-        pdfTextFieldValidator = validator
+        pdfTextFieldValidator = validator,
+        clock = java.time.Clock.systemUTC()
     )
 
     @ParameterizedTest
