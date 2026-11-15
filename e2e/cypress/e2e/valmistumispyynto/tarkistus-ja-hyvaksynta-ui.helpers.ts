@@ -71,9 +71,9 @@ const finnishDate = (date: string) => {
 
 // Separate actor tests: setup requests advance earlier stages only. Every review/approval
 // protected by these tests goes through the actual form and an unstubbed backend response.
-export function registerValmistumispyynnonTarkistusAndHyvaksyntaTests(degree: 'EL' | 'EHL' | 'YEK') {
+export function registerValmistumispyynnonTarkistusAndHyvaksyntaTests(degree: 'EL' | 'EHL' | 'YEK', university = degree === 'YEK' ? 'ITA_SUOMEN_YLIOPISTO' : 'HELSINGIN_YLIOPISTO') {
   const yek = degree === 'YEK'
-  describe(`${degree} valmistumispyynnön tarkistus ja hyväksyntä käyttöliittymässä`, () => {
+  describe(`${university}: ${degree} valmistumispyynnön tarkistus ja hyväksyntä käyttöliittymässä`, () => {
     const traineeApi = `/api/${yek ? 'yek-koulutettava' : 'erikoistuva-laakari'}/valmistumispyynto`
     const traineePage = yek ? '/yekvalmistumispyynto' : '/valmistumispyynto'
     const reviewPage = (id: number) => `/valmistumispyynnon-tarkistus${yek ? '-yek' : ''}/${id}`
@@ -203,6 +203,7 @@ export function registerValmistumispyynnonTarkistusAndHyvaksyntaTests(degree: 'E
           kouluttajaEmail: KOULUTTAJA_EMAIL
         })
       }
+      if (!yek) cy.task('archive:selectUniversity', university)
       submitValmistumispyyntoViaApi(traineeApi).then((id) =>
         cy.apiRequest({ method: 'GET', url: traineeApi }).then(({ status, body }) => {
           expect(status).to.eq(200)
@@ -367,7 +368,6 @@ export function registerValmistumispyynnonTarkistusAndHyvaksyntaTests(degree: 'E
       const submittedBodies: unknown[] = []
       let saved: Valmistumispyynto
       let expectedContacts: { sahkoposti: string; puhelinnumero: string | null }
-      const university = yek ? 'ITA_SUOMEN_YLIOPISTO' : 'HELSINGIN_YLIOPISTO'
       cy.then(() => assertArchiveAbsent('valmistuminen', university, original.id))
       // Clerk review is setup in this actor-specific test; the preceding test protects its UI.
       cy.then(() =>
@@ -502,7 +502,7 @@ export function registerValmistumispyynnonTarkistusAndHyvaksyntaTests(degree: 'E
             university,
             caseId: original.id,
             caseType: 'VALMISTUMINEN',
-            types: yek ? ['YHTEENVETO', 'LIITE', 'LAILLISTAMISTODISTUS'] : ['YHTEENVETO'],
+            types: yek ? ['YHTEENVETO', 'LIITE', 'LAILLISTAMISTODISTUS'] : university === 'TAMPEREEN_YLIOPISTO' ? ['YHTEENVETO', 'LIITE'] : ['YHTEENVETO'],
             metadata: {
               caseId: original.id,
               opintooikeusId: original.opintooikeusId,

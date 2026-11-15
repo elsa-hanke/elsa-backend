@@ -52,6 +52,8 @@ class E2eArchiveConfigurationTest {
                         .map { caseType -> university to caseType }
                 }
                 assertThat(routes).containsExactlyInAnyOrder(
+                    YliopistoEnum.TAMPEREEN_YLIOPISTO to CaseType.VALMISTUMINEN,
+                    YliopistoEnum.TAMPEREEN_YLIOPISTO to CaseType.KOEJAKSO,
                     YliopistoEnum.HELSINGIN_YLIOPISTO to CaseType.VALMISTUMINEN,
                     YliopistoEnum.HELSINGIN_YLIOPISTO to CaseType.KOEJAKSO,
                     YliopistoEnum.HELSINGIN_YLIOPISTO to CaseType.SOPIMUS,

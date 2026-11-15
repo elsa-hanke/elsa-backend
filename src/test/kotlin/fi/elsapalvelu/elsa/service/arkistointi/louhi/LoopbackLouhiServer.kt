@@ -14,6 +14,7 @@ class LoopbackLouhiServer : AutoCloseable {
     val directory: Path = Files.createTempDirectory("elsa-louhi-it-")
     val remote: Path = Files.createDirectory(directory.resolve("remote"))
     val subsystem: SftpSubsystemFactory = SftpSubsystemFactory.Builder().build()
+    @Volatile var authenticationAllowed = true
     private val server: SshServer
 
     init {
@@ -24,7 +25,7 @@ class LoopbackLouhiServer : AutoCloseable {
             port = 0
             keyPairProvider = SimpleGeneratorHostKeyProvider(directory.resolve("hostkey"))
             passwordAuthenticator = org.apache.sshd.server.auth.password.PasswordAuthenticator { user, password, _ ->
-                user == "test" && password == "test"
+                authenticationAllowed && user == "test" && password == "test"
             }
             subsystemFactories = listOf(subsystem)
             fileSystemFactory = VirtualFileSystemFactory(remote)
