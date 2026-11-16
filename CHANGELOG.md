@@ -37,7 +37,7 @@
 - fix: Tila ei ohjaa käyttöoikeutta, joten tuntematon tila ei saa estää päättymispäivän, katseluajan ja asetuksen synkronointia (#762) [`#762`](https://github.com/elsa-hanke/elsa-backend/pull/762)(6 October 2026)
 - Tiedoston lataamisen tarkistuksen parannukset  [`#761`](https://github.com/elsa-hanke/elsa-backend/pull/761)(6 October 2026)
 
-## [v2.5.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.1...v2.5.2) - 12 November 2026
+## [v2.5.2-1](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.1...v2.5.2-1) - 16 November 2026
 
 - ELSA-1279 Erikoistujan tili ei näy [`#820`](https://github.com/elsa-hanke/elsa-backend/pull/820)(12 November 2026)
 
