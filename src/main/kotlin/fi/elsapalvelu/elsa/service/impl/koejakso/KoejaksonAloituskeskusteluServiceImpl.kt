@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.koejakso
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonAloituskeskustelu
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
@@ -32,7 +33,6 @@ import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.ZoneId
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
 
@@ -50,7 +50,8 @@ class KoejaksonAloituskeskusteluServiceImpl(
     private val userRepository: UserRepository,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
     private val opintooikeusService: OpintooikeusService,
-    private val pdfTextFieldValidator: PdfTextFieldValidator
+    private val pdfTextFieldValidator: PdfTextFieldValidator,
+    private val clock: Clock
 ) : KoejaksonAloituskeskusteluService {
 
     override fun create(
@@ -63,7 +64,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
             validatePdfText(aloituskeskustelu)
             aloituskeskustelu.opintooikeus = it
             if (koejaksonAloituskeskusteluDTO.lahetetty == true) aloituskeskustelu.erikoistuvanKuittausaika =
-                LocalDate.now()
+                LocalDate.now(clock)
             aloituskeskustelu.korjausehdotus = null
             aloituskeskustelu = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
 
@@ -143,7 +144,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
 
         if (aloituskeskustelu.lahetetty) {
             aloituskeskustelu.korjausehdotus = null
-            aloituskeskustelu.erikoistuvanKuittausaika = LocalDate.now()
+            aloituskeskustelu.erikoistuvanKuittausaika = LocalDate.now(clock)
         }
 
         val result = koejaksonAloituskeskusteluRepository.save(aloituskeskustelu)
@@ -169,7 +170,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         // Hyväksytty
         if (updated.korjausehdotus.isNullOrBlank()) {
             aloituskeskustelu.lahikouluttajaHyvaksynyt = true
-            aloituskeskustelu.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            aloituskeskustelu.lahikouluttajanKuittausaika = LocalDate.now(clock)
         }
         // Palautettu korjattavaksi
         else {
@@ -210,7 +211,7 @@ class KoejaksonAloituskeskusteluServiceImpl(
         // Hyväksytty
         if (updated.korjausehdotus.isNullOrBlank()) {
             aloituskeskustelu.lahiesimiesHyvaksynyt = true
-            aloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            aloituskeskustelu.lahiesimiehenKuittausaika = LocalDate.now(clock)
         }
         // Palautettu korjattavaksi
         else {
