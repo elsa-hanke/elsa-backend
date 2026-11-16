@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl.koejakso
 import fi.elsapalvelu.elsa.service.koejakso.KoejaksonTilasaannot
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonVastuuhenkilonArvio
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -61,7 +62,6 @@ import org.thymeleaf.context.Context
 import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
 import java.time.Period
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -91,7 +91,8 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
     private val pdfService: PdfService,
     private val asiakirjaMapper: AsiakirjaMapper,
     private val applicationProperties: ApplicationProperties,
-    private val vastuuhenkilonArvioPdfTextValidator: VastuuhenkilonArvioPdfTextValidator
+    private val vastuuhenkilonArvioPdfTextValidator: VastuuhenkilonArvioPdfTextValidator,
+    private val clock: Clock
 ) : KoejaksonVastuuhenkilonArvioService {
 
     override fun create(
@@ -105,12 +106,12 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
             vastuuhenkilonArvio.opintooikeus = it
             vastuuhenkilonArvio.virkailija = null
             vastuuhenkilonArvio.vastuuhenkilo = null
-            vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
+            vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now(clock)
 
             asiakirjat?.let { asiakirja ->
                 val asiakirjaEntities = asiakirja.map { asiakirjaDTO ->
                     asiakirjaMapper.toEntity(asiakirjaDTO).apply {
-                        this.lisattypvm = LocalDateTime.now()
+                        this.lisattypvm = LocalDateTime.now(clock)
                         this.opintooikeus = it
                         this.koejaksonVastuuhenkilonArvio = vastuuhenkilonArvio
                         this.asiakirjaData?.data = asiakirjaDTO.asiakirjaData?.fileInputStream?.readAllBytes()
@@ -216,12 +217,12 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         asiakirjat: Set<AsiakirjaDTO>?,
         deletedAsiakirjaIds: Set<Int>?
     ) {
-        vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now()
+        vastuuhenkilonArvio.erikoistuvanKuittausaika = LocalDate.now(clock)
 
         asiakirjat?.let { asiakirja ->
             val asiakirjaEntities = asiakirja.map { asiakirjaDTO ->
                 asiakirjaMapper.toEntity(asiakirjaDTO).apply {
-                    this.lisattypvm = LocalDateTime.now()
+                    this.lisattypvm = LocalDateTime.now(clock)
                     this.opintooikeus = vastuuhenkilonArvio.opintooikeus
                     this.koejaksonVastuuhenkilonArvio = vastuuhenkilonArvio
                     this.asiakirjaData?.data = asiakirjaDTO.asiakirjaData?.fileInputStream?.readAllBytes()
@@ -255,7 +256,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         if (updated.virkailijanKorjausehdotus.isNullOrBlank()) {
             vastuuhenkilonArvio.virkailija = virkailija
             vastuuhenkilonArvio.virkailijaHyvaksynyt = true
-            vastuuhenkilonArvio.virkailijanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            vastuuhenkilonArvio.virkailijanKuittausaika = LocalDate.now(clock)
             vastuuhenkilonArvio.lisatiedotVirkailijalta = updated.lisatiedotVirkailijalta
             vastuuhenkilonArvio.virkailijanYhteenveto = updated.virkailijanYhteenveto
             vastuuhenkilonArvio.virkailijanKorjausehdotus = null
@@ -303,7 +304,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         if (updated.vastuuhenkilonKorjausehdotus.isNullOrBlank()) {
             vastuuhenkilonArvio.vastuuhenkilo = vastuuhenkilo
             vastuuhenkilonArvio.vastuuhenkiloHyvaksynyt = true
-            vastuuhenkilonArvio.vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            vastuuhenkilonArvio.vastuuhenkilonKuittausaika = LocalDate.now(clock)
             vastuuhenkilonArvio.koejaksoHyvaksytty = updated.koejaksoHyvaksytty
 
             if (updated.koejaksoHyvaksytty == false) {
@@ -387,14 +388,14 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         }
         val outputStream = ByteArrayOutputStream()
         pdfService.luoPdf("pdf/vastuuhenkilonarvio.html", context, outputStream)
-        val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+        val paivamaaratunniste = LocalDate.now(clock).format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
         return asiakirjaRepository.save(
             Asiakirja(
                 opintooikeus = vastuuhenkilonArvio.opintooikeus,
-                nimi = "koejakson_vastuuhenkilon_arvio_${timestamp}.pdf",
+                nimi = "koejakson_vastuuhenkilon_arvio_${paivamaaratunniste}.pdf",
                 tyyppi = MediaType.APPLICATION_PDF_VALUE,
-                lisattypvm = LocalDateTime.now(),
+                lisattypvm = LocalDateTime.now(clock),
                 asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
             )
         )

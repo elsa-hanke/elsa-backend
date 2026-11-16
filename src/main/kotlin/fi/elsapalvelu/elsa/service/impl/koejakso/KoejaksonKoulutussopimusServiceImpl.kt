@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.koejakso
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonKoulutussopimus
 import fi.elsapalvelu.elsa.domain.*
@@ -50,7 +51,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
 import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
@@ -75,6 +75,7 @@ class KoejaksonKoulutussopimusServiceImpl(
     private val opintooikeusService: OpintooikeusService,
     private val arkistointiService: KoejaksoArkistointiService,
     private val koulutussopimusPdfTextValidator: KoulutussopimusPdfTextValidator,
+    private val clock: Clock,
     private val logger: Logger = LoggerFactory.getLogger(KoejaksonKoulutussopimusServiceImpl::class.java)
 ) : KoejaksonKoulutussopimusService {
 
@@ -95,7 +96,7 @@ class KoejaksonKoulutussopimusServiceImpl(
             }
             koulutussopimus.kouluttajat?.forEach { kouluttaja -> kouluttaja.koulutussopimus = koulutussopimus }
             if (koulutussopimus.lahetetty) koulutussopimus.erikoistuvanAllekirjoitusaika =
-                LocalDate.now()
+                LocalDate.now(clock)
             koulutussopimus.korjausehdotus = null
             koulutussopimus.vastuuhenkilonKorjausehdotus = null
             koulutussopimus.vastuuhenkilo =
@@ -259,7 +260,7 @@ class KoejaksonKoulutussopimusServiceImpl(
 
         if (updated.lahetetty) {
             koulutussopimus.korjausehdotus = null
-            koulutussopimus.erikoistuvanAllekirjoitusaika = LocalDate.now()
+            koulutussopimus.erikoistuvanAllekirjoitusaika = LocalDate.now(clock)
         }
 
         val result = koejaksonKoulutussopimusRepository.save(koulutussopimus)
@@ -293,7 +294,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         // Hyväksytty
         if (updated.korjausehdotus.isNullOrBlank()) {
             kouluttaja.sopimusHyvaksytty = true
-            kouluttaja.kuittausaika = LocalDate.now(ZoneId.systemDefault())
+            kouluttaja.kuittausaika = LocalDate.now(clock)
 
             if (koulutussopimus.kouluttajat?.all { it.sopimusHyvaksytty } == true) {
                 koulutussopimus.vastuuhenkilonKorjausehdotus = null
@@ -360,7 +361,7 @@ class KoejaksonKoulutussopimusServiceImpl(
         // Hyväksytty
         if (updated.korjausehdotus.isNullOrBlank()) {
             koulutussopimus.vastuuhenkiloHyvaksynyt = true
-            koulutussopimus.vastuuhenkilonKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            koulutussopimus.vastuuhenkilonKuittausaika = LocalDate.now(clock)
             koulutussopimus.vastuuhenkilo = vastuuhenkilo
         }
         // Palautettu korjattavaksi
@@ -511,14 +512,14 @@ class KoejaksonKoulutussopimusServiceImpl(
         }
         val outputStream = ByteArrayOutputStream()
         pdfService.luoPdf("pdf/koulutussopimus.html", context, outputStream)
-        val timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+        val paivamaaratunniste = LocalDate.now(clock).format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
         return asiakirjaRepository.save(
             Asiakirja(
                 opintooikeus = koulutussopimus.opintooikeus,
-                nimi = "koejakson_koulutussopimus_${timestamp}.pdf",
+                nimi = "koejakson_koulutussopimus_${paivamaaratunniste}.pdf",
                 tyyppi = MediaType.APPLICATION_PDF_VALUE,
-                lisattypvm = LocalDateTime.now(),
+                lisattypvm = LocalDateTime.now(clock),
                 asiakirjaData = AsiakirjaData(data = outputStream.toByteArray())
             )
         )

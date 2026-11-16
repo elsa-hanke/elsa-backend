@@ -62,7 +62,7 @@ class RichTextPersistenceTest {
                 entity.id = entity.id ?: 43
             }
         }
-        val service = ArvioitavaKokonaisuusServiceImpl(repository, blockMapper, detailMapper, mock(), mock(), mock())
+        val service = ArvioitavaKokonaisuusServiceImpl(repository, blockMapper, detailMapper, mock(), mock(), mock(), java.time.Clock.systemUTC())
         val dto = ArvioitavaKokonaisuusDTO(kuvaus = dirty, kuvausSv = dirty, voimassaoloAlkaa = LocalDate.now())
         service.create(dto.copy())
         service.create(dto.copy(id = 42))
@@ -100,7 +100,7 @@ class RichTextPersistenceTest {
                 e.id = e.id ?: 43
             }
         }
-        val service = ArvioitavaKokonaisuusServiceImpl(repository, blockMapper, detailMapper, mock(), mock(), mock())
+        val service = ArvioitavaKokonaisuusServiceImpl(repository, blockMapper, detailMapper, mock(), mock(), mock(), java.time.Clock.systemUTC())
         val mvc = MockMvcBuilders.standaloneSetup(TekninenPaakayttajaOpetussuunnitelmatResource(
             mock(), mock(), mock(), mock(), service, mock(), mock(), mock(), mock()
         )).build()
