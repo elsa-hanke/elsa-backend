@@ -2,6 +2,8 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.domain.perustiedot.Yliopisto
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.koulutus.Opintoopas
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
@@ -14,6 +16,19 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class TestisuhteetIT {
     @Autowired private lateinit var em: EntityManager
+
+    @Test
+    fun `annettu yliopisto valitaan vaikka tietokannassa on samannimisia yliopistoja`() {
+        val nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO
+        em.persist(Yliopisto(nimi = nimi))
+        val yliopisto = Yliopisto(nimi = nimi).also(em::persist)
+
+        val opintooikeus = ErikoistuvaLaakariHelper.createEntity(em, yliopisto = yliopisto).getOpintooikeusKaytossa()!!
+        em.flush()
+        em.clear()
+
+        assertThat(em.find(Opintooikeus::class.java, opintooikeus.id).yliopisto!!.id).isEqualTo(yliopisto.id)
+    }
 
     @Test
     fun `toisen erikoistuvan luonti ei muuta ensimmaisen opintoopasta tai erikoisalaa`() {
