@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
@@ -16,30 +17,29 @@ import fi.elsapalvelu.elsa.service.constants.HYVAKSILUETTAVAT_DAYS
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.HyvaksiluettavatCounterData
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.ZoneId
 import kotlin.math.max
 
 @Service
 @Transactional
-class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounterService {
+class TyoskentelyjaksonPituusCounterServiceImpl(private val clock: Clock) : TyoskentelyjaksonPituusCounterService {
 
     override fun calculateInDays(
         tyoskentelyjakso: Tyoskentelyjakso,
         vahennettavatPaivat: Double?
     ): Double {
-        val now = LocalDate.now(ZoneId.systemDefault())
-        val tyoskentelyJaksoEndDate =
-            if (tyoskentelyjakso.paattymispaiva == null || tyoskentelyjakso.paattymispaiva.required() > now)
-                now
+        val nykyinenPaiva = LocalDate.now(clock)
+        val laskennanPaattymispaiva =
+            if (tyoskentelyjakso.paattymispaiva == null || tyoskentelyjakso.paattymispaiva.required() > nykyinenPaiva)
+                nykyinenPaiva
             else
                 tyoskentelyjakso.paattymispaiva.required()
         // Lasketaan työskentelyjakson päivät
-        val daysBetween = tyoskentelyjakso.alkamispaiva.required().daysBetween(tyoskentelyJaksoEndDate)
+        val paivienMaara = tyoskentelyjakso.alkamispaiva.required().daysBetween(laskennanPaattymispaiva)
 
         // Ei huomioida tulevaisuuden jaksoja
-        if (daysBetween > 0) {
+        if (paivienMaara > 0) {
             val tyoskentelyjaksoFactor = tyoskentelyjakso.osaaikaprosentti.required().toDouble() / 100.0
-            var result = tyoskentelyjaksoFactor * daysBetween
+            var result = tyoskentelyjaksoFactor * paivienMaara
 
             // Vähennetään keskeytykset
             vahennettavatPaivat?.let {
@@ -90,7 +90,7 @@ class TyoskentelyjaksonPituusCounterServiceImpl : TyoskentelyjaksonPituusCounter
         // tätä päivää.
         val max =
             if (tyoskentelyjaksot.any { it.paattymispaiva == null })
-                LocalDate.now(ZoneId.systemDefault())
+                LocalDate.now(clock)
             else
                 tyoskentelyjaksot.maxOf { it.paattymispaiva.required() }
         val duringYears = min.duringYears(max)

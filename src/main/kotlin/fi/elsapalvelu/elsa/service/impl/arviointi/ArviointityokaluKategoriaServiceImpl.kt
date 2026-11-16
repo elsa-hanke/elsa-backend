@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.service.dto.arviointi.ArviointityokaluKategoriaDTO
 import fi.elsapalvelu.elsa.service.mapper.arviointi.ArviointityokaluKategoriaMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
 import java.time.Instant
 import java.util.*
 
@@ -17,13 +18,14 @@ import java.util.*
 class ArviointityokaluKategoriaServiceImpl(
     private val arviointityokaluKategoriaRepository: ArviointityokaluKategoriaRepository,
     private val arviointityokaluKategoriaMapper: ArviointityokaluKategoriaMapper,
-    private val arviointityokaluRepository: ArviointityokaluRepository
+    private val arviointityokaluRepository: ArviointityokaluRepository,
+    private val clock: Clock
 ) : ArviointityokaluKategoriaService {
 
     override fun create(arviointityokaluKategoriaDTO: ArviointityokaluKategoriaDTO): ArviointityokaluKategoriaDTO {
         var arviointityokalu = arviointityokaluKategoriaMapper.toEntity(arviointityokaluKategoriaDTO)
-        arviointityokalu.luontiaika = Instant.now()
-        arviointityokalu.muokkausaika = Instant.now()
+        arviointityokalu.luontiaika = Instant.now(clock)
+        arviointityokalu.muokkausaika = Instant.now(clock)
         arviointityokalu = arviointityokaluKategoriaRepository.save(arviointityokalu)
         return arviointityokaluKategoriaMapper.toDto(arviointityokalu)
     }

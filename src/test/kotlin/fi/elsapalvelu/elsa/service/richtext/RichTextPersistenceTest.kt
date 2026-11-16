@@ -83,7 +83,7 @@ class RichTextPersistenceTest {
                 entity.id = entity.id ?: 43
             }
         }
-        val service = ArviointityokaluServiceImpl(repository, toolMapper, mock())
+        val service = ArviointityokaluServiceImpl(repository, toolMapper, mock(), java.time.Clock.systemUTC())
         service.save(ArviointityokaluDTO(ohjeteksti = dirty), UserDTO(), null)
         service.update(ArviointityokaluDTO(id = 42, ohjeteksti = dirty), null)
         assertThat(snapshots).hasSize(4).allMatch { it == safe }
@@ -127,7 +127,7 @@ class RichTextPersistenceTest {
                 e.id = e.id ?: 43
             }
         }
-        val service = ArviointityokaluServiceImpl(repository, toolMapper, mock())
+        val service = ArviointityokaluServiceImpl(repository, toolMapper, mock(), java.time.Clock.systemUTC())
         val users = mock<UserService>()
         whenever(users.getAuthenticatedUser(anyOrNull())).thenReturn(UserDTO())
         val jsonMapper = ObjectMapper().findAndRegisterModules()

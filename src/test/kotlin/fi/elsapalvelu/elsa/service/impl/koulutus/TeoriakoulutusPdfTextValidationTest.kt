@@ -27,7 +27,8 @@ class TeoriakoulutusPdfTextValidationTest {
         opintooikeusRepository = opintooikeusRepository,
         asiakirjaMapper = asiakirjaMapper,
         paivakirjamerkintaRepository = paivakirjamerkintaRepository,
-        pdfTextFieldValidator = PdfTextTestSupport.fieldValidator()
+        pdfTextFieldValidator = PdfTextTestSupport.fieldValidator(),
+        clock = java.time.Clock.systemDefaultZone()
     )
 
     @ParameterizedTest

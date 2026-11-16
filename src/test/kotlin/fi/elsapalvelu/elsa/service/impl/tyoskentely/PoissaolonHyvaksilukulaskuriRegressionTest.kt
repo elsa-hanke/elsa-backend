@@ -14,7 +14,7 @@ import org.mockito.kotlin.whenever
 import java.time.LocalDate
 
 class PoissaolonHyvaksilukulaskuriRegressionTest {
-    private val pituusLaskuri = TyoskentelyjaksonPituusCounterServiceImpl()
+    private val pituusLaskuri = TyoskentelyjaksonPituusCounterServiceImpl(java.time.Clock.systemDefaultZone())
 
     @Test
     fun `keston laskenta sailyttaa vuosittaisen saldon kun kertaluonteinen saldo loppuu vuodenvaihteessa`() {
@@ -78,7 +78,7 @@ class PoissaolonHyvaksilukulaskuriRegressionTest {
         ))
         val tyoskentelyjaksoRepository = mock<TyoskentelyjaksoRepository>()
         whenever(tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(1L, paattymispaiva)).thenReturn(listOf(tyoskentelyjakso))
-        val validaattori = OverlappingTyoskentelyjaksoValidationServiceImpl(tyoskentelyjaksoRepository, mock(), pituusLaskuri)
+        val validaattori = OverlappingTyoskentelyjaksoValidationServiceImpl(tyoskentelyjaksoRepository, mock(), pituusLaskuri, java.time.Clock.systemDefaultZone())
 
         assertThat(validaattori.validateTyoskentelyjakso(1L, TyoskentelyjaksoDTO(
             alkamispaiva = paattymispaiva, paattymispaiva = paattymispaiva, osaaikaprosentti = 100

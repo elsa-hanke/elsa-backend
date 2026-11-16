@@ -17,7 +17,7 @@ class KoulutussuunnitelmaPdfTextValidationTest {
     private val repository = mock<KoulutussuunnitelmaRepository>()
     private val mapper = mock<KoulutussuunnitelmaMapper>()
     private val opintooikeusRepository = mock<OpintooikeusRepository>()
-    private val service = KoulutussuunnitelmaServiceImpl(repository, mapper, opintooikeusRepository, PdfTextTestSupport.fieldValidator())
+    private val service = KoulutussuunnitelmaServiceImpl(repository, mapper, opintooikeusRepository, PdfTextTestSupport.fieldValidator(), java.time.Clock.systemDefaultZone())
 
     @ParameterizedTest
     @ValueSource(strings = [

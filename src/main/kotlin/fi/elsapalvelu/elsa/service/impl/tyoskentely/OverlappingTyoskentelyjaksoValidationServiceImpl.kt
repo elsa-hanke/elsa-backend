@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
@@ -18,19 +19,19 @@ import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.stereotype.Service
-import java.time.ZoneId
 
 @Service
 @Transactional(readOnly = true)
 class OverlappingTyoskentelyjaksoValidationServiceImpl(
     private val tyoskentelyjaksoRepository: TyoskentelyjaksoRepository,
     private val keskeytysaikaRepository: KeskeytysaikaRepository,
-    private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService
+    private val tyoskentelyjaksonPituusCounterService: TyoskentelyjaksonPituusCounterService,
+    private val clock: Clock
 ) : OverlappingTyoskentelyjaksoValidationService {
 
     override fun validateTyoskentelyjakso(opintooikeusId: Long, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO): Boolean {
-        val tyoskentelyjaksoEndDate = tyoskentelyjaksoDTO.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
-        val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(opintooikeusId, tyoskentelyjaksoEndDate)
+        val tarkistuksenPaattymispaiva = tyoskentelyjaksoDTO.paattymispaiva ?: LocalDate.now(clock)
+        val tyoskentelyjaksot = tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(opintooikeusId, tarkistuksenPaattymispaiva)
             .map(::copyForValidation)
 
         if (tyoskentelyjaksot.isEmpty()) return true
@@ -40,7 +41,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         return validateTyoskentelyaika(
             tyoskentelyjaksoDTO.id,
             tyoskentelyjaksoDTO.alkamispaiva.required(),
-            tyoskentelyjaksoEndDate,
+            tarkistuksenPaattymispaiva,
             tyoskentelyjaksot,
             tyoskentelyjaksoDTO.osaaikaprosentti.required().toDouble()
         )
@@ -50,13 +51,13 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         opintooikeusId: Long,
         keskeytysaikaDTO: KeskeytysaikaDTO
     ): Boolean {
-        val tyoskentelyjaksoEndDate =
+        val tarkistuksenPaattymispaiva =
             keskeytysaikaDTO.tyoskentelyjakso?.paattymispaiva
-                ?: LocalDate.now(ZoneId.systemDefault())
+                ?: LocalDate.now(clock)
         val tyoskentelyjaksot =
             tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(
                 opintooikeusId,
-                tyoskentelyjaksoEndDate
+                tarkistuksenPaattymispaiva
             ).map(::copyForValidation)
 
         if (tyoskentelyjaksot.size == 1) return true
@@ -66,7 +67,7 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         return validateTyoskentelyaika(
             keskeytysaikaDTO.tyoskentelyjaksoId,
             keskeytysaikaDTO.tyoskentelyjakso?.alkamispaiva.required(),
-            tyoskentelyjaksoEndDate,
+            tarkistuksenPaattymispaiva,
             tyoskentelyjaksot
         )
     }
@@ -82,12 +83,12 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
             ) ?: return false
 
         val tyoskentelyjaksoId = keskeytysaika.tyoskentelyjakso?.id.required()
-        val tyoskentelyjaksoEndDate =
-            keskeytysaika.tyoskentelyjakso?.paattymispaiva ?: LocalDate.now(ZoneId.systemDefault())
+        val tarkistuksenPaattymispaiva =
+            keskeytysaika.tyoskentelyjakso?.paattymispaiva ?: LocalDate.now(clock)
         val tyoskentelyjaksot =
             tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(
                 opintooikeusId,
-                tyoskentelyjaksoEndDate
+                tarkistuksenPaattymispaiva
             ).map(::copyForValidation)
 
         if (tyoskentelyjaksot.size == 1) return true
@@ -101,13 +102,13 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
         return validateTyoskentelyaika(
             tyoskentelyjaksoId,
             keskeytysaika.tyoskentelyjakso?.alkamispaiva.required(),
-            tyoskentelyjaksoEndDate,
+            tarkistuksenPaattymispaiva,
             tyoskentelyjaksot
         )
     }
 
     @Suppress("LoopWithTooManyJumpStatements")
-    private fun validateTyoskentelyaika(existingTyoskentelyjaksoId: Long?, tyoskentelyjaksoStartDate: LocalDate, tyoskentelyjaksoEndDate: LocalDate,
+    private fun validateTyoskentelyaika(existingTyoskentelyjaksoId: Long?, tyoskentelyjaksoStartDate: LocalDate, tarkistuksenPaattymispaiva: LocalDate,
         tyoskentelyjaksot: List<Tyoskentelyjakso>, osaaikaProsentti: Double? = null): Boolean {
         var hyvaksiluettavatCounterData: HyvaksiluettavatCounterData? = null
         fun getHyvaksiluettavatCounterData(
@@ -122,9 +123,9 @@ class OverlappingTyoskentelyjaksoValidationServiceImpl(
 
         // Mikäli työskentelyjakso sijoittuu tulevaisuuteen eikä sille ole määritelty päättymispäivää
         // ei validointia tehdä.
-        if (tyoskentelyjaksoEndDate < tyoskentelyjaksoStartDate) return true
+        if (tarkistuksenPaattymispaiva < tyoskentelyjaksoStartDate) return true
 
-        dates@ for (date in tyoskentelyjaksoStartDate.datesUntil(tyoskentelyjaksoEndDate.plusDays(1))) {
+        dates@ for (date in tyoskentelyjaksoStartDate.datesUntil(tarkistuksenPaattymispaiva.plusDays(1))) {
             val overlappingTyoskentelyjaksotForCurrentDate = tyoskentelyjaksot.filter { date.isInRange(it.alkamispaiva.required(), it.paattymispaiva) }
             if (overlappingTyoskentelyjaksotForCurrentDate.isEmpty()) continue@dates
 

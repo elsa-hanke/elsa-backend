@@ -19,11 +19,13 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
 import java.time.LocalDate
 
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class OverlappingTyoskentelyjaksoValidationServiceTest {
+    private val kello: Clock = Clock.systemDefaultZone()
 
     private fun testValidateTyoskentelyjakso(
         expectedResult: Boolean,
@@ -43,7 +45,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
         val validator = OverlappingTyoskentelyjaksoValidationServiceImpl(
             tyoskentelyjaksoRepositoryMock,
             mock(KeskeytysaikaRepository::class.java),
-            TyoskentelyjaksonPituusCounterServiceImpl()
+            TyoskentelyjaksonPituusCounterServiceImpl(kello), kello
         )
 
         val validationResult =
@@ -66,7 +68,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
         ).thenReturn(tyoskentelyjaksotToReturn)
 
         val validator = OverlappingTyoskentelyjaksoValidationServiceImpl(tyoskentelyjaksoRepositoryMock, mock(KeskeytysaikaRepository::class.java),
-            TyoskentelyjaksonPituusCounterServiceImpl())
+            TyoskentelyjaksonPituusCounterServiceImpl(kello), kello)
 
         val validationResult = validator.validateKeskeytysaika(DEFAULT_OPINTOOIKEUS_ID, keskeytysaikaDTO)
         assertThat(validationResult).isEqualTo(expectedResult)
@@ -91,7 +93,9 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
         `when`(keskeytysaikaRepositoryMock.findOneByIdAndTyoskentelyjaksoOpintooikeusId(keskeytysaikaDTO.id!!, DEFAULT_OPINTOOIKEUS_ID)
         ).thenReturn(keskeytysaikaMock)
 
-        val validator = OverlappingTyoskentelyjaksoValidationServiceImpl(tyoskentelyjaksoRepositoryMock, keskeytysaikaRepositoryMock, TyoskentelyjaksonPituusCounterServiceImpl())
+        val validator = OverlappingTyoskentelyjaksoValidationServiceImpl(
+            tyoskentelyjaksoRepositoryMock, keskeytysaikaRepositoryMock, TyoskentelyjaksonPituusCounterServiceImpl(kello), kello
+        )
 
         val validationResult = validator.validateKeskeytysaikaDelete(DEFAULT_OPINTOOIKEUS_ID, keskeytysaikaDTO.id!!)
         assertThat(validationResult).isEqualTo(expectedResult)
