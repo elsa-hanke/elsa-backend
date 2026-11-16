@@ -23,6 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.mockito.kotlin.whenever
 import jakarta.persistence.EntityManager
 import kotlin.test.assertNotNull
 
@@ -36,6 +41,8 @@ import fi.elsapalvelu.elsa.service.koulutus.OpintosuorituksetPersistenceService
 @SpringBootTest(classes = [ElsaBackendApp::class])
 @Transactional
 class OpintosuorituksetPersistenceServiceIT {
+    @MockitoBean private lateinit var clock: Clock
+
 
     @Autowired
     private lateinit var opintosuorituksetPersistenceService: OpintosuorituksetPersistenceService
@@ -62,6 +69,8 @@ class OpintosuorituksetPersistenceServiceIT {
 
     @BeforeEach
     fun setup() {
+        whenever(clock.instant()).thenReturn(Instant.parse("2020-02-29T22:30:00Z"))
+        whenever(clock.zone).thenReturn(ZoneOffset.UTC)
         val yliopisto = Yliopisto(nimi = yliopistoEnum)
         em.persist(yliopisto)
 
@@ -96,6 +105,7 @@ class OpintosuorituksetPersistenceServiceIT {
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(erikoistuvaLaakari.kayttaja?.user?.id!!, opintosuorituksetPersistenceDTO)
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
+        tarkistaSuoritustenMuokkausajat(opintosuoritukset, clock)
 
         assertThat(opintosuoritukset).hasSize(databaseSizeBeforeCreate + 2)
 
@@ -329,6 +339,7 @@ class OpintosuorituksetPersistenceServiceIT {
         )
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
+        tarkistaSuoritustenMuokkausajat(opintosuoritukset, clock)
 
         assertThat(opintosuoritukset).hasSize(databaseSizeBeforeCreate + 1)
 
@@ -387,6 +398,7 @@ class OpintosuorituksetPersistenceServiceIT {
         opintosuorituksetPersistenceService.createOrUpdateIfChanged(erikoistuvaLaakari.kayttaja?.user?.id!!, opintosuorituksetPersistenceDTO)
 
         val opintosuoritukset = opintosuoritusRepository.findAll()
+        tarkistaSuoritustenMuokkausajat(opintosuoritukset, clock)
 
         assertThat(opintosuoritukset).hasSize(databaseSizeBeforeCreate)
 
@@ -900,5 +912,12 @@ class OpintosuorituksetPersistenceServiceIT {
                 yliopistoOpintooikeusId = yliopistoOpintooikeusId
             )
         }
+    }
+}
+
+private fun tarkistaSuoritustenMuokkausajat(suoritukset: List<Opintosuoritus>, clock: Clock) {
+    suoritukset.forEach { suoritus ->
+        assertThat(suoritus.muokkausaika).isEqualTo(Instant.now(clock))
+        suoritus.osakokonaisuudet.orEmpty().forEach { osa -> assertThat(osa.muokkausaika).isEqualTo(Instant.now(clock)) }
     }
 }

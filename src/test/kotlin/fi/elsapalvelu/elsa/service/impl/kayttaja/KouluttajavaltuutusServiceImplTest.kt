@@ -7,7 +7,6 @@ import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.mapper.kayttaja.KouluttajavaltuutusMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
@@ -35,14 +34,16 @@ class KouluttajavaltuutusServiceImplTest {
     @Mock
     private lateinit var mailService: MailService
 
-    @InjectMocks
-    private lateinit var service: KouluttajavaltuutusServiceImpl
+    private fun palvelu() = KouluttajavaltuutusServiceImpl(
+        kouluttajavaltuutusRepository, kouluttajavaltuutusMapper, erikoistuvaLaakariRepository,
+        kayttajaRepository, mailService, java.time.Clock.systemDefaultZone()
+    )
 
     @Test
     fun `adding authorization does nothing when authorized user does not exist`() {
         whenever(kayttajaRepository.findById(123L)).thenReturn(Optional.empty())
 
-        service.lisaaValtuutus("erikoistuva-user", 123L)
+        palvelu().lisaaValtuutus("erikoistuva-user", 123L)
 
         verify(kouluttajavaltuutusRepository, never()).save(any())
         verifyNoInteractions(kouluttajavaltuutusMapper, erikoistuvaLaakariRepository, mailService)

@@ -31,7 +31,8 @@ class TyoskentelyjaksoPdfTextValidationTest {
         opintooikeusRepository = opintooikeusRepository,
         pdfTextFieldValidator = PdfTextTestSupport.fieldValidator(),
         asiakirjaRepository = mock(),
-        koulutusjaksoRepository = mock()
+        koulutusjaksoRepository = mock(),
+        clock = java.time.Clock.systemDefaultZone()
     )
 
     @ParameterizedTest

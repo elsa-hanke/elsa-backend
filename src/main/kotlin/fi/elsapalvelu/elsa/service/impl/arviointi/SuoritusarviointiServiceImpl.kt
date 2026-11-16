@@ -33,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.ObjectUtils
 import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.*
 
 @Service
@@ -131,7 +130,7 @@ class SuoritusarviointiServiceImpl(
                 suoritusarviointiDTO.itsearviointiVaativuustaso
             suoritusarviointi.sanallinenItsearviointi =
                 suoritusarviointiDTO.sanallinenItsearviointi
-            suoritusarviointi.itsearviointiAika = LocalDate.now(ZoneId.systemDefault())
+            suoritusarviointi.itsearviointiAika = LocalDate.now(clock)
             suoritusarviointiDTO.arvioitavatKokonaisuudet?.forEach {
                 val arvioitavaKokonaisuus =
                     suoritusarviointi.arvioitavatKokonaisuudet.first { k -> k.id == it.id }
@@ -400,7 +399,7 @@ class SuoritusarviointiServiceImpl(
         newAsiakirjat.let {
             val asiakirjaEntities = it.map { asiakirjaDTO ->
                 asiakirjaMapper.toEntity(asiakirjaDTO).apply {
-                    this.lisattypvm = LocalDateTime.now()
+                    this.lisattypvm = LocalDateTime.now(clock)
                     this.opintooikeus = suoritusarviointi.tyoskentelyjakso?.opintooikeus
                     if (itsearviointi) {
                         this.itsearviointi = suoritusarviointi

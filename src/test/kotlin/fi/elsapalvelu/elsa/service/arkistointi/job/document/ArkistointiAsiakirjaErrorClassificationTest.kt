@@ -22,7 +22,7 @@ import org.springframework.jdbc.core.RowMapper
 class ArkistointiAsiakirjaErrorClassificationTest {
     private val repository = mock<AsiakirjaRepository>()
     private val jdbc = mock<JdbcTemplate>()
-    private val service = ArkistointiAsiakirjaSnapshotService(repository)
+    private val service = ArkistointiAsiakirjaSnapshotService(repository, java.time.Clock.systemDefaultZone())
     private val privateValue = "private-patient-name-secret.pdf"
 
     @ParameterizedTest

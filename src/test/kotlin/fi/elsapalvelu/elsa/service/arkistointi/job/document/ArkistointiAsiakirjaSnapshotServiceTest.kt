@@ -27,7 +27,7 @@ import org.springframework.jdbc.core.RowMapper
 
 class ArkistointiAsiakirjaSnapshotServiceTest {
     private val repository = mock<AsiakirjaRepository>()
-    private val service = ArkistointiAsiakirjaSnapshotService(repository)
+    private val service = ArkistointiAsiakirjaSnapshotService(repository, java.time.Clock.systemDefaultZone())
 
     @ParameterizedTest
     @ValueSource(strings = ["pdf", "restricted-pdf", "jpeg", "png", "alias", "large-jpeg", "cmyk", "sixteen-bit", "oriented"])

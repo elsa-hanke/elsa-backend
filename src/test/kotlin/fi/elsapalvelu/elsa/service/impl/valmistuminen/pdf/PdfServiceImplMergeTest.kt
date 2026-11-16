@@ -116,7 +116,7 @@ class PdfServiceImplMergeTest {
             opintooikeus = Opintooikeus(id = 10L)
         }
         whenever(repository.findOneWithDataById(1L)).thenReturn(source)
-        val reference = ArkistointiAsiakirjaSnapshotService(repository)
+        val reference = ArkistointiAsiakirjaSnapshotService(repository, java.time.Clock.systemDefaultZone())
             .createReference(source, RecordType.LIITE, 0)
         val snapshot = reference.asiakirja.asiakirjaData!!.data!!
 

@@ -6,13 +6,15 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
+import java.time.Clock
 import java.time.LocalDateTime
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ArkistointiAsiakirjaSnapshotService(
-    private val asiakirjaRepository: AsiakirjaRepository
+    private val asiakirjaRepository: AsiakirjaRepository,
+    private val clock: Clock
 ) {
 
     @Transactional
@@ -107,7 +109,7 @@ class ArkistointiAsiakirjaSnapshotService(
                 opintooikeus = opintooikeus,
                 nimi = filename,
                 tyyppi = contentType,
-                lisattypvm = LocalDateTime.now(),
+                lisattypvm = LocalDateTime.now(clock),
                 asiakirjaData = AsiakirjaData(data = snapshotData),
                 archiveSnapshot = true
             )

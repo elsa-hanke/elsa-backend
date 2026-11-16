@@ -77,6 +77,8 @@ class ErikoistuvaLaakariEtusivuResourceIT {
 
     @BeforeEach
     fun setup() {
+        asetaEtusivunTestikello(clock)
+
         val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI))
         em.persist(user)
         em.flush()
@@ -510,4 +512,10 @@ class ErikoistuvaLaakariEtusivuResourceIT {
         `when`(clock.instant()).thenReturn(Instant.ofEpochSecond(now))
         `when`(clock.zone).thenReturn(ZoneId.systemDefault())
     }
+}
+
+private fun asetaEtusivunTestikello(clock: Clock) {
+    val testikello = Clock.systemDefaultZone()
+    `when`(clock.instant()).thenAnswer { testikello.instant() }
+    `when`(clock.zone).thenReturn(testikello.zone)
 }

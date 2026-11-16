@@ -122,6 +122,10 @@ class KouluttajaEtusivuResourceIT {
 
     @BeforeEach
     fun setup() {
+        val testikello = Clock.systemDefaultZone()
+        `when`(clock.instant()).thenAnswer { testikello.instant() }
+        `when`(clock.zone).thenReturn(testikello.zone)
+
         MockitoAnnotations.openMocks(this)
     }
 

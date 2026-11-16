@@ -39,7 +39,8 @@ class LaillistamistodistusValidationTest {
         mailService = mock(),
         asetusRepository = mock(),
         opintoopasRepository = mock(),
-        fileValidationService = FileValidationServiceImpl(asiakirjaService, PdfContentValidator())
+        fileValidationService = FileValidationServiceImpl(asiakirjaService, PdfContentValidator()),
+        clock = java.time.Clock.systemDefaultZone()
     )
 
     @ParameterizedTest

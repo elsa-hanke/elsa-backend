@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -47,7 +48,8 @@ class TyoskentelyjaksoServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val pdfTextFieldValidator: PdfTextFieldValidator,
     private val asiakirjaRepository: AsiakirjaRepository,
-    private val koulutusjaksoRepository: KoulutusjaksoRepository
+    private val koulutusjaksoRepository: KoulutusjaksoRepository,
+    private val clock: Clock
 
 ) : TyoskentelyjaksoService {
 
@@ -148,7 +150,7 @@ class TyoskentelyjaksoServiceImpl(
         newAsiakirjat.let {
             val asiakirjaEntities = it.map { asiakirjaDTO ->
                 asiakirjaMapper.toEntity(asiakirjaDTO).apply {
-                    this.lisattypvm = LocalDateTime.now()
+                    this.lisattypvm = LocalDateTime.now(clock)
                     this.opintooikeus = opintooikeus
                     this.tyoskentelyjakso = tyoskentelyjakso
                     this.asiakirjaData?.data =
@@ -493,18 +495,18 @@ class TyoskentelyjaksoServiceImpl(
                     tyoskentelyjaksot
                 )
         }
-        val now = LocalDate.now()
+        val nykyinenPaiva = LocalDate.now(clock)
         tyoskentelyjaksot.map { it.keskeytykset }.flatten()
             .sortedBy { it.alkamispaiva }.forEach {
                 val tyoskentelyjaksoFactor =
                     it.tyoskentelyjakso?.osaaikaprosentti.required().toDouble() / 100.0
-                val endDate = it.tyoskentelyjakso?.paattymispaiva ?: now
+                val endDate = it.tyoskentelyjakso?.paattymispaiva ?: nykyinenPaiva
                 val amountOfReducedDays =
                     tyoskentelyjaksonPituusCounterService.calculateAmountOfReducedDaysAndUpdateHyvaksiluettavatCounter(
                         it,
                         tyoskentelyjaksoFactor,
                         hyvaksiluettavatCounter,
-                        if (endDate.isAfter(now)) now else endDate
+                        if (endDate.isAfter(nykyinenPaiva)) nykyinenPaiva else endDate
                     )
                 result.putIfAbsent(it.tyoskentelyjakso.required().id.required(), 0.0)
                 result[it.tyoskentelyjakso.required().id.required()] =

@@ -47,7 +47,8 @@ class OpintosuorituksetPersistenceServiceImplTest {
         opintosuoritusKurssikoodiRepository,
         opintosuoritusOsakokonaisuusMapper,
         opintosuoritusTyyppiMapper,
-        opintooikeusRepository
+        opintooikeusRepository,
+        java.time.Clock.systemDefaultZone()
     )
 
     @Test
