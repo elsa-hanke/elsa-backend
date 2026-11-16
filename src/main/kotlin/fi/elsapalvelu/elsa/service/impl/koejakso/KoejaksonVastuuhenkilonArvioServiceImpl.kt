@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import fi.elsapalvelu.elsa.service.koejakso.KoejaksonTilasaannot
 import fi.elsapalvelu.elsa.required
 
 import java.time.LocalDate
@@ -47,7 +48,6 @@ import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.koejakso.KoejaksonVastuuhenkilonArvioDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksotTableDTO
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
-import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.mapper.kayttaja.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonVastuuhenkilonArvioMapper
 import jakarta.persistence.EntityNotFoundException
@@ -484,7 +484,7 @@ class KoejaksonVastuuhenkilonArvioServiceImpl(
         val koulutussopimus = koulutussopimusRepository.findByOpintooikeusId(opintoOikeusId)
         result.koulutussopimusHyvaksytty = koulutussopimus.isPresent && koulutussopimus.get().vastuuhenkiloHyvaksynyt == true
         result.arkistoitava = arkistointiConfigurationProvider.onKaytossa(vastuuhenkilonArvio.opintooikeus?.yliopisto?.nimi.required(), CaseType.KOEJAKSO)
-        result.tila = KoejaksoTila.fromVastuuhenkilonArvio(
+        result.tila = KoejaksonTilasaannot.maaritaVastuuhenkilonArvionKasittelytila(
             vastuuhenkilonArvio,
             authentication.authorities.any { it.authority == OPINTOHALLINNON_VIRKAILIJA },
             authentication.authorities.any { it.authority == VASTUUHENKILO }

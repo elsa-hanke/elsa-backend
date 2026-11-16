@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonKoulutussopimusRepositor
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepository
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
-import java.time.LocalDate
+import fi.elsapalvelu.elsa.service.koejakso.KoejaksonTilasaannot
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -22,25 +22,18 @@ class EtusivunKoejaksopalvelu(
 
     fun haeKoejaksonTila(opintooikeus: Opintooikeus, opintosuoritukset: Sequence<Opintosuoritus>): KoejaksoTila {
         if (onkoKoejaksonSuoritusmerkinta(opintosuoritukset)) {
-            return KoejaksoTila.HYVAKSYTTY
+            return KoejaksonTilasaannot.maaritaYhteenvetotila(hyvaksyttySuoritus = true)
         }
 
         val koulutussopimus = koejaksonKoulutussopimusRepository.findByOpintooikeusId(opintooikeus.id.required())
         val vastuuhenkilonArvio = koejaksonVastuuhenkilonArvioRepository.findByOpintooikeusId(opintooikeus.id.required())
         val aloituskeskustelu = koejaksonAloituskeskusteluRepository.findByOpintooikeusId(opintooikeus.id.required())
 
-        return if (vastuuhenkilonArvio.isPresent && vastuuhenkilonArvio.get().koejaksoHyvaksytty == true) {
-            KoejaksoTila.HYVAKSYTTY
-        } else if ((koulutussopimus.isPresent && koulutussopimus.get().koejaksonAlkamispaiva?.isAfter(
-                LocalDate.now()
-            ) != true) || (aloituskeskustelu.isPresent && aloituskeskustelu.get().koejaksonAlkamispaiva?.isAfter(
-                LocalDate.now()
-            ) != true)
-        ) {
-            KoejaksoTila.ODOTTAA_HYVAKSYNTAA
-        } else {
-            KoejaksoTila.EI_AKTIIVINEN
-        }
+        return KoejaksonTilasaannot.maaritaYhteenvetotila(
+            vastuuhenkilonArvio = vastuuhenkilonArvio.orElse(null),
+            koulutussopimus = koulutussopimus.orElse(null),
+            aloituskeskustelu = aloituskeskustelu.orElse(null)
+        )
     }
 
     fun onkoKoejaksonSuoritusmerkinta(opintosuoritukset: Sequence<Opintosuoritus>) =
