@@ -65,7 +65,7 @@ ext {
     // Security fixes newer than the Boot BOM; Jackson 2 remains for application/AWS compatibility.
     set('jackson-2-bom.version', '2.21.7')
     set('jackson-bom.version', '3.1.7')
-    set('tomcat.version', '11.0.25')
+    set('tomcat.version', '11.0.27')
 }
 
 dependencyManagement {
@@ -224,7 +224,7 @@ dependencies {
 
 
 wrapper {
-    gradleVersion = "9.8.2"
+    gradleVersion = "9.9.1"
 }
 
 detekt {

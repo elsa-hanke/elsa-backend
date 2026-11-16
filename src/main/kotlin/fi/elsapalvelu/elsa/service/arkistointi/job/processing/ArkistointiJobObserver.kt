@@ -17,7 +17,7 @@ class ArkistointiJobObserver(
     private val alerts: AlertPublisherService,
     properties: ApplicationProperties
 ) {
-    private val alertAfterAttempts = properties.getArkistointi().retry.also { it.validate() }.alertAfterAttempts
+    private val alertAttempts = properties.getArkistointi().retry.also { it.validate() }.alertAttempts.toSet()
     private val log = LoggerFactory.getLogger(javaClass)
 
     /** Best effort after commit: telemetry must never turn a committed delivery into a scheduler failure. */
@@ -36,26 +36,26 @@ class ArkistointiJobObserver(
         val code = if (event.result == SUCCESS) "NONE"
             else event.errorCode?.takeIf { SAFE_CODE.matches(it) } ?: "ARCHIVE_ERROR_UNSPECIFIED"
         val details = "jobId=${event.jobId}, university=${event.university.name}, caseType=${event.caseType.value}, " +
-            "attempt=${event.attempt}, outcome=${event.result.name}, errorCode=$code"
+            "attempt=${event.attempt}, outcome=${event.result.name}, errorCode=$code, reason=${ArkistointiAlertMessage.diagnostics(event)}"
         when (event.result) {
             SUCCESS -> log.info("Archive attempt committed [{}]", details)
             TERMINAL_FAILURE -> {
                 log.error("Archive job requires intervention [{}]", details)
-                publish("Asynkroninen arkistointi vaatii toimenpiteitä", "Automaattiset yritykset on lopetettu. $details", event)
+                publish(event, code, terminal = true)
             }
             RETRYABLE_FAILURE ->
-                if (event.attempt == alertAfterAttempts) {
+                if (event.attempt in alertAttempts) {
                     log.warn("Archive delivery delayed [{}]", details)
-                    publish("Asynkroninen arkistointi viivästyy", "Automaattiset yritykset jatkuvat. $details", event)
+                    publish(event, code, terminal = false)
                 } else {
                     log.info("Archive attempt committed [{}]", details)
                 }
         }
     }
 
-    private fun publish(subject: String, message: String, event: ArkistointiAttemptCompleted) {
+    private fun publish(event: ArkistointiAttemptCompleted, code: String, terminal: Boolean) {
         try {
-            alerts.publishAlert(subject, message)
+            alerts.publishAlert(ArkistointiAlertMessage.subject(event, terminal), ArkistointiAlertMessage.body(event, code))
         } catch (_: Exception) {
             log.warn("Archive alert publication failed [jobId={}]", event.jobId)
         }
