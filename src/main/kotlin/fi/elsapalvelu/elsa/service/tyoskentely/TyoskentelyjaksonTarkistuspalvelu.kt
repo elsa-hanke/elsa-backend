@@ -2,18 +2,14 @@ package fi.elsapalvelu.elsa.service.tyoskentely
 
 import fi.elsapalvelu.elsa.required
 
-import java.time.LocalDate
 import java.security.Principal
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
-import fi.elsapalvelu.elsa.service.kayttaja.ErikoistuvaLaakariService
 import fi.elsapalvelu.elsa.service.kayttaja.FileValidationService
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
-import fi.elsapalvelu.elsa.web.rest.TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.ValidationException
 import org.springframework.security.core.GrantedAuthority
@@ -30,8 +26,7 @@ class TyoskentelyjaksonTarkistuspalvelu(
     private val tiedostojenTarkistus: FileValidationService,
     private val tyoskentelyajanTarkistus: OverlappingTyoskentelyjaksoValidationService,
     private val tyoskentelyjaksot: TyoskentelyjaksoService,
-    private val opintooikeudet: OpintooikeusService,
-    private val erikoistujat: ErikoistuvaLaakariService
+    private val opintooikeudet: OpintooikeusService
 ) {
 
     fun muodostaAsiakirjat(
@@ -44,22 +39,6 @@ class TyoskentelyjaksonTarkistuspalvelu(
         }
 
         return null
-    }
-
-    fun tarkistaLaillistamispaivaJaTodistus(
-        kayttaja: UserDTO,
-        laillistamispaiva: LocalDate?,
-        laillistamistodistus: MultipartFile?
-    ) {
-        if ((laillistamispaiva == null || laillistamistodistus == null) &&
-            !erikoistujat.laillistamispaivaAndTodistusExists(kayttaja.id.required())
-        ) {
-            throw BadRequestAlertException(
-                "Laillistamispaiva ja todistus vaaditaan",
-                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
-                "dataillegal.laillistamispaiva-ja-todistus-vaaditaan"
-            )
-        }
     }
 
     fun tarkistaUusiTyoskentelyjakso(tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {

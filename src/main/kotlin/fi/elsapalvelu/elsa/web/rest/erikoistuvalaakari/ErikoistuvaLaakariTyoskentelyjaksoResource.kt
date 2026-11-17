@@ -17,6 +17,7 @@ import fi.elsapalvelu.elsa.service.suoritteet.*
 import fi.elsapalvelu.elsa.service.koulutus.*
 import fi.elsapalvelu.elsa.service.seuranta.*
 import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.valmistuminen.TerveyskeskuskoulutusjaksonLahetyspalvelu
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.*
@@ -65,7 +66,8 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
     private val opintosuoritusService: OpintosuoritusService,
-    private val tyoskentelyjaksonTarkistuspalvelu: TyoskentelyjaksonTarkistuspalvelu
+    private val tyoskentelyjaksonTarkistuspalvelu: TyoskentelyjaksonTarkistuspalvelu,
+    private val terveyskeskuskoulutusjaksonLahetyspalvelu: TerveyskeskuskoulutusjaksonLahetyspalvelu
 ) {
 
     @PostMapping("/tyoskentelyjaksot")
@@ -369,50 +371,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
         principal: Principal?
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
-        val erikoistuvaLaakariId = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id.required())?.id.required()
-
-        if (opintosuoritusService.getTerveyskoulutusjaksoSuoritettu(opintooikeusId, erikoistuvaLaakariId)) {
-            throw BadRequestAlertException(
-                "Terveyskeskuskoulutusjakson hyväksynnästä on jo opintosuoritus",
-                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
-                "dataillegal.terveyskeskuskoulutusjaksolla-on-opintosuoritus"
-            )
-        }
-
-        if (!terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(
-                opintooikeusId
-            )
-        ) {
-            throw BadRequestAlertException(
-                "Terveyskeskuskoulutusjakson hyväksyntään vaadittava työskentelyaika ei täyty",
-                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
-                "dataillegal.terveyskeskuskoulutusjakson-pituus-liian-pieni"
-            )
-        }
-
-        tyoskentelyjaksonTarkistuspalvelu.tarkistaLaillistamispaivaJaTodistus(user, laillistamispaiva, laillistamispaivanLiite)
-        if (terveyskeskuskoulutusjaksonHyvaksyntaService.existsByOpintooikeusId(opintooikeusId)) {
-            throw BadRequestAlertException(
-                "Terveyskeskuskoulutusjakson hyväksyntä on jo lähetetty",
-                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
-                "dataillegal.terveyskeskuskoulutusjakson-hyvaksynta-on-jo-lahetetty"
-            )
-        }
-
-        erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id.required(),
-            laillistamispaiva,
-            laillistamispaivanLiite?.bytes,
-            laillistamispaivanLiite?.originalFilename,
-            laillistamispaivanLiite?.contentType
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(kayttaja.id.required())
+        val hyvaksynta = terveyskeskuskoulutusjaksonLahetyspalvelu.lahetaErikoistujanHyvaksynta(
+            kayttaja.id.required(), opintooikeusId, laillistamispaiva, laillistamispaivanLiite
         )
-
-        terveyskeskuskoulutusjaksonHyvaksyntaService.create(opintooikeusId).let {
-            return ResponseEntity.ok(it)
-        }
+        return ResponseEntity.ok(hyvaksynta)
     }
 
     @PutMapping("/tyoskentelyjaksot/terveyskeskuskoulutusjakson-hyvaksynta")
@@ -422,36 +387,13 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
         @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
         principal: Principal?
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
-
-        val hyvaksynta =
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)
-                ?: throw BadRequestAlertException(
-                    "Terveyskeskuskoulutusjakson hyväksyntää ei löydy",
-                    TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
-                    "dataillegal.terveyskeskuskoulutusjakson-hyvaksyntaa-ei-loydy"
-                )
-
-        erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id.required(),
-            laillistamispaiva,
-            laillistamispaivanLiite?.bytes,
-            laillistamispaivanLiite?.originalFilename,
-            laillistamispaivanLiite?.contentType
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserId(kayttaja.id.required())
+        val hyvaksynta = terveyskeskuskoulutusjaksonLahetyspalvelu.lahetaUudelleen(
+            kayttaja.id.required(), opintooikeusId, laillistamispaiva, laillistamispaivanLiite
         )
-
-        terveyskeskuskoulutusjaksonHyvaksyntaService.update(
-            user.id.required(),
-            false,
-            hyvaksynta.id.required(),
-            null,
-            null
-        )
-            .let {
-                return ResponseEntity.ok(it)
-            }
+        return ResponseEntity.ok(hyvaksynta)
     }
 
 

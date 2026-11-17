@@ -254,13 +254,13 @@ class TyoskentelyjaksonRoolikohtaisetToiminnotTest {
             whenever(jaksojenTarkistus.validateTyoskentelyjakso(any(), any())).thenReturn(true)
             whenever(jaksojenTarkistus.validateKeskeytysaika(any(), any())).thenReturn(true)
             whenever(poissaolojenTarkistus.validateKeskeytysaika(any(), any())).thenReturn(true)
-            val tarkistus = TyoskentelyjaksonTarkistuspalvelu(mock(), jaksojenTarkistus, jaksot, opintooikeudet, mock())
+            val tarkistus = TyoskentelyjaksonTarkistuspalvelu(mock(), jaksojenTarkistus, jaksot, opintooikeudet)
             val jaksojenMuokkaus = TyoskentelyjaksonMuokkauspalvelu(jaksot, tarkistus, mapper)
             val poissaolojenMuokkaus = KeskeytysajanMuokkauspalvelu(poissaolot, poissaolojenTarkistus, jaksojenTarkistus, tarkistus)
             toiminnot = if (koulutus == Koulutus.YEK) {
                 val resurssi = YekKoulutettavaTyoskentelyjaksoResource(
                     kayttajat, jaksot, mock(), mock(), mock(), poissaolot, mock(), mapper,
-                    jaksojenMuokkaus, poissaolojenMuokkaus, opintooikeudet, mock(), mock(), mock(), tarkistus
+                    jaksojenMuokkaus, poissaolojenMuokkaus, opintooikeudet, mock(), mock(), mock(), tarkistus, mock()
                 )
                 YhteisetToiminnot(
                     resurssi::createTyoskentelyjakso, resurssi::updateTyoskentelyjakso, resurssi::createKeskeytysaika,
@@ -270,7 +270,7 @@ class TyoskentelyjaksonRoolikohtaisetToiminnotTest {
             } else {
                 val resurssi = ErikoistuvaLaakariTyoskentelyjaksoResource(
                     kayttajat, jaksot, mock(), mock(), mock(), poissaolot, mock(), mapper,
-                    jaksojenMuokkaus, poissaolojenMuokkaus, opintooikeudet, mock(), mock(), mock(), tarkistus
+                    jaksojenMuokkaus, poissaolojenMuokkaus, opintooikeudet, mock(), mock(), mock(), tarkistus, mock()
                 )
                 YhteisetToiminnot(
                     resurssi::createTyoskentelyjakso, resurssi::updateTyoskentelyjakso, resurssi::createKeskeytysaika,
