@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service
 
+import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyajanPaallekkaisyystarkistus
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
@@ -45,7 +46,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
         val validator = OverlappingTyoskentelyjaksoValidationServiceImpl(
             tyoskentelyjaksoRepositoryMock,
             mock(KeskeytysaikaRepository::class.java),
-            TyoskentelyjaksonPituusCounterServiceImpl(kello), kello
+            TyoskentelyajanPaallekkaisyystarkistus(TyoskentelyjaksonPituusCounterServiceImpl(kello)), kello
         )
 
         val validationResult =
@@ -68,7 +69,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
         ).thenReturn(tyoskentelyjaksotToReturn)
 
         val validator = OverlappingTyoskentelyjaksoValidationServiceImpl(tyoskentelyjaksoRepositoryMock, mock(KeskeytysaikaRepository::class.java),
-            TyoskentelyjaksonPituusCounterServiceImpl(kello), kello)
+            TyoskentelyajanPaallekkaisyystarkistus(TyoskentelyjaksonPituusCounterServiceImpl(kello)), kello)
 
         val validationResult = validator.validateKeskeytysaika(DEFAULT_OPINTOOIKEUS_ID, keskeytysaikaDTO)
         assertThat(validationResult).isEqualTo(expectedResult)
@@ -94,7 +95,7 @@ class OverlappingTyoskentelyjaksoValidationServiceTest {
         ).thenReturn(keskeytysaikaMock)
 
         val validator = OverlappingTyoskentelyjaksoValidationServiceImpl(
-            tyoskentelyjaksoRepositoryMock, keskeytysaikaRepositoryMock, TyoskentelyjaksonPituusCounterServiceImpl(kello), kello
+            tyoskentelyjaksoRepositoryMock, keskeytysaikaRepositoryMock, TyoskentelyajanPaallekkaisyystarkistus(TyoskentelyjaksonPituusCounterServiceImpl(kello)), kello
         )
 
         val validationResult = validator.validateKeskeytysaikaDelete(DEFAULT_OPINTOOIKEUS_ID, keskeytysaikaDTO.id!!)

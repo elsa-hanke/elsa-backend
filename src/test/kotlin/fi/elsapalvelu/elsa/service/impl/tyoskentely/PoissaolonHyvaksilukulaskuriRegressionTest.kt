@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
+import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyajanPaallekkaisyystarkistus
 import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyyTyyppi
@@ -78,7 +79,9 @@ class PoissaolonHyvaksilukulaskuriRegressionTest {
         ))
         val tyoskentelyjaksoRepository = mock<TyoskentelyjaksoRepository>()
         whenever(tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(1L, paattymispaiva)).thenReturn(listOf(tyoskentelyjakso))
-        val validaattori = OverlappingTyoskentelyjaksoValidationServiceImpl(tyoskentelyjaksoRepository, mock(), pituusLaskuri, java.time.Clock.systemDefaultZone())
+        val validaattori = OverlappingTyoskentelyjaksoValidationServiceImpl(
+            tyoskentelyjaksoRepository, mock(), TyoskentelyajanPaallekkaisyystarkistus(pituusLaskuri), java.time.Clock.systemDefaultZone()
+        )
 
         assertThat(validaattori.validateTyoskentelyjakso(1L, TyoskentelyjaksoDTO(
             alkamispaiva = paattymispaiva, paattymispaiva = paattymispaiva, osaaikaprosentti = 100

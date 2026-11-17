@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
+import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyajanPaallekkaisyystarkistus
 import fi.elsapalvelu.elsa.domain.tyoskentely.Keskeytysaika
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyyTyyppi
@@ -106,6 +107,6 @@ class TyoskentelyjaksojenPaallekkaisyydenPaivamaaratTest {
     }
 
     private fun validaattori(aika: KellonTestitapaus) = OverlappingTyoskentelyjaksoValidationServiceImpl(
-        jaksot, keskeytykset, TyoskentelyjaksonPituusCounterServiceImpl(aika.kello()), aika.kello()
+        jaksot, keskeytykset, TyoskentelyajanPaallekkaisyystarkistus(TyoskentelyjaksonPituusCounterServiceImpl(aika.kello())), aika.kello()
     )
 }
