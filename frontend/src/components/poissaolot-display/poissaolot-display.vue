@@ -29,7 +29,7 @@
           </b-tr>
         </b-thead>
         <b-tbody>
-          <b-tr v-for="(keskeytysaika, index) in poissaolot" :key="index">
+          <b-tr v-for="(keskeytysaika, index) in sortedPoissaolot" :key="index">
             <b-td :stacked-heading="$t('poissaolon-syy')">
               <p>{{ keskeytysaika.poissaolonSyy.nimi }}</p>
             </b-td>
@@ -73,6 +73,20 @@
 
     toggleIsOpen() {
       this.isOpen = !this.isOpen
+    }
+
+    get sortedPoissaolot(): Keskeytysaika[] {
+      return [...this.poissaolot].sort((a, b) => {
+        if (!a.alkamispaiva && !b.alkamispaiva) return 0
+        if (!a.alkamispaiva) return 1
+        if (!b.alkamispaiva) return -1
+        const startDiff = a.alkamispaiva.localeCompare(b.alkamispaiva)
+        if (startDiff !== 0) return startDiff
+        if (!a.paattymispaiva && !b.paattymispaiva) return 0
+        if (!a.paattymispaiva) return 1
+        if (!b.paattymispaiva) return -1
+        return a.paattymispaiva.localeCompare(b.paattymispaiva)
+      })
     }
   }
 </script>
