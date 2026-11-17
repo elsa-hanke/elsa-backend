@@ -34,6 +34,7 @@ import org.mockito.kotlin.whenever
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import fi.elsapalvelu.elsa.service.mapper.arviointi.SuoritusarviointiMapper
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
+import java.time.Clock
 import java.time.LocalDate
 import java.util.Optional
 
@@ -62,7 +63,7 @@ class RichTextPersistenceTest {
                 entity.id = entity.id ?: 43
             }
         }
-        val service = ArvioitavaKokonaisuusServiceImpl(repository, blockMapper, detailMapper, mock(), mock(), mock(), java.time.Clock.systemUTC())
+        val service = ArvioitavaKokonaisuusServiceImpl(repository, blockMapper, detailMapper, mock(), mock(), mock(), Clock.systemUTC())
         val dto = ArvioitavaKokonaisuusDTO(kuvaus = dirty, kuvausSv = dirty, voimassaoloAlkaa = LocalDate.now())
         service.create(dto.copy())
         service.create(dto.copy(id = 42))
@@ -83,7 +84,7 @@ class RichTextPersistenceTest {
                 entity.id = entity.id ?: 43
             }
         }
-        val service = ArviointityokaluServiceImpl(repository, toolMapper, mock(), java.time.Clock.systemUTC())
+        val service = ArviointityokaluServiceImpl(repository, toolMapper, mock(), Clock.systemUTC())
         service.save(ArviointityokaluDTO(ohjeteksti = dirty), UserDTO(), null)
         service.update(ArviointityokaluDTO(id = 42, ohjeteksti = dirty), null)
         assertThat(snapshots).hasSize(4).allMatch { it == safe }
@@ -100,7 +101,7 @@ class RichTextPersistenceTest {
                 e.id = e.id ?: 43
             }
         }
-        val service = ArvioitavaKokonaisuusServiceImpl(repository, blockMapper, detailMapper, mock(), mock(), mock(), java.time.Clock.systemUTC())
+        val service = ArvioitavaKokonaisuusServiceImpl(repository, blockMapper, detailMapper, mock(), mock(), mock(), Clock.systemUTC())
         val mvc = MockMvcBuilders.standaloneSetup(TekninenPaakayttajaOpetussuunnitelmatResource(
             mock(), mock(), mock(), mock(), service, mock(), mock(), mock(), mock()
         )).build()
@@ -127,7 +128,7 @@ class RichTextPersistenceTest {
                 e.id = e.id ?: 43
             }
         }
-        val service = ArviointityokaluServiceImpl(repository, toolMapper, mock(), java.time.Clock.systemUTC())
+        val service = ArviointityokaluServiceImpl(repository, toolMapper, mock(), Clock.systemUTC())
         val users = mock<UserService>()
         whenever(users.getAuthenticatedUser(anyOrNull())).thenReturn(UserDTO())
         val jsonMapper = ObjectMapper().findAndRegisterModules()

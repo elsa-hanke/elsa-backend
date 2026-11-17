@@ -13,6 +13,7 @@ import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
+import java.time.Clock
 
 class DynastyWorkerConfigurationTest {
     private val properties = ApplicationProperties()
@@ -20,7 +21,7 @@ class DynastyWorkerConfigurationTest {
     private val settings = turku.dynasty
     private val mapper = jacksonObjectMapper()
     private val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
-        DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, java.time.Clock.systemDefaultZone()),
+        DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
         TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
         DynastyStepExecutor(mock<DynastyStepLedger>(), properties)
     )))

@@ -27,6 +27,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 import java.util.MissingResourceException
@@ -37,7 +38,8 @@ class AsyncSahkePackageBuilderTest {
     private val mapper = jacksonObjectMapper()
     private val properties = ArkistointiTestData.createApplicationProperties()
     private val configuration = ArkistointiConfigurationProvider(properties)
-    private val builder = AsyncSahkePackageBuilder(ArchivePayloadReader(mapper), configuration, SahkeMetadataBuilder(java.time.Clock.systemDefaultZone()), SahkePakettiBuilder())
+    private val builder = AsyncSahkePackageBuilder(ArchivePayloadReader(mapper), configuration, SahkeMetadataBuilder(
+        Clock.systemDefaultZone()), SahkePakettiBuilder())
 
     @ParameterizedTest
     @CsvSource("VALMISTUMINEN,false,false", "VALMISTUMINEN,true,false", "KOEJAKSO,false,false",
@@ -67,7 +69,7 @@ class AsyncSahkePackageBuilderTest {
         }
         val submission = arkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, caseType, payload, documents)
         val legacy = SynchronousArkistointiServiceImpl(
-            configuration, SahkeMetadataBuilder(java.time.Clock.systemDefaultZone()),
+            configuration, SahkeMetadataBuilder(Clock.systemDefaultZone()),
             SahkePakettiBuilder(), mock<SynchronousArkistointiDispatcher>()
         )
             .muodostaSahke(studyRight, input.asiakirjat, "42", "Reviewer", LocalDate.now().minusDays(1),

@@ -12,10 +12,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.time.Clock
 import java.time.LocalDate
 
 class PoissaolonHyvaksilukulaskuriRegressionTest {
-    private val pituusLaskuri = TyoskentelyjaksonPituusCounterServiceImpl(java.time.Clock.systemDefaultZone())
+    private val pituusLaskuri = TyoskentelyjaksonPituusCounterServiceImpl(Clock.systemDefaultZone())
 
     @Test
     fun `keston laskenta sailyttaa vuosittaisen saldon kun kertaluonteinen saldo loppuu vuodenvaihteessa`() {
@@ -80,7 +81,7 @@ class PoissaolonHyvaksilukulaskuriRegressionTest {
         val tyoskentelyjaksoRepository = mock<TyoskentelyjaksoRepository>()
         whenever(tyoskentelyjaksoRepository.findAllByOpintooikeusUntilDateEagerWithRelationships(1L, paattymispaiva)).thenReturn(listOf(tyoskentelyjakso))
         val validaattori = OverlappingTyoskentelyjaksoValidationServiceImpl(
-            tyoskentelyjaksoRepository, mock(), TyoskentelyajanPaallekkaisyystarkistus(pituusLaskuri), java.time.Clock.systemDefaultZone()
+            tyoskentelyjaksoRepository, mock(), TyoskentelyajanPaallekkaisyystarkistus(pituusLaskuri), Clock.systemDefaultZone()
         )
 
         assertThat(validaattori.validateTyoskentelyjakso(1L, TyoskentelyjaksoDTO(

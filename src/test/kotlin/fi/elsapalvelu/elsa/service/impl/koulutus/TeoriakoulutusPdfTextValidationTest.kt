@@ -12,6 +12,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.*
+import java.time.Clock
 import java.time.LocalDate
 import kotlin.test.assertFailsWith
 
@@ -28,7 +29,7 @@ class TeoriakoulutusPdfTextValidationTest {
         asiakirjaMapper = asiakirjaMapper,
         paivakirjamerkintaRepository = paivakirjamerkintaRepository,
         pdfTextFieldValidator = PdfTextTestSupport.fieldValidator(),
-        clock = java.time.Clock.systemDefaultZone()
+        clock = Clock.systemDefaultZone()
     )
 
     @ParameterizedTest

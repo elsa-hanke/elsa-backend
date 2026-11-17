@@ -63,8 +63,8 @@ class SisuTreAuthenticationTokenServiceImplTest {
             jacksonObjectMapper(),
             properties,
             IntegrationAlertService(alertPublisherService),
-            fi.elsapalvelu.elsa.security.AuthenticationTokenCache(java.time.Clock.systemDefaultZone()),
-            java.time.Clock.systemDefaultZone()
+            AuthenticationTokenCache(Clock.systemDefaultZone()),
+            Clock.systemDefaultZone()
         )
         whenever(client.newCall(any())).thenReturn(call)
     }

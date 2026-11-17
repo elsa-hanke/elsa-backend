@@ -13,6 +13,7 @@ import org.mockito.Mockito.mock
 import org.springframework.context.ApplicationContext
 import org.springframework.core.env.Environment
 import org.springframework.web.filter.CorsFilter
+import java.time.Clock
 import kotlin.coroutines.CoroutineContext
 
 internal fun testSecurityConfiguration(
@@ -58,7 +59,7 @@ internal fun testKirjautumisenPalvelut(
         opintosuorituksetServices, opintosuorituksetPersistenceService, DirectTestDispatcher
     )
     val kutsupalvelu = Kirjautumiskutsupalvelu(
-        kirjautumisenKonteksti.verificationTokenRepository, userRepository, userService, java.time.Clock.systemDefaultZone()
+        kirjautumisenKonteksti.verificationTokenRepository, userRepository, userService, Clock.systemDefaultZone()
     )
     val kayttooikeuspalvelu = KirjautumisenKayttooikeuspalvelu(
         kayttajaRepository, kirjautumisenKonteksti.opintooikeusRepository, opintooikeusService, userService
@@ -70,7 +71,7 @@ internal fun testKirjautumisenPalvelut(
         mock(CorsFilter::class.java), applicationProperties,
         kirjautumisenKonteksti.opintooikeusRepository, kayttajaRepository, userRepository,
         mock(KouluttajavaltuutusRepository::class.java), kirjautumisenKonteksti.ymparisto,
-        mock(ApplicationContext::class.java), kirjautumispalvelu, java.time.Clock.systemDefaultZone()
+        mock(ApplicationContext::class.java), kirjautumispalvelu, Clock.systemDefaultZone()
     )
     return KirjautumisenTestipalvelut(konfiguraatio, kirjautumispalvelu, opintotietopalvelu)
 }

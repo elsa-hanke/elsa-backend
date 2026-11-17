@@ -54,6 +54,7 @@ import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.filter.CorsFilter
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_PRODUCTION
+import java.time.Clock
 
 @Configuration
 @EnableWebSecurity
@@ -68,7 +69,7 @@ class SecurityConfiguration(
     private val env: Environment,
     private val applicationContext: ApplicationContext,
     private val kirjautumispalvelu: Kirjautumispalvelu,
-    private val clock: java.time.Clock
+    private val clock: Clock
 ) {
 
     @Bean

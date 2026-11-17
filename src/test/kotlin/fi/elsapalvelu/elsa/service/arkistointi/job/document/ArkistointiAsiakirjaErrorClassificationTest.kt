@@ -18,11 +18,12 @@ import org.mockito.kotlin.whenever
 import org.springframework.dao.DataAccessResourceFailureException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
+import java.time.Clock
 
 class ArkistointiAsiakirjaErrorClassificationTest {
     private val repository = mock<AsiakirjaRepository>()
     private val jdbc = mock<JdbcTemplate>()
-    private val service = ArkistointiAsiakirjaSnapshotService(repository, java.time.Clock.systemDefaultZone())
+    private val service = ArkistointiAsiakirjaSnapshotService(repository, Clock.systemDefaultZone())
     private val privateValue = "private-patient-name-secret.pdf"
 
     @ParameterizedTest

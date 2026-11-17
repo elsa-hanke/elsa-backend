@@ -18,7 +18,7 @@ class ArkistointiPackageIntTest {
         configurationProvider = ArkistointiConfigurationProvider(
             ArkistointiTestData.createApplicationProperties()
         ),
-        metadataBuilder = SahkeMetadataBuilder(java.time.Clock.systemDefaultZone()),
+        metadataBuilder = SahkeMetadataBuilder(Clock.systemDefaultZone()),
         pakettiBuilder = SahkePakettiBuilder(),
         dispatcher = Mockito.mock(SynchronousArkistointiDispatcher::class.java)
     )

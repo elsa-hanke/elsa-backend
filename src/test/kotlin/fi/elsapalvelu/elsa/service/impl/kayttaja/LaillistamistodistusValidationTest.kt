@@ -17,6 +17,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.*
 import org.springframework.http.MediaType
 import java.io.ByteArrayOutputStream
+import java.time.Clock
 import java.time.LocalDate
 import java.util.stream.Stream
 import kotlin.test.assertFailsWith
@@ -40,7 +41,7 @@ class LaillistamistodistusValidationTest {
         asetusRepository = mock(),
         opintoopasRepository = mock(),
         fileValidationService = FileValidationServiceImpl(asiakirjaService, PdfContentValidator()),
-        clock = java.time.Clock.systemDefaultZone()
+        clock = Clock.systemDefaultZone()
     )
 
     @ParameterizedTest

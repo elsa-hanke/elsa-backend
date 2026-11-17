@@ -14,6 +14,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import java.time.Clock
 import java.util.Optional
 
 @ExtendWith(MockitoExtension::class)
@@ -36,7 +37,7 @@ class KouluttajavaltuutusServiceImplTest {
 
     private fun palvelu() = KouluttajavaltuutusServiceImpl(
         kouluttajavaltuutusRepository, kouluttajavaltuutusMapper, erikoistuvaLaakariRepository,
-        kayttajaRepository, mailService, java.time.Clock.systemDefaultZone()
+        kayttajaRepository, mailService, Clock.systemDefaultZone()
     )
 
     @Test

@@ -16,6 +16,7 @@ import okhttp3.OkHttpClient
 import org.mockito.kotlin.*
 import java.io.IOException
 import java.net.SocketTimeoutException
+import java.time.Clock
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -32,7 +33,7 @@ class DynastyClientTest {
             allowLoopbackHttpForTests = true
             configure()
         }
-        return DynastyClient(settings,jacksonObjectMapper(),transport, java.time.Clock.systemDefaultZone())
+        return DynastyClient(settings,jacksonObjectMapper(),transport, Clock.systemDefaultZone())
     }
     private fun caseRequest() = DynastyCaseRequest(DynastyCaseModel("case-schema", "Test case", DynastyAdditionalData()))
 

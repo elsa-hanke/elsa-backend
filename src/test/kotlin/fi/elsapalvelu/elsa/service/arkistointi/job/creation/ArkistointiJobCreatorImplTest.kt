@@ -32,6 +32,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.support.TransactionSynchronizationManager
+import java.time.Clock
 
 @ExtendWith(MockitoExtension::class)
 class ArkistointiJobCreatorImplTest {
@@ -49,7 +50,7 @@ class ArkistointiJobCreatorImplTest {
 
     @BeforeEach
     fun setUp() {
-        creator = ArkistointiJobCreatorImpl(repository, scheduler, snapshotService, java.time.Clock.systemDefaultZone())
+        creator = ArkistointiJobCreatorImpl(repository, scheduler, snapshotService, Clock.systemDefaultZone())
     }
 
     @org.junit.jupiter.params.ParameterizedTest

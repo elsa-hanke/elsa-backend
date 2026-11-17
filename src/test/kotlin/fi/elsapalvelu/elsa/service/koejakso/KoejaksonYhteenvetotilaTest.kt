@@ -22,12 +22,13 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import java.time.Clock
 
 class KoejaksonYhteenvetotilaTest {
     private val sopimukset = mock<KoejaksonKoulutussopimusRepository>()
     private val arviot = mock<KoejaksonVastuuhenkilonArvioRepository>()
     private val aloitukset = mock<KoejaksonAloituskeskusteluRepository>()
-    private val palvelu = EtusivunKoejaksopalvelu(sopimukset, arviot, aloitukset, java.time.Clock.systemDefaultZone())
+    private val palvelu = EtusivunKoejaksopalvelu(sopimukset, arviot, aloitukset, Clock.systemDefaultZone())
     private val opintooikeus = Opintooikeus(id = 11L)
 
     @ParameterizedTest

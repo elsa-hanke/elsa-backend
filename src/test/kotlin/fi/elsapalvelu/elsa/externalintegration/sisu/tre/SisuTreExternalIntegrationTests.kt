@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
 import org.springframework.context.annotation.Primary
 import org.springframework.test.context.ActiveProfiles
+import java.time.Clock
 
 /**
  * External integration tests for Sisu TRE (REST/JSON with Azure AD OAuth2).
@@ -94,7 +95,7 @@ class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase()
 )
 class SisuTreExternalIntegrationTestApplication {
     @Bean
-    fun clock(): java.time.Clock = java.time.Clock.systemDefaultZone()
+    fun clock(): Clock = Clock.systemDefaultZone()
 
 
     @Bean
