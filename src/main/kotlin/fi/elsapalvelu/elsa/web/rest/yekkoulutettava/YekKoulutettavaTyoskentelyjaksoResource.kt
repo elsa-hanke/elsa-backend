@@ -52,11 +52,7 @@ private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
 class YekKoulutettavaTyoskentelyjaksoResource(
     private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
-    private val kuntaService: KuntaService,
-    private val erikoisalaService: ErikoisalaService,
-    private val poissaolonSyyService: PoissaolonSyyService,
     private val keskeytysaikaService: KeskeytysaikaService,
-    private val asiakirjaService: AsiakirjaService,
     private val objectMapper: ObjectMapper,
     private val tyoskentelyjaksonMuokkauspalvelu: TyoskentelyjaksonMuokkauspalvelu,
     private val keskeytysajanMuokkauspalvelu: KeskeytysajanMuokkauspalvelu,
@@ -64,7 +60,8 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
     private val tyoskentelyjaksonTarkistuspalvelu: TyoskentelyjaksonTarkistuspalvelu,
     private val terveyskeskuskoulutusjaksonLahetyspalvelu: TerveyskeskuskoulutusjaksonLahetyspalvelu,
-    private val tyoskentelyjaksojenTaulukkopalvelu: TyoskentelyjaksojenTaulukkopalvelu
+    private val tyoskentelyjaksojenTaulukkopalvelu: TyoskentelyjaksojenTaulukkopalvelu,
+    private val tyoskentelyjaksojenLomakepalvelu: TyoskentelyjaksojenLomakepalvelu
 ) {
 
     @PostMapping("/tyoskentelyjaksot")
@@ -182,38 +179,20 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     fun getTyoskentelyjaksoForm(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoFormDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-        val form = TyoskentelyjaksoFormDTO()
-
-        form.kunnat = kuntaService.findAll().toMutableSet()
-
-        form.erikoisalat = erikoisalaService.findAll().toMutableSet()
-
-        form.reservedAsiakirjaNimet =
-            asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map { it.nimi.required() }
-                .toMutableSet()
-
-        return ResponseEntity.ok(form)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(kayttaja.id.required(), YEK_ERIKOISALA_ID)
+        return ResponseEntity.ok(tyoskentelyjaksojenLomakepalvelu.haeTyoskentelyjaksonLomake(opintooikeusId))
     }
 
     @GetMapping("/poissaolo-lomake")
     fun getKeskeytysaikaForm(
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaFormDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-        val form = KeskeytysaikaFormDTO()
-
-        form.poissaolonSyyt =
-            poissaolonSyyService.findAllByOpintooikeusId(opintooikeusId).toMutableSet()
-
-        form.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
-
-        return ResponseEntity.ok(form)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(kayttaja.id.required(), YEK_ERIKOISALA_ID)
+        return ResponseEntity.ok(tyoskentelyjaksojenLomakepalvelu.haeKeskeytysajanLomake(opintooikeusId))
     }
 
     @PostMapping("/tyoskentelyjaksot/poissaolot")

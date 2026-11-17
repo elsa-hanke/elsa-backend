@@ -242,14 +242,18 @@ class TyoskentelyjaksonTaulukkoTest {
             val taulukkopalvelu = TyoskentelyjaksojenTaulukkopalvelu(jaksot, keskeytysajat, erikoistujat, erikoisalat, opintosuoritukset, hyvaksynnat)
             if (koulutus == Koulutus.YEK) {
                 val resurssi = YekKoulutettavaTyoskentelyjaksoResource(
-                    kayttajat, jaksot, mock(), erikoisalat, mock(), keskeytysajat, mock(), mock(), mock(), mock(),
-                    opintooikeudet, hyvaksynnat, mock(), mock(), taulukkopalvelu
+                    kayttajat, jaksot, keskeytysajat,
+                    mock(), mock(), mock(),
+                    opintooikeudet, hyvaksynnat, mock(),
+                    mock(), taulukkopalvelu, mock()
                 )
                 haeTaulukko = resurssi::getTyoskentelyjaksoTable
             } else {
                 val resurssi = ErikoistuvaLaakariTyoskentelyjaksoResource(
-                    kayttajat, jaksot, mock(), erikoisalat, mock(), keskeytysajat, mock(), mock(), mock(), mock(),
-                    opintooikeudet, hyvaksynnat, mock(), mock(), taulukkopalvelu
+                    kayttajat, jaksot, keskeytysajat,
+                    mock(), mock(), mock(),
+                    opintooikeudet, hyvaksynnat, mock(),
+                    mock(), taulukkopalvelu, mock()
                 )
                 haeTaulukko = resurssi::getTyoskentelyjaksoTable
             }
