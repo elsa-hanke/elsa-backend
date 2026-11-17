@@ -143,9 +143,6 @@
                   </b-form-checkbox>
                 </template>
               </elsa-form-group>
-              <p class="mt-2 mb-0">
-                {{ $t('valmistumispyynto-mikali-olet-toimittanut-tarvittavat-tiedot') }}
-              </p>
               <hr />
               <div v-if="!vaatimuksetHyvaksytty" class="text-right mr-2">
                 <elsa-button variant="primary" @click="confirmVaatimukset">
