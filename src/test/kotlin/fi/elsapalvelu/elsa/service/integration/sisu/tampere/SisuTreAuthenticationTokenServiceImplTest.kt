@@ -15,6 +15,13 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
+import fi.elsapalvelu.elsa.service.helpers.KELLON_TESTITAPAUKSET
+import fi.elsapalvelu.elsa.service.helpers.KellonTestitapaus
+import fi.elsapalvelu.elsa.security.AuthenticationTokenCache
+import java.time.Clock
+import org.mockito.kotlin.mock
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -55,9 +62,40 @@ class SisuTreAuthenticationTokenServiceImplTest {
             },
             jacksonObjectMapper(),
             properties,
-            IntegrationAlertService(alertPublisherService)
+            IntegrationAlertService(alertPublisherService),
+            AuthenticationTokenCache(Clock.systemDefaultZone()),
+            Clock.systemDefaultZone()
         )
         whenever(client.newCall(any())).thenReturn(call)
+    }
+
+    @ParameterizedTest
+    @MethodSource(KELLON_TESTITAPAUKSET)
+    fun `Sisu tokenin viiden sekunnin marginaali kayttaa samaa kelloa kuin valimuisti`(aika: KellonTestitapaus) {
+        val kello = mock<Clock>()
+        whenever(kello.zone).thenReturn(aika.kello().zone)
+        whenever(kello.instant()).thenReturn(aika.aikaleima())
+        val valimuisti = AuthenticationTokenCache(kello)
+        val asetukset = ApplicationProperties().apply {
+            getSecurity().getSisuTre().apply {
+                tokenEndpointUrl = "https://login.example.test"
+                tenantId = "tenant"
+                scopeId = "scope"
+                clientId = "asiakas"
+                clientSecret = "salaisuus"
+            }
+        }
+        val palvelu = SisuTreAuthenticationTokenServiceImpl(object : OkHttpClientBuilder {
+            override fun okHttpClient() = client
+        }, jacksonObjectMapper(), asetukset, IntegrationAlertService(alertPublisherService), valimuisti, kello)
+        whenever(call.execute()).thenReturn(response("""{"access_token":"token","expires_in":60}"""))
+
+        assertThat(palvelu.requestToken()).isEqualTo("token")
+        assertThat(valimuisti.getTokenByClientId("asiakas")!!.expires).isEqualTo(aika.paikallinenAika().plusSeconds(55))
+        whenever(kello.instant()).thenReturn(aika.aikaleima().plusSeconds(54))
+        assertThat(valimuisti.getTokenByClientId("asiakas")).isNotNull()
+        whenever(kello.instant()).thenReturn(aika.aikaleima().plusSeconds(55))
+        assertThat(valimuisti.getTokenByClientId("asiakas")).isNull()
     }
 
     @Test

@@ -20,6 +20,7 @@ import org.mockito.kotlin.*
 import org.thymeleaf.spring6.SpringTemplateEngine
 import org.thymeleaf.context.Context
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
+import java.time.Clock
 import java.util.Locale
 import java.util.Optional
 import java.util.ResourceBundle
@@ -32,8 +33,7 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkintaTest {
     private val repository: OpintooikeusRepository = mock()
     private val credits: OpintosuoritusService = mock()
     private val job = ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
-        studyRights, approvals, mail, users, repository, credits
-    )
+        studyRights, approvals, mail, users, repository, credits, clock = Clock.systemDefaultZone())
 
     @Test
     fun `empty candidate list does not perform completion checks or send mail`() {

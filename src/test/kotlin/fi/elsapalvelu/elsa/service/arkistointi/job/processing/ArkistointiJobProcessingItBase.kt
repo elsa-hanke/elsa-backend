@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.processing
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.SchedulerName
 import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
@@ -98,8 +99,8 @@ open class ArkistointiJobProcessingItBase : ArchiveProcessingTestSupport() {
         checksum: String? = null,
         caseType: CaseType = CaseType.VALMISTUMINEN
     ): UUID = transactions.execute {
-        YliopistoHelper.createReferenceData(em, university)
-        val source = AsiakirjaHelper.createEntity(em)
+        val yliopisto = YliopistoHelper.createReferenceData(em, university)
+        val source = AsiakirjaHelper.createEntity(em, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(em, yliopisto))
         source.asiakirjaData!!.data = PdfTestData.certificate()
         em.persist(source)
         val reference = snapshots.createReference(source, RecordType.YHTEENVETO, 0)

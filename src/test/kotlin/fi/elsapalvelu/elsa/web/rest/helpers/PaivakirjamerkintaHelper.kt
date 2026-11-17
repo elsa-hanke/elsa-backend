@@ -1,9 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.seuranta.Paivakirjamerkinta
 import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
@@ -28,7 +27,8 @@ object PaivakirjamerkintaHelper {
 
     fun createEntity(
         em: EntityManager,
-        user: User? = null
+        user: User? = null,
+        opintooikeus: Opintooikeus = Testisuhteet.opintooikeus(em, user)
     ): Paivakirjamerkinta {
         val paivakirjamerkinta = Paivakirjamerkinta(
             paivamaara = DEFAULT_PAIVAMAARA,
@@ -38,21 +38,12 @@ object PaivakirjamerkintaHelper {
             yksityinen = DEFAULT_YKSITYINEN
         )
 
-        val erikoistuvaLaakari =
-            em.findAll(ErikoistuvaLaakari::class)
-                .firstOrNull { it.kayttaja?.user == user }
-                ?: ErikoistuvaLaakariHelper.createEntity(em, user).also {
-                    em.persist(it)
-                    em.flush()
-                }
-
-        paivakirjamerkinta.opintooikeus =
-            erikoistuvaLaakari.getOpintooikeusKaytossa()
+        paivakirjamerkinta.opintooikeus = opintooikeus
 
         return paivakirjamerkinta
     }
 
-    fun createUpdatedEntity(em: EntityManager): Paivakirjamerkinta {
+    fun createUpdatedEntity(opintooikeus: Opintooikeus): Paivakirjamerkinta {
         val paivakirjamerkinta = Paivakirjamerkinta(
             paivamaara = UPDATED_PAIVAMAARA,
             oppimistapahtumanNimi = UPDATED_OPPIMISTAPAHTUMAN_NIMI,
@@ -61,20 +52,7 @@ object PaivakirjamerkintaHelper {
             yksityinen = UPDATED_YKSITYINEN
         )
 
-        val existing = em.findAll(ErikoistuvaLaakari::class)
-
-        val erikoistuvaLaakari =
-            if (existing.isEmpty()) {
-                ErikoistuvaLaakariHelper.createUpdatedEntity(em).also {
-                    em.persist(it)
-                    em.flush()
-                }
-            } else {
-                existing.first()
-            }
-
-        paivakirjamerkinta.opintooikeus =
-            erikoistuvaLaakari.getOpintooikeusKaytossa()
+        paivakirjamerkinta.opintooikeus = opintooikeus
 
         return paivakirjamerkinta
     }

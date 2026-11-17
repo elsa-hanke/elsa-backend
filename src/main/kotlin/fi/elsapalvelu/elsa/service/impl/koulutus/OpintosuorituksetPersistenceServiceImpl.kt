@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.koulutus
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
@@ -36,7 +37,8 @@ class OpintosuorituksetPersistenceServiceImpl(
     private val opintosuoritusKurssikoodiRepository: OpintosuoritusKurssikoodiRepository,
     private val opintosuoritusOsakokonaisuusMapper: OpintosuoritusOsakokonaisuusMapper,
     private val opintosuoritusTyyppiMapper: OpintosuoritusTyyppiMapper,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val clock: Clock
 ) : OpintosuorituksetPersistenceService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -90,7 +92,7 @@ class OpintosuorituksetPersistenceServiceImpl(
                                 it.kurssikoodi !in incomingCodes
                             } == true
                             if (removed) {
-                                opintosuoritus.muokkausaika = Instant.now()
+                                opintosuoritus.muokkausaika = Instant.now(clock)
                             }
                         }
                     }
@@ -173,7 +175,7 @@ class OpintosuorituksetPersistenceServiceImpl(
         }
 
         if (updated) {
-            opintosuoritus.muokkausaika = Instant.now()
+            opintosuoritus.muokkausaika = Instant.now(clock)
         }
     }
 
@@ -226,7 +228,7 @@ class OpintosuorituksetPersistenceServiceImpl(
         }
 
         if (updated) {
-            osakokonaisuus.muokkausaika = Instant.now()
+            osakokonaisuus.muokkausaika = Instant.now(clock)
         }
     }
 
@@ -243,14 +245,14 @@ class OpintosuorituksetPersistenceServiceImpl(
 
         val opintosuoritus = opintosuoritusMapper.toEntity(opintosuoritusDTO).apply {
             this.opintooikeus = opintooikeus
-            muokkausaika = Instant.now()
+            muokkausaika = Instant.now(clock)
         }
         opintosuoritusRepository.save(opintosuoritus)
 
         opintosuoritusDTO.osakokonaisuudet?.map {
             opintosuoritusOsakokonaisuusMapper.toEntity(it).apply {
                 this.opintosuoritus = opintosuoritus
-                muokkausaika = Instant.now()
+                muokkausaika = Instant.now(clock)
             }
         }?.let {
             opintosuoritus.osakokonaisuudet?.addAll(it)
@@ -263,7 +265,7 @@ class OpintosuorituksetPersistenceServiceImpl(
     ) {
         val osakokonaisuus = opintosuoritusOsakokonaisuusMapper.toEntity(osakokonaisuusDTO).apply {
             this.opintosuoritus = opintosuoritus
-            muokkausaika = Instant.now()
+            muokkausaika = Instant.now(clock)
         }
         opintosuoritus.osakokonaisuudet?.add(osakokonaisuus)
     }

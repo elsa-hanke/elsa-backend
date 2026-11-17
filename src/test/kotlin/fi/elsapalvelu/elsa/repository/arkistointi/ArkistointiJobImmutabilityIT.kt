@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.repository.arkistointi
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
@@ -250,7 +251,7 @@ class ArkistointiJobImmutabilityIT {
     private fun persistFixture(expected: Int, actual: Int): Fixture {
         jdbc.update("insert into yliopisto (nimi) select ? where not exists (select 1 from yliopisto)",
             YliopistoEnum.TURUN_YLIOPISTO.name)
-        val document = AsiakirjaHelper.createEntity(em)
+        val document = AsiakirjaHelper.createEntity(em, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(em, YliopistoEnum.TURUN_YLIOPISTO))
         em.persist(document)
         val job = ArkistointiJob(
             university = YliopistoEnum.TURUN_YLIOPISTO, caseType = CaseType.VALMISTUMINEN,

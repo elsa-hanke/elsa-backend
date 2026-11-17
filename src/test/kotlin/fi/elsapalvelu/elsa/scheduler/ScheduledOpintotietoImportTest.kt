@@ -31,6 +31,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.slf4j.MDC
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
+import java.time.Clock
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -69,8 +70,7 @@ class ScheduledOpintotietoImportTest {
             ),
             opintosuorituksetPersistenceService = opintosuorituksetPersistenceService,
             opintooikeusRepository = opintooikeusRepository,
-            applicationProperties = appProps
-        )
+            applicationProperties = appProps, clock = Clock.systemDefaultZone())
     }
 
     @Test

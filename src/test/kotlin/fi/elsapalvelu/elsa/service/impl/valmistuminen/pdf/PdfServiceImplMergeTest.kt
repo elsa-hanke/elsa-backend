@@ -29,6 +29,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.http.MediaType
 import org.thymeleaf.spring6.SpringTemplateEngine
+import java.time.Clock
 
 class PdfServiceImplMergeTest {
     private val service = PdfServiceImpl(
@@ -116,7 +117,7 @@ class PdfServiceImplMergeTest {
             opintooikeus = Opintooikeus(id = 10L)
         }
         whenever(repository.findOneWithDataById(1L)).thenReturn(source)
-        val reference = ArkistointiAsiakirjaSnapshotService(repository)
+        val reference = ArkistointiAsiakirjaSnapshotService(repository, Clock.systemDefaultZone())
             .createReference(source, RecordType.LIITE, 0)
         val snapshot = reference.asiakirja.asiakirjaData!!.data!!
 

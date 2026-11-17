@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.creation
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
@@ -155,7 +156,7 @@ class ArkistointiJobManifestIT {
     private fun source(pages: Int): Source = requireNotNull(transactions.execute {
         jdbc.update("insert into yliopisto (nimi) select ? where not exists (select 1 from yliopisto)",
             YliopistoEnum.TURUN_YLIOPISTO.name)
-        val document = AsiakirjaHelper.createEntity(em)
+        val document = AsiakirjaHelper.createEntity(em, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(em, YliopistoEnum.TURUN_YLIOPISTO))
         val bytes = PdfTestData.unembeddedFontPdf(pages)
         document.asiakirjaData!!.data = bytes.copyOf()
         em.persist(document)

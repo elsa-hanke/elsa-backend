@@ -18,9 +18,6 @@ import org.slf4j.MDC
 import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import kotlin.reflect.full.callSuspend
-import kotlin.reflect.full.declaredFunctions
-import kotlin.reflect.jvm.isAccessible
 
 class SecurityConfigurationTest {
 
@@ -54,9 +51,8 @@ class SecurityConfigurationTest {
 
         val result = MDC.putCloseable(MDC_USER_ID_KEY, "user-123").use {
             runBlocking {
-                callFetchOpintotietodata(
-                    testSecurityConfiguration(opintotietodataServices = listOf(failingService, successfulService))
-                )
+                testKirjautumisenPalvelut(opintotietodataServices = listOf(failingService, successfulService))
+                    .opintotietopalvelu.haeOpintotiedot("010101-123N")
             }
         }
 
@@ -87,13 +83,13 @@ class SecurityConfigurationTest {
         )
 
         val persistenceService = mock(OpintosuorituksetPersistenceService::class.java)
-        val config = testSecurityConfiguration(
+        val palvelut = testKirjautumisenPalvelut(
             opintosuorituksetServices = listOf(failingService, successfulService),
             opintosuorituksetPersistenceService = persistenceService
         )
 
         // The method returns immediately before coroutines complete
-        callFetchAndHandleOpintosuorituksetNonBlocking(config, "user-123", "010101-123N")
+        palvelut.opintotietopalvelu.paivitaOpintosuorituksetTaustalla("user-123", "010101-123N")
 
         // Block until both coroutines have run (or timeout after 5 s)
         assertThat(latch.await(5, TimeUnit.SECONDS))
@@ -111,27 +107,6 @@ class SecurityConfigurationTest {
         verify(persistenceService, times(1)).createOrUpdateIfChanged(any(), any())
     }
 
-
-    @Suppress("UNCHECKED_CAST")
-    private suspend fun callFetchOpintotietodata(
-        config: SecurityConfiguration
-    ): List<OpintotietodataDTO> {
-        val fn = SecurityConfiguration::class.declaredFunctions
-            .single { it.name == "fetchOpintotietodata" && it.parameters.size == 2 }
-        fn.isAccessible = true
-        return fn.callSuspend(config, "010101-123N") as List<OpintotietodataDTO>
-    }
-
-    private fun callFetchAndHandleOpintosuorituksetNonBlocking(
-        config: SecurityConfiguration,
-        userId: String,
-        hetu: String
-    ) {
-        val fn = SecurityConfiguration::class.declaredFunctions
-            .single { it.name == "fetchAndHandleOpintosuorituksetNonBlocking" }
-        fn.isAccessible = true
-        fn.call(config, userId, hetu)
-    }
 
     private class TestOpintotietodataFetchingService(
         private val yliopisto: YliopistoEnum,

@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.toDescriptor
+import java.time.Clock
 import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -22,7 +23,8 @@ class ArkistointiJobStateService(
     private val jobs: ArkistointiJobRepository,
     private val mapper: ObjectMapper,
     private val executionLock: ArkistointiExecutionLock,
-    private val events: ApplicationEventPublisher
+    private val events: ApplicationEventPublisher,
+    private val clock: Clock
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -67,7 +69,7 @@ class ArkistointiJobStateService(
         job.startProcessingIfWaiting()
         job.transitionTo(ArkistointiJobStatus.LAHETETTY)
         job.externalId = externalId
-        job.completedAt = Instant.now()
+        job.completedAt = Instant.now(clock)
         job.errorCode = null
         job.lastError = null
         publishAttemptCompleted(job, attempt, ArkistointiAttemptCompleted.Result.SUCCESS)

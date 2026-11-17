@@ -17,6 +17,7 @@ import okhttp3.RequestBody
 import okhttp3.Response
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
+import java.time.Clock
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
@@ -24,9 +25,10 @@ import java.util.concurrent.TimeUnit
 class DynastyClient internal constructor(
     private val settings: DynastyProperties,
     private val mapper: ObjectMapper,
-    private val transport: OkHttpClient?
+    private val transport: OkHttpClient?,
+    private val clock: Clock
 ) {
-    constructor(settings: DynastyProperties, mapper: ObjectMapper) : this(settings, mapper, null)
+    constructor(settings: DynastyProperties, mapper: ObjectMapper, clock: Clock) : this(settings, mapper, null, clock)
 
     private var token: String? = null
     private var expires = Instant.EPOCH
@@ -66,7 +68,7 @@ class DynastyClient internal constructor(
     @Synchronized
     private fun accessToken(): String {
         val cachedToken = token
-        if (cachedToken != null && expires.isAfter(Instant.now().plusSeconds(TOKEN_REFRESH_MARGIN_SECONDS))) {
+        if (cachedToken != null && expires.isAfter(Instant.now(clock).plusSeconds(TOKEN_REFRESH_MARGIN_SECONDS))) {
             return cachedToken
         }
         val received = fetchAccessToken()
@@ -117,7 +119,7 @@ class DynastyClient internal constructor(
         if (expiresInSeconds <= TOKEN_REFRESH_MARGIN_SECONDS || expiresInSeconds > MAX_TOKEN_LIFETIME_SECONDS) {
             throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
         }
-        return AccessToken(tokenValue, Instant.now().plusSeconds(expiresInSeconds))
+        return AccessToken(tokenValue, Instant.now(clock).plusSeconds(expiresInSeconds))
     }
 
     // No generated toString(): the token must never appear in diagnostics.

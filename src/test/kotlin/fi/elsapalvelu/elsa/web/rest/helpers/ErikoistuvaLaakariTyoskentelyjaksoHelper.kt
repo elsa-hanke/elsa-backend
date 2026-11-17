@@ -1,11 +1,9 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
-import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelypaikka
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
-import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 import java.time.LocalDate
 
@@ -22,50 +20,24 @@ object ErikoistuvaLaakariTyoskentelyjaksoHelper {
     const val UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN: Boolean = true
 
     fun createEntity(em: EntityManager, user: User? = null, alkamispaiva: LocalDate? = DEFAULT_ALKAMISPAIVA, paattymispaiva: LocalDate? = DEFAULT_PAATTYMISPAIVA,
-                     kaytannonKoulutus: KaytannonKoulutusTyyppi? = DEFAULT_KAYTANNON_KOULUTUS): Tyoskentelyjakso {
+                     kaytannonKoulutus: KaytannonKoulutusTyyppi? = DEFAULT_KAYTANNON_KOULUTUS,
+                     opintooikeus: Opintooikeus = Testisuhteet.opintooikeus(em, user)): Tyoskentelyjakso {
         val tyoskentelyjakso = Tyoskentelyjakso(alkamispaiva = alkamispaiva, paattymispaiva = paattymispaiva, osaaikaprosentti = DEFAULT_OSAAIKAPROSENTTI,
             kaytannonKoulutus = kaytannonKoulutus, hyvaksyttyAiempaanErikoisalaan = DEFAULT_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN)
 
         // Lisätään pakollinen tieto
         tyoskentelyjakso.tyoskentelypaikka = TyoskentelypaikkaHelper.createEntity(em)
 
-        // Lisätään pakollinen tieto
-        var erikoistuvaLaakari =
-            em.findAll(ErikoistuvaLaakari::class).firstOrNull { it.kayttaja?.user == user }
-        if (erikoistuvaLaakari == null) {
-            erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user)
-            em.persist(erikoistuvaLaakari)
-            em.flush()
-        }
-        tyoskentelyjakso.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
+        tyoskentelyjakso.opintooikeus = opintooikeus
         return tyoskentelyjakso
     }
 
-    fun createUpdatedEntity(em: EntityManager): Tyoskentelyjakso {
+    fun createUpdatedEntity(em: EntityManager, opintooikeus: Opintooikeus): Tyoskentelyjakso {
         val tyoskentelyjakso = Tyoskentelyjakso(alkamispaiva = UPDATED_ALKAMISPAIVA, paattymispaiva = UPDATED_PAATTYMISPAIVA, osaaikaprosentti = UPDATED_OSAAIKAPROSENTTI,
             kaytannonKoulutus = UPDATED_KAYTANNON_KOULUTUS, hyvaksyttyAiempaanErikoisalaan = UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN)
 
-        // Lisätään pakollinen tieto
-        val tyoskentelypaikka: Tyoskentelypaikka
-        if (em.findAll(Tyoskentelypaikka::class).isEmpty()) {
-            tyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em)
-            em.persist(tyoskentelypaikka)
-            em.flush()
-        } else {
-            tyoskentelypaikka = em.findAll(Tyoskentelypaikka::class).get(0)
-        }
-        tyoskentelyjakso.tyoskentelypaikka = tyoskentelypaikka
-
-        // Lisätään pakollinen tieto
-        val erikoistuvaLaakari: ErikoistuvaLaakari
-        if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
-            erikoistuvaLaakari = ErikoistuvaLaakariHelper.createUpdatedEntity(em)
-            em.persist(erikoistuvaLaakari)
-            em.flush()
-        } else {
-            erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
-        }
-        tyoskentelyjakso.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
+        tyoskentelyjakso.tyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em).also(em::persist)
+        tyoskentelyjakso.opintooikeus = opintooikeus
 
         return tyoskentelyjakso
     }

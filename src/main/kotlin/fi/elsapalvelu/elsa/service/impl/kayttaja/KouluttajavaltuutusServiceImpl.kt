@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.kayttaja
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
@@ -26,7 +27,8 @@ class KouluttajavaltuutusServiceImpl(
     private val kouluttajavaltuutusMapper: KouluttajavaltuutusMapper,
     private val erikoistuvaLaakariRepository: ErikoistuvaLaakariRepository,
     private val kayttajaRepository: KayttajaRepository,
-    private val mailService: MailService
+    private val mailService: MailService,
+    private val clock: Clock
 ) : KouluttajavaltuutusService {
 
     override fun save(
@@ -47,7 +49,7 @@ class KouluttajavaltuutusServiceImpl(
                 kouluttajavaltuutus.paattymispaiva = kouluttajavaltuutusDTO.paattymispaiva
             }, {
                 kouluttajavaltuutus.valtuuttajaOpintooikeus = opintooikeus
-                kouluttajavaltuutus.valtuutuksenLuontiaika = Instant.now()
+                kouluttajavaltuutus.valtuutuksenLuontiaika = Instant.now(clock)
             })
         } else {
             kouluttajavaltuutusRepository.findById(kouluttajavaltuutus.id.required()).ifPresent {
@@ -56,7 +58,7 @@ class KouluttajavaltuutusServiceImpl(
             }
         }
         if (kouluttajavaltuutus.valtuuttajaOpintooikeus?.id == opintooikeus?.id) {
-            kouluttajavaltuutus.valtuutuksenMuokkausaika = Instant.now()
+            kouluttajavaltuutus.valtuutuksenMuokkausaika = Instant.now(clock)
             kouluttajavaltuutus = kouluttajavaltuutusRepository.save(kouluttajavaltuutus)
 
             if (sendMail) {
@@ -101,7 +103,7 @@ class KouluttajavaltuutusServiceImpl(
         val erikoistuvaLaakari = erikoistuvaLaakariRepository.findOneByKayttajaUserId(userId)
         return kouluttajavaltuutusRepository.findAllByValtuuttajaOpintooikeusIdAndPaattymispaivaAfter(
             erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id.required(),
-            LocalDate.now().minusDays(1)
+            LocalDate.now(clock).minusDays(1)
         ).sortedBy { it.paattymispaiva }.map(kouluttajavaltuutusMapper::toDto)
     }
 
@@ -114,7 +116,7 @@ class KouluttajavaltuutusServiceImpl(
         return kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
             erikoistuvaLaakari?.getOpintooikeusKaytossa()?.id.required(),
             valtuutettuId,
-            LocalDate.now().minusDays(1)
+            LocalDate.now(clock).minusDays(1)
         )
             .map(kouluttajavaltuutusMapper::toDto)
     }
@@ -132,11 +134,12 @@ class KouluttajavaltuutusServiceImpl(
     override fun lisaaValtuutus(erikoistuvaUserId: String, valtuutettuKayttajaId: Long) {
         val valtuutettuKayttaja = kayttajaRepository.findById(valtuutettuKayttajaId).orElse(null)
         if (valtuutettuKayttaja?.user?.authorities?.map { it.name }?.contains(KOULUTTAJA) == true) {
+            val tanaan = LocalDate.now(clock)
             save(
                 erikoistuvaUserId,
                 KouluttajavaltuutusDTO(
-                    alkamispaiva = LocalDate.now(),
-                    paattymispaiva = LocalDate.now().plusMonths(6),
+                    alkamispaiva = tanaan,
+                    paattymispaiva = tanaan.plusMonths(6),
                     valtuutettu = KayttajaDTO(id = valtuutettuKayttajaId)
                 )
             )

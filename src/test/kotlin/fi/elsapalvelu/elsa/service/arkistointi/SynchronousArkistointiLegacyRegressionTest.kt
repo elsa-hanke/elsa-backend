@@ -15,10 +15,11 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
-import org.mockito.Mockito
 import org.mockito.kotlin.mock
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Clock
+import java.time.ZoneOffset
 import java.time.LocalDate
 import java.util.stream.Stream
 import java.util.zip.ZipFile
@@ -59,17 +60,13 @@ class SynchronousArkistointiLegacyRegressionTest {
         val reviewDate = LocalDate.of(2024, 12, 29)
         val approvalDate = LocalDate.of(2024, 12, 30)
         val service = SynchronousArkistointiServiceImpl(
-            configuration, SahkeMetadataBuilder(), SahkePakettiBuilder(), mock()
+            configuration, SahkeMetadataBuilder(Clock.fixed(today.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)), SahkePakettiBuilder(), mock()
         )
 
-        // Freeze the legacy LocalDate.now() boundary, including the default request date.
-        val result = Mockito.mockStatic(LocalDate::class.java, Mockito.CALLS_REAL_METHODS).use { dates ->
-            dates.`when`<LocalDate> { LocalDate.now() }.thenReturn(today)
-            service.muodostaSahke(
-                studyRight, documents, "CASE-4242", "Tarkastaja Å", reviewDate,
-                "Hyväksyjä Ö", approvalDate, scenario.yliopisto, scenario.caseType
-            )
-        }
+        val result = service.muodostaSahke(
+            studyRight, documents, "CASE-4242", "Tarkastaja Å", reviewDate,
+            "Hyväksyjä Ö", approvalDate, scenario.yliopisto, scenario.caseType
+        )
         val path = Path.of(result.zipFilePath)
         try {
             val expectedName = configuration.getConfiguration(scenario.yliopisto, scenario.caseType)

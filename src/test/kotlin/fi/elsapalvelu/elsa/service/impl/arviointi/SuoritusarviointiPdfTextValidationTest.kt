@@ -18,6 +18,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.*
 import org.springframework.core.io.ClassPathResource
+import java.time.Clock
 import java.time.LocalDate
 import java.util.Optional
 import kotlin.test.assertFailsWith
@@ -46,7 +47,8 @@ class SuoritusarviointiPdfTextValidationTest {
         asiakirjaMapper = mock(),
         arviointityokaluKysymysRepository = kysymysRepository,
         arviointityokaluKysymysVaihtoehtoRepository = mock(),
-        pdfTextFieldValidator = validator
+        pdfTextFieldValidator = validator,
+        clock = Clock.systemUTC()
     )
 
     @ParameterizedTest

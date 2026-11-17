@@ -1,10 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
 import fi.elsapalvelu.elsa.domain.kayttaja.Kouluttajavaltuutus
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -40,33 +38,8 @@ object KouluttajavaltuutusHelper {
                 valtuutuksenMuokkausaika = DEFAULT_VALTUUTUKSEN_MUOKKAUSAIKA
             )
 
-            if (opintooikeus == null) {
-                val erikoistuvaLaakari: ErikoistuvaLaakari
-                if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
-                    erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
-                    em.persist(erikoistuvaLaakari)
-                    em.flush()
-                } else {
-                    erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
-                }
-                kouluttajavaltuutus.valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
-            } else {
-                kouluttajavaltuutus.valtuuttajaOpintooikeus = opintooikeus
-            }
-
-            if (valtuutettu == null) {
-                val kayttaja: Kayttaja
-                if (em.findAll(Kayttaja::class).isEmpty()) {
-                    kayttaja = KayttajaHelper.createEntity(em)
-                    em.persist(kayttaja)
-                    em.flush()
-                } else {
-                    kayttaja = em.findAll(Kayttaja::class).get(0)
-                }
-                kouluttajavaltuutus.valtuutettu = kayttaja
-            } else {
-                kouluttajavaltuutus.valtuutettu = valtuutettu
-            }
+            kouluttajavaltuutus.valtuuttajaOpintooikeus = opintooikeus ?: Testisuhteet.opintooikeus(em, null)
+            kouluttajavaltuutus.valtuutettu = valtuutettu ?: KayttajaHelper.createEntity(em).also(em::persist)
 
             return kouluttajavaltuutus
         }
@@ -86,33 +59,8 @@ object KouluttajavaltuutusHelper {
                 valtuutuksenMuokkausaika = UPDATED_VALTUUTUKSEN_MUOKKAUSAIKA
             )
 
-            if (opintooikeus == null) {
-                val erikoistuvaLaakari: ErikoistuvaLaakari
-                if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
-                    erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
-                    em.persist(erikoistuvaLaakari)
-                    em.flush()
-                } else {
-                    erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
-                }
-                kouluttajavaltuutus.valtuuttajaOpintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
-            } else {
-                kouluttajavaltuutus.valtuuttajaOpintooikeus = opintooikeus
-            }
-
-            if (valtuutettu == null) {
-                val kayttaja: Kayttaja
-                if (em.findAll(Kayttaja::class).isEmpty()) {
-                    kayttaja = KayttajaHelper.createEntity(em)
-                    em.persist(kayttaja)
-                    em.flush()
-                } else {
-                    kayttaja = em.findAll(Kayttaja::class).get(0)
-                }
-                kouluttajavaltuutus.valtuutettu = kayttaja
-            } else {
-                kouluttajavaltuutus.valtuutettu = valtuutettu
-            }
+            kouluttajavaltuutus.valtuuttajaOpintooikeus = opintooikeus ?: Testisuhteet.opintooikeus(em, null)
+            kouluttajavaltuutus.valtuutettu = valtuutettu ?: KayttajaHelper.createEntity(em).also(em::persist)
 
             return kouluttajavaltuutus
         }

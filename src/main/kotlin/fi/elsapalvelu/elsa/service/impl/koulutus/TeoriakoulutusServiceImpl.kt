@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.koulutus
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Teoriakoulutus
@@ -27,7 +28,8 @@ class TeoriakoulutusServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val asiakirjaMapper: AsiakirjaMapper,
     private val paivakirjamerkintaRepository: PaivakirjamerkintaRepository,
-    private val pdfTextFieldValidator: PdfTextFieldValidator
+    private val pdfTextFieldValidator: PdfTextFieldValidator,
+    private val clock: Clock
 ) : TeoriakoulutusService {
 
     override fun save(
@@ -127,7 +129,7 @@ class TeoriakoulutusServiceImpl(
         asiakirjat?.let {
             val asiakirjaEntities = it.map { asiakirjaDTO ->
                 asiakirjaMapper.toEntity(asiakirjaDTO).apply {
-                    this.lisattypvm = LocalDateTime.now()
+                    this.lisattypvm = LocalDateTime.now(clock)
                     this.opintooikeus = opintooikeus
                     this.teoriakoulutus = teoriakoulutus
                     this.asiakirjaData?.data = asiakirjaDTO.asiakirjaData?.fileInputStream?.readAllBytes()

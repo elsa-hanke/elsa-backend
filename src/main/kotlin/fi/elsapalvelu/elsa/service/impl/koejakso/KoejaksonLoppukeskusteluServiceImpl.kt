@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.koejakso
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonLoppukeskustelu
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
@@ -32,7 +33,6 @@ import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.ZoneId
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
 
@@ -51,7 +51,8 @@ class KoejaksonLoppukeskusteluServiceImpl(
     private val koejaksonKehittamistoimenpiteetRepository: KoejaksonKehittamistoimenpiteetRepository,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
     private val opintooikeusService: OpintooikeusService,
-    private val pdfTextFieldValidator: PdfTextFieldValidator
+    private val pdfTextFieldValidator: PdfTextFieldValidator,
+    private val clock: Clock
 ) : KoejaksonLoppukeskusteluService {
 
     override fun create(
@@ -116,7 +117,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
         loppukeskustelu.esitetaanKoejaksonHyvaksymista = updated.esitetaanKoejaksonHyvaksymista
         loppukeskustelu.jatkotoimenpiteet = updated.jatkotoimenpiteet
         loppukeskustelu.lahikouluttajaHyvaksynyt = true
-        loppukeskustelu.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+        loppukeskustelu.lahikouluttajanKuittausaika = LocalDate.now(clock)
         loppukeskustelu.korjausehdotus = null
 
         val result = koejaksonLoppukeskusteluRepository.save(loppukeskustelu)
@@ -139,8 +140,7 @@ class KoejaksonLoppukeskusteluServiceImpl(
         // Hyväksytty
         if (updated.korjausehdotus.isNullOrBlank()) {
             loppukeskustelu.lahiesimiesHyvaksynyt = true
-            loppukeskustelu.lahiesimiehenKuittausaika =
-                LocalDate.now(ZoneId.systemDefault())
+            loppukeskustelu.lahiesimiehenKuittausaika = LocalDate.now(clock)
         }
         // Palautettu korjattavaksi
         else {

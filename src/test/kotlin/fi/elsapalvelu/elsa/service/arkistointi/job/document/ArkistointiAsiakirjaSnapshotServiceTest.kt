@@ -24,10 +24,11 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
+import java.time.Clock
 
 class ArkistointiAsiakirjaSnapshotServiceTest {
     private val repository = mock<AsiakirjaRepository>()
-    private val service = ArkistointiAsiakirjaSnapshotService(repository)
+    private val service = ArkistointiAsiakirjaSnapshotService(repository, Clock.systemDefaultZone())
 
     @ParameterizedTest
     @ValueSource(strings = ["pdf", "restricted-pdf", "jpeg", "png", "alias", "large-jpeg", "cmyk", "sixteen-bit", "oriented"])

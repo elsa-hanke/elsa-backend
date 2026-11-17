@@ -83,7 +83,7 @@ class SuomifiAuthenticationConversionTest {
         opintooikeusService = opintooikeusService,
         kayttajaRepository = kayttajaRepository,
         userRepository = userRepository,
-        kirjautumisenRepositories = KirjautumisenTestRepositories(verificationTokenRepository, opintooikeusRepository)
+        kirjautumisenKonteksti = KirjautumisenTestikonteksti(verificationTokenRepository, opintooikeusRepository)
     )
 
     @BeforeEach
@@ -451,7 +451,7 @@ class SuomifiAuthenticationConversionTest {
         return testSecurityConfiguration(
             applicationProperties = properties, userService = userService, opintooikeusService = service,
             kayttajaRepository = kayttajaRepository, userRepository = userRepository,
-            kirjautumisenRepositories = KirjautumisenTestRepositories(opintooikeusRepository = opintooikeusRepository)
+            kirjautumisenKonteksti = KirjautumisenTestikonteksti(opintooikeusRepository = opintooikeusRepository)
         )
     }
 

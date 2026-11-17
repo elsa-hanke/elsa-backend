@@ -15,6 +15,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.*
 import org.springframework.core.io.ClassPathResource
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 import java.util.Optional
 import kotlin.test.assertFailsWith
 
@@ -40,7 +43,8 @@ class KoejaksonLoppukeskusteluPdfTextValidationTest {
         pdfTextFieldValidator = validator,
         koejaksonAloituskeskusteluRepository = mock(),
         koejaksonValiarviointiRepository = mock(),
-        koejaksonKehittamistoimenpiteetRepository = mock()
+        koejaksonKehittamistoimenpiteetRepository = mock(),
+        clock = Clock.fixed(Instant.parse("2020-02-29T22:30:00Z"), ZoneOffset.UTC)
     )
 
     @ParameterizedTest

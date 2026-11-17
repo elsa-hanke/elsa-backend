@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari.tyoskentelyjakso
 
+import fi.elsapalvelu.elsa.domain.koulutus.Opintoopas
+import fi.elsapalvelu.elsa.domain.tyoskentely.PoissaolonSyy
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi.OMAA_ERIKOISALAA_TUKEVA_KOULUTUS
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
@@ -134,7 +136,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT : ErikoistuvaLaakariTyoskente
         initTest()
         persistTyoskentelyjakso(tyoskentelyjakso)
 
-        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
+        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso, poissaolonSyy = em.find(PoissaolonSyy::class.java, 1L))
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
         assertNotNull(keskeytysaika.id)
@@ -149,7 +151,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT : ErikoistuvaLaakariTyoskente
         initTest(createPersistedErikoistuvaLaakari().kayttaja?.user?.id)
         persistTyoskentelyjakso(tyoskentelyjakso)
 
-        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
+        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso, poissaolonSyy = em.find(PoissaolonSyy::class.java, 1L))
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
 
         assertNotNull(keskeytysaika.id)
@@ -179,6 +181,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT : ErikoistuvaLaakariTyoskente
     @Test
     fun getTyoskentelyjaksoTable() {
         initTest()
+        val opintoopas = em.find(Opintoopas::class.java, 1L) // Anestesiologia, asetus 56/2015
+        tyoskentelyjakso.opintooikeus!!.opintoopas = opintoopas
+        tyoskentelyjakso.opintooikeus!!.erikoisala = opintoopas.erikoisala
         tyoskentelyjakso.kaytannonKoulutus = TERVEYSKESKUSTYO
         tyoskentelyjakso.tyoskentelypaikka!!.tyyppi = TyoskentelyjaksoTyyppi.TERVEYSKESKUS
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
@@ -191,7 +196,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT : ErikoistuvaLaakariTyoskente
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso2)
         em.detach(tyoskentelyjakso2)
 
-        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso)
+        keskeytysaika = KeskeytysaikaHelper.createEntity(em, tyoskentelyjakso, poissaolonSyy = em.find(PoissaolonSyy::class.java, 1L))
         keskeytysaikaRepository.saveAndFlush(keskeytysaika)
         em.detach(keskeytysaika)
 
@@ -237,6 +242,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT : ErikoistuvaLaakariTyoskente
     @Test
     fun getTyoskentelyjaksoTableWithTerveyskeskusMax() {
         initTest()
+        val opintoopas = em.find(Opintoopas::class.java, 1L) // Anestesiologia, asetus 56/2015
+        tyoskentelyjakso.opintooikeus!!.opintoopas = opintoopas
+        tyoskentelyjakso.opintooikeus!!.erikoisala = opintoopas.erikoisala
         tyoskentelyjakso.opintooikeus?.opintoopas?.let {
             it.terveyskeskuskoulutusjaksonVahimmaispituus = 273.75
             it.terveyskeskuskoulutusjaksonMaksimipituus = 273.75
@@ -272,6 +280,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResourceIT : ErikoistuvaLaakariTyoskente
     @Test
     fun getTyoskentelyjaksoTableWithoutTerveyskeskusMax() {
         initTest()
+        val opintoopas = em.find(Opintoopas::class.java, 1L) // Anestesiologia, asetus 56/2015
+        tyoskentelyjakso.opintooikeus!!.opintoopas = opintoopas
+        tyoskentelyjakso.opintooikeus!!.erikoisala = opintoopas.erikoisala
         tyoskentelyjakso.opintooikeus?.opintoopas?.let {
             it.terveyskeskuskoulutusjaksonMaksimipituus = null
             opintoopasRepository.saveAndFlush(it)

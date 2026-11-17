@@ -17,6 +17,7 @@ import fi.elsapalvelu.elsa.service.suoritteet.*
 import fi.elsapalvelu.elsa.service.koulutus.*
 import fi.elsapalvelu.elsa.service.seuranta.*
 import fi.elsapalvelu.elsa.service.valmistuminen.*
+import fi.elsapalvelu.elsa.service.valmistuminen.TerveyskeskuskoulutusjaksonLahetyspalvelu
 import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.*
@@ -29,9 +30,8 @@ import fi.elsapalvelu.elsa.service.dto.seuranta.*
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
-import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import fi.elsapalvelu.elsa.web.rest.TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME
-import fi.elsapalvelu.elsa.web.rest.common.TyoskentelyjaksoResourceSupport
+import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksonTarkistuspalvelu
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.Valid
@@ -47,24 +47,23 @@ import java.net.URI
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
 private const val ASIAKIRJA_ENTITY_NAME = "asiakirja"
+private const val YEK_KOULUTETTAVAN = "yek koulutettavan"
+
 @RestController
 @RequestMapping("/api/yek-koulutettava")
 class YekKoulutettavaTyoskentelyjaksoResource(
     private val userService: UserService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
-    private val kuntaService: KuntaService,
-    private val erikoisalaService: ErikoisalaService,
-    private val poissaolonSyyService: PoissaolonSyyService,
     private val keskeytysaikaService: KeskeytysaikaService,
-    private val asiakirjaService: AsiakirjaService,
     private val objectMapper: ObjectMapper,
-    private val overlappingTyoskentelyjaksoValidationService: OverlappingTyoskentelyjaksoValidationService,
-    private val overlappingKeskeytysaikaValidationService: OverlappingKeskeytysaikaValidationService,
+    private val tyoskentelyjaksonMuokkauspalvelu: TyoskentelyjaksonMuokkauspalvelu,
+    private val keskeytysajanMuokkauspalvelu: KeskeytysajanMuokkauspalvelu,
     private val opintooikeusService: OpintooikeusService,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
-    private val opintosuoritusService: OpintosuoritusService,
-    private val tyoskentelyjaksoResourceSupport: TyoskentelyjaksoResourceSupport
+    private val tyoskentelyjaksonTarkistuspalvelu: TyoskentelyjaksonTarkistuspalvelu,
+    private val terveyskeskuskoulutusjaksonLahetyspalvelu: TerveyskeskuskoulutusjaksonLahetyspalvelu,
+    private val tyoskentelyjaksojenTaulukkopalvelu: TyoskentelyjaksojenTaulukkopalvelu,
+    private val tyoskentelyjaksojenLomakepalvelu: TyoskentelyjaksojenLomakepalvelu
 ) {
 
     @PostMapping("/tyoskentelyjaksot")
@@ -75,7 +74,9 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<TyoskentelyjaksoDTO> {
         val user = userService.getAuthenticatedUser(principal)
 
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), TYOSKENTELYJAKSO_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksonTarkistuspalvelu.tarkistaMuokkausoikeudet(principal, user.id.required(), TYOSKENTELYJAKSO_ENTITY_NAME,
+            YEK_KOULUTETTAVAN
+        )
 
         return tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
@@ -83,17 +84,8 @@ class YekKoulutettavaTyoskentelyjaksoResource(
             it.kaytannonKoulutus = KaytannonKoulutusTyyppi.OMAN_ERIKOISALAN_KOULUTUS
             val opintooikeusId =
                 opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-            tyoskentelyjaksoResourceSupport.validateNewTyoskentelyjaksoDTO(it)
-            tyoskentelyjaksoResourceSupport.validateAlkamisJaPaattymispaiva(opintooikeusId, it)
-            tyoskentelyjaksoResourceSupport.validateTyoskentelyaika(opintooikeusId, it)
-
-            val asiakirjaDTOs = tyoskentelyjaksoResourceSupport.getMappedFiles(files, opintooikeusId) ?: mutableSetOf()
-            tyoskentelyjaksoService.create(it, opintooikeusId, asiakirjaDTOs)?.let { result ->
-                ResponseEntity
-                    .created(URI("/api/yektyoskentelyjaksot/${result.id}"))
-                    .body(result)
-            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-
+            val tulos = tyoskentelyjaksonMuokkauspalvelu.luo(it, opintooikeusId, files)
+            ResponseEntity.created(URI("/api/yektyoskentelyjaksot/${tulos.id}")).body(tulos)
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
@@ -109,38 +101,14 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
 
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), TYOSKENTELYJAKSO_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksonTarkistuspalvelu.tarkistaMuokkausoikeudet(principal, user.id.required(), TYOSKENTELYJAKSO_ENTITY_NAME,
+            YEK_KOULUTETTAVAN
+        )
 
         return tyoskentelyjaksoJson.let {
             objectMapper.readValue(it, TyoskentelyjaksoDTO::class.java)
         }?.let {
-            if (it.id == null) {
-                throw BadRequestAlertException(
-                    "Työskentelyjakson ID puuttuu.",
-                    TYOSKENTELYJAKSO_ENTITY_NAME,
-                    "idnull"
-                )
-            }
-            tyoskentelyjaksoResourceSupport.validateAlkamisJaPaattymispaiva(opintooikeusId, it)
-            tyoskentelyjaksoResourceSupport.validateTyoskentelyaika(opintooikeusId, it)
-
-            val newAsiakirjat = tyoskentelyjaksoResourceSupport.getMappedFiles(files, opintooikeusId) ?: mutableSetOf()
-            val deletedAsiakirjaIds = deletedAsiakirjaIdsJson?.let { id ->
-                objectMapper.readValue(id, mutableSetOf<Int>()::class.java)
-            }
-            try {
-                tyoskentelyjaksoService.update(
-                    it,
-                    opintooikeusId,
-                    newAsiakirjat,
-                    deletedAsiakirjaIds
-                )
-                    ?.let { result ->
-                        ResponseEntity.ok(result)
-                    } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-            } catch (e: ValidationException) {
-                throw tyoskentelyjaksoResourceSupport.liitettyTerveyskoulutusjaksoonException(e)
-            }
+            ResponseEntity.ok(tyoskentelyjaksonMuokkauspalvelu.paivita(it, opintooikeusId, files, deletedAsiakirjaIdsJson))
         } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
     }
 
@@ -148,36 +116,10 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     fun getTyoskentelyjaksoTable(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksotTableDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-        val table = TyoskentelyjaksotTableDTO()
-
-        table.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
-
-        table.keskeytykset = keskeytysaikaService
-            .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
-        table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeusId)
-
-        val erikoistuvaLaakariId = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id.required())?.id.required()
-        val terveyskeskusSuoritus = opintosuoritusService.getTerveyskoulutusjaksoSuoritusPvm(opintooikeusId, erikoistuvaLaakariId)
-        if (terveyskeskusSuoritus != null) {
-            table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY
-            table.terveyskeskuskoulutusjaksonHyvaksymispvm = terveyskeskusSuoritus
-        } else {
-            val hyvaksynta = terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)
-            if (hyvaksynta != null) {
-                table.terveyskeskuskoulutusjaksonTila = hyvaksynta.tila
-                table.terveyskeskuskoulutusjaksonKorjausehdotus =
-                    if (hyvaksynta.virkailijanKorjausehdotus != null) hyvaksynta.virkailijanKorjausehdotus else hyvaksynta.vastuuhenkilonKorjausehdotus
-                table.terveyskeskuskoulutusjaksonHyvaksymispvm = hyvaksynta.vastuuhenkilonKuittausaika
-            } else if (terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettuYek(opintooikeusId)) {
-                table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.UUSI
-            }
-        }
-
-        return ResponseEntity.ok(table)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(kayttaja.id.required(), YEK_ERIKOISALA_ID)
+        return ResponseEntity.ok(tyoskentelyjaksojenTaulukkopalvelu.haeYekTaulukko(kayttaja.id.required(), opintooikeusId))
     }
 
     @GetMapping("/tyoskentelyjaksot")
@@ -218,20 +160,11 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
 
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), ASIAKIRJA_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksonTarkistuspalvelu.tarkistaMuokkausoikeudet(principal, user.id.required(), ASIAKIRJA_ENTITY_NAME,
+            YEK_KOULUTETTAVAN
+        )
 
-        return try {
-            tyoskentelyjaksoService.updateAsiakirjat(
-                id,
-                opintooikeusId,
-                tyoskentelyjaksoResourceSupport.getMappedFiles(addedFiles, opintooikeusId),
-                deletedFiles?.toSet()
-            )?.let {
-                ResponseEntity.ok(it)
-            } ?: throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        } catch (e: ValidationException) {
-            throw tyoskentelyjaksoResourceSupport.liitettyTerveyskoulutusjaksoonException(e)
-        }
+        return ResponseEntity.ok(tyoskentelyjaksonMuokkauspalvelu.paivitaAsiakirjat(id, opintooikeusId, addedFiles, deletedFiles))
     }
 
     @DeleteMapping("/tyoskentelyjaksot/{id}")
@@ -241,56 +174,35 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
 
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), TYOSKENTELYJAKSO_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksonTarkistuspalvelu.tarkistaMuokkausoikeudet(principal, user.id.required(), TYOSKENTELYJAKSO_ENTITY_NAME,
+            YEK_KOULUTETTAVAN
+        )
 
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
 
-        if (tyoskentelyjaksoService.delete(id, opintooikeusId)) {
-            return ResponseEntity
-                .noContent()
-                .build()
-
-        }
-        throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        tyoskentelyjaksonMuokkauspalvelu.poista(id, opintooikeusId)
+        return ResponseEntity.noContent().build()
     }
 
     @GetMapping("/tyoskentelyjakso-lomake")
     fun getTyoskentelyjaksoForm(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksoFormDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-        val form = TyoskentelyjaksoFormDTO()
-
-        form.kunnat = kuntaService.findAll().toMutableSet()
-
-        form.erikoisalat = erikoisalaService.findAll().toMutableSet()
-
-        form.reservedAsiakirjaNimet =
-            asiakirjaService.findAllByOpintooikeusId(opintooikeusId).map { it.nimi.required() }
-                .toMutableSet()
-
-        return ResponseEntity.ok(form)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(kayttaja.id.required(), YEK_ERIKOISALA_ID)
+        return ResponseEntity.ok(tyoskentelyjaksojenLomakepalvelu.haeTyoskentelyjaksonLomake(opintooikeusId))
     }
 
     @GetMapping("/poissaolo-lomake")
     fun getKeskeytysaikaForm(
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaFormDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-        val form = KeskeytysaikaFormDTO()
-
-        form.poissaolonSyyt =
-            poissaolonSyyService.findAllByOpintooikeusId(opintooikeusId).toMutableSet()
-
-        form.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
-
-        return ResponseEntity.ok(form)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(kayttaja.id.required(), YEK_ERIKOISALA_ID)
+        return ResponseEntity.ok(tyoskentelyjaksojenLomakepalvelu.haeKeskeytysajanLomake(opintooikeusId))
     }
 
     @PostMapping("/tyoskentelyjaksot/poissaolot")
@@ -298,42 +210,19 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         @Valid @RequestBody keskeytysaikaDTO: KeskeytysaikaDTO,
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaDTO> {
-        if (keskeytysaikaDTO.id != null) {
-            throw BadRequestAlertException(
-                "Uusi keskeytysaika ei saa sisältää ID:tä",
-                KESKEYTYSAIKA_ENTITY_NAME,
-                "idexists"
-            )
-        }
+        keskeytysajanMuokkauspalvelu.tarkistaUudenKeskeytysajanTunniste(keskeytysaikaDTO)
 
         val user = userService.getAuthenticatedUser(principal)
 
-        tyoskentelyjaksoResourceSupport.validateKeskeytysaikaDTO(keskeytysaikaDTO)
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), KESKEYTYSAIKA_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksonTarkistuspalvelu.tarkistaKeskeytysaika(keskeytysaikaDTO)
+        tyoskentelyjaksonTarkistuspalvelu.tarkistaMuokkausoikeudet(principal, user.id.required(), KESKEYTYSAIKA_ENTITY_NAME,
+            YEK_KOULUTETTAVAN
+        )
 
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-        if (!overlappingKeskeytysaikaValidationService.validateKeskeytysaika(
-                opintooikeusId,
-                keskeytysaikaDTO
-            )
-        ) {
-            throw BadRequestAlertException(
-                "Päällekkäisten poissaolojen päiväkohtainen kertymä ei voi ylittää 100%:a",
-                KESKEYTYSAIKA_ENTITY_NAME,
-                "dataillegal.paallekkaisten-poissaolojen-yhteenlaskettu-aika-ylittyy"
-            )
-        }
-
-        return try {
-            keskeytysaikaService.save(keskeytysaikaDTO, opintooikeusId)?.let {
-                ResponseEntity
-                    .created(URI("/api/tyoskentelyjaksot/poissaolot/${it.id}"))
-                    .body(it)
-            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-        } catch (e: ValidationException) {
-            throw tyoskentelyjaksoResourceSupport.liitettyTerveyskoulutusjaksoonException(e)
-        }
+        val tulos = keskeytysajanMuokkauspalvelu.luo(keskeytysaikaDTO, opintooikeusId)
+        return ResponseEntity.created(URI("/api/tyoskentelyjaksot/poissaolot/${tulos.id}")).body(tulos)
     }
 
     @PutMapping("/tyoskentelyjaksot/poissaolot")
@@ -341,48 +230,18 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         @Valid @RequestBody keskeytysaikaDTO: KeskeytysaikaDTO,
         principal: Principal?
     ): ResponseEntity<KeskeytysaikaDTO> {
-        if (keskeytysaikaDTO.id == null) {
-            throw BadRequestAlertException(
-                "Virheellinen id",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
-                "idnull"
-            )
-        }
+        keskeytysajanMuokkauspalvelu.tarkistaPaivitettavanKeskeytysajanTunniste(keskeytysaikaDTO)
 
         val user = userService.getAuthenticatedUser(principal)
 
-        tyoskentelyjaksoResourceSupport.validateKeskeytysaikaDTO(keskeytysaikaDTO)
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), KESKEYTYSAIKA_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksonTarkistuspalvelu.tarkistaKeskeytysaika(keskeytysaikaDTO)
+        tyoskentelyjaksonTarkistuspalvelu.tarkistaMuokkausoikeudet(principal, user.id.required(), KESKEYTYSAIKA_ENTITY_NAME,
+            YEK_KOULUTETTAVAN
+        )
 
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-        if (!overlappingKeskeytysaikaValidationService.validateKeskeytysaika(
-                opintooikeusId,
-                keskeytysaikaDTO
-            )
-        ) {
-            throw BadRequestAlertException(
-                "Päällekkäisten poissaolojen päiväkohtainen kertymä ei voi ylittää 100%:a",
-                KESKEYTYSAIKA_ENTITY_NAME,
-                "dataillegal.paallekkaisten-poissaolojen-yhteenlaskettu-aika-ylittyy"
-            )
-        }
-
-        if (!overlappingTyoskentelyjaksoValidationService.validateKeskeytysaika(
-                opintooikeusId,
-                keskeytysaikaDTO
-            )
-        ) {
-            tyoskentelyjaksoResourceSupport.throwOverlappingTyoskentelyjaksotException()
-        }
-
-        return try {
-            keskeytysaikaService.save(keskeytysaikaDTO, opintooikeusId)?.let {
-                ResponseEntity.ok(it)
-            } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-        } catch (e: ValidationException) {
-            throw tyoskentelyjaksoResourceSupport.liitettyTerveyskoulutusjaksoonException(e)
-        }
+        return ResponseEntity.ok(keskeytysajanMuokkauspalvelu.paivita(keskeytysaikaDTO, opintooikeusId))
     }
 
     @GetMapping("/tyoskentelyjaksot/poissaolot/{id}")
@@ -405,26 +264,14 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     ): ResponseEntity<Unit> {
         val user = userService.getAuthenticatedUser(principal)
 
-        tyoskentelyjaksoResourceSupport.validateMuokkausoikeudet(principal, user.id.required(), KESKEYTYSAIKA_ENTITY_NAME, "yek koulutettavan")
+        tyoskentelyjaksonTarkistuspalvelu.tarkistaMuokkausoikeudet(principal, user.id.required(), KESKEYTYSAIKA_ENTITY_NAME,
+            YEK_KOULUTETTAVAN
+        )
 
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-        if (!overlappingTyoskentelyjaksoValidationService.validateKeskeytysaikaDelete(
-                opintooikeusId,
-                id
-            )
-        ) {
-            tyoskentelyjaksoResourceSupport.throwOverlappingTyoskentelyjaksotException()
-        }
-
-        try {
-            keskeytysaikaService.delete(id, opintooikeusId)
-        } catch (e: ValidationException) {
-            throw tyoskentelyjaksoResourceSupport.liitettyTerveyskoulutusjaksoonException(e)
-        }
-        return ResponseEntity
-            .noContent()
-            .build()
+        keskeytysajanMuokkauspalvelu.poista(id, opintooikeusId)
+        return ResponseEntity.noContent().build()
     }
 
     @PatchMapping("/tyoskentelyjaksot/koejakso")
@@ -436,30 +283,8 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         val user = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
             opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-        if (tyoskentelyjaksoDTO.id == null) {
-            throw BadRequestAlertException(
-                "Virheellinen id",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
-                "idnull"
-            )
-        }
-
-        if (tyoskentelyjaksoDTO.liitettyKoejaksoon == null) {
-            throw BadRequestAlertException(
-                "Liitetty koejaksoon on pakollinen tieto",
-                TYOSKENTELYJAKSO_ENTITY_NAME,
-                "dataillegal.liitetty-koejaksoon-on-pakollinen-tieto"
-            )
-        }
-
-        return tyoskentelyjaksoService.updateLiitettyKoejaksoon(
-            tyoskentelyjaksoDTO.id.required(),
-            opintooikeusId,
-            tyoskentelyjaksoDTO.liitettyKoejaksoon.required()
-        )?.let {
-            val response = ResponseEntity.ok()
-            if (tyoskentelyjaksoDTO.liitettyKoejaksoon.required()) response.body(it) else response.build()
-        } ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        val tulos = tyoskentelyjaksonMuokkauspalvelu.paivitaKoejaksokytkenta(tyoskentelyjaksoDTO, opintooikeusId)
+        return if (tyoskentelyjaksoDTO.liitettyKoejaksoon.required()) ResponseEntity.ok(tulos) else ResponseEntity.ok().build()
     }
 
     @GetMapping("/tyoskentelyjaksot/terveyskeskuskoulutusjakso")
@@ -495,41 +320,13 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
         principal: Principal?
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-
-        if (!terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettuYek(
-                opintooikeusId
-            )
-        ) {
-            throw BadRequestAlertException(
-                "Terveyskeskuskoulutusjakson hyväksyntään vaadittava työskentelyaika ei täyty",
-                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
-                "dataillegal.terveyskeskuskoulutusjakson-pituus-liian-pieni"
-            )
-        }
-
-        tyoskentelyjaksoResourceSupport.validateLaillistamispaivaAndTodistus(user, laillistamispaiva, laillistamispaivanLiite)
-        if (terveyskeskuskoulutusjaksonHyvaksyntaService.existsByOpintooikeusId(opintooikeusId)) {
-            throw BadRequestAlertException(
-                "Terveyskeskuskoulutusjakson hyväksyntä on jo lähetetty",
-                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
-                "dataillegal.terveyskeskuskoulutusjakson-hyvaksynta-on-jo-lahetetty"
-            )
-        }
-
-        erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id.required(),
-            laillistamispaiva,
-            laillistamispaivanLiite?.bytes,
-            laillistamispaivanLiite?.originalFilename,
-            laillistamispaivanLiite?.contentType
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(kayttaja.id.required(), YEK_ERIKOISALA_ID)
+        val hyvaksynta = terveyskeskuskoulutusjaksonLahetyspalvelu.lahetaYekHyvaksynta(
+            kayttaja.id.required(), opintooikeusId, laillistamispaiva, laillistamispaivanLiite
         )
-
-        terveyskeskuskoulutusjaksonHyvaksyntaService.create(opintooikeusId).let {
-            return ResponseEntity.ok(it)
-        }
+        return ResponseEntity.ok(hyvaksynta)
     }
 
     @PutMapping("/tyoskentelyjaksot/terveyskeskuskoulutusjakson-hyvaksynta")
@@ -539,36 +336,13 @@ class YekKoulutettavaTyoskentelyjaksoResource(
         @RequestParam(required = false) laillistamispaivanLiite: MultipartFile?,
         principal: Principal?
     ): ResponseEntity<TerveyskeskuskoulutusjaksonHyvaksyntaDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-
-        val hyvaksynta =
-            terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)
-                ?: throw BadRequestAlertException(
-                    "Terveyskeskuskoulutusjakson hyväksyntää ei löydy",
-                    TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
-                    "dataillegal.terveyskeskuskoulutusjakson-hyvaksyntaa-ei-loydy"
-                )
-
-        erikoistuvaLaakariService.updateLaillistamispaiva(
-            user.id.required(),
-            laillistamispaiva,
-            laillistamispaivanLiite?.bytes,
-            laillistamispaivanLiite?.originalFilename,
-            laillistamispaivanLiite?.contentType
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(kayttaja.id.required(), YEK_ERIKOISALA_ID)
+        val hyvaksynta = terveyskeskuskoulutusjaksonLahetyspalvelu.lahetaUudelleen(
+            kayttaja.id.required(), opintooikeusId, laillistamispaiva, laillistamispaivanLiite
         )
-
-        terveyskeskuskoulutusjaksonHyvaksyntaService.update(
-            user.id.required(),
-            false,
-            hyvaksynta.id.required(),
-            null,
-            null
-        )
-            .let {
-                return ResponseEntity.ok(it)
-            }
+        return ResponseEntity.ok(hyvaksynta)
     }
 
     @GetMapping("/ensimmainen-tyoskentelyjakso")

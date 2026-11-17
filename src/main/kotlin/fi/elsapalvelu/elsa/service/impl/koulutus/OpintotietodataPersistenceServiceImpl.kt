@@ -49,7 +49,6 @@ import org.springframework.stereotype.Service
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
 import java.time.Clock
 import java.time.Instant
-import java.time.ZoneId
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 
@@ -208,7 +207,7 @@ class OpintotietodataPersistenceServiceImpl(
             hetu,
             etunimi,
             sukunimi,
-            LocalDate.now(ZoneId.systemDefault()).minusYears(40)
+            LocalDate.now(clock).minusYears(40)
         )
         val yliopisto = yliopistoRepository.findByIdOrNull(1)
         val erikoisala = erikoisalaRepository.findByIdOrNull(46)
@@ -216,13 +215,13 @@ class OpintotietodataPersistenceServiceImpl(
         val asetus = asetusRepository.findByIdOrNull(5)
 
         var opintooikeus = Opintooikeus(
-            opintooikeudenMyontamispaiva = LocalDate.now(ZoneId.systemDefault()),
-            opintooikeudenPaattymispaiva = LocalDate.now(ZoneId.systemDefault()).plusYears(10),
-            viimeinenKatselupaiva = LocalDate.now(ZoneId.systemDefault()).plusYears(10)
+            opintooikeudenMyontamispaiva = LocalDate.now(clock),
+            opintooikeudenPaattymispaiva = LocalDate.now(clock).plusYears(10),
+            viimeinenKatselupaiva = LocalDate.now(clock).plusYears(10)
                 .plusMonths(PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET),
             opiskelijatunnus = "123456",
             asetus = asetus,
-            osaamisenArvioinninOppaanPvm = LocalDate.now(ZoneId.systemDefault()),
+            osaamisenArvioinninOppaanPvm = LocalDate.now(clock),
             erikoistuvaLaakari = erikoistuvaLaakari,
             yliopisto = yliopisto,
             erikoisala = erikoisala,
@@ -289,7 +288,7 @@ class OpintotietodataPersistenceServiceImpl(
             opintooikeusHerate ?: OpintooikeusHerate(
                 erikoistuvaLaakari = erikoistuvaLaakari
             ).apply {
-                useaVoimassaolevaHerateLahetetty = Instant.now()
+                useaVoimassaolevaHerateLahetetty = Instant.now(clock)
             }.let { herate -> opintooikeusHerateRepository.save(herate) }
         }
     }
@@ -385,7 +384,7 @@ class OpintotietodataPersistenceServiceImpl(
             opintoopas = opintoopas,
             kaytossa = true,
             tila = opintooikeudenTila,
-            muokkausaika = Instant.now()
+            muokkausaika = Instant.now(clock)
         )
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 
@@ -475,7 +474,7 @@ class OpintotietodataPersistenceServiceImpl(
                     opintooikeus.asetus = asetus
                 } ?: return
             }
-            opintooikeus.muokkausaika = Instant.now()
+            opintooikeus.muokkausaika = Instant.now(clock)
         } ?: createOpintooikeus(
             opintooikeusDTO,
             userId,

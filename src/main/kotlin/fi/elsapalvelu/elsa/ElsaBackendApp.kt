@@ -13,12 +13,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.info.BuildProperties
 import org.springframework.boot.info.GitProperties
 import org.springframework.boot.runApplication
-import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment
 import tech.jhipster.config.DefaultProfileUtil
 import tech.jhipster.config.JHipsterConstants
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
-import java.time.Clock
 import java.time.ZoneId
 
 @SpringBootApplication
@@ -63,10 +61,6 @@ class ElsaBackendApp(
         }
     }
 
-    @Bean
-    fun clock(): Clock {
-        return Clock.systemDefaultZone();
-    }
 
     companion object {
 

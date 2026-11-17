@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.arviointi
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -31,7 +32,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional(readOnly = true)
 class ErikoistujienSeurantaQueryService(
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val clock: Clock
 ) {
 
     @Transactional(readOnly = true)
@@ -107,7 +109,7 @@ class ErikoistujienSeurantaQueryService(
 
             val myontamispaivaPredicate = cb.lessThanOrEqualTo(
                 root.get(Opintooikeus_.opintooikeudenMyontamispaiva),
-                LocalDate.now()
+                LocalDate.now(clock)
             )
             val orPredicates = yliopistotAndErikoisalat.map { ye ->
                 if (criteria?.erikoisalaId?.equals == YEK_ERIKOISALA_ID && ye.vastuuhenkilonTehtavat.any {
@@ -152,7 +154,7 @@ class ErikoistujienSeurantaQueryService(
 
             val myontamispaivaPredicate = cb.lessThanOrEqualTo(
                 root.get(Opintooikeus_.opintooikeudenMyontamispaiva),
-                LocalDate.now()
+                LocalDate.now(clock)
             )
             val valtuutettuIdPredicate = cb.equal(
                 annetutValtuutukset.get(Kouluttajavaltuutus_.valtuutettu)
@@ -160,11 +162,11 @@ class ErikoistujienSeurantaQueryService(
             )
             val alkamispaivaPredicate = cb.lessThanOrEqualTo(
                 annetutValtuutukset.get(Kouluttajavaltuutus_.alkamispaiva),
-                LocalDate.now()
+                LocalDate.now(clock)
             )
             val paattymispaivaPredicate = cb.greaterThanOrEqualTo(
                 annetutValtuutukset.get(Kouluttajavaltuutus_.paattymispaiva),
-                LocalDate.now()
+                LocalDate.now(clock)
             )
             val dateBetweenPredicate = cb.and(alkamispaivaPredicate, paattymispaivaPredicate)
             cb.and(myontamispaivaPredicate, valtuutettuIdPredicate, dateBetweenPredicate)
@@ -207,14 +209,14 @@ class ErikoistujienSeurantaQueryService(
                     specification.and { root, _, cb ->
                         cb.greaterThanOrEqualTo(
                             root.get(Opintooikeus_.opintooikeudenPaattymispaiva),
-                            LocalDate.now()
+                            LocalDate.now(clock)
                         )
                     }
             }
             specification = specification.and { root, _, cb ->
                 cb.greaterThanOrEqualTo(
                     root.get(Opintooikeus_.viimeinenKatselupaiva),
-                    LocalDate.now()
+                    LocalDate.now(clock)
                 )
             }
         }

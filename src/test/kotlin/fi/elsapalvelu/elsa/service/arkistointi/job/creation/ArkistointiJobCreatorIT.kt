@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.creation
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
@@ -70,7 +71,7 @@ class ArkistointiJobCreatorIT {
     @ValueSource(strings = ["pdf", "long-pdf", "image"])
     @Transactional
     fun `untrusted mutable source produces a snapshot with its own checksum and metadata`(kind: String) {
-        val source = AsiakirjaHelper.createEntity(entityManager)
+        val source = AsiakirjaHelper.createEntity(entityManager, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(entityManager, YliopistoEnum.TURUN_YLIOPISTO))
         val pdf = kind != "image"
         source.asiakirjaData!!.data = if (pdf) PdfTestData.unembeddedFontPdf(if (kind == "long-pdf") 100 else 1)
             else ArchiveImageTestData.image()
@@ -99,7 +100,7 @@ class ArkistointiJobCreatorIT {
     @Test
     @Transactional
     fun `persisted immutable ordinary PDF is accepted without conversion`() {
-        val source = AsiakirjaHelper.createEntity(entityManager)
+        val source = AsiakirjaHelper.createEntity(entityManager, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(entityManager, YliopistoEnum.TURUN_YLIOPISTO))
         source.archiveSnapshot = true
         source.asiakirjaData!!.data = PdfTestData.unembeddedFontPdf(1)
         entityManager.persist(source)
@@ -147,7 +148,7 @@ class ArkistointiJobCreatorIT {
     @Test
     @Transactional
     fun `changing the source does not change archived bytes or metadata`() {
-        val source = AsiakirjaHelper.createEntity(entityManager)
+        val source = AsiakirjaHelper.createEntity(entityManager, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(entityManager, YliopistoEnum.TURUN_YLIOPISTO))
         entityManager.persist(source)
         val original = source.asiakirjaData!!.data!!.copyOf()
         // Even a caller constructing references directly cannot attach a mutable source to a job.
@@ -184,7 +185,7 @@ class ArkistointiJobCreatorIT {
     @ValueSource(booleans = [false, true])
     @Transactional
     fun `deleting original document preserves queued snapshot and archived bytes`(bulk: Boolean) {
-        val source = AsiakirjaHelper.createEntity(entityManager)
+        val source = AsiakirjaHelper.createEntity(entityManager, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(entityManager, YliopistoEnum.TURUN_YLIOPISTO))
         entityManager.persist(source)
         entityManager.flush()
         val original = source.asiakirjaData!!.data!!.copyOf()
@@ -221,7 +222,7 @@ class ArkistointiJobCreatorIT {
     @ValueSource(strings = ["image/jpg", "image/png"])
     @Transactional
     fun `large image snapshot is queued without modifying its stored original`(contentType: String) {
-        val opintooikeus = AsiakirjaHelper.createEntity(entityManager).opintooikeus!!
+        val opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(entityManager, YliopistoEnum.TURUN_YLIOPISTO)
         val student = opintooikeus.erikoistuvaLaakari!!
         val original = ArchiveImageTestData.image(if (contentType == "image/jpg") "jpeg" else "png", 4000, 3000)
         val filename = "certificate.${contentType.substringAfter('/')}"
@@ -281,7 +282,7 @@ class ArkistointiJobCreatorIT {
     }
 
     private fun storedSnapshot(): ArkistointiAsiakirjaReference {
-        val source = AsiakirjaHelper.createEntity(entityManager)
+        val source = AsiakirjaHelper.createEntity(entityManager, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(entityManager, YliopistoEnum.TURUN_YLIOPISTO))
         entityManager.persist(source)
         return snapshotService.createSnapshot(
             source.opintooikeus!!, source.nimi, source.tyyppi, source.asiakirjaData!!.data, RecordType.LIITE, 0
@@ -316,7 +317,7 @@ class ArkistointiJobCreatorIT {
     @Test
     @Transactional
     fun `snapshot references and scheduler row are stored in the approval transaction`() {
-        val source = AsiakirjaHelper.createEntity(entityManager)
+        val source = AsiakirjaHelper.createEntity(entityManager, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(entityManager, YliopistoEnum.TURUN_YLIOPISTO))
         entityManager.persist(source)
         val reference = snapshotService.createSnapshot(
             opintooikeus = source.opintooikeus!!,

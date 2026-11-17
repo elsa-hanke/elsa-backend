@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.externalintegration.arkistointi.helsinki
 
+import fi.elsapalvelu.elsa.config.Aikakonfiguraatio
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.externalintegration.ExternalIntegrationTestSupport
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
@@ -86,6 +87,7 @@ class HelsinkiArkistointiExternalIntegrationTests : ExternalIntegrationTestSuppo
 @Profile("external-integration")
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
+    Aikakonfiguraatio::class,
     HelsinkiSiiloService::class,
     LouhiArkistointiAdapter::class,
     SiiloArkistointiAdapter::class,

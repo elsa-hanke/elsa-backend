@@ -10,7 +10,6 @@ import fi.elsapalvelu.elsa.domain.seuranta.*
 import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
@@ -59,7 +58,9 @@ object SuoritusarviointiHelper {
             user: User? = null,
             tapahtumanAjankohta: LocalDate = DEFAULT_TAPAHTUMAN_AJANKOHTA,
             arviointiasteikonTaso: Int? = DEFAULT_LUOTTAMUKSEN_TASO,
-            arvioitavaKokonaisuus: ArvioitavaKokonaisuus? = null
+            arvioitavaKokonaisuus: ArvioitavaKokonaisuus? = null,
+            tyoskentelyjakso: Tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user).also(em::persist),
+            arvioinninAntaja: Kayttaja = Testisuhteet.kayttaja(em, user)
         ): Suoritusarviointi {
             val suoritusarviointi = Suoritusarviointi(
                 tapahtumanAjankohta = tapahtumanAjankohta,
@@ -74,16 +75,7 @@ object SuoritusarviointiHelper {
                 lukittu = DEFAULT_LUKITTU
             )
 
-            // Lisätään pakollinen tieto
-            val kayttaja: Kayttaja
-            if (em.findAll(Kayttaja::class).isEmpty()) {
-                kayttaja = KayttajaHelper.createEntity(em, user)
-                em.persist(kayttaja)
-                em.flush()
-            } else {
-                kayttaja = em.findAll(Kayttaja::class).get(0)
-            }
-            suoritusarviointi.arvioinninAntaja = kayttaja
+            suoritusarviointi.arvioinninAntaja = arvioinninAntaja
 
             val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(
                 suoritusarviointi = suoritusarviointi,
@@ -91,42 +83,22 @@ object SuoritusarviointiHelper {
                 arviointiasteikonTaso = arviointiasteikonTaso
             )
 
-            // Lisätään pakollinen tieto
-            if (arvioitavaKokonaisuus == null) {
-                val uusiKokonaisuus: ArvioitavaKokonaisuus
-                if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
-                    uusiKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
-                    em.persist(uusiKokonaisuus)
-                    em.flush()
-                } else {
-                    uusiKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
-                }
-                suoritusarvioinninArvioitavaKokonaisuus.arvioitavaKokonaisuus = uusiKokonaisuus
-            } else {
-                suoritusarvioinninArvioitavaKokonaisuus.arvioitavaKokonaisuus =
-                    arvioitavaKokonaisuus
-            }
+            suoritusarvioinninArvioitavaKokonaisuus.arvioitavaKokonaisuus = arvioitavaKokonaisuus ?: ArvioitavaKokonaisuusHelper.createEntity(em, kategoria =
+                ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala = tyoskentelyjakso.opintooikeus?.erikoisala).also(em::persist)
+            ).also(em::persist)
             suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
-
-            // Lisätään pakollinen tieto
-            val tyoskentelyjakso: Tyoskentelyjakso
-            if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
-                em.persist(tyoskentelyjakso)
-                em.flush()
-            } else {
-                tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).get(0)
-            }
             suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
-
-            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
-            suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+            suoritusarviointi.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
 
             return suoritusarviointi
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): Suoritusarviointi {
+        fun createUpdatedEntity(
+            tyoskentelyjakso: Tyoskentelyjakso,
+            arvioinninAntaja: Kayttaja,
+            arvioitavaKokonaisuus: ArvioitavaKokonaisuus
+        ): Suoritusarviointi {
             val suoritusarviointi = Suoritusarviointi(
                 tapahtumanAjankohta = UPDATED_TAPAHTUMAN_AJANKOHTA,
                 arvioitavaTapahtuma = UPDATED_ARVIOITAVA_TAPAHTUMA,
@@ -140,16 +112,7 @@ object SuoritusarviointiHelper {
                 lukittu = UPDATED_LUKITTU
             )
 
-            // Lisätään pakollinen tieto
-            val kayttaja: Kayttaja
-            if (em.findAll(Kayttaja::class).isEmpty()) {
-                kayttaja = KayttajaHelper.createUpdatedEntity(em)
-                em.persist(kayttaja)
-                em.flush()
-            } else {
-                kayttaja = em.findAll(Kayttaja::class).get(0)
-            }
-            suoritusarviointi.arvioinninAntaja = kayttaja
+            suoritusarviointi.arvioinninAntaja = arvioinninAntaja
 
             val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(
                 suoritusarviointi = suoritusarviointi,
@@ -157,31 +120,10 @@ object SuoritusarviointiHelper {
                 arviointiasteikonTaso = UPDATED_LUOTTAMUKSEN_TASO
             )
 
-            // Lisätään pakollinen tieto
-            val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
-            if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
-                arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createUpdatedEntity(em)
-                em.persist(arvioitavaKokonaisuus)
-                em.flush()
-            } else {
-                arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
-            }
             suoritusarvioinninArvioitavaKokonaisuus.arvioitavaKokonaisuus = arvioitavaKokonaisuus
             suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
-
-            // Lisätään pakollinen tieto
-            val tyoskentelyjakso: Tyoskentelyjakso
-            if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createUpdatedEntity(em)
-                em.persist(tyoskentelyjakso)
-                em.flush()
-            } else {
-                tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).get(0)
-            }
             suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
-
-            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
-            suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+            suoritusarviointi.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
 
             return suoritusarviointi
         }

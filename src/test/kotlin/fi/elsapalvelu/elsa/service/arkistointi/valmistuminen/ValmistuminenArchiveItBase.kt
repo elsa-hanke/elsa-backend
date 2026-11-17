@@ -228,9 +228,7 @@ open class ValmistuminenArchiveItBase {
         if (certificate == null) student.laillistamistodistus = null
         em.persist(student)
         em.persist(Koulutussuunnitelma(opintooikeus = student.getOpintooikeusKaytossa()!!))
-        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em).apply {
-            opintooikeus = student.getOpintooikeusKaytossa()!!
-        }
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus = student.getOpintooikeusKaytossa()!!)
         em.persist(tyoskentelyjakso)
         val uploaded = Asiakirja(
             nimi = "approval-attachment", tyyppi = contentType, lisattypvm = LocalDateTime.now(),

@@ -10,7 +10,7 @@ data class LoginNameMismatch(
     val invitationName: String,
     val authenticatedName: String,
     @get:JsonIgnore
-    val expiresAt: Instant = Instant.now().plusSeconds(300)
+    val expiresAt: Instant
 ) : Serializable {
     companion object {
         private const val serialVersionUID = 1L
