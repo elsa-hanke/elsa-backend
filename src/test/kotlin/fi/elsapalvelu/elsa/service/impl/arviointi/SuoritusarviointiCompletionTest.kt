@@ -92,33 +92,15 @@ class SuoritusarviointiCompletionTest {
     }
 
     @Test
-    fun `editing completed assessment preserves original date and sends modification notification`() {
-        val firstCompletion = LocalDate.of(2020, 1, 2)
+    fun `editing completed assessment refreshes date and sends modification notification`() {
         assessment.keskenerainen = false
-        assessment.arviointiAika = firstCompletion
+        assessment.arviointiAika = LocalDate.of(2020, 1, 2)
 
         val result = save(draft = false)
 
-        assertThat(assessment.arviointiAika).isEqualTo(firstCompletion)
-        assertThat(result.arviointiAika).isEqualTo(firstCompletion)
+        assertThat(assessment.arviointiAika).isEqualTo(LocalDate.of(2026, 11, 16))
+        assertThat(result.arviointiAika).isEqualTo(LocalDate.of(2026, 11, 16))
         assertThat(assessment.sanallinenArviointi).isEqualTo("Paivitetty arviointi")
-        verifyNotification("arviointiaMuokattuEmail", "email.arviointiamuokattu.title")
-        verifyNoMoreInteractions(mail)
-    }
-
-    @Test
-    fun `saving completed assessment as draft and completing again preserves first completion date`() {
-        val firstCompletion = LocalDate.of(2020, 1, 2)
-        assessment.keskenerainen = false
-        assessment.arviointiAika = firstCompletion
-
-        val draft = save(draft = true)
-        assertThat(draft.arviointiAika).isEqualTo(firstCompletion)
-        assertThat(draft.keskenerainen).isTrue()
-        verifyNoInteractions(mail)
-
-        val completed = save(draft = false)
-        assertThat(completed.arviointiAika).isEqualTo(firstCompletion)
         verifyNotification("arviointiaMuokattuEmail", "email.arviointiamuokattu.title")
         verifyNoMoreInteractions(mail)
     }

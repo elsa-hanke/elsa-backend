@@ -214,9 +214,7 @@ class SuoritusarviointiServiceImpl(
 
         val isNewArviointi = suoritusarviointi.arviointiAika == null
         suoritusarviointi.keskenerainen = suoritusarviointiDTO.keskenerainen
-        if (!suoritusarviointi.keskenerainen && isNewArviointi) {
-            suoritusarviointi.arviointiAika = LocalDate.now(clock)
-        }
+        suoritusarviointi.arviointiAika = if (!suoritusarviointiDTO.keskenerainen) LocalDate.now(clock) else null
 
         val result = suoritusarviointiRepository.save(suoritusarviointi)
 
