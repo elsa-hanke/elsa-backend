@@ -264,14 +264,14 @@ class TerveyskeskuskoulutusjaksonLahetysTest {
             if (koulutus == Koulutus.YEK) {
                 val resurssi = YekKoulutettavaTyoskentelyjaksoResource(
                     kayttajat, mock(), mock(), mock(), mock(), mock(), mock(), mock(), mock(), mock(),
-                    opintooikeudet, erikoistujat, hyvaksyntapalvelu, opintosuoritukset, tarkistukset, lahetyspalvelu
+                    opintooikeudet, hyvaksyntapalvelu, tarkistukset, lahetyspalvelu, mock()
                 )
                 laheta = resurssi::createTerveyskeskuskoulutusjaksonHyvaksynta
                 lahetaUudelleen = resurssi::updateTerveyskeskuskoulutusjaksonHyvaksynta
             } else {
                 val resurssi = ErikoistuvaLaakariTyoskentelyjaksoResource(
                     kayttajat, mock(), mock(), mock(), mock(), mock(), mock(), mock(), mock(), mock(),
-                    opintooikeudet, erikoistujat, hyvaksyntapalvelu, opintosuoritukset, tarkistukset, lahetyspalvelu
+                    opintooikeudet, hyvaksyntapalvelu, tarkistukset, lahetyspalvelu, mock()
                 )
                 laheta = resurssi::createTerveyskeskuskoulutusjaksonHyvaksynta
                 lahetaUudelleen = resurssi::updateTerveyskeskuskoulutusjaksonHyvaksynta

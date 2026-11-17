@@ -30,7 +30,6 @@ import fi.elsapalvelu.elsa.service.dto.seuranta.*
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
-import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import fi.elsapalvelu.elsa.web.rest.TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksonTarkistuspalvelu
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -62,11 +61,10 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     private val tyoskentelyjaksonMuokkauspalvelu: TyoskentelyjaksonMuokkauspalvelu,
     private val keskeytysajanMuokkauspalvelu: KeskeytysajanMuokkauspalvelu,
     private val opintooikeusService: OpintooikeusService,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
-    private val opintosuoritusService: OpintosuoritusService,
     private val tyoskentelyjaksonTarkistuspalvelu: TyoskentelyjaksonTarkistuspalvelu,
-    private val terveyskeskuskoulutusjaksonLahetyspalvelu: TerveyskeskuskoulutusjaksonLahetyspalvelu
+    private val terveyskeskuskoulutusjaksonLahetyspalvelu: TerveyskeskuskoulutusjaksonLahetyspalvelu,
+    private val tyoskentelyjaksojenTaulukkopalvelu: TyoskentelyjaksojenTaulukkopalvelu
 ) {
 
     @PostMapping("/tyoskentelyjaksot")
@@ -115,36 +113,10 @@ class YekKoulutettavaTyoskentelyjaksoResource(
     fun getTyoskentelyjaksoTable(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksotTableDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = userService.getAuthenticatedUser(principal)
         val opintooikeusId =
-            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(user.id.required(), YEK_ERIKOISALA_ID)
-        val table = TyoskentelyjaksotTableDTO()
-
-        table.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByOpintooikeusId(opintooikeusId).toMutableSet()
-
-        table.keskeytykset = keskeytysaikaService
-            .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeusId).toMutableSet()
-        table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeusId)
-
-        val erikoistuvaLaakariId = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id.required())?.id.required()
-        val terveyskeskusSuoritus = opintosuoritusService.getTerveyskoulutusjaksoSuoritusPvm(opintooikeusId, erikoistuvaLaakariId)
-        if (terveyskeskusSuoritus != null) {
-            table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY
-            table.terveyskeskuskoulutusjaksonHyvaksymispvm = terveyskeskusSuoritus
-        } else {
-            val hyvaksynta = terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeusId)
-            if (hyvaksynta != null) {
-                table.terveyskeskuskoulutusjaksonTila = hyvaksynta.tila
-                table.terveyskeskuskoulutusjaksonKorjausehdotus =
-                    if (hyvaksynta.virkailijanKorjausehdotus != null) hyvaksynta.virkailijanKorjausehdotus else hyvaksynta.vastuuhenkilonKorjausehdotus
-                table.terveyskeskuskoulutusjaksonHyvaksymispvm = hyvaksynta.vastuuhenkilonKuittausaika
-            } else if (terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettuYek(opintooikeusId)) {
-                table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.UUSI
-            }
-        }
-
-        return ResponseEntity.ok(table)
+            opintooikeusService.findOneIdByKaytossaAndErikoistuvaLaakariKayttajaUserIdAndErikoisalaId(kayttaja.id.required(), YEK_ERIKOISALA_ID)
+        return ResponseEntity.ok(tyoskentelyjaksojenTaulukkopalvelu.haeYekTaulukko(kayttaja.id.required(), opintooikeusId))
     }
 
     @GetMapping("/tyoskentelyjaksot")

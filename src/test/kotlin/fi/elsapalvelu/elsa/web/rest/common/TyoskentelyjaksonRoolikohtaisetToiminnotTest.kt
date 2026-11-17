@@ -260,7 +260,7 @@ class TyoskentelyjaksonRoolikohtaisetToiminnotTest {
             toiminnot = if (koulutus == Koulutus.YEK) {
                 val resurssi = YekKoulutettavaTyoskentelyjaksoResource(
                     kayttajat, jaksot, mock(), mock(), mock(), poissaolot, mock(), mapper,
-                    jaksojenMuokkaus, poissaolojenMuokkaus, opintooikeudet, mock(), mock(), mock(), tarkistus, mock()
+                    jaksojenMuokkaus, poissaolojenMuokkaus, opintooikeudet, mock(), tarkistus, mock(), mock()
                 )
                 YhteisetToiminnot(
                     resurssi::createTyoskentelyjakso, resurssi::updateTyoskentelyjakso, resurssi::createKeskeytysaika,
@@ -270,7 +270,7 @@ class TyoskentelyjaksonRoolikohtaisetToiminnotTest {
             } else {
                 val resurssi = ErikoistuvaLaakariTyoskentelyjaksoResource(
                     kayttajat, jaksot, mock(), mock(), mock(), poissaolot, mock(), mapper,
-                    jaksojenMuokkaus, poissaolojenMuokkaus, opintooikeudet, mock(), mock(), mock(), tarkistus, mock()
+                    jaksojenMuokkaus, poissaolojenMuokkaus, opintooikeudet, mock(), tarkistus, mock(), mock()
                 )
                 YhteisetToiminnot(
                     resurssi::createTyoskentelyjakso, resurssi::updateTyoskentelyjakso, resurssi::createKeskeytysaika,

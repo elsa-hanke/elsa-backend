@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import java.time.LocalDate
-import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import org.springframework.web.bind.annotation.RequestParam
 import java.security.Principal
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -30,7 +29,6 @@ import fi.elsapalvelu.elsa.service.dto.seuranta.*
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.*
 import fi.elsapalvelu.elsa.service.dto.kayttaja.*
 import fi.elsapalvelu.elsa.service.dto.perustiedot.*
-import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
 import fi.elsapalvelu.elsa.web.rest.TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME
 import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksonTarkistuspalvelu
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -44,7 +42,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.net.URI
-import kotlin.jvm.optionals.getOrNull
 
 private const val TYOSKENTELYJAKSO_ENTITY_NAME = "tyoskentelyjakso"
 private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
@@ -63,11 +60,10 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     private val tyoskentelyjaksonMuokkauspalvelu: TyoskentelyjaksonMuokkauspalvelu,
     private val keskeytysajanMuokkauspalvelu: KeskeytysajanMuokkauspalvelu,
     private val opintooikeusService: OpintooikeusService,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
     private val terveyskeskuskoulutusjaksonHyvaksyntaService: TerveyskeskuskoulutusjaksonHyvaksyntaService,
-    private val opintosuoritusService: OpintosuoritusService,
     private val tyoskentelyjaksonTarkistuspalvelu: TyoskentelyjaksonTarkistuspalvelu,
-    private val terveyskeskuskoulutusjaksonLahetyspalvelu: TerveyskeskuskoulutusjaksonLahetyspalvelu
+    private val terveyskeskuskoulutusjaksonLahetyspalvelu: TerveyskeskuskoulutusjaksonLahetyspalvelu,
+    private val tyoskentelyjaksojenTaulukkopalvelu: TyoskentelyjaksojenTaulukkopalvelu
 ) {
 
     @PostMapping("/tyoskentelyjaksot")
@@ -114,9 +110,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
     fun getTyoskentelyjaksoTable(
         principal: Principal?
     ): ResponseEntity<TyoskentelyjaksotTableDTO> {
-        val user = userService.getAuthenticatedUser(principal)
+        val kayttaja = userService.getAuthenticatedUser(principal)
         val opintooikeus =
-            opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(user.id.required())
+            opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(kayttaja.id.required())
         if (opintooikeus.erikoisalaId == YEK_ERIKOISALA_ID) {
             throw BadRequestAlertException(
                 "Erikoistuvan työskentelyjaksoihin ei pääse YEK erikoisalan opinto-oikeudella",
@@ -124,46 +120,9 @@ class ErikoistuvaLaakariTyoskentelyjaksoResource(
                 "yekopintooikeus"
             )
         }
-        val table = TyoskentelyjaksotTableDTO()
-
-        table.tyoskentelyjaksot = tyoskentelyjaksoService
-            .findAllByOpintooikeusId(opintooikeus.id.required()).toMutableSet()
-        table.keskeytykset = keskeytysaikaService
-            .findAllByTyoskentelyjaksoOpintooikeusId(opintooikeus.id.required()).toMutableSet()
-        table.tilastot = tyoskentelyjaksoService.getTilastot(opintooikeus.id.required())
-
-        val erikoistuvaLaakariId = erikoistuvaLaakariService.findOneByKayttajaUserId(user.id.required())?.id.required()
-
-        // If erikoisala is hammaslääketiede, return terveyskeskuskoulutus = hyväksytty since on that specialty it is not needed to be completed
-        if (opintooikeus.erikoisalaId != null && opintooikeus.erikoisalaId.required()::class.simpleName == "Long") {
-            val erikoisAla: ErikoisalaDTO? = erikoisalaService.findOne(opintooikeus.erikoisalaId.required()).getOrNull()
-            val hammaslaaketiede: ErikoisalaTyyppi = enumValueOf("HAMMASLAAKETIEDE")
-            if (erikoisAla != null && erikoisAla.tyyppi == hammaslaaketiede) {
-                table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY
-                table.terveyskeskuskoulutusjaksonHyvaksymispvm = null
-                table.terveyskeskuskoulutusjaksonKorjausehdotus = hammaslaaketiede.toString()
-
-                return ResponseEntity.ok(table)
-            }
-        }
-
-        val terveyskeskusSuoritus = opintosuoritusService.getTerveyskoulutusjaksoSuoritusPvm(opintooikeus.id.required(), erikoistuvaLaakariId)
-        if (terveyskeskusSuoritus != null) {
-            table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.HYVAKSYTTY
-            table.terveyskeskuskoulutusjaksonHyvaksymispvm = terveyskeskusSuoritus
-        } else {
-            val hyvaksynta = terveyskeskuskoulutusjaksonHyvaksyntaService.findByOpintooikeusId(opintooikeus.id.required())
-            if (hyvaksynta != null) {
-                table.terveyskeskuskoulutusjaksonTila = hyvaksynta.tila
-                table.terveyskeskuskoulutusjaksonKorjausehdotus =
-                    if (hyvaksynta.virkailijanKorjausehdotus != null) hyvaksynta.virkailijanKorjausehdotus else hyvaksynta.vastuuhenkilonKorjausehdotus
-                table.terveyskeskuskoulutusjaksonHyvaksymispvm = hyvaksynta.vastuuhenkilonKuittausaika
-            } else if (terveyskeskuskoulutusjaksonHyvaksyntaService.getTerveyskoulutusjaksoSuoritettu(opintooikeus.id.required())) {
-                table.terveyskeskuskoulutusjaksonTila = TerveyskeskuskoulutusjaksoTila.UUSI
-            }
-        }
-
-        return ResponseEntity.ok(table)
+        return ResponseEntity.ok(tyoskentelyjaksojenTaulukkopalvelu.haeErikoistujanTaulukko(
+            kayttaja.id.required(), opintooikeus.id.required(), opintooikeus.erikoisalaId
+        ))
     }
 
     @GetMapping("/tyoskentelyjaksot")
