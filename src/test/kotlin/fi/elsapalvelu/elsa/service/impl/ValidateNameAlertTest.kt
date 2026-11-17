@@ -2,16 +2,12 @@ package fi.elsapalvelu.elsa.service.impl
 
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.kayttaja.VerificationToken
-import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.repository.koejakso.*
-import fi.elsapalvelu.elsa.repository.tyoskentely.*
-import fi.elsapalvelu.elsa.repository.arviointi.*
-import fi.elsapalvelu.elsa.repository.suoritteet.*
-import fi.elsapalvelu.elsa.repository.koulutus.*
-import fi.elsapalvelu.elsa.repository.seuranta.*
-import fi.elsapalvelu.elsa.repository.valmistuminen.*
+import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.*
-import fi.elsapalvelu.elsa.repository.perustiedot.*
+import fi.elsapalvelu.elsa.repository.koejakso.*
+import fi.elsapalvelu.elsa.repository.seuranta.SeurantajaksoRepository
+import fi.elsapalvelu.elsa.service.AvatarValidator
+import fi.elsapalvelu.elsa.service.impl.kayttaja.UserServiceImpl
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -22,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 
-import fi.elsapalvelu.elsa.service.impl.kayttaja.UserServiceImpl
 @ExtendWith(MockitoExtension::class)
 class ValidateNameAlertTest {
 
@@ -39,6 +34,7 @@ class ValidateNameAlertTest {
     @Mock private lateinit var koejaksonLoppukeskusteluRepository: KoejaksonLoppukeskusteluRepository
     @Mock private lateinit var seurantajaksoRepository: SeurantajaksoRepository
     @Mock private lateinit var entityManager: EntityManager
+    @Mock private lateinit var avatarValidator: AvatarValidator
 
     private lateinit var userService: UserServiceImpl
     private lateinit var cipher: Cipher
@@ -59,7 +55,8 @@ class ValidateNameAlertTest {
             koejaksonKehittamistoimenpiteetRepository = koejaksonKehittamistoimenpiteetRepository,
             koejaksonLoppukeskusteluRepository = koejaksonLoppukeskusteluRepository,
             seurantajaksoRepository = seurantajaksoRepository,
-            entityManager = entityManager
+            entityManager = entityManager,
+            avatarValidator = avatarValidator
         )
 
         cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")

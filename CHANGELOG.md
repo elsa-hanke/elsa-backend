@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.2...HEAD)
 
+- ELSAINSI-58: Lisätty tarkistus avatartiedoston kokorajoituksista [`#814`](https://github.com/elsa-hanke/elsa-backend/pull/814)(16 November 2026)
+- test: add Tampere archive e2e and retry failure coverage [`#825`](https://github.com/elsa-hanke/elsa-backend/pull/825)(15 November 2026)
 - Improve arkistointi slack alert message [`#824`](https://github.com/elsa-hanke/elsa-backend/pull/824)(14 November 2026)
 - arkistointi: add archive delivery logging for Siilo [`#823`](https://github.com/elsa-hanke/elsa-backend/pull/823)(13 November 2026)
 - ELSA-1279 Erikoistujan tili ei näy (#820) [`#821`](https://github.com/elsa-hanke/elsa-backend/pull/821)(12 November 2026)
@@ -36,7 +38,7 @@
 - fix: Tila ei ohjaa käyttöoikeutta, joten tuntematon tila ei saa estää päättymispäivän, katseluajan ja asetuksen synkronointia (#762) [`#762`](https://github.com/elsa-hanke/elsa-backend/pull/762)(6 October 2026)
 - Tiedoston lataamisen tarkistuksen parannukset  [`#761`](https://github.com/elsa-hanke/elsa-backend/pull/761)(6 October 2026)
 
-## [v2.5.2](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.1...v2.5.2) - 12 November 2026
+## [v2.5.2-1](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.1...v2.5.2-1) - 16 November 2026
 
 - ELSA-1279 Erikoistujan tili ei näy [`#820`](https://github.com/elsa-hanke/elsa-backend/pull/820)(12 November 2026)
 
