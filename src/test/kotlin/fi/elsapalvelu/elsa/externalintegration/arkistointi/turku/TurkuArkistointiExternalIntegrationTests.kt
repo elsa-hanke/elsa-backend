@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.externalintegration.arkistointi.turku
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import fi.elsapalvelu.elsa.config.Aikakonfiguraatio
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyClientConfiguration
 import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
@@ -137,6 +138,7 @@ class TurkuArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport(
 @Profile("external-integration")
 @EnableConfigurationProperties(ApplicationProperties::class)
 @Import(
+    Aikakonfiguraatio::class,
     DynastyClientConfiguration::class,
     TurkuDynastyArkistointiAdapter::class,
     TurkuDynastyMetadataMapper::class,
