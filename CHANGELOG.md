@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.2...HEAD)
 
+- ELSAINSI-58: Lisätty tarkistus avatartiedoston kokorajoituksista [`#814`](https://github.com/elsa-hanke/elsa-backend/pull/814)(16 November 2026)
 - test: add Tampere archive e2e and retry failure coverage [`#825`](https://github.com/elsa-hanke/elsa-backend/pull/825)(15 November 2026)
 - Improve arkistointi slack alert message [`#824`](https://github.com/elsa-hanke/elsa-backend/pull/824)(14 November 2026)
 - arkistointi: add archive delivery logging for Siilo [`#823`](https://github.com/elsa-hanke/elsa-backend/pull/823)(13 November 2026)
