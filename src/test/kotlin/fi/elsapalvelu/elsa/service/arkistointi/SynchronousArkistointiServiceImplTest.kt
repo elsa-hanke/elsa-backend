@@ -271,7 +271,7 @@ class SynchronousArkistointiServiceImplTest {
 
         return SynchronousArkistointiServiceImpl(
             configurationProvider = configurationProvider,
-            metadataBuilder = SahkeMetadataBuilder(),
+            metadataBuilder = SahkeMetadataBuilder(java.time.Clock.systemDefaultZone()),
             pakettiBuilder = SahkePakettiBuilder(),
             dispatcher = dispatcher
         )

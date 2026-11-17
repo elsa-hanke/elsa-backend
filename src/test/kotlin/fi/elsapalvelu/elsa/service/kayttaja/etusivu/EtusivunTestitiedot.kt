@@ -90,7 +90,8 @@ internal class EtusivunTestitiedot {
         val koejakso = EtusivunKoejaksopalvelu(
             koejaksonKoulutussopimusRepository,
             koejaksonVastuuhenkilonArvioRepository,
-            koejaksonAloituskeskusteluRepository
+            koejaksonAloituskeskusteluRepository,
+            clock
         )
         val edistyminen = EtusivunEdistymispalvelu(
             tyoskentelyjaksoService,

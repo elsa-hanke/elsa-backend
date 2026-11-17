@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.security
 
+import java.time.Clock
 import fi.elsapalvelu.elsa.required
 
 import java.time.LocalDate
@@ -45,7 +46,8 @@ class ElsaSwitchUserFilter(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val userRepository: UserRepository,
-    private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository
+    private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
+    private val clock: Clock
 ) : OncePerRequestFilter() {
 
     private val successHandler: AuthenticationSuccessHandler =
@@ -183,7 +185,7 @@ class ElsaSwitchUserFilter(
         if (kouluttajavaltuutusRepository.findByValtuuttajaOpintooikeusIdAndValtuutettuUserIdAndPaattymispaivaAfter(
                 opintooikeus.id.required(),
                 kirjautunutKayttaja.user?.id.required(),
-                LocalDate.now().minusDays(1)
+                LocalDate.now(clock).minusDays(1)
             ).isPresent
         ) return ERIKOISTUVA_LAAKARI_IMPERSONATED
 

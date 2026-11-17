@@ -131,7 +131,7 @@ class EtusivunEdistyminenTest {
     @ValueSource(ints = [-1, 0, 1])
     fun `koulutussopimuksen aloituspaiva ratkaisee odottavan koejakson`(paivia: Int) {
         whenever(tiedot.koejaksonKoulutussopimusRepository.findByOpintooikeusId(11L))
-            .thenReturn(Optional.of(KoejaksonKoulutussopimus(koejaksonAlkamispaiva = LocalDate.now().plusDays(paivia.toLong()))))
+            .thenReturn(Optional.of(KoejaksonKoulutussopimus(koejaksonAlkamispaiva = LocalDate.now(tiedot.clock).plusDays(paivia.toLong()))))
 
         val tulos = palvelu.getErikoistumisenSeurantaForErikoistuja("opiskelija")!!
 

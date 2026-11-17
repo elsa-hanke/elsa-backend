@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.scheduler
 
+import java.time.Clock
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint
@@ -30,7 +31,8 @@ import java.time.Instant
 )
 class JobTriggerEndpoint(
     jobs: List<TriggerableJob>,
-    private val jdbcTemplate: JdbcTemplate
+    private val jdbcTemplate: JdbcTemplate,
+    private val clock: Clock
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -51,7 +53,7 @@ class JobTriggerEndpoint(
             "SELECT COUNT(*) FROM shedlock WHERE name = ? AND lock_until > ?",
             Int::class.java,
             jobName,
-            Timestamp.from(Instant.now())
+            Timestamp.from(Instant.now(clock))
         )?.let { it > 0 } ?: false
 
         if (isLocked) {

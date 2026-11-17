@@ -57,7 +57,9 @@ internal fun testKirjautumisenPalvelut(
         opintotietodataServices, opintotietodataPersistenceService,
         opintosuorituksetServices, opintosuorituksetPersistenceService, DirectTestDispatcher
     )
-    val kutsupalvelu = Kirjautumiskutsupalvelu(kirjautumisenKonteksti.verificationTokenRepository, userRepository, userService)
+    val kutsupalvelu = Kirjautumiskutsupalvelu(
+        kirjautumisenKonteksti.verificationTokenRepository, userRepository, userService, java.time.Clock.systemDefaultZone()
+    )
     val kayttooikeuspalvelu = KirjautumisenKayttooikeuspalvelu(
         kayttajaRepository, kirjautumisenKonteksti.opintooikeusRepository, opintooikeusService, userService
     )
@@ -68,7 +70,7 @@ internal fun testKirjautumisenPalvelut(
         mock(CorsFilter::class.java), applicationProperties,
         kirjautumisenKonteksti.opintooikeusRepository, kayttajaRepository, userRepository,
         mock(KouluttajavaltuutusRepository::class.java), kirjautumisenKonteksti.ymparisto,
-        mock(ApplicationContext::class.java), kirjautumispalvelu
+        mock(ApplicationContext::class.java), kirjautumispalvelu, java.time.Clock.systemDefaultZone()
     )
     return KirjautumisenTestipalvelut(konfiguraatio, kirjautumispalvelu, opintotietopalvelu)
 }

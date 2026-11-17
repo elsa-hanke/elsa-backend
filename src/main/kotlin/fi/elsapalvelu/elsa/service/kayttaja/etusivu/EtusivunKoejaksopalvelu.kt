@@ -9,6 +9,8 @@ import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepos
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.dto.enumeration.KoejaksoTila
 import fi.elsapalvelu.elsa.service.koejakso.KoejaksonTilasaannot
+import java.time.Clock
+import java.time.LocalDate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -17,12 +19,13 @@ import org.springframework.transaction.annotation.Transactional
 class EtusivunKoejaksopalvelu(
     private val koejaksonKoulutussopimusRepository: KoejaksonKoulutussopimusRepository,
     private val koejaksonVastuuhenkilonArvioRepository: KoejaksonVastuuhenkilonArvioRepository,
-    private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository
+    private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
+    private val clock: Clock
 ) {
 
     fun haeKoejaksonTila(opintooikeus: Opintooikeus, opintosuoritukset: Sequence<Opintosuoritus>): KoejaksoTila {
         if (onkoKoejaksonSuoritusmerkinta(opintosuoritukset)) {
-            return KoejaksonTilasaannot.maaritaYhteenvetotila(hyvaksyttySuoritus = true)
+            return KoejaksonTilasaannot.maaritaYhteenvetotila(hyvaksyttySuoritus = true, tanaan = LocalDate.now(clock))
         }
 
         val koulutussopimus = koejaksonKoulutussopimusRepository.findByOpintooikeusId(opintooikeus.id.required())
@@ -32,7 +35,8 @@ class EtusivunKoejaksopalvelu(
         return KoejaksonTilasaannot.maaritaYhteenvetotila(
             vastuuhenkilonArvio = vastuuhenkilonArvio.orElse(null),
             koulutussopimus = koulutussopimus.orElse(null),
-            aloituskeskustelu = aloituskeskustelu.orElse(null)
+            aloituskeskustelu = aloituskeskustelu.orElse(null),
+            tanaan = LocalDate.now(clock)
         )
     }
 

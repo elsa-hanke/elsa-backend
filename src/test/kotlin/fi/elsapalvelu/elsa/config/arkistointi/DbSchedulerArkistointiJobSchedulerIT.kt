@@ -9,6 +9,12 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobSchedu
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobFailureHandler
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobLogContext
+import fi.elsapalvelu.elsa.service.helpers.KELLON_TESTITAPAUKSET
+import fi.elsapalvelu.elsa.service.helpers.KellonTestitapaus
+import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
+import java.sql.Timestamp
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
@@ -37,6 +43,24 @@ import org.springframework.transaction.support.TransactionTemplate
     ]
 )
 class DbSchedulerArkistointiJobSchedulerIT {
+    @Autowired private lateinit var arkistointiJobTask: OneTimeTask<Unit>
+
+    @ParameterizedTest
+    @MethodSource(KELLON_TESTITAPAUKSET)
+    fun `oletusajastus kayttaa kellon hetkea`(aika: KellonTestitapaus) {
+        val tunniste = UUID.randomUUID()
+        val ajastin = DbSchedulerArkistointiJobScheduler(dataSource, arkistointiJobTask, aika.kello())
+        transactionTemplate.executeWithoutResult {
+            assertThat(ajastin.schedule(tunniste)).isTrue()
+            val ajankohta = jdbcTemplate.queryForObject(
+                "select execution_time from scheduled_tasks where task_instance = ?",
+                Timestamp::class.java, tunniste.toString()
+            )!!
+            assertThat(ajankohta.toInstant()).isEqualTo(aika.aikaleima())
+            jdbcTemplate.update("delete from scheduled_tasks where task_instance = ?", tunniste.toString())
+        }
+    }
+
 
     @Autowired
     private lateinit var scheduler: ArkistointiJobScheduler

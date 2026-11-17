@@ -69,8 +69,7 @@ class ScheduledOpintotietoImportTest {
             ),
             opintosuorituksetPersistenceService = opintosuorituksetPersistenceService,
             opintooikeusRepository = opintooikeusRepository,
-            applicationProperties = appProps
-        )
+            applicationProperties = appProps, clock = java.time.Clock.systemDefaultZone())
     }
 
     @Test

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.config.arkistointi
 
+import java.time.Clock
 import com.github.kagkarlsson.scheduler.SchedulerClient
 import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
 import fi.elsapalvelu.elsa.service.arkistointi.job.creation.ArkistointiJobScheduler
@@ -14,13 +15,17 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 class DbSchedulerArkistointiJobScheduler(
     dataSource: DataSource,
-    arkistointiJobTask: OneTimeTask<Unit>
+    arkistointiJobTask: OneTimeTask<Unit>,
+    private val clock: Clock
 ) : ArkistointiJobScheduler {
 
     private val schedulerClient = SchedulerClient.Builder.create(
         TransactionAwareDataSourceProxy(dataSource),
         arkistointiJobTask
     ).build()
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    override fun schedule(jobId: UUID): Boolean = schedule(jobId, clock.instant())
 
     @Transactional(propagation = Propagation.MANDATORY)
     override fun schedule(jobId: UUID, executionTime: Instant): Boolean =

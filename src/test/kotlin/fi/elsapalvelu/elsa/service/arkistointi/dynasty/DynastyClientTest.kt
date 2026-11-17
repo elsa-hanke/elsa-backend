@@ -32,7 +32,7 @@ class DynastyClientTest {
             allowLoopbackHttpForTests = true
             configure()
         }
-        return DynastyClient(settings,jacksonObjectMapper(),transport)
+        return DynastyClient(settings,jacksonObjectMapper(),transport, java.time.Clock.systemDefaultZone())
     }
     private fun caseRequest() = DynastyCaseRequest(DynastyCaseModel("case-schema", "Test case", DynastyAdditionalData()))
 

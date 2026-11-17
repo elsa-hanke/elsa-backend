@@ -27,7 +27,7 @@ internal fun assertZipContents(
     val configuration = ArkistointiConfigurationProvider(properties)
         .getConfiguration(job.university!!, CaseType.VALMISTUMINEN)
     val records = job.asiakirjat.map { RecordProperties(it.asiakirja!!, it.asiakirjatyyppi!!) }
-    val metadata = SahkeMetadataBuilder().build(
+    val metadata = SahkeMetadataBuilder(java.time.Clock.systemDefaultZone()).build(
         SahkeMetadataRequest(request.opintooikeus, records, request.id.toString(), null, null, null, LocalDate.now()),
         configuration
     )

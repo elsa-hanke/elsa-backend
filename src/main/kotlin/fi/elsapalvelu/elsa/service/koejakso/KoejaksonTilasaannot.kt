@@ -126,7 +126,7 @@ object KoejaksonTilasaannot {
         koulutussopimus: KoejaksonKoulutussopimus? = null,
         aloituskeskustelu: KoejaksonAloituskeskustelu? = null,
         hyvaksyttySuoritus: Boolean = false,
-        tanaan: LocalDate = LocalDate.now()
+        tanaan: LocalDate
     ): KoejaksoTila = when {
         hyvaksyttySuoritus || vastuuhenkilonArvio?.koejaksoHyvaksytty == true -> HYVAKSYTTY
         onkoAloitettu(koulutussopimus != null, koulutussopimus?.koejaksonAlkamispaiva, tanaan) ||

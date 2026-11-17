@@ -67,7 +67,8 @@ class SecurityConfiguration(
     private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
     private val env: Environment,
     private val applicationContext: ApplicationContext,
-    private val kirjautumispalvelu: Kirjautumispalvelu
+    private val kirjautumispalvelu: Kirjautumispalvelu,
+    private val clock: java.time.Clock
 ) {
 
     @Bean
@@ -112,7 +113,8 @@ class SecurityConfiguration(
                     opintooikeusRepository,
                     kayttajaRepository,
                     userRepository,
-                    kouluttajavaltuutusRepository
+                    kouluttajavaltuutusRepository,
+                    clock
                 ),
                 AuthorizationFilter::class.java
             )

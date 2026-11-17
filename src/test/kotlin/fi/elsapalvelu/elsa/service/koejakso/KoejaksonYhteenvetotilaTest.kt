@@ -27,7 +27,7 @@ class KoejaksonYhteenvetotilaTest {
     private val sopimukset = mock<KoejaksonKoulutussopimusRepository>()
     private val arviot = mock<KoejaksonVastuuhenkilonArvioRepository>()
     private val aloitukset = mock<KoejaksonAloituskeskusteluRepository>()
-    private val palvelu = EtusivunKoejaksopalvelu(sopimukset, arviot, aloitukset)
+    private val palvelu = EtusivunKoejaksopalvelu(sopimukset, arviot, aloitukset, java.time.Clock.systemDefaultZone())
     private val opintooikeus = Opintooikeus(id = 11L)
 
     @ParameterizedTest

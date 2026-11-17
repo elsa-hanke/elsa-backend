@@ -32,8 +32,7 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkintaTest {
     private val repository: OpintooikeusRepository = mock()
     private val credits: OpintosuoritusService = mock()
     private val job = ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
-        studyRights, approvals, mail, users, repository, credits
-    )
+        studyRights, approvals, mail, users, repository, credits, clock = java.time.Clock.systemDefaultZone())
 
     @Test
     fun `empty candidate list does not perform completion checks or send mail`() {

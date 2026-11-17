@@ -543,7 +543,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.erikoistujanAsetus").value(opintooikeus.asetus?.nimi))
             .andExpect(jsonPath("$.opintooikeudenMyontamispaiva").value(opintooikeus.opintooikeudenMyontamispaiva.toString()))
             .andExpect(jsonPath("$.erikoistujanKuittausaika").value(LocalDate.now().toString()))
-            .andExpect(jsonPath("$.muokkauspaiva").value(LocalDate.now().toString()))
+            .andExpect(jsonPath("$.muokkauspaiva").value(LocalDate.now(clock).toString()))
     }
 
     @Test

@@ -23,7 +23,7 @@ class DynastyDeliveryTest {
             val submission = dynastySubmission(mapper)
             val ledger = resumableLedger(submission.execution)
             val adapter = TurkuDynastyArkistointiAdapter(
-                DynastyClient(properties.getArkistointi().getTurku().dynasty,mapper),
+                DynastyClient(properties.getArkistointi().getTurku().dynasty,mapper, java.time.Clock.systemDefaultZone()),
                 TurkuDynastyMetadataMapper(properties,mapper,ArchivePayloadReader(mapper)),
                 DynastyStepExecutor(ledger, properties)
             )

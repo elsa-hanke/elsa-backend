@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.kayttaja.kirjautuminen
 
+import java.time.Clock
 import fi.elsapalvelu.elsa.config.LoginException
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
@@ -21,7 +22,8 @@ internal const val KIRJAUTUMISEN_OLETUS_RELAY_STATE = "elsa"
 class Kirjautumiskutsupalvelu(
     private val kutsut: VerificationTokenRepository,
     private val kayttajat: UserRepository,
-    private val kayttajapalvelu: UserService
+    private val kayttajapalvelu: UserService,
+    private val clock: Clock
 ) {
     fun kasitteleKutsu(
         salain: Cipher, salausavain: SecretKey, hetu: String?, eppn: String?, etunimi: String, sukunimi: String
@@ -41,7 +43,8 @@ class Kirjautumiskutsupalvelu(
                     LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE,
                     LoginNameMismatch(
                         invitationName = listOfNotNull(kutsuttuKayttaja.firstName, kutsuttuKayttaja.lastName).joinToString(" "),
-                        authenticatedName = "$etunimi $sukunimi"
+                        authenticatedName = "$etunimi $sukunimi",
+                        expiresAt = clock.instant().plusSeconds(300)
                     )
                 )
             }

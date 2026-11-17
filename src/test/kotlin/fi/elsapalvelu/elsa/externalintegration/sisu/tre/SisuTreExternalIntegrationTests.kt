@@ -87,11 +87,15 @@ class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase()
     AuthenticationTokenClientBuilderImpl::class,
     IntegrationAlertService::class,
     SisuTreAuthenticationTokenServiceImpl::class,
+    fi.elsapalvelu.elsa.security.AuthenticationTokenCache::class,
     SisuTreClientBuilderImpl::class,
     SisuTreOpintotietodataFetchingServiceImpl::class,
     SisuTreOpintosuorituksetFetchingServiceImpl::class
 )
 class SisuTreExternalIntegrationTestApplication {
+    @Bean
+    fun clock(): java.time.Clock = java.time.Clock.systemDefaultZone()
+
 
     @Bean
     fun jacksonCustomizer(): Jackson2ObjectMapperBuilderCustomizer =

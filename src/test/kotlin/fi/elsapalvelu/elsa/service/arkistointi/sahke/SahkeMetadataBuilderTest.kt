@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class SahkeMetadataBuilderTest {
-    private val builder = SahkeMetadataBuilder()
+    private val builder = SahkeMetadataBuilder(java.time.Clock.systemDefaultZone())
 
     @Test
     fun `build includes only configured documents in metadata and package input`() {

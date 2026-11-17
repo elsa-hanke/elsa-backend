@@ -31,7 +31,7 @@ class ArkistointiSnapshotValidationTest {
     private val jobs = mock<ArkistointiJobRepository>()
     private val scheduler = mock<ArkistointiJobScheduler>()
     private val snapshots = ArkistointiAsiakirjaSnapshotService(documents, java.time.Clock.systemDefaultZone())
-    private val creator = ArkistointiJobCreatorImpl(jobs, scheduler, snapshots)
+    private val creator = ArkistointiJobCreatorImpl(jobs, scheduler, snapshots, java.time.Clock.systemDefaultZone())
     private val stored = mutableMapOf<Long, Asiakirja>()
     private val persistedFlags = mutableMapOf<Long, Boolean>()
 

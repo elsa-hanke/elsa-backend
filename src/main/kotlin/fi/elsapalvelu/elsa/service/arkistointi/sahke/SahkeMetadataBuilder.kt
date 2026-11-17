@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.TransferInformation
 import org.apache.commons.codec.digest.DigestUtils
 import org.springframework.stereotype.Component
+import java.time.Clock
 import java.time.LocalDate
 import java.util.ResourceBundle
 
@@ -26,7 +27,7 @@ data class SahkeMetadataRequest(
     val hyvaksyja: String?,
     val hyvaksymisPaiva: LocalDate?,
     val savedPerson: SahkePerson? = null,
-    val created: LocalDate = LocalDate.now()
+    val created: LocalDate? = null
 )
 
 /** Scalars from the approval payload; no database reads are needed by asynchronous delivery. */
@@ -61,23 +62,24 @@ data class SahkeMetadataResult(
 )
 
 @Component
-class SahkeMetadataBuilder {
+class SahkeMetadataBuilder(private val clock: Clock) {
     fun build(
         request: SahkeMetadataRequest,
         configuration: ArkistointiConfiguration
     ): SahkeMetadataResult {
+        val luontipaiva = request.created ?: LocalDate.now(clock)
         val metadata = ArkistointiMetadata()
         val person = request.savedPerson ?: SahkePerson.from(request.opintooikeus)
 
-        buildTransferInformation(metadata.transferInformation, configuration, person.studyRightId, request.created)
+        buildTransferInformation(metadata.transferInformation, configuration, person.studyRightId, luontipaiva)
         buildContactInformation(metadata.contactInformation, configuration)
-        buildCaseFile(metadata.caseFile, request.caseId, person.name, person.birthDate, configuration, request.created)
+        buildCaseFile(metadata.caseFile, request.caseId, person.name, person.birthDate, configuration, luontipaiva)
 
         val configuredAsiakirjat = request.asiakirjat.filter { recordProperties ->
             configuration.metadata.getDocumentMetadata(recordProperties.type, configuration.case) != null
         }
 
-        buildRecords(configuredAsiakirjat, metadata, configuration, request)
+        buildRecords(configuredAsiakirjat, metadata, configuration, request.copy(created = luontipaiva))
         return SahkeMetadataResult(metadata, configuredAsiakirjat)
     }
 

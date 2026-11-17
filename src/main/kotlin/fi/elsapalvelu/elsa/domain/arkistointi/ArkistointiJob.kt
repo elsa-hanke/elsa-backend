@@ -83,11 +83,11 @@ data class ArkistointiJob(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    var createdAt: Instant? = Instant.now(),
+    var createdAt: Instant? = null,
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant? = Instant.now(),
+    var updatedAt: Instant? = null,
 
     @Column(name = "completed_at")
     var completedAt: Instant? = null,

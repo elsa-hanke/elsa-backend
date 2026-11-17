@@ -20,7 +20,7 @@ class DynastyWorkerConfigurationTest {
     private val settings = turku.dynasty
     private val mapper = jacksonObjectMapper()
     private val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
-        DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper),
+        DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, java.time.Clock.systemDefaultZone()),
         TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
         DynastyStepExecutor(mock<DynastyStepLedger>(), properties)
     )))

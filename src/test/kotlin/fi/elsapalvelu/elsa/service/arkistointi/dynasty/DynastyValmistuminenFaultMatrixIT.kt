@@ -74,7 +74,7 @@ class DynastyValmistuminenFaultMatrixIT {
         try {
             val properties = dynastyTestProperties(server.url("/").newBuilder().host("127.0.0.1").build().toString())
             val adapter = TurkuDynastyArkistointiAdapter(
-                DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper),
+                DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, java.time.Clock.systemDefaultZone()),
                 TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
                 DynastyStepExecutor(ledger, properties)
             )

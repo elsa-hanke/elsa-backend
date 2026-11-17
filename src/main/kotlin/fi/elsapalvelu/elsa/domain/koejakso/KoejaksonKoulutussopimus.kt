@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.domain.koejakso
 
+import fi.elsapalvelu.elsa.domain.Muokkauspaivallinen
+import fi.elsapalvelu.elsa.domain.MuokkauspaivanKuuntelija
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import org.hibernate.annotations.Cache
@@ -7,12 +9,12 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
-import java.time.ZoneId
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
 @Entity
+@EntityListeners(MuokkauspaivanKuuntelija::class)
 @Audited
 @Table(name = "koejakson_koulutussopimus")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -37,7 +39,7 @@ data class KoejaksonKoulutussopimus(
 
     @NotNull
     @Column(name = "muokkauspaiva", nullable = false)
-    var muokkauspaiva: LocalDate? = null,
+    override var muokkauspaiva: LocalDate? = null,
 
     @ManyToOne
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
@@ -64,17 +66,7 @@ data class KoejaksonKoulutussopimus(
     @Column(name = "erikoistuvan_allekirjoitusaika", nullable = false)
     var erikoistuvanAllekirjoitusaika: LocalDate? = null
 
-) : Serializable {
-
-    @PrePersist
-    fun onCreate() {
-        muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
-    }
-
-    @PreUpdate
-    fun onUpdate() {
-        muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
-    }
+) : Serializable, Muokkauspaivallinen {
 
     override fun hashCode() = 31
 
