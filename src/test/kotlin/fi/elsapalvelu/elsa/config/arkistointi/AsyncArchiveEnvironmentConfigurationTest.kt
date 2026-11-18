@@ -1,9 +1,19 @@
 package fi.elsapalvelu.elsa.config.arkistointi
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyStepExecutor
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.TurkuDynastyArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
+import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatCode
+import org.mockito.kotlin.mock
+import java.time.Clock
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -51,6 +61,29 @@ class AsyncArchiveEnvironmentConfigurationTest {
                     .describedAs("$university / $caseType")
                     .isEqualTo(university != YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
             }
+        }
+    }
+
+    @Test
+    fun `shipped Turku configuration passes worker validation when enabled with credentials`() {
+        runner(mapOf(
+            "APPLICATION_ARKISTOINTI_TURKU_KAYTOSSA" to "true",
+            "APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_ID" to "client",
+            "APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_SECRET" to "secret"
+        )).run { context ->
+            assertThat(context).hasNotFailed()
+            val properties = context.getBean(ApplicationProperties::class.java)
+            val mapper = jacksonObjectMapper()
+            val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
+                DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
+                TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
+                DynastyStepExecutor(mock(), properties)
+            )))
+
+            assertThat(properties.getArkistointi().getTurku().dynasty.tutkintoasetukset.keys)
+                .containsExactlyInAnyOrder("678/1998", "1343/2002", "401/2007", "56/2015", "55/2020")
+            assertThatCode { registry.validateWorkerConfiguration(context.getBean(ArkistointiConfigurationProvider::class.java)) }
+                .doesNotThrowAnyException()
         }
     }
 

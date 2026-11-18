@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.config.Aikakonfiguraatio
 import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.externalintegration.ExternalIntegrationTestSupport
@@ -24,8 +25,10 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsi
 import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchiveStudyRightPayload
 import fi.elsapalvelu.elsa.service.arkistointi.support.arkistointiSubmission
+import fi.elsapalvelu.elsa.service.arkistointi.koejakso.KoejaksoArkistointiPayload
 import fi.elsapalvelu.elsa.service.arkistointi.valmistuminen.ValmistuminenArkistointiPayload
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.assertj.core.api.Assertions.assertThat
 import okhttp3.OkHttpClient
@@ -49,10 +52,13 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
 import org.springframework.test.context.ActiveProfiles
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import javax.imageio.ImageIO
 
 @SpringBootTest(classes = [TurkuArkistointiExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
@@ -79,9 +85,22 @@ class TurkuArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport(
         val submission = createSubmission(programme)
         log.info("Sending Turku Dynasty archive test: programme={}, jobId={}", programme, submission.jobId)
 
+        assertDeliverySucceeds(submission, programme.toString())
+    }
+
+    @ParameterizedTest(name = "Turku Dynasty koejakso {0}")
+    @EnumSource(Programme::class)
+    fun shouldArchiveKoejaksoWithSecrecyMetadata(programme: Programme) {
+        val submission = createKoejaksoSubmission(programme)
+        log.info("Sending Turku Dynasty koejakso test: programme={}, jobId={}", programme, submission.jobId)
+
+        assertDeliverySucceeds(submission, "koejakso $programme")
+    }
+
+    private fun assertDeliverySucceeds(submission: ArkistointiSubmission, description: String) {
         val result = adapter.arkistoi(submission)
 
-        assertThat(result).describedAs("Dynasty delivery must succeed for $programme")
+        assertThat(result).describedAs("Dynasty delivery must succeed for $description")
             .isInstanceOf(ArkistointiResult.Success::class.java)
         val caseId = (result as ArkistointiResult.Success).externalId
         assertThat(caseId).isNotBlank()
@@ -96,6 +115,53 @@ class TurkuArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport(
         log.info("Turku Dynasty archive test succeeded: jobId={}, caseId={}", submission.jobId, caseId)
     }
 
+    private fun createKoejaksoSubmission(programme: Programme): ArkistointiSubmission {
+        val scenario = ArkistointiTestScenario(
+            name = "Turku Dynasty koejakso $programme",
+            yliopisto = YliopistoEnum.TURUN_YLIOPISTO,
+            caseType = CaseType.KOEJAKSO,
+            recordTypes = listOf(RecordType.ARVIOINTI),
+            yek = programme == Programme.YEK
+        )
+        val input = ArkistointiTestData.createInput(scenario)
+        val documents = loadDocuments(input.asiakirjat, pngCertificate = false)
+        val payload = KoejaksoArkistointiPayload(
+            caseId = requireNotNull(input.opintooikeus.id),
+            studyRight = studyRightPayload(input.opintooikeus, scenario, programme),
+            reviewer = "ELSA integraatiotesti", reviewDate = LocalDate.now().minusDays(2),
+            approver = "ELSA integraatiotesti", approvalDate = LocalDate.now().minusDays(1),
+            koejaksoHyvaksytty = true,
+            documents = documents.map {
+                ArkistointiDocumentIdentity(it.asiakirjaId, it.asiakirjaId, it.asiakirjatyyppi, it.jarjestysnumero)
+            }
+        )
+        return arkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, scenario.caseType, mapper.writeValueAsString(payload), documents)
+    }
+
+    private fun studyRightPayload(opintooikeus: Opintooikeus, scenario: ArkistointiTestScenario, programme: Programme) =
+        ArchiveStudyRightPayload.create(opintooikeus, scenario.yliopisto).copy(
+            yek = scenario.yek,
+            specialtyType = programme.specialtyType,
+            degreeRegulation = "56/2015"
+        )
+
+    // YEK certificates are uploaded as PNG images, so they are sent as image/png to real Dynasty.
+    private fun loadDocuments(records: List<RecordProperties>, pngCertificate: Boolean) =
+        records.mapIndexed { index, record ->
+            val document = record.asiakirja
+            val isPng = pngCertificate && record.type == RecordType.LAILLISTAMISTODISTUS
+            val bytes = if (isPng) pngBytes() else requireNotNull(document.asiakirjaData?.data)
+            val name = requireNotNull(document.nimi).let { if (isPng) "laillistamistodistus.png" else it }
+            LoadedArkistointiAsiakirja(
+                requireNotNull(document.id), record.type, index, name,
+                if (isPng) "image/png" else "application/pdf", ArkistointiChecksum.sha256(bytes), bytes
+            )
+        }
+
+    private fun pngBytes(): ByteArray = ByteArrayOutputStream().also {
+        ImageIO.write(BufferedImage(8, 8, BufferedImage.TYPE_INT_RGB), "png", it)
+    }.toByteArray()
+
     private fun createSubmission(programme: Programme): ArkistointiSubmission {
         val scenario = ArkistointiTestScenario(
             name = "Turku Dynasty valmistuminen $programme",
@@ -105,18 +171,8 @@ class TurkuArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport(
             yek = programme == Programme.YEK
         )
         val input = ArkistointiTestData.createInput(scenario)
-        val documents = input.asiakirjat.mapIndexed { index, record ->
-            val document = record.asiakirja
-            val bytes = requireNotNull(document.asiakirjaData?.data)
-            LoadedArkistointiAsiakirja(
-                requireNotNull(document.id), record.type, index, requireNotNull(document.nimi),
-                "application/pdf", ArkistointiChecksum.sha256(bytes), bytes
-            )
-        }
-        val studyRight = ArchiveStudyRightPayload.create(input.opintooikeus, scenario.yliopisto).copy(
-            yek = scenario.yek,
-            specialtyType = programme.specialtyType
-        )
+        val documents = loadDocuments(input.asiakirjat, pngCertificate = programme == Programme.YEK)
+        val studyRight = studyRightPayload(input.opintooikeus, scenario, programme)
         val payload = ValmistuminenArkistointiPayload(
             caseId = requireNotNull(input.opintooikeus.id), studyRight = studyRight,
             reviewer = "ELSA integraatiotesti", reviewDate = LocalDate.now().minusDays(2),
