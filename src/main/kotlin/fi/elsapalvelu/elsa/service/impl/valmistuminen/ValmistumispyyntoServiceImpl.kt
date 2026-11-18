@@ -128,7 +128,7 @@ class ValmistumispyyntoServiceImpl(
             val valmistumispyynto = Valmistumispyynto(
                 opintooikeus = opintooikeus,
                 selvitysVanhentuneistaSuorituksista = uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista,
-                erikoistujanKuittausaika = LocalDate.now()
+                erikoistujanKuittausaika = LocalDate.now(clock)
             )
             valmistumispyyntoRepository.save(valmistumispyynto).let { saved ->
                 if (!saved.isYek()) {
@@ -164,7 +164,7 @@ class ValmistumispyyntoServiceImpl(
             osapuoliService.haeValmistumispyyntoOpintooikeudella(opintooikeusId).apply {
                 vastuuhenkiloOsaamisenArvioijaKorjausehdotus = null
                 vastuuhenkiloOsaamisenArvioijaPalautusaika = null
-                erikoistujanKuittausaika = LocalDate.now()
+                erikoistujanKuittausaika = LocalDate.now(clock)
                 this.selvitysVanhentuneistaSuorituksista = uusiValmistumispyyntoDTO.selvitysVanhentuneistaSuorituksista
 
                 if (opintooikeus.isYek()) {
@@ -214,11 +214,11 @@ class ValmistumispyyntoServiceImpl(
         valmistumispyynto.vastuuhenkiloOsaamisenArvioija = kayttaja
 
         if (osaamisenArviointiDTO.osaaminenRiittavaValmistumiseen == true) {
-            valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika = LocalDate.now()
+            valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKuittausaika = LocalDate.now(clock)
             valmistumispyynto.virkailijanPalautusaika = null
             ilmoitusService.lahetaIlmoitusVirkailijanTarkastuksesta(valmistumispyynto)
         } else {
-            valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika = LocalDate.now()
+            valmistumispyynto.vastuuhenkiloOsaamisenArvioijaPalautusaika = LocalDate.now(clock)
             valmistumispyynto.vastuuhenkiloOsaamisenArvioijaKorjausehdotus = osaamisenArviointiDTO.korjausehdotus
             valmistumispyynto.erikoistujanKuittausaika = null
             ilmoitusService.lahetaIlmoitusPalautuksesta(valmistumispyynto)
@@ -229,6 +229,7 @@ class ValmistumispyyntoServiceImpl(
         }
     }
 
+    @Transactional(rollbackFor = [Exception::class])
     override fun updateValmistumispyyntoByHyvaksyjaUserId(id: Long, userId: String, hyvaksyntaFormDTO: ValmistumispyyntoHyvaksyntaFormDTO): ValmistumispyynnonTarkistusDTO {
         log.info("Hyvaksynta-operaatio aloitettu [valmistumispyyntoId=$id]")
 
@@ -270,7 +271,7 @@ class ValmistumispyyntoServiceImpl(
 
         if (hyvaksyntaFormDTO.korjausehdotus != null) {
             log.info("Valmistumispyynto palautetaan erikoistujalle [valmistumispyyntoId=$id]")
-            valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika = LocalDate.now()
+            valmistumispyynto.vastuuhenkiloHyvaksyjaPalautusaika = LocalDate.now(clock)
             valmistumispyynto.vastuuhenkiloHyvaksyjaKorjausehdotus = hyvaksyntaFormDTO.korjausehdotus
             valmistumispyynto.erikoistujanKuittausaika = null
             valmistumispyynto.virkailijanKuittausaika = null
@@ -281,7 +282,7 @@ class ValmistumispyyntoServiceImpl(
             log.info("Palautussahkoposti lahetetty [valmistumispyyntoId=$id]")
         } else {
             log.info("Valmistumispyynto hyvaksytaan: tallennetaan kuittausaika [valmistumispyyntoId=$id]")
-            valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = LocalDate.now()
+            valmistumispyynto.vastuuhenkiloHyvaksyjaKuittausaika = LocalDate.now(clock)
             val result = valmistumispyyntoRepository.save(valmistumispyynto)
             log.info("Kuittausaika tallennettu [valmistumispyyntoId=$id]")
 
@@ -374,9 +375,6 @@ class ValmistumispyyntoServiceImpl(
                     it.valmistumispyynto?.vastuuhenkiloHyvaksyjaKorjausehdotus = null
                     it.valmistumispyynto?.vastuuhenkiloHyvaksyjaPalautusaika = null
                     it.valmistumispyynto?.virkailijanKorjausehdotus = null
-                    ilmoitusService.lahetaIlmoitusHyvaksyjalle(
-                        it.valmistumispyynto.required()
-                    )
                 }
 
                 it.valmistumispyynto?.let { pyynto -> valmistumispyyntoRepository.save(pyynto) }

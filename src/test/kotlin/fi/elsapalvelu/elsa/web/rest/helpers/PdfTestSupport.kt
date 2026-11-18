@@ -4,8 +4,7 @@ import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
-import org.apache.pdfbox.pdmodel.font.PDType1Font
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts
+import org.apache.pdfbox.pdmodel.font.PDType0Font
 import org.apache.pdfbox.text.PDFTextStripper
 import org.assertj.core.api.Assertions.assertThat
 import java.io.ByteArrayOutputStream
@@ -94,12 +93,15 @@ object PdfTestSupport {
     /** Builds a small valid PDF where page N contains [pageTexts]\[N-1\] (ASCII only). */
     fun createPdf(vararg pageTexts: String): ByteArray =
         PDDocument().use { document ->
+            // Embedded fonts keep page-order fixtures searchable when normalized to PDF/A.
+            val font = requireNotNull(javaClass.getResourceAsStream("/fonts/LiberationSerif-Regular.ttf"))
+                .use { PDType0Font.load(document, it) }
             pageTexts.forEach { pageText ->
                 val page = PDPage()
                 document.addPage(page)
                 PDPageContentStream(document, page).use { content ->
                     content.beginText()
-                    content.setFont(PDType1Font(Standard14Fonts.FontName.HELVETICA), FONT_SIZE)
+                    content.setFont(font, FONT_SIZE)
                     content.newLineAtOffset(MARGIN, TOP)
                     content.showText(pageText)
                     content.endText()

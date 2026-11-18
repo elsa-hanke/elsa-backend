@@ -2,44 +2,16 @@ package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.required
 
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
-import fi.elsapalvelu.elsa.domain.kayttaja.Authority
-import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
-import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.repository.koejakso.*
-import fi.elsapalvelu.elsa.repository.tyoskentely.*
-import fi.elsapalvelu.elsa.repository.arviointi.*
-import fi.elsapalvelu.elsa.repository.suoritteet.*
-import fi.elsapalvelu.elsa.repository.koulutus.*
-import fi.elsapalvelu.elsa.repository.seuranta.*
-import fi.elsapalvelu.elsa.repository.valmistuminen.*
-import fi.elsapalvelu.elsa.repository.kayttaja.*
-import fi.elsapalvelu.elsa.repository.perustiedot.*
+import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.UserRepository
+import fi.elsapalvelu.elsa.repository.kayttaja.KouluttajavaltuutusRepository
 import fi.elsapalvelu.elsa.security.*
-import fi.elsapalvelu.elsa.security.StaleXsrfCookieClearingFilter
-import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.koejakso.*
-import fi.elsapalvelu.elsa.service.tyoskentely.*
-import fi.elsapalvelu.elsa.service.arviointi.*
-import fi.elsapalvelu.elsa.service.suoritteet.*
-import fi.elsapalvelu.elsa.service.koulutus.*
-import fi.elsapalvelu.elsa.service.seuranta.*
-import fi.elsapalvelu.elsa.service.valmistuminen.*
-import fi.elsapalvelu.elsa.service.kayttaja.*
-import fi.elsapalvelu.elsa.service.perustiedot.*
-import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
-import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
-import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
-import jakarta.persistence.EntityNotFoundException
+import fi.elsapalvelu.elsa.service.kayttaja.kirjautuminen.Kirjautumispalvelu
+import fi.elsapalvelu.elsa.service.kayttaja.kirjautuminen.KIRJAUTUMISEN_OLETUS_RELAY_STATE
 import jakarta.servlet.http.HttpServletResponse
-import kotlinx.coroutines.*
-import kotlinx.coroutines.slf4j.MDCContext
-import org.apache.commons.lang3.exception.ExceptionUtils
 import org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters
-import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -82,43 +54,23 @@ import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.filter.CorsFilter
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_DEVELOPMENT
 import tech.jhipster.config.JHipsterConstants.SPRING_PROFILE_PRODUCTION
-import java.util.*
-import javax.crypto.Cipher
-import javax.crypto.SecretKey
-import javax.crypto.spec.SecretKeySpec
+import java.time.Clock
 
-/**
- * Jos relay state jää tyhjäksi, redirect strategialla allekirjoitettuihin SAML pyyntöihin
- * tulee ylimääräinen query parametri, joka sekoittaa allekirjoituksen tarkistuksen.
- * Kierretään lisäämällä oma vakio parametri jos pyynnössä ei ole mukana relay statea.
- * @see OpenSaml5AuthenticationRequestResolver
- */
-private const val DEFAULT_RELAY_STATE = "elsa"
-
-@Suppress("TooManyFunctions")
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 class SecurityConfiguration(
     private val corsFilter: CorsFilter,
     private val applicationProperties: ApplicationProperties,
-    private val userService: UserService,
-    private val opintooikeusService: OpintooikeusService,
-    private val opintotietodataFetchingServices: List<OpintotietodataFetchingService>,
-    private val opintotietodataPersistenceService: OpintotietodataPersistenceService,
-    private val opintosuorituksetFetchingService: List<OpintosuorituksetFetchingService>,
-    private val opintosuorituksetPersistenceService: OpintosuorituksetPersistenceService,
-    private val verificationTokenRepository: VerificationTokenRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val kayttajaRepository: KayttajaRepository,
     private val userRepository: UserRepository,
     private val kouluttajavaltuutusRepository: KouluttajavaltuutusRepository,
     private val env: Environment,
     private val applicationContext: ApplicationContext,
-    private val ioDispatcher: CoroutineDispatcher
+    private val kirjautumispalvelu: Kirjautumispalvelu,
+    private val clock: Clock
 ) {
-
-    private val log = LoggerFactory.getLogger(SecurityConfiguration::class.java)
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -162,7 +114,8 @@ class SecurityConfiguration(
                     opintooikeusRepository,
                     kayttajaRepository,
                     userRepository,
-                    kouluttajavaltuutusRepository
+                    kouluttajavaltuutusRepository,
+                    clock
                 ),
                 AuthorizationFilter::class.java
             )
@@ -302,7 +255,7 @@ class SecurityConfiguration(
             OpenSaml5AuthenticationRequestResolver(registrationResolver)
         authenticationRequestResolver.setRelayStateResolver {
             val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
-            attr.request.getParameter("RelayState") ?: DEFAULT_RELAY_STATE
+            attr.request.getParameter("RelayState") ?: KIRJAUTUMISEN_OLETUS_RELAY_STATE
         }
         authenticationRequestResolver.setAuthnRequestCustomizer { context: AuthnRequestContext ->
             val issuer = context.authnRequest.issuer.required()
@@ -341,7 +294,7 @@ class SecurityConfiguration(
     }
 
     // Legacy SAML principal compatibility; migrate with login, logout and impersonation.
-    @Suppress("CyclomaticComplexMethod", "DEPRECATION", "Deprecation")
+    @Suppress("DEPRECATION", "Deprecation")
     fun convertAuthentication(responseToken: OpenSaml5AuthenticationProvider.ResponseToken): Saml2Authentication {
         val token: Saml2Authentication =
             OpenSaml5AuthenticationProvider.ResponseAuthenticationConverter()
@@ -358,57 +311,9 @@ class SecurityConfiguration(
 
         addLogoutNameIdAttributes(principal, responseToken)
 
-        val decodedKey = Base64.getDecoder().decode(applicationProperties.getSecurity().encodedKey)
-        val originalKey: SecretKey = SecretKeySpec(decodedKey, 0, decodedKey.size, applicationProperties.getSecurity().secretKeyAlgorithm)
-
-        val cipher = Cipher.getInstance(applicationProperties.getSecurity().cipherAlgorithm)
-        val existingUser = findLoginUser(cipher, originalKey, hetu, eppn, firstName, lastName)
-
-        val kayttaja = kayttajaRepository.findOneByUserIdWithAuthorities(existingUser.id.required()).orElseThrow {
-            Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
-        }
-
-        if (kayttaja.tila == KayttajatilinTila.PASSIIVINEN) {
-            log.error("Kirjautuminen epäonnistui käyttäjälle $firstName $lastName. Käyttäjän tili on passivoitu")
-            throw Exception(LoginException.TILI_PASSIVOITU.name)
-        }
-
-        val accountUser = kayttaja.user.required()
-        if (hasVastuuhenkiloRole(accountUser) && kayttaja.tila == KayttajatilinTila.KUTSUTTU) {
-            kayttaja.tila = KayttajatilinTila.AKTIIVINEN
-            kayttajaRepository.save(kayttaja)
-        }
-        val kirjautuvanKayttajanRoolit = tarkistaKirjautuvanKayttajanRoolit(accountUser)
-        if (kirjautuvanKayttajanRoolit.isEmpty()) {
-            val error = if (opintooikeusRepository.findAllByErikoistuvaLaakariKayttajaUserId(accountUser.id.required()).isNotEmpty()) {
-                LoginException.EI_OPINTO_OIKEUTTA
-            } else {
-                LoginException.EI_KAYTTO_OIKEUTTA
-            }
-            log.warn("Kirjautuminen epäonnistui käyttäjälle {}: {}", accountUser.id, error.name)
-            throw Exception(error.name)
-        }
-
-        return Saml2Authentication(createPrincipal(kayttaja.user?.id, principal, registrationId), token.saml2Response,
-            kirjautuvanKayttajanRoolit.map { SimpleGrantedAuthority(it.name.required()) })
-    }
-
-    private fun tarkistaKirjautuvanKayttajanRoolit(user: User): Set<Authority> {
-        val henkilokunnanRoolit = user.authorities.filter { it.name in HENKILOKUNNAN_ROOLIT }.toSet()
-        val aktiivinenRooli = user.activeAuthority
-        return try {
-            // Opinto-oikeudet tarkistetaan jokaisella kirjautumisella riippumatta käyttäjän nykyisistä rooleista.
-            opintooikeusService.checkOpintooikeusAndRoles(user)
-            user.authorities.toSet()
-        } catch (ex: Exception) {
-            if (henkilokunnanRoolit.isEmpty()) throw ex
-            // Tarkistusvirheessä sallitaan vain henkilökunnan aiemmat roolit ilman User-olion yhdistämistä tietokantaan.
-            log.warn("Opinto-oikeuksien tarkistus epäonnistui käyttäjälle {}. Kirjautuminen vain henkilökunnan rooleilla.", user.id, ex)
-            if (aktiivinenRooli !in henkilokunnanRoolit) {
-                userService.updateRooli(henkilokunnanRoolit.first().name.required(), user.id.required())
-            }
-            henkilokunnanRoolit
-        }
+        val kirjautumistulos = kirjautumispalvelu.kirjaudu(hetu, eppn, firstName, lastName)
+        return Saml2Authentication(createPrincipal(kirjautumistulos.kayttaja.id, principal, registrationId), token.saml2Response,
+            kirjautumistulos.roolit.map { SimpleGrantedAuthority(it.name.required()) })
     }
 
     @Suppress("DEPRECATION", "Deprecation")
@@ -424,105 +329,6 @@ class SecurityConfiguration(
         principal.attributes["nameIDSPQualifier"] = mutableListOf(nameID?.spNameQualifier) as List<*>?
     }
 
-    private fun findLoginUser(
-        cipher: Cipher, originalKey: SecretKey, hetu: String?, eppn: String?, firstName: String, lastName: String
-    ): User {
-        val tokenUser = processInvitation(cipher, originalKey, hetu, eppn, firstName, lastName)
-
-        var existingUser = userService.findExistingUser(cipher, originalKey, hetu, eppn)
-
-        if (shouldFetchOpintotietodata(existingUser, tokenUser, hetu)) {
-            requireNotNull(hetu)
-
-            if (existingUser == null) {
-                fetchAndHandleOpintotietodataForFirstLogin(cipher, originalKey, hetu, firstName, lastName)
-                existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
-
-                // Lokaalissa ympäristössä luodaan uusi käyttäjä, jos sitä ei löydy.
-                if (existingUser == null && env.activeProfiles.contains(SPRING_PROFILE_DEVELOPMENT)) {
-                    opintotietodataPersistenceService.createWithoutOpintotietodataOnlyDevDoNotUseInProd(cipher, originalKey, hetu, firstName, lastName)
-                    existingUser = userService.findExistingUser(cipher, originalKey, hetu, null)
-                }
-
-                existingUser?.let { user -> fetchAndHandleOpintosuorituksetNonBlocking(user.id.required(), hetu) }
-            } else {
-                fetchAndUpdateOpintotietodataIfChanged(existingUser.id.required(), hetu, firstName, lastName)
-                fetchAndHandleOpintosuorituksetNonBlocking(existingUser.id.required(), hetu)
-
-                existingUser = userRepository.findByIdWithAuthorities(existingUser.id.required()).orElseThrow { EntityNotFoundException("Käyttäjää ei löydy") }
-            }
-        }
-
-        if (existingUser == null) {
-            log.warn("Kirjautuminen epäonnistui käyttäjälle $firstName $lastName (eppn $eppn). Käyttäjällä ei ole käyttöoikeutta.")
-            throw Exception(LoginException.EI_KAYTTO_OIKEUTTA.name)
-        } else {
-            // Tarkistetaan, että käyttäjän nimi on ajan tasalla
-            if ((firstName != "" && lastName != "") && (existingUser.firstName != firstName || existingUser.lastName != lastName)) {
-                existingUser.firstName = firstName
-                existingUser.lastName = lastName
-                userRepository.save(existingUser)
-            }
-        }
-        return existingUser
-    }
-
-    private fun processInvitation(
-        cipher: Cipher, originalKey: SecretKey, hetu: String?, eppn: String?, firstName: String, lastName: String
-    ): User? {
-        val attr = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
-        attr.request.getSession(false)?.removeAttribute(LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE)
-        val verificationToken = attr.request.getParameter("RelayState")
-        if (verificationToken == null || verificationToken == DEFAULT_RELAY_STATE) return null
-
-        val token = verificationTokenRepository.findById(verificationToken).orElse(null) ?: return null
-        val tokenUser = userRepository.findByIdWithAuthorities(token.user?.id.required()).get()
-        try {
-            userService.createOrUpdateUserWithToken(tokenUser, token, cipher, originalKey, hetu, eppn, firstName, lastName)
-        } catch (ex: Exception) {
-            if (ex.message == LoginException.VIRHEELLINEN_NIMI.name) {
-                attr.request.session.setAttribute(
-                    LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE,
-                    LoginNameMismatch(
-                        invitationName = listOfNotNull(tokenUser.firstName, tokenUser.lastName).joinToString(" "),
-                        authenticatedName = "$firstName $lastName"
-                    )
-                )
-            }
-            throw ex
-        }
-        return tokenUser
-    }
-
-    private fun shouldFetchOpintotietodata(
-        existingUser: User?,
-        tokenUser: User?,
-        hetu: String?
-    ): Boolean =
-        applicationProperties.getStudyDataIntegrations().enabled &&
-            (existingUser == null || !hasAnyRole(existingUser) ||
-            hasErikoistuvaLaakariRole(existingUser) || hasYekKoulutettavaRole(existingUser) ||
-            hasKouluttajaRole(existingUser)
-            )
-            && (tokenUser == null || !hasAnyRole(tokenUser) ||
-            hasErikoistuvaLaakariRole(tokenUser) || hasYekKoulutettavaRole(tokenUser)
-                ) && hetu != null
-
-    private fun hasErikoistuvaLaakariRole(user: User): Boolean =
-        user.authorities.contains(Authority(name = ERIKOISTUVA_LAAKARI))
-
-    private fun hasYekKoulutettavaRole(user: User): Boolean =
-        user.authorities.contains(Authority(name = YEK_KOULUTETTAVA))
-
-    private fun hasKouluttajaRole(user: User): Boolean =
-        user.authorities.contains(Authority(name = KOULUTTAJA))
-
-    private fun hasVastuuhenkiloRole(user: User): Boolean =
-        user.authorities.contains(Authority(name = VASTUUHENKILO))
-
-    private fun hasAnyRole(user: User): Boolean =
-        user.authorities.isNotEmpty()
-
     // Retain the legacy SAML principal until login, logout and impersonation migrate together.
     @Suppress("DEPRECATION", "Deprecation")
     internal fun createPrincipal(
@@ -532,110 +338,6 @@ class SecurityConfiguration(
         val newPrincipal = DefaultSaml2AuthenticatedPrincipal(name, principal.attributes.toMutableMap(), principal.sessionIndexes)
         newPrincipal.relyingPartyRegistrationId = registrationId
         return newPrincipal
-    }
-
-    private fun fetchAndHandleOpintotietodataForFirstLogin(
-        cipher: Cipher, originalKey: SecretKey, hetu: String, firstName: String, lastName: String
-    ) {
-        runBlocking {
-            try {
-                fetchOpintotietodata(hetu).let {
-                    opintotietodataPersistenceService.create(
-                        cipher,
-                        originalKey,
-                        hetu,
-                        firstName,
-                        lastName,
-                        it
-                    )
-                }
-            } catch (ex: Exception) {
-                if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
-                log.error("Virhe opintotietodatan haussa tai tallentamisessa: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
-            }
-        }
-    }
-
-    private fun fetchAndUpdateOpintotietodataIfChanged(
-        userId: String,
-        hetu: String,
-        firstName: String,
-        lastName: String
-    ) {
-        MDC.putCloseable(MDC_USER_ID_KEY, userId).use {
-            runBlocking {
-                try {
-                    fetchOpintotietodata(hetu).let {
-                        if (it.isNotEmpty()) {
-                            opintotietodataPersistenceService.createOrUpdateIfChanged(
-                                userId,
-                                firstName,
-                                lastName,
-                                it
-                            )
-                        } else {
-                            log.info("Kirjautuessa ladatut opintotiedot olivat tyhjät käyttäjälle: $userId")
-                        }
-                    }
-                } catch (ex: Exception) {
-                    if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw Exception(LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name)
-                    log.error("Virhe opintotietodatan haussa tai päivittämisessä käyttäjälle $userId: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}")
-                }
-            }
-        }
-    }
-
-    private suspend fun fetchOpintotietodata(hetu: String): List<OpintotietodataDTO> =
-        supervisorScope {
-            opintotietodataFetchingServices.map { service ->
-                async(ioDispatcher + MDCContext()) {
-                    fetchOpintotietodataForService(service, hetu)
-                }
-            }.awaitAll().filterNotNull()
-        }
-
-    private suspend fun fetchOpintotietodataForService(
-        service: OpintotietodataFetchingService,
-        hetu: String
-    ): OpintotietodataDTO? =
-        try {
-            if (service.shouldFetchOpintotietodata()) {
-                service.fetchOpintotietodata(hetu)
-            } else {
-                null
-            }
-        } catch (ex: CancellationException) {
-            throw ex  // never swallow coroutine cancellation
-        } catch (ex: Exception) {
-            if (ex.message == LoginException.OPINTO_OIKEUS_TULEVAISUUDESSA.name) throw ex
-            log.error(
-                "Virhe opintotietodatan haussa yliopistolle ${service.getYliopisto().name}: " +
-                    "${ex.message} ${ExceptionUtils.getStackTrace(ex)}"
-            )
-            null
-        }
-
-    private fun fetchAndHandleOpintosuorituksetNonBlocking(userId: String, hetu: String) {
-        val scope = CoroutineScope(
-            SupervisorJob() + ioDispatcher + MDCContext(mapOf(MDC_USER_ID_KEY to userId))
-        )
-        opintosuorituksetFetchingService.filter { it.shouldFetchOpintosuoritukset() }
-            .forEach { service ->
-                scope.launch {
-                    try {
-                        service.fetchOpintosuoritukset(hetu)?.let {
-                            opintosuorituksetPersistenceService.createOrUpdateIfChanged(userId, it)
-                        }
-                    } catch (ex: CancellationException) {
-                        throw ex
-                    } catch (ex: Exception) {
-                        log.error(
-                            "Virhe opintosuoritusten haussa yliopistolle ${service.getYliopisto().name} " +
-                                "käyttäjälle $userId: ${ex.message} ${ExceptionUtils.getStackTrace(ex)}"
-                        )
-                    }
-                }
-            }
     }
 
     internal fun createAssertionValidator(): Converter<OpenSaml5AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> {

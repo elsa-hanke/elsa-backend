@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
 import org.springframework.context.annotation.Primary
 import org.springframework.test.context.ActiveProfiles
+import java.time.Clock
 
 /**
  * External integration tests for Sisu TRE (REST/JSON with Azure AD OAuth2).
@@ -87,11 +88,15 @@ class SisuTreExternalIntegrationTests : FetchingServiceExternalIntegrationBase()
     AuthenticationTokenClientBuilderImpl::class,
     IntegrationAlertService::class,
     SisuTreAuthenticationTokenServiceImpl::class,
+    fi.elsapalvelu.elsa.security.AuthenticationTokenCache::class,
     SisuTreClientBuilderImpl::class,
     SisuTreOpintotietodataFetchingServiceImpl::class,
     SisuTreOpintosuorituksetFetchingServiceImpl::class
 )
 class SisuTreExternalIntegrationTestApplication {
+    @Bean
+    fun clock(): Clock = Clock.systemDefaultZone()
+
 
     @Bean
     fun jacksonCustomizer(): Jackson2ObjectMapperBuilderCustomizer =

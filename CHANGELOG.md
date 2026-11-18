@@ -1,7 +1,57 @@
 # Changelog
 
-## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...HEAD)
+## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.2...HEAD)
 
+- ELSAINSI-58: Lisätty tarkistus avatartiedoston kokorajoituksista [`#814`](https://github.com/elsa-hanke/elsa-backend/pull/814)(16 November 2026)
+- test: add Tampere archive e2e and retry failure coverage [`#825`](https://github.com/elsa-hanke/elsa-backend/pull/825)(15 November 2026)
+- Improve arkistointi slack alert message [`#824`](https://github.com/elsa-hanke/elsa-backend/pull/824)(14 November 2026)
+- arkistointi: add archive delivery logging for Siilo [`#823`](https://github.com/elsa-hanke/elsa-backend/pull/823)(13 November 2026)
+- ELSA-1279 Erikoistujan tili ei näy (#820) [`#821`](https://github.com/elsa-hanke/elsa-backend/pull/821)(12 November 2026)
+- Bump node-forge from 1.4.2 to 1.4.3 in /frontend [`#818`](https://github.com/elsa-hanke/elsa-backend/pull/818)(11 November 2026)
+- Dynasty client (TURKU integraatio) [`#811`](https://github.com/elsa-hanke/elsa-backend/pull/811)(9 November 2026)
+- Release/v2.5.x merge [`#817`](https://github.com/elsa-hanke/elsa-backend/pull/817)(4 November 2026)
+- Bump brace-expansion from 1.1.11 to 1.1.21 in /frontend [`#813`](https://github.com/elsa-hanke/elsa-backend/pull/813)(2 November 2026)
+- upgrade Cypress to version 16.2.1, spring boot 4.1.2, gradle 9.8.2 [`#812`](https://github.com/elsa-hanke/elsa-backend/pull/812)(2 November 2026)
+- Lisää teoriakoulutuksen nimi- ja paikkakenttiin pituusvalidointi ja selkeät virheilmoitukset (koulutuksenNimi, koulutuksenPaikka maxlength 255) [`#810`](https://github.com/elsa-hanke/elsa-backend/pull/810)(2 November 2026)
+- Bump node-forge from 1.4.0 to 1.4.2 in /frontend [`#809`](https://github.com/elsa-hanke/elsa-backend/pull/809)(2 November 2026)
+- Bump follow-redirects from 1.16.1 to 1.16.2 in /frontend [`#808`](https://github.com/elsa-hanke/elsa-backend/pull/808)(2 November 2026)
+-  Peppi opintosuoritusten ei-taulukkovastausten käsittely ja lokituksen parantaminen [`#806`](https://github.com/elsa-hanke/elsa-backend/pull/806)(2 November 2026)
+- Bump tinymce from 7.9.3 to 8.9.3 in /frontend [`#802`](https://github.com/elsa-hanke/elsa-backend/pull/802)(2 November 2026)
+- LAILLISTAMISTODISTUS -&gt; turku/uef dynasty arkistointi [`#805`](https://github.com/elsa-hanke/elsa-backend/pull/805)(2 November 2026)
+- Bump postcss-selector-parser from 6.0.8 to 6.1.5 in /frontend [`#804`](https://github.com/elsa-hanke/elsa-backend/pull/804)(30 October 2026)
+- Bump systeminformation from 5.31.17 to 5.33.19 in /e2e [`#803`](https://github.com/elsa-hanke/elsa-backend/pull/803)(30 October 2026)
+- Dynasty - Vaihe 3, task 3 — Helsingin Siilo-integraation liittäminen arkistointijonoon [`#800`](https://github.com/elsa-hanke/elsa-backend/pull/800)(30 October 2026)
+- Dynasty - Vaihe 3, task 4 — Tampereen Louhi-integraation liittäminen arkistointijonoon (PR2) [`#799`](https://github.com/elsa-hanke/elsa-backend/pull/799)(30 October 2026)
+- Bump fast-uri from 3.1.7 to 3.1.9 in /frontend [`#801`](https://github.com/elsa-hanke/elsa-backend/pull/801)(30 October 2026)
+- Dynasty - Vaihe 3, task 4 — Tampereen Louhi-integraation liittäminen arkistointijonoon (PR1) [`#798`](https://github.com/elsa-hanke/elsa-backend/pull/798)(30 October 2026)
+- Dynasty - Vaihe 2, task 4 — Koejakson asiakirjojen siirtäminen arkistointijonoon [`#795`](https://github.com/elsa-hanke/elsa-backend/pull/795)(29 October 2026)
+- Dynasty - Vaihe 2, task 3 — Ajastettu arkistointiprosessi ja automaattiset uudelleenyritykset [`#786`](https://github.com/elsa-hanke/elsa-backend/pull/786)(29 October 2026)
+- Dynasty - Vaihe 2, task 2 — Valmistumisen hyväksynnän siirtäminen arkistointijonoon [`#784`](https://github.com/elsa-hanke/elsa-backend/pull/784)(28 October 2026)
+- Yhdista kayttajatileja pääsyy UI virhe [`#797`](https://github.com/elsa-hanke/elsa-backend/pull/797)(26 October 2026)
+- Korjaa hyväksyntöjen transaktionaalisuus ja sähköposti-ilmoitusten ajoitus [`#796`](https://github.com/elsa-hanke/elsa-backend/pull/796)(26 October 2026)
+- Dynasty - Vaihe 2, task 1 — Arkistoitavien asiakirjojen muuttumaton tallennus [`#783`](https://github.com/elsa-hanke/elsa-backend/pull/783)(26 October 2026)
+- Dynasty - Vaihe 1 - Asynkronisen arkistoinnin tietomalli ja db-scheduler-integraatio [`#782`](https://github.com/elsa-hanke/elsa-backend/pull/782)(24 October 2026)
+- fix: make feedback recipient configurable via environment variable [`#779`](https://github.com/elsa-hanke/elsa-backend/pull/779)(15 October 2026)
+- ELSA-1251 Erikoistuvan tili ei avaudu [`#767`](https://github.com/elsa-hanke/elsa-backend/pull/767)(7 October 2026)
+- ELSA-1245 Osasuoritusten siirtyminen Pepistä ELSAan [`#764`](https://github.com/elsa-hanke/elsa-backend/pull/764)(7 October 2026)
+- cypress e2e testit erikoismerkit [`#763`](https://github.com/elsa-hanke/elsa-backend/pull/763)(7 October 2026)
+- fix: Tila ei ohjaa käyttöoikeutta, joten tuntematon tila ei saa estää päättymispäivän, katseluajan ja asetuksen synkronointia (#762) [`#762`](https://github.com/elsa-hanke/elsa-backend/pull/762)(6 October 2026)
+- Tiedoston lataamisen tarkistuksen parannukset  [`#761`](https://github.com/elsa-hanke/elsa-backend/pull/761)(6 October 2026)
+
+## [v2.5.2-1](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.1...v2.5.2-1) - 16 November 2026
+
+- ELSA-1279 Erikoistujan tili ei näy [`#820`](https://github.com/elsa-hanke/elsa-backend/pull/820)(12 November 2026)
+
+## [v2.5.1](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.0...v2.5.1) - 4 November 2026
+
+- arviointityokalut-paakayttaja.cy.ts cypress test [`#816`](https://github.com/elsa-hanke/elsa-backend/pull/816)(4 November 2026)
+- Korjaa valmistumispyynnön hyväksynnän virhe omistajattomilla arviointityökaluilla [`#815`](https://github.com/elsa-hanke/elsa-backend/pull/815)(3 November 2026)
+
+## [v2.5.0](https://github.com/elsa-hanke/elsa-backend/compare/v2.4.2...v2.5.0) - 23 October 2026
+
+- SisuOpintooikeudenTila: TERMINATED ja PASSIVATED [`#793`](https://github.com/elsa-hanke/elsa-backend/pull/793)(23 October 2026)
+- Bump launch-editor from 2.14.1 to 2.14.2 in /frontend [`#790`](https://github.com/elsa-hanke/elsa-backend/pull/790)(23 October 2026)
+- Bump dompurify from 3.4.16 to 3.4.17 in /frontend [`#791`](https://github.com/elsa-hanke/elsa-backend/pull/791)(23 October 2026)
 - ELSAINSI-85 Korjataan tallennetun XSS-hyökkäyksen mahdollistava HTML-sisällön käsittely [`#788`](https://github.com/elsa-hanke/elsa-backend/pull/788)(22 October 2026)
 - Bump follow-redirects from 1.16.0 to 1.16.1 in /frontend [`#787`](https://github.com/elsa-hanke/elsa-backend/pull/787)(22 October 2026)
 - Release v2.4.X merge [`#785`](https://github.com/elsa-hanke/elsa-backend/pull/785)(19 October 2026)

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.vastuuhenkilo
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
@@ -299,7 +300,8 @@ class KoejaksoHyvaksyntaArkistointiIT : ResourceIntegrationTestBase() {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(
             em,
             user = erikoistuvaUser,
-            yliopisto = yliopisto
+            yliopisto = yliopisto,
+            erikoisala = Testisuhteet.akuuttilaaketiede(em)
         )
         val opintooikeus = requireNotNull(erikoistuvaLaakari.getOpintooikeusKaytossa())
         val vastuuhenkilo = createVastuuhenkiloForKoejakso(

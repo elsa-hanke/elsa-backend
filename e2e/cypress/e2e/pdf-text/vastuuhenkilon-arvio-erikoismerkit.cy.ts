@@ -8,7 +8,7 @@ import {
   REVIEW_API,
   REVIEW_CONTACTS,
   RESPONSIBLE_CONTACTS,
-  createReview,
+  createKoejaksonVastuuhenkilonArvio,
   dismissPdfTextToast,
   expectPdfTextProblem,
   expectPdfTextStateUnchanged,
@@ -33,7 +33,7 @@ const editor = () =>
     .should('not.be.empty')
     .then((body: HTMLBodyElement) => cy.wrap(Cypress.$(body)))
 
-function openOfficer(id: number) {
+function openVirkailijanTarkistus(id: number) {
   cy.task<string | null>('tokens:get', 'virkailijaToken', { log: false }).then((token) => cy.loginAsVirkailija(token ?? undefined))
   cy.intercept('GET', `**${OFFICER_API}/${id}`).as('officerReview')
   cy.intercept('PUT', `**${OFFICER_API}`).as('saveOfficer')
@@ -61,23 +61,23 @@ function openResponsible(id: number) {
       })
       .then(({ status }) => expect(status).to.eq(200))
   })
-  return visitResponsible(id)
+  return visitVastuuhenkilonArvio(id)
 }
 
-function visitResponsible(id: number) {
+function visitVastuuhenkilonArvio(id: number) {
   cy.task<string | null>('tokens:get', 'vastuuhenkiloToken', { log: false }).then((token) => cy.loginAsVastuuhenkilo(token ?? undefined))
   cy.intercept('GET', `**${RESPONSIBLE_API}/${id}`).as('responsibleReview')
   cy.intercept('PUT', `**${RESPONSIBLE_API}`).as('saveResponsible')
   cy.visit(`/koejakso/vastuuhenkilon-arvio/${id}`)
   return cy.wait('@responsibleReview').then(({ response }) => {
     expect(response?.statusCode).to.eq(200)
-    expect(response?.body.arkistoitava, 'external archiving disabled in E2E').to.eq(false)
+    expect(response?.body.arkistoitava, 'async archiving enabled; E2E uses a test delivery adapter').to.eq(true)
     expect(response?.body.vastuuhenkilo?.sopimusHyvaksytty ?? false).to.eq(false)
     return response?.body
   })
 }
 
-function fillResponsible() {
+function fillVastuuhenkilonYhteystiedot() {
   group('Sähköpostiosoite')
     .find('input')
     .clear()
@@ -107,10 +107,13 @@ function checkNewPdf() {
         id: number
         nimi: string
         tyyppi: string
+        archive_snapshot: boolean
       }[]
       const created = current.filter((doc) => !previous.some((old) => old.id === doc.id))
-      expect(created).to.have.length(1)
-      expect(created[0].tyyppi).to.eq('application/pdf')
+      expect(created).to.have.length(2)
+      expect(created.filter((doc) => doc.archive_snapshot)).to.have.length(1)
+      expect(created.filter((doc) => !doc.archive_snapshot)).to.have.length(1)
+      created.forEach((doc) => expect(doc.tyyppi).to.eq('application/pdf'))
     })
   })
 }
@@ -160,7 +163,7 @@ describe('Koejakson loppuarvion PDF-erikoismerkit', () => {
       }).then(({ status, body }) => expectPdfTextProblem(status, body, field, SOURCE))
       expectPdfTextStateUnchanged()
     })
-    createReview().then((id) => {
+    createKoejaksonVastuuhenkilonArvio().then((id) => {
       cy.apiRequest({
         method: 'GET',
         url: '/api/erikoistuva-laakari/koejakso'
@@ -259,8 +262,8 @@ describe('Koejakson loppuarvion PDF-erikoismerkit', () => {
   })
 
   it('hylkää literal-, numero- ja HTML-entiteetit virkailijan yhteenvedossa myös palautuksessa', () => {
-    createReview().then((id) => {
-      openOfficer(id).then((original) => {
+    createKoejaksonVastuuhenkilonArvio().then((id) => {
+      openVirkailijanTarkistus(id).then((original) => {
         pdfTextState().as('beforePdfTextFailure', { type: 'static' })
         const summaries = [HEART, '&#x1F497;', '&#X1f497;', '&#128151;', '&check;']
         summaries.forEach((character) => {
@@ -335,8 +338,8 @@ describe('Koejakson loppuarvion PDF-erikoismerkit', () => {
   })
 
   it('näyttää editorin virheen, säilyttää tekstin ja mahdollistaa korjauksen sekä uuden lähetyksen', () => {
-    createReview().then((id) => {
-      openOfficer(id)
+    createKoejaksonVastuuhenkilonArvio().then((id) => {
+      openVirkailijanTarkistus(id)
       editor().type(`Hyvä lääkäri ${HEART}`)
       pdfTextState().as('beforePdfTextFailure', { type: 'static' })
       cy.get(main).contains('button', 'Hyväksy ja lähetä').click()
@@ -372,8 +375,8 @@ describe('Koejakson loppuarvion PDF-erikoismerkit', () => {
   })
 
   it('hylkää virheellisen palautussyyn ja sallii korjatun palautuksen käyttöliittymässä', () => {
-    createReview().then((id) => {
-      openOfficer(id)
+    createKoejaksonVastuuhenkilonArvio().then((id) => {
+      openVirkailijanTarkistus(id)
       pdfTextState().as('beforePdfTextFailure', { type: 'static' })
       cy.get(main).contains('button', 'Palauta muokattavaksi').click()
       cy.get('#return-to-sender').find('textarea').type(`Korjaa ${HEART}`)
@@ -396,7 +399,7 @@ describe('Koejakson loppuarvion PDF-erikoismerkit', () => {
   })
 
   it('tarkistaa vastuuhenkilön yhteystiedot, palautussyyn ja hylkäysperustelun muuttamatta aiempia kuittauksia', () => {
-    createReview().then((id) => {
+    createKoejaksonVastuuhenkilonArvio().then((id) => {
       openResponsible(id).then((original) => {
         pdfTextState().as('beforePdfTextFailure', { type: 'static' })
         const fields = [
@@ -425,7 +428,7 @@ describe('Koejakson loppuarvion PDF-erikoismerkit', () => {
           expectPdfTextStateUnchanged()
         })
       })
-      fillResponsible()
+      fillVastuuhenkilonYhteystiedot()
       group('Koejakso on').find('input[type="radio"][value="false"]').check({ force: true })
       group('Perustelu hylkäämiselle').find('textarea').type(`Lisää harjoittelua ${HEART}`)
       group('Hylätyn koejakson arviointi on käyty läpi koejakson suorittajan kanssa keskustellen')
@@ -469,13 +472,13 @@ describe('Koejakson loppuarvion PDF-erikoismerkit', () => {
       virkailijaEmail: VIRKAILIJA_EMAIL,
       text: legacySummary
     }).then((id) => {
-      visitResponsible(id).then((body) => {
+      visitVastuuhenkilonArvio(id).then((body) => {
         expect(body.virkailijanYhteenveto, 'backend must load the legacy entity').to.eq(
           legacySummary
         )
         expect(body.virkailija.sopimusHyvaksytty).to.eq(true)
       })
-      fillResponsible()
+      fillVastuuhenkilonYhteystiedot()
       group('Koejakso on').find('input[type="radio"][value="true"]').check({ force: true })
       pdfTextState().as('beforePdfTextFailure', { type: 'static' })
       confirmResponsible()
@@ -525,7 +528,7 @@ describe('Koejakson loppuarvion PDF-erikoismerkit', () => {
         expect(body.virkailijanYhteenveto).to.eq(GOOD_SUMMARY)
         expect(body.virkailija.sopimusHyvaksytty).to.eq(true)
       })
-      fillResponsible()
+      fillVastuuhenkilonYhteystiedot()
       group('Koejakso on').find('input[type="radio"][value="true"]').check({ force: true })
       confirmResponsible()
       cy.wait('@saveResponsible', { responseTimeout: 120000 }).then(({ response }) => {

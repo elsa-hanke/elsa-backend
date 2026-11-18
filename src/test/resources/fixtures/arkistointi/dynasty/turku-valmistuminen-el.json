@@ -1,0 +1,83 @@
+{
+  "tosClass": "05.06.02.04",
+  "task": "Hakeminen",
+  "caseRequest": {
+    "caseModel": {
+      "schemaid": "case-schema",
+      "title": "EL Valmistumisen yhteenveto Maija Meikäläinen 31.10.2026",
+      "AD": {
+        "UTUetunimi": "Maija",
+        "UTUsukunimi": "Meikäläinen",
+        "UTUtiedekunta": "Lääketieteellinen tiedekunta",
+        "UTUkoulutusohjelma": "Erikoislääkärikoulutus",
+        "UTUpaaaine": "Akuuttilääketiede",
+        "UTUsyntymaaika": "1980-01-01"
+      },
+      "publicityClassId": "J",
+      "publicityClassName": "Julkinen",
+      "manner": "M"
+    }
+  },
+  "documents": [
+    {
+      "title": "EL Valmistumisen yhteenveto Maija Meikäläinen 31.10.2026",
+      "schemaId": "document-schema",
+      "documentType": "Valmistumisen yhteenveto, EL, EHL tai YEK",
+      "retentionPeriodLength": 20,
+      "AD": {
+        "UTUetunimi": "Maija",
+        "UTUsukunimi": "Meikäläinen",
+        "UTUtiedekunta": "Lääketieteellinen tiedekunta",
+        "UTUkoulutusohjelma": "Erikoislääkärikoulutus",
+        "UTUpaaaine": "Akuuttilääketiede",
+        "UTUsyntymaaika": "1980-01-01",
+        "UTUalkamispaiva": "2020-01-01",
+        "UTUvalmistumispaiva": "2026-10-31",
+        "UTUtutkintoasetus": "Confirmed regulation",
+        "UTUlaillistamispaiva": "2019-01-01"
+      },
+      "publicityClassId": "J",
+      "publicityClassName": "Julkinen",
+      "retentionPeriodRule": "Asian lopullinen ratkaisu",
+      "personalData": "Sisältää henkilötietoja",
+      "state": 3
+    },
+    {
+      "title": "Valmistumisen yhteenvedon liitteet Maija Meikäläinen 31.10.2026",
+      "schemaId": "document-schema",
+      "documentType": "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK",
+      "retentionPeriodLength": 10,
+      "AD": {
+        "UTUetunimi": "Maija",
+        "UTUsukunimi": "Meikäläinen",
+        "UTUtiedekunta": "Lääketieteellinen tiedekunta",
+        "UTUkoulutusohjelma": "Erikoislääkärikoulutus",
+        "UTUpaaaine": "Akuuttilääketiede"
+      },
+      "publicityClassId": "J",
+      "publicityClassName": "Julkinen",
+      "retentionPeriodRule": "Asian lopullinen ratkaisu",
+      "personalData": "Sisältää henkilötietoja",
+      "state": 3
+    },
+    {
+      "title": "Laillistustodistus Maija Meikäläinen",
+      "schemaId": "document-schema",
+      "documentType": "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK",
+      "retentionPeriodLength": 10,
+      "AD": {
+        "UTUetunimi": "Maija",
+        "UTUsukunimi": "Meikäläinen",
+        "UTUtiedekunta": "Lääketieteellinen tiedekunta",
+        "UTUkoulutusohjelma": "Erikoislääkärikoulutus",
+        "UTUpaaaine": "Akuuttilääketiede",
+        "UTUlaillistamispaiva": "2019-01-01"
+      },
+      "publicityClassId": "J",
+      "publicityClassName": "Julkinen",
+      "retentionPeriodRule": "Asian lopullinen ratkaisu",
+      "personalData": "Sisältää henkilötietoja",
+      "state": 3
+    }
+  ]
+}

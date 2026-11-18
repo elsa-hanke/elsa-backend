@@ -6,10 +6,16 @@
           :id="uid"
           v-model="form.koulutuksenNimi"
           :state="validateState('koulutuksenNimi')"
+          :aria-describedby="`${uid}-feedback`"
+          @blur="touchField('koulutuksenNimi')"
           @input="$emit('skipRouteExitConfirm', false)"
         ></b-form-input>
         <b-form-invalid-feedback :id="`${uid}-feedback`">
-          {{ $t('pakollinen-tieto') }}
+          {{
+            koulutuksenNimiTooLong
+              ? $t('tieto-on-liian-pitka-enintaan-255-merkkia')
+              : $t('pakollinen-tieto')
+          }}
         </b-form-invalid-feedback>
       </template>
     </elsa-form-group>
@@ -19,10 +25,16 @@
           :id="uid"
           v-model="form.koulutuksenPaikka"
           :state="validateState('koulutuksenPaikka')"
+          :aria-describedby="`${uid}-feedback`"
+          @blur="touchField('koulutuksenPaikka')"
           @input="$emit('skipRouteExitConfirm', false)"
         ></b-form-input>
         <b-form-invalid-feedback :id="`${uid}-feedback`">
-          {{ $t('pakollinen-tieto') }}
+          {{
+            koulutuksenPaikkaTooLong
+              ? $t('tieto-on-liian-pitka-enintaan-255-merkkia')
+              : $t('pakollinen-tieto')
+          }}
         </b-form-invalid-feedback>
       </template>
     </elsa-form-group>
@@ -124,7 +136,7 @@
   import Component from 'vue-class-component'
   import { Mixins, Prop } from 'vue-property-decorator'
   import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
+  import { maxLength, required } from 'vuelidate/lib/validators'
 
   import AsiakirjatContent from '@/components/asiakirjat/asiakirjat-content.vue'
   import AsiakirjatUpload from '@/components/asiakirjat/asiakirjat-upload.vue'
@@ -147,10 +159,12 @@
     validations: {
       form: {
         koulutuksenNimi: {
-          required
+          required,
+          maxLength: maxLength(255)
         },
         koulutuksenPaikka: {
-          required
+          required,
+          maxLength: maxLength(255)
         }
       }
     }
@@ -208,6 +222,18 @@
     validateState(name: string) {
       const { $dirty, $error } = this.$v.form[name] as any
       return $dirty ? ($error ? false : null) : null
+    }
+
+    touchField(name: 'koulutuksenNimi' | 'koulutuksenPaikka') {
+      this.$v.form[name]?.$touch()
+    }
+
+    get koulutuksenNimiTooLong(): boolean {
+      return this.$v.form.koulutuksenNimi?.maxLength === false
+    }
+
+    get koulutuksenPaikkaTooLong(): boolean {
+      return this.$v.form.koulutuksenPaikka?.maxLength === false
     }
 
     onErikoistumiseenHyvaksyttavaTuntimaaraInput(value: string) {

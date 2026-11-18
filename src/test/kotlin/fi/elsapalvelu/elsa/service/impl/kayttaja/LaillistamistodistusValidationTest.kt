@@ -4,7 +4,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.AsiakirjaData
 import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
 import fi.elsapalvelu.elsa.repository.kayttaja.ErikoistuvaLaakariRepository
 import fi.elsapalvelu.elsa.service.PdfContentValidator
-import fi.elsapalvelu.elsa.service.PdfTestData
+import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -17,6 +17,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.*
 import org.springframework.http.MediaType
 import java.io.ByteArrayOutputStream
+import java.time.Clock
 import java.time.LocalDate
 import java.util.stream.Stream
 import kotlin.test.assertFailsWith
@@ -39,7 +40,8 @@ class LaillistamistodistusValidationTest {
         mailService = mock(),
         asetusRepository = mock(),
         opintoopasRepository = mock(),
-        fileValidationService = FileValidationServiceImpl(asiakirjaService, PdfContentValidator())
+        fileValidationService = FileValidationServiceImpl(asiakirjaService, PdfContentValidator()),
+        clock = Clock.systemDefaultZone()
     )
 
     @ParameterizedTest

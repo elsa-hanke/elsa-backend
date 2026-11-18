@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.sahke
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiMetadata
@@ -13,6 +14,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.TransferInformation
 import org.apache.commons.codec.digest.DigestUtils
 import org.springframework.stereotype.Component
+import java.time.Clock
 import java.time.LocalDate
 import java.util.ResourceBundle
 
@@ -23,8 +25,36 @@ data class SahkeMetadataRequest(
     val tarkastaja: String?,
     val tarkastusPaiva: LocalDate?,
     val hyvaksyja: String?,
-    val hyvaksymisPaiva: LocalDate?
+    val hyvaksymisPaiva: LocalDate?,
+    val savedPerson: SahkePerson? = null,
+    val created: LocalDate? = null
 )
+
+/** Scalars from the approval payload; no database reads are needed by asynchronous delivery. */
+data class SahkePerson(
+    val studyRightId: Long?,
+    val name: String?,
+    val firstName: String?,
+    val lastName: String?,
+    val birthDate: LocalDate?,
+    val specialty: String?,
+    val studentNumber: String?,
+    val university: YliopistoEnum?
+) {
+    override fun toString() = "SahkePerson(studyRightId=$studyRightId)"
+
+    companion object {
+        fun from(studyRight: Opintooikeus?): SahkePerson {
+            val trainee = studyRight?.erikoistuvaLaakari
+            val user = trainee?.kayttaja?.user
+            return SahkePerson(
+                studyRight?.id, user?.getName(), user?.firstName, user?.lastName,
+                trainee?.syntymaaika, studyRight?.erikoisala?.nimi,
+                studyRight?.opiskelijatunnus, studyRight?.yliopisto?.nimi
+            )
+        }
+    }
+}
 
 data class SahkeMetadataResult(
     val metadata: ArkistointiMetadata,
@@ -32,34 +62,34 @@ data class SahkeMetadataResult(
 )
 
 @Component
-class SahkeMetadataBuilder {
+class SahkeMetadataBuilder(private val clock: Clock) {
     fun build(
         request: SahkeMetadataRequest,
         configuration: ArkistointiConfiguration
     ): SahkeMetadataResult {
+        val luontipaiva = request.created ?: LocalDate.now(clock)
         val metadata = ArkistointiMetadata()
-        val opintooikeus = request.opintooikeus
-        val name = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
-        val syntymaaika = opintooikeus?.erikoistuvaLaakari?.syntymaaika
+        val person = request.savedPerson ?: SahkePerson.from(request.opintooikeus)
 
-        buildTransferInformation(metadata.transferInformation, configuration, opintooikeus?.id)
+        buildTransferInformation(metadata.transferInformation, configuration, person.studyRightId, luontipaiva)
         buildContactInformation(metadata.contactInformation, configuration)
-        buildCaseFile(metadata.caseFile, request.caseId, name, syntymaaika, configuration)
+        buildCaseFile(metadata.caseFile, request.caseId, person.name, person.birthDate, configuration, luontipaiva)
 
         val configuredAsiakirjat = request.asiakirjat.filter { recordProperties ->
             configuration.metadata.getDocumentMetadata(recordProperties.type, configuration.case) != null
         }
 
-        buildRecords(configuredAsiakirjat, metadata, configuration, request)
+        buildRecords(configuredAsiakirjat, metadata, configuration, request.copy(created = luontipaiva))
         return SahkeMetadataResult(metadata, configuredAsiakirjat)
     }
 
     private fun buildTransferInformation(
         transferInformation: TransferInformation,
         configuration: ArkistointiConfiguration,
-        opintooikeusId: Long?
+        opintooikeusId: Long?,
+        created: LocalDate
     ) {
-        val year = LocalDate.now().year
+        val year = created.year
         transferInformation.nativeId = "urn:oid:1.2.246.582.200.${opintooikeusId}$year.$year.0001"
         transferInformation.transferContractId = opintooikeusId?.toString()
         configuration.metadata.useType?.let { transferInformation.useType = it }
@@ -85,11 +115,12 @@ class SahkeMetadataBuilder {
         nativeId: String?,
         name: String?,
         syntymaaika: LocalDate?,
-        configuration: ArkistointiConfiguration
+        configuration: ArkistointiConfiguration,
+        created: LocalDate
     ) {
         val metadata = configuration.metadata
         val case = configuration.case
-        caseFile.created = LocalDate.now()
+        caseFile.created = created
         caseFile.nativeId = nativeId
         caseFile.title = case.title
         caseFile.type = case.type
@@ -102,7 +133,7 @@ class SahkeMetadataBuilder {
         caseFile.retentionPeriod = metadata.retentionPeriod
 
         val action = caseFile.action
-        action.created = LocalDate.now()
+        action.created = created
         action.title = case.title
         action.type = case.type
     }
@@ -113,8 +144,8 @@ class SahkeMetadataBuilder {
         configuration: ArkistointiConfiguration,
         request: SahkeMetadataRequest
     ) {
-        val opintooikeus = request.opintooikeus
-        val name = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
+        val person = request.savedPerson ?: SahkePerson.from(request.opintooikeus)
+        val name = person.name
         val resourceBundle = ResourceBundle.getBundle("i18n/messages")
 
         asiakirjat.forEach { recordProperties ->
@@ -123,11 +154,10 @@ class SahkeMetadataBuilder {
                 .required()
             val asiakirja = recordProperties.asiakirja
             val record = Record()
-            record.created = LocalDate.now()
+            record.created = request.created
             record.nativeId = asiakirja.id?.toString()
 
-            val user = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user
-            record.title = "${user?.lastName}, ${user?.firstName}, ${opintooikeus?.erikoisala?.nimi}"
+            record.title = "${person.lastName}, ${person.firstName}, ${person.specialty}"
             record.type = configuration.case.type
             record.retentionPeriod = documentMetadata.retentionPeriod
             record.function = metadata.caseFile.function
@@ -136,7 +166,7 @@ class SahkeMetadataBuilder {
             record.restriction.publicityClass = publicityClass.displayName
             record.restriction.securityReason = publicityClass.securityReason
             record.restriction.person.name = name
-            record.restriction.person.ssn = opintooikeus?.erikoistuvaLaakari?.syntymaaika
+            record.restriction.person.ssn = person.birthDate
             record.restriction.owner = configuration.metadata.organisation
 
             buildCustomMetadata(record, request, configuration, name, resourceBundle)
@@ -158,13 +188,13 @@ class SahkeMetadataBuilder {
         name: String?,
         resourceBundle: ResourceBundle
     ) {
-        val opintooikeus = request.opintooikeus
+        val person = request.savedPerson ?: SahkePerson.from(request.opintooikeus)
         val custom = record.custom
         custom.erikoistujanNimi = name
-        custom.erikoisala = opintooikeus?.erikoisala?.nimi
-        custom.opiskelijanumero = opintooikeus?.opiskelijatunnus
-        custom.syntymaaika = opintooikeus?.erikoistuvaLaakari?.syntymaaika
-        opintooikeus?.yliopisto?.nimi?.toString()?.let { custom.yliopisto = resourceBundle.getString(it) }
+        custom.erikoisala = person.specialty
+        custom.opiskelijanumero = person.studentNumber
+        custom.syntymaaika = person.birthDate
+        person.university?.toString()?.let { custom.yliopisto = resourceBundle.getString(it) }
         custom.tarkastaja = request.tarkastaja
         custom.tarkastuspaiva = request.tarkastusPaiva
         custom.hyvaksyja = request.hyvaksyja
@@ -175,6 +205,7 @@ class SahkeMetadataBuilder {
     private fun getPublicityClass(recordType: RecordType): PublicityClass = when (recordType) {
         RecordType.YHTEENVETO -> PublicityClass.PUBLIC
         RecordType.LIITE -> PublicityClass.PARTIALLY_RESTRICTED
+        RecordType.LAILLISTAMISTODISTUS -> PublicityClass.PARTIALLY_RESTRICTED
         RecordType.ARVIOINTI -> PublicityClass.PUBLIC
         RecordType.SOPIMUS -> PublicityClass.PUBLIC
     }

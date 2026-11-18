@@ -425,7 +425,7 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
         val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
         em.detach(tyoskentelyjakso)
-        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em, user)
+        val suoritusarviointi = SuoritusarviointiHelper.createEntity(em, user, tyoskentelyjakso = tyoskentelyjakso)
         suoritusarviointiRepository.saveAndFlush(suoritusarviointi)
 
         restTyoskentelyjaksoMockMvc.perform(delete("/api/yek-koulutettava/tyoskentelyjaksot/{id}", tyoskentelyjakso.id).accept(MediaType.APPLICATION_JSON)
@@ -556,7 +556,7 @@ class YekKoulutettavaTyoskentelyjaksoResourceIT {
 
         restTyoskentelyjaksoMockMvc.perform(get("/api/yek-koulutettava/tyoskentelyjakso-lomake"))
             .andExpect(status().isOk).andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478))).andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(62)))
+            .andExpect(jsonPath("$.kunnat").value(Matchers.hasSize<Any>(478))).andExpect(jsonPath("$.erikoisalat").value(Matchers.hasSize<Any>(61)))
     }
 
     @Test

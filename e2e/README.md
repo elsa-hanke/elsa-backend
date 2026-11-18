@@ -5,7 +5,9 @@ End-to-end tests for the Elsa backend, powered by [Cypress](https://www.cypress.
 ## Prerequisites
 
 - Node.js ≥ 20 (required by Cypress 15)
-- The application running on `http://localhost:9060`
+- Java and Node.js for the current checkout, Docker for the disposable PostgreSQL,
+  and the usual local authentication settings and secrets used by `just br`.
+- Install Cypress dependencies with `yarn install` in `e2e`.
 
 ## Setup
 
@@ -22,12 +24,41 @@ yarn install
 | `yarn cy:run` | Run all tests headlessly (CI mode) |
 | `yarn cy:run:headed` | Run all tests in a visible browser |
 
-From the project root you can also use:
+To reproduce a GHA failure using the current branch, run in the first terminal:
 
 ```bash
-just e2e        # headless run
-just e2e-open   # interactive runner
+just br-e2e
 ```
+
+This starts disposable PostgreSQL on `127.0.0.1:15434`, compiles and runs the current
+Spring Boot sources on port 8080, and serves the current frontend on port 9060.
+PostgreSQL reuses only the `db` service from `infra/docker-compose-cicd.yml`, under
+the separate Compose project `elsa-e2e-source`; application images are not started.
+The backend uses profiles `dev,e2e-archive` and `infra/application-e2e.yml`, including
+the same archive worker and test adapters as GHA. It does not download application
+images from ECR. Wait for backend and frontend startup, then use a second terminal:
+
+```bash
+just e2e        # open Cypress; select the failed spec
+just e2e-open   # alias
+just e2e-run    # optional headless Chrome run
+```
+
+The Cypress commands explicitly select `http://localhost:9060` and the same
+PostgreSQL database on port 15434. No edits to `cypress.config.ts` are needed;
+inherited `CYPRESS_DB_*` settings are overridden. These commands assume `br-e2e`
+is already running. Ordinary `just br` remains the development workflow without
+the E2E archive profile. Stop an existing backend/frontend before `br-e2e`; it
+reports occupied ports instead of killing them. Ctrl-C stops its application
+processes. `just stop-db-e2e` stops the disposable source-test database.
+
+For image-specific reproduction, `just e2e-images` starts the same Compose file as
+GHA and opens Cypress against frontend port 18080 and database port 15433. It uses
+project `elsa-e2e-local`, separate from source-test project `elsa-e2e-source`.
+Select images with `BACKEND_IMAGE_TAG` and `FRONTEND_IMAGE_TAG` (defaults:
+`feature-latest`). This optional mode requires ECR access (`just pullt`) and the
+Compose authentication secrets; `just down-e2e` stops it. GHA itself continues to
+use its selected images and existing ports.
 
 ## Suomi.fi logout regression
 
@@ -87,6 +118,65 @@ before another run; in-memory restoration state is lost on process termination.
 The existing shard discovery includes the new specs automatically; no explicit
 spec list or additional GHA job is required.
 
+## Approval → completed archive job
+
+The existing approval UI specs verify asynchronous processing for Helsinki
+training contracts, positive and negative trial-period decisions, and EL/EHL
+graduation. The YEK graduation fixture uses UEF. After the real Approve response,
+`assertArchiveProcessed` polls the exact operation business key until one committed
+job reaches `LAHETETTY` and its `arkistointi-job` scheduler row has been removed.
+It checks a completion timestamp and the test-adapter receipt
+`e2e:<university>:<job UUID>`, approval metadata, document order, nonempty snapshots,
+SHA-256 and source/snapshot equality.
+
+The Compose stack mounts `infra/application-e2e.yml` and runs with profiles
+`dev,e2e-archive` plus `application.e2e.archive-stub-enabled=true`. The real
+worker, processor and snapshot loader run; test adapters replace external delivery,
+so no external archive system is contacted. The test profile without the explicit
+flag, or combined with `prod`/`replica`, prevents application startup.
+HKI graduation archives its configured summary only; the UEF YEK fixture explicitly
+configures summary, attachments and licensing certificate. No separate archive specs, JAR, CI phase or
+per-spec stack restart is needed.
+
+For a backend started from source, use `just br-e2e` as described above. A normal
+`dev` backend has archiving disabled by default: approval can return `200` and
+`HYVAKSYTTY` without creating an archive job. The graduation happy path checks
+`arkistoitava=true` before approving and reports this configuration error immediately.
+
+The test configuration also registers a Tampere adapter, but registration alone
+does not provide Tampere Cypress coverage: the UI scenarios above use Helsinki
+and UEF. Real transport and ZIP/XML compatibility are covered separately by
+`HelsinkiAsyncApprovalIT` (HTTP) and `TampereAsyncApprovalIT` (SFTP).
+
+The shared cleanup removes only archive data belonging to the selected fixture's
+study rights before deleting the parent records. Its own connection and transaction
+use `SET LOCAL session_replication_role = replica` to bypass immutable triggers in
+the disposable test DB. Scheduler rows, document links, jobs, snapshots and snapshot
+bytes are deleted explicitly because FK checks and cascades are disabled too.
+COMMIT/ROLLBACK restores the setting before ordinary cleanup continues. Production
+migrations and protections remain unchanged. Specs run serially within each shard's
+DB, with one ordinary stack per shard.
+
+Archive cleanup requires the Cypress database role to be allowed to `SET
+session_replication_role`. An ordinary application role or database ownership
+alone does not necessarily provide that permission. The disposable PostgreSQL
+16 Compose service creates its `POSTGRES_USER` as a superuser; a separately
+managed test database may instead use a dedicated test role explicitly granted
+`SET` privilege on this parameter, in addition to the table permissions needed
+for cleanup. This privilege is powerful because it bypasses database protections.
+Use it only in the disposable test database, never on a production application
+role. Do not change production triggers or migrations to make test cleanup work.
+
+For local runs, verify `CYPRESS_DB_HOST`, `CYPRESS_DB_PORT`, `CYPRESS_DB_NAME`,
+`CYPRESS_DB_USER` and `CYPRESS_DB_PASSWORD` target the disposable Compose database.
+If PostgreSQL rejects the `SET LOCAL` operation with insufficient privilege,
+cleanup rolls back before deleting archive records and reports a specific E2E
+permission error. Other database failures retain their original error.
+
+EHL is a variant of the ordinary graduation spec. Its SQL fixture selects a dental
+specialty and clones the active study guide. Hibernate caches are disabled in the
+external E2E configuration because the fixture changes the study right after login.
+
 ## Parallel GitHub Actions runs
 
 `.github/workflows/e2e.yml` runs three shards on separate runners. Each shard
@@ -99,7 +189,17 @@ each file to exactly one shard. It balances estimated execution time; the number
 of files per shard may differ. `scripts/spec-durations.json` contains
 per-spec durations in seconds from the supplied GHA execution log (55 specs,
 108 tests). Update those estimates when execution times change substantially.
-New specs automatically receive the mean recorded duration until measured.
+The three `valmistumispyynto/tarkistus-ja-hyvaksynta-*-ui.cy.ts` specs use initial
+planning estimates (EL/EHL: 120 seconds each, YEK: 150 seconds), not measured
+results. Replace these with per-spec durations from the next GHA run. Other new
+specs automatically receive the mean recorded duration until measured.
+
+The graduation UI suite registers four independent tests per degree: clerk review,
+approval including archive/PDF/trainee checks, and recovery after network/HTTP 500
+failures. Earlier request submission is prepared through the real multipart API;
+its UI remains covered in the request-submission specs. Retry tests verify the
+persisted approval without repeating PDF downloads and archive-content checks.
+Shared workflow helpers are not discovered as specs.
 
 To inspect a shard without running tests:
 

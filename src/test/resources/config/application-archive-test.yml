@@ -1,0 +1,34 @@
+# Shared archive defaults for tests. Individual tests can explicitly enable async flows.
+application:
+  arkistointi:
+    tre:
+      metadata:
+        cases:
+          valmistuminen:
+            async-enabled: false
+          koejakso:
+            async-enabled: false
+    hki:
+      metadata:
+        cases:
+          valmistuminen:
+            async-enabled: false
+          koejakso:
+            async-enabled: false
+          sopimus:
+            async-enabled: false
+    turku:
+      kaytossa: false
+      metadata:
+        cases:
+          valmistuminen:
+            async-enabled: false
+          koejakso:
+            async-enabled: false
+    uef:
+      metadata:
+        cases:
+          valmistuminen:
+            async-enabled: false
+          koejakso:
+            async-enabled: false

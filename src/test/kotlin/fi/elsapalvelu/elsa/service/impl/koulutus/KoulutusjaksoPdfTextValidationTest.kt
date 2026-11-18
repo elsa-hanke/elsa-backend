@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.impl.koulutus
 
 import fi.elsapalvelu.elsa.repository.koulutus.KoulutusjaksoRepository
-import fi.elsapalvelu.elsa.service.PdfTextTestSupport
+import fi.elsapalvelu.elsa.service.pdf.PdfTextTestSupport
 import fi.elsapalvelu.elsa.service.arviointi.ArvioitavaKokonaisuusService
 import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutusjaksoDTO
 import fi.elsapalvelu.elsa.service.koulutus.KoulutussuunnitelmaService

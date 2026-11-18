@@ -1,5 +1,8 @@
 package fi.elsapalvelu.elsa.config
 
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiRetryProperties
+import fi.elsapalvelu.elsa.config.arkistointi.LouhiTransferProperties
+import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -12,6 +15,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  */
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
 class ApplicationProperties {
+    private val e2e = E2e()
     private val csrf = Csrf()
     private val security = Security()
     private val feedback = Feedback()
@@ -20,6 +24,13 @@ class ApplicationProperties {
     private val alert = Alert()
     private val scheduling = Scheduling()
     private val studyDataIntegrations = StudyDataIntegrations()
+
+    fun getE2e(): E2e = e2e
+
+    /** Explicit opt-in for disposable E2E delivery stubs; disabled by default. */
+    class E2e {
+        var archiveStubEnabled: Boolean = false
+    }
 
     fun getCsrf(): Csrf {
         return csrf
@@ -168,6 +179,8 @@ class ApplicationProperties {
 
     class Arkistointi {
 
+        val retry = ArkistointiRetryProperties()
+
         private val oulu = Oulu()
         private val hki = Hki()
         private val tre = Tre()
@@ -203,6 +216,9 @@ class ApplicationProperties {
             var kaytossa: Boolean = false
             var host: String? = null
             var apiKey: String? = null
+            // Restricted to literal loopback addresses; opt-in for local HTTP test receivers only.
+            var asyncAllowLoopbackHttpForTests: Boolean = false
+            var asyncTransferTimeout: java.time.Duration = java.time.Duration.ofMinutes(2)
             var metadata: Metadata? = null
         }
 
@@ -213,9 +229,11 @@ class ApplicationProperties {
             var user: String? = null
             var privateKeyLocation: String? = null
             var metadata: Metadata? = null
+            val transfer = LouhiTransferProperties()
         }
 
         class Turku {
+            val dynasty = DynastyProperties()
             var kaytossa: Boolean = false
             var metadata: Metadata? = null
         }
@@ -251,6 +269,8 @@ class ApplicationProperties {
         }
 
         class Case {
+            // Enable only after the asynchronous processor and university adapter are deployed.
+            var asyncEnabled: Boolean = false
             var title: String? = null
             var type: String? = null
             var siiloKoodi: String? = null

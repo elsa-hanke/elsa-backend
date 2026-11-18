@@ -10,8 +10,8 @@ import fi.elsapalvelu.elsa.domain.seuranta.*
 import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDateTime
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import jakarta.persistence.EntityManager
 
 object AsiakirjaHelper {
@@ -31,7 +31,9 @@ object AsiakirjaHelper {
         em: EntityManager,
         user: User? = null,
         tyoskentelyjakso: Tyoskentelyjakso? = null,
-        teoriakoulutus: Teoriakoulutus? = null
+        teoriakoulutus: Teoriakoulutus? = null,
+        opintooikeus: Opintooikeus = tyoskentelyjakso?.opintooikeus ?: teoriakoulutus?.opintooikeus
+            ?: Testisuhteet.opintooikeus(em, user)
     ): Asiakirja {
         val asiakirja = Asiakirja(
             nimi = ASIAKIRJA_PDF_NIMI,
@@ -44,16 +46,7 @@ object AsiakirjaHelper {
             )
         )
 
-        val erikoistuvaLaakari =
-            em.findAll(ErikoistuvaLaakari::class)
-                .firstOrNull { it.kayttaja?.user == user }
-                ?: ErikoistuvaLaakariHelper.createEntity(em, user).also {
-                    em.persist(it)
-                    em.flush()
-                }
-
-        asiakirja.opintooikeus =
-            erikoistuvaLaakari.getOpintooikeusKaytossa()
+        asiakirja.opintooikeus = opintooikeus
 
         return asiakirja
     }

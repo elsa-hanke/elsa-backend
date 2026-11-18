@@ -15,6 +15,7 @@ import { accountMergeSearchTasks } from './account-merge-search'
 import { pdfTextTasks } from './pdf-text'
 import { pdfTasks } from './pdf'
 import { richTextTasks } from './rich-text'
+import { asyncArchiveTasks } from './async-archive'
 export { dbClient } from './db-client'
 
 export function registerDbTasks(on: Cypress.PluginEvents): void {
@@ -35,6 +36,7 @@ export function registerDbTasks(on: Cypress.PluginEvents): void {
     ...accountMergeSearchTasks,
     ...pdfTextTasks,
     ...pdfTasks,
-    ...richTextTasks
+    ...richTextTasks,
+    ...asyncArchiveTasks
   })
 }

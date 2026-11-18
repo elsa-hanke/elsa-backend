@@ -569,7 +569,10 @@
         }
       } catch (err) {
         const axiosError = err as AxiosError<ElsaError>
-        const message = this.formatValmistumispyyntoError(axiosError?.response?.data)
+        const message = this.formatValmistumispyyntoError(
+          axiosError?.response?.data,
+          axiosError?.response?.status
+        )
         toastFail(
           this,
           message

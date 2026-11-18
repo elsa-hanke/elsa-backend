@@ -6,9 +6,12 @@ import org.hibernate.envers.RevisionListener
 import org.springframework.security.core.AuthenticatedPrincipal
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
+import org.springframework.stereotype.Component
+import java.time.Clock
 import java.time.LocalDateTime
 
-class AuditRevisionListener : RevisionListener {
+@Component
+class AuditRevisionListener(private val clock: Clock) : RevisionListener {
 
     override fun newRevision(revisionEntity: Any?) {
         val audit = revisionEntity as AuditRevisionEntity
@@ -21,6 +24,8 @@ class AuditRevisionListener : RevisionListener {
             } else {
                 SYSTEM_ACCOUNT
             }
-        audit.modifiedDate = LocalDateTime.now()
+        val muokkaushetki = clock.instant()
+        audit.modifiedDate = LocalDateTime.ofInstant(muokkaushetki, clock.zone)
+        audit.timestamp = muokkaushetki.toEpochMilli()
     }
 }

@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.arviointi
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.arviointi.SuoritusarvioinninArviointityokalunVastaus
 import fi.elsapalvelu.elsa.domain.arviointi.Suoritusarviointi
@@ -32,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.ObjectUtils
 import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.*
 
 @Service
@@ -50,7 +50,8 @@ class SuoritusarviointiServiceImpl(
     private val asiakirjaMapper: AsiakirjaMapper,
     private val arviointityokaluKysymysRepository: ArviointityokaluKysymysRepository,
     private val arviointityokaluKysymysVaihtoehtoRepository: ArviointityokaluKysymysVaihtoehtoRepository,
-    private val pdfTextFieldValidator: PdfTextFieldValidator
+    private val pdfTextFieldValidator: PdfTextFieldValidator,
+    private val clock: Clock
 ) : SuoritusarviointiService {
 
     override fun save(suoritusarviointiDTO: SuoritusarviointiDTO): SuoritusarviointiDTO {
@@ -129,7 +130,7 @@ class SuoritusarviointiServiceImpl(
                 suoritusarviointiDTO.itsearviointiVaativuustaso
             suoritusarviointi.sanallinenItsearviointi =
                 suoritusarviointiDTO.sanallinenItsearviointi
-            suoritusarviointi.itsearviointiAika = LocalDate.now(ZoneId.systemDefault())
+            suoritusarviointi.itsearviointiAika = LocalDate.now(clock)
             suoritusarviointiDTO.arvioitavatKokonaisuudet?.forEach {
                 val arvioitavaKokonaisuus =
                     suoritusarviointi.arvioitavatKokonaisuudet.first { k -> k.id == it.id }
@@ -211,33 +212,37 @@ class SuoritusarviointiServiceImpl(
 
         mapAsiakirjat(suoritusarviointi, newAsiakirjat, deletedAsiakirjaIds, false)
 
+        val isNewArviointi = suoritusarviointi.arviointiAika == null
         suoritusarviointi.keskenerainen = suoritusarviointiDTO.keskenerainen
-        suoritusarviointi.arviointiAika = if (!suoritusarviointiDTO.keskenerainen) LocalDate.now(ZoneId.systemDefault()) else null
+        suoritusarviointi.arviointiAika = if (!suoritusarviointiDTO.keskenerainen) LocalDate.now(clock) else null
 
         val result = suoritusarviointiRepository.save(suoritusarviointi)
 
         if (!suoritusarviointi.keskenerainen) {
-            val isNewArviointi = suoritusarviointi.arviointiAika == null
-            val templateName = if (isNewArviointi) {
-                "arviointiAnnettuEmail"
-            } else {
-                "arviointiaMuokattuEmail"
-            }
-            val titleKey = if (isNewArviointi) {
-                "email.arviointiannettu.title"
-            } else {
-                "email.arviointiamuokattu.title"
-            }
-
-            mailService.sendEmailFromTemplate(
-                kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required())
-                    .get().user.required(),
-                templateName = templateName,
-                titleKey = titleKey,
-                properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id.required().toString()))
-            )
+            sendAssessmentNotification(suoritusarviointi, isNewArviointi)
         }
         return result
+    }
+
+    private fun sendAssessmentNotification(suoritusarviointi: Suoritusarviointi, isNewArviointi: Boolean) {
+        val templateName = if (isNewArviointi) {
+            "arviointiAnnettuEmail"
+        } else {
+            "arviointiaMuokattuEmail"
+        }
+        val titleKey = if (isNewArviointi) {
+            "email.arviointiannettu.title"
+        } else {
+            "email.arviointiamuokattu.title"
+        }
+
+        mailService.sendEmailFromTemplate(
+            kayttajaRepository.findById(suoritusarviointi.tyoskentelyjakso?.opintooikeus?.erikoistuvaLaakari?.kayttaja?.id.required())
+                .get().user.required(),
+            templateName = templateName,
+            titleKey = titleKey,
+            properties = mapOf(Pair(MailProperty.ID, suoritusarviointi.id.required().toString()))
+        )
     }
 
     private fun validatePdfText(
@@ -392,7 +397,7 @@ class SuoritusarviointiServiceImpl(
         newAsiakirjat.let {
             val asiakirjaEntities = it.map { asiakirjaDTO ->
                 asiakirjaMapper.toEntity(asiakirjaDTO).apply {
-                    this.lisattypvm = LocalDateTime.now()
+                    this.lisattypvm = LocalDateTime.now(clock)
                     this.opintooikeus = suoritusarviointi.tyoskentelyjakso?.opintooikeus
                     if (itsearviointi) {
                         this.itsearviointi = suoritusarviointi

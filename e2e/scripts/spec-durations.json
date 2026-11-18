@@ -53,5 +53,8 @@
   "valmistumispyynto-yek/valmistumispyynto-yek.cy.ts": 14,
   "valmistumispyynto/osaamisen-arviointi.cy.ts": 35,
   "valmistumispyynto/palautus-korjattavaksi.cy.ts": 20,
+  "valmistumispyynto/tarkistus-ja-hyvaksynta-ehl-ui.cy.ts": 120,
+  "valmistumispyynto/tarkistus-ja-hyvaksynta-el-ui.cy.ts": 120,
+  "valmistumispyynto/tarkistus-ja-hyvaksynta-yek-ui.cy.ts": 150,
   "valmistumispyynto/valmistumispyynto.cy.ts": 28
 }

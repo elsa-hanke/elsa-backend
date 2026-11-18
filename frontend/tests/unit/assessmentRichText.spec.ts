@@ -3,8 +3,8 @@ import { BootstrapVue } from 'bootstrap-vue'
 import Vuelidate from 'vuelidate'
 
 import RichTextContent from '@/components/rich-text-content/rich-text-content.vue'
-import ReviewerForm from '@/forms/arviointityokalut-arvioija-form.vue'
-import AssessmentList from '@/views/arvioitavat-kokonaisuudet/arvioitavat-kokonaisuudet-lista.vue'
+import ArviointityokalutArvioijaForm from '@/forms/arviointityokalut-arvioija-form.vue'
+import ArvioitavatKokonaisuudetLista from '@/views/arvioitavat-kokonaisuudet/arvioitavat-kokonaisuudet-lista.vue'
 
 const localVue = createLocalVue()
 localVue.use(BootstrapVue)
@@ -14,7 +14,7 @@ const sv = '<h2>Svenska</h2><a href="javascript:alert(1)">link</a><svg onload=al
 const mocks = { $t: (key: string) => key }
 
 it('renders historical assessment descriptions safely in both languages', async () => {
-  const wrapper = mount(AssessmentList, {
+  const wrapper = mount(ArvioitavatKokonaisuudetLista, {
     localVue,
     mocks,
     propsData: {
@@ -33,7 +33,7 @@ it('renders historical assessment descriptions safely in both languages', async 
 })
 
 it('renders historical assessment-tool instructions safely for the reviewer', () => {
-  const wrapper = mount(ReviewerForm, {
+  const wrapper = mount(ArviointityokalutArvioijaForm, {
     localVue,
     mocks,
     propsData: {

@@ -3,20 +3,32 @@ package fi.elsapalvelu.elsa.repository.kayttaja
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 @Repository
 interface AsiakirjaRepository : JpaRepository<Asiakirja, Long> {
 
+    @EntityGraph(attributePaths = ["asiakirjaData"])
+    @Query("select a from Asiakirja a where a.id = :id")
+    fun findOneWithDataById(id: Long): Asiakirja?
+
+    // Scalar query reads the persisted flag, even if a managed entity's non-updatable flag was changed in memory.
+    @Query("select a.archiveSnapshot from Asiakirja a where a.id = :id")
+    fun findArchiveSnapshotFlagById(id: Long): Boolean?
+
     @Query(
         """
         select a from Asiakirja a join a.opintooikeus o
         where o.id in :opintooikeusId and a.arviointi.id is null and a.itsearviointi.id is null
+          and a.archiveSnapshot = false
         """
     )
     fun findAllByOpintooikeusId(opintooikeusId: Long): List<Asiakirja>
 
+    @Query("select a from Asiakirja a where a.opintooikeus.id = :opintooikeusId and a.archiveSnapshot = false " +
+        "and ((:tyoskentelyJaksoId is null and a.tyoskentelyjakso is null) or a.tyoskentelyjakso.id = :tyoskentelyJaksoId)")
     fun findAllByOpintooikeusIdAndTyoskentelyjaksoId(
         opintooikeusId: Long,
         tyoskentelyJaksoId: Long?

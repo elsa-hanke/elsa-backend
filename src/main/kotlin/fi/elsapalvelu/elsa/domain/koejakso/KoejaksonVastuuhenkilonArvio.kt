@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.domain.koejakso
 
+import fi.elsapalvelu.elsa.domain.Muokkauspaivallinen
+import fi.elsapalvelu.elsa.domain.MuokkauspaivanKuuntelija
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import jakarta.persistence.*
@@ -9,11 +11,11 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
-import java.time.ZoneId
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
 @Entity
+@EntityListeners(MuokkauspaivanKuuntelija::class)
 @Audited
 @Table(name = "koejakson_vastuuhenkilon_arvio")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -29,7 +31,8 @@ data class KoejaksonVastuuhenkilonArvio(
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var opintooikeus: Opintooikeus? = null,
 
-    @ManyToOne(optional = false)
+    // Assigned on final approval; pending assessments have no approver yet.
+    @ManyToOne
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     var vastuuhenkilo: Kayttaja? = null,
 
@@ -50,7 +53,7 @@ data class KoejaksonVastuuhenkilonArvio(
 
     @NotNull
     @Column(name = "muokkauspaiva", nullable = false)
-    var muokkauspaiva: LocalDate? = null,
+    override var muokkauspaiva: LocalDate? = null,
 
     @Column(name = "erikoistuvan_kuittausaika", nullable = false)
     var erikoistuvanKuittausaika: LocalDate? = null,
@@ -84,17 +87,7 @@ data class KoejaksonVastuuhenkilonArvio(
     )
     var asiakirjat: MutableSet<Asiakirja> = mutableSetOf()
 
-) : Serializable {
-
-    @PrePersist
-    fun onCreate() {
-        muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
-    }
-
-    @PreUpdate
-    fun onUpdate() {
-        muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
-    }
+) : Serializable, Muokkauspaivallinen {
 
     override fun hashCode() = 31
 

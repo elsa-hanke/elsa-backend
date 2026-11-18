@@ -28,6 +28,8 @@ env:
     APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_PHONE: /dev/codebuild/arkistointi/tre/contact/phone
     APPLICATION_ARKISTOINTI_TRE_METADATA_CONTACT_EMAIL: /dev/codebuild/arkistointi/tre/contact/email
     APPLICATION_ARKISTOINTI_HKI_API_KEY: /dev/application/siilo/apikey
+    APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_ID: /dev/application/dynasty/turku/clientid
+    APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_SECRET: /dev/application/dynasty/turku/clientsecret
 phases:
   install:
     runtime-versions:

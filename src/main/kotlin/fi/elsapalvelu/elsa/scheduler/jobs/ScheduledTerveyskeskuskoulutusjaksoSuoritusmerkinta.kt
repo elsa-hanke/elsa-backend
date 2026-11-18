@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.scheduler.jobs
 
+import java.time.Clock
 import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.repository.kayttaja.KayttajaRepository
@@ -29,7 +30,8 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
     private val mailService: MailService,
     private val kayttajaRepository: KayttajaRepository,
     private val opintooikeusRepository: OpintooikeusRepository,
-    private val opintosuoritusService: OpintosuoritusService
+    private val opintosuoritusService: OpintosuoritusService,
+    private val clock: Clock
 ) : AbstractTriggerableJob() {
 
     override val jobName = "terveyskeskuskoulutusjaksoSuoritusmerkinta"
@@ -46,7 +48,7 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
 
     override fun runJob() {
         log.info("TerveyskeskuskoulutusjaksoSuoritusmerkinta käynnistetty")
-        val timestamp = LocalDateTime.now()
+        val aloitusaika = LocalDateTime.now(clock)
         runBlocking {
             try {
                 val opintooikeudet = opintooikeusService.findAllByTerveyskoulutusjaksoSuorittamatta()
@@ -84,7 +86,7 @@ class ScheduledTerveyskeskuskoulutusjaksoSuoritusmerkinta(
         }
         log.info(
             "TerveyskeskuskoulutusjaksoSuoritusmerkinta valmis ${
-                Duration.between(timestamp, LocalDateTime.now()).toSeconds()
+                Duration.between(aloitusaika, LocalDateTime.now(clock)).toSeconds()
             } sekunnissa"
         )
     }

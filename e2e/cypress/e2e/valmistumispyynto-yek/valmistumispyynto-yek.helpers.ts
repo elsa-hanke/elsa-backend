@@ -29,7 +29,7 @@ const yekOpintooikeus: OpintoOikeus = {
   id: 0,
 }
 
-export function setupYekGraduationRequest() {
+export function setupYekValmistumispyynto() {
   cy.resetErikoistuvaE2eState()
   cy.seedKoejaksoSupportUsers({
     cleanupSupportUsers: true,
@@ -62,7 +62,7 @@ export function setupYekGraduationRequest() {
   selectYekRole()
 }
 
-export function openYekGraduationRequest() {
+export function openYekValmistumispyynto() {
   cy.intercept('GET', '**/yek-koulutettava/valmistumispyynto').as(
     'getYekValmistumispyynto'
   )
@@ -111,7 +111,7 @@ export function fillLicensingInformation() {
     .selectFile('cypress/fixtures/test.pdf', { force: true })
 }
 
-export function submitGraduationRequest(method: 'POST' | 'PUT', alias: string) {
+export function submitValmistumispyynto(method: 'POST' | 'PUT', alias: string) {
   cy.intercept(method, '**/yek-koulutettava/valmistumispyynto').as(alias)
   cy.contains('button', 'Lähetä valmistumispyyntö').click()
   cy.get('#confirm-send').find('button').contains('Lähetä valmistumispyyntö').click()

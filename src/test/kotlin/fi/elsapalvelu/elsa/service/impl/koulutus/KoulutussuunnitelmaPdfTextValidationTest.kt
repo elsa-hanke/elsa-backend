@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.koulutus
 
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.koulutus.KoulutussuunnitelmaRepository
-import fi.elsapalvelu.elsa.service.PdfTextTestSupport
+import fi.elsapalvelu.elsa.service.pdf.PdfTextTestSupport
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.dto.koulutus.KoulutussuunnitelmaDTO
 import fi.elsapalvelu.elsa.service.mapper.koulutus.KoulutussuunnitelmaMapper
@@ -11,13 +11,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.*
+import java.time.Clock
 import kotlin.test.assertFailsWith
 
 class KoulutussuunnitelmaPdfTextValidationTest {
     private val repository = mock<KoulutussuunnitelmaRepository>()
     private val mapper = mock<KoulutussuunnitelmaMapper>()
     private val opintooikeusRepository = mock<OpintooikeusRepository>()
-    private val service = KoulutussuunnitelmaServiceImpl(repository, mapper, opintooikeusRepository, PdfTextTestSupport.fieldValidator())
+    private val service = KoulutussuunnitelmaServiceImpl(repository, mapper, opintooikeusRepository, PdfTextTestSupport.fieldValidator(), Clock.systemDefaultZone())
 
     @ParameterizedTest
     @ValueSource(strings = [

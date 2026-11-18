@@ -1,0 +1,419 @@
+package fi.elsapalvelu.elsa.service.arkistointi.job.processing
+
+import com.github.kagkarlsson.scheduler.exceptions.ExecutionException
+import com.github.kagkarlsson.scheduler.task.ExecutionComplete
+import com.github.kagkarlsson.scheduler.task.ExecutionOperations
+import com.github.kagkarlsson.scheduler.task.helper.OneTimeTask
+import com.github.kagkarlsson.scheduler.task.helper.Tasks
+import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
+import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiError
+import fi.elsapalvelu.elsa.service.arkistointi.job.ArkistointiSafeLogCapture
+import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaErrorCategory
+import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaException
+import fi.elsapalvelu.elsa.service.arkistointi.support.ArchiveRetryTestSupport
+import java.time.Duration
+import java.time.Instant
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.awaitility.Awaitility.await
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
+import org.springframework.dao.DataAccessResourceFailureException
+
+/** Fault injection and SQL writes are confined to the disposable PostgreSQL test database. */
+class ArkistointiSchedulerRecoveryIT : ArkistointiJobProcessingItBase() {
+
+    @AfterEach
+    fun unblockCompletion() = dropFailingTrigger(COMPLETION_BLOCKER, "scheduled_tasks")
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `failed scheduler removal recovers without changing a committed terminal result`(permanent: Boolean) {
+        val jobId = fixture()
+        if (permanent) {
+            adapter.behavior = {
+                ArkistointiResult.PermanentFailure(ArkistointiError.create("REJECTED", "Aineisto hylattiin"))
+            }
+        }
+        blockCompletion()
+        val first = scheduler()
+        val terminal = if (permanent) ArkistointiJobStatus.VAATII_TOIMENPITEITA else ArkistointiJobStatus.LAHETETTY
+        runUntil(first) {
+            assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(terminal)
+            assertThat(schedulerState(jobId)["picked"]).isEqualTo(true)
+            assertThat(first.currentlyExecuting).isEmpty()
+        }
+        val committed = jobState(jobId)
+        val stored = jobs.findById(jobId).orElseThrow()
+        assertThat(stored.externalId).isEqualTo(if (permanent) null else "external-id")
+        assertThat(stored.errorCode).isEqualTo(if (permanent) "REJECTED" else null)
+        if (permanent) assertThat(stored.completedAt).isNull() else assertThat(stored.completedAt).isNotNull()
+        assertThat(taskCount(jobId)).isEqualTo(1)
+        assertThat(adapter.submissions).hasSize(1)
+        first.stop()
+        unblockCompletion()
+        simulateCrash(jobId, processingStarted = false)
+        val recovery = scheduler()
+        runUntil(recovery) { if (permanent) assertParked(jobId) else assertThat(taskCount(jobId)).isZero() }
+        assertThat(jobState(jobId)).isEqualTo(committed)
+        assertThat(adapter.submissions).hasSize(1)
+        verify(loader, times(1)).load(any())
+    }
+
+    @Test
+    fun `two recovery handlers can commit the same version but only one reschedules it`() {
+        val jobId = fixture()
+        simulateCrash(jobId, processingStarted = false)
+        val original = schedulerState(jobId)
+        val gate = RescheduleGate()
+        val recoveryTask = gate.task(task, failureHandler)
+        val first = scheduler(recoveryTask)
+        scheduler(recoveryTask)
+        try {
+            assertThat(gate.bothPrepared.await(10, TimeUnit.SECONDS)).isTrue()
+            assertThat(gate.versions).hasSize(2).containsOnly((original["version"] as Number).toLong())
+            assertThat(schedulerState(jobId)).isEqualTo(original)
+            assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
+            gate.releaseSecond.countDown()
+            assertThat(gate.secondFinished.await(10, TimeUnit.SECONDS)).isTrue()
+            assertThat(gate.secondError.get()).isNull()
+            val rescheduled = schedulerState(jobId)
+            assertThat(rescheduled["picked"]).isEqualTo(false)
+            assertThat((rescheduled["version"] as Number).toLong()).isEqualTo((original["version"] as Number).toLong() + 1)
+            assertThat((rescheduled["consecutive_failures"] as Number).toInt()).isEqualTo(1)
+            val committed = jobState(jobId)
+            gate.releaseFirst.countDown()
+            assertThat(gate.firstFinished.await(10, TimeUnit.SECONDS)).isTrue()
+            assertThat(gate.firstError.get()).isInstanceOf(ExecutionException::class.java)
+            assertThat(schedulerState(jobId)).isEqualTo(rescheduled)
+            assertThat(jobState(jobId)).isEqualTo(committed)
+        } finally {
+            gate.releaseFirst.countDown()
+            gate.releaseSecond.countDown()
+        }
+        runUntil(first) { assertThat(taskCount(jobId)).isZero() }
+        assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+        assertThat(adapter.submissions).hasSize(1)
+        verify(loader, times(1)).load(any())
+    }
+
+    @ParameterizedTest
+    @CsvSource("false,SUCCESS", "true,SUCCESS", "true,RETRYABLE", "true,PERMANENT", "true,EXCEPTION")
+    fun `lost heartbeat parks live execution and late result cannot resume delivery`(insideAdapter: Boolean, lateResult: String) {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        if (insideAdapter) {
+            adapter.behavior = {
+                entered.countDown()
+                check(release.await(30, TimeUnit.SECONDS))
+                when (lateResult) {
+                    "SUCCESS" -> ArkistointiResult.Success("late-id")
+                    "RETRYABLE" -> ArkistointiResult.RetryableFailure(ArkistointiError.create("LATE_RETRY", "Viivastynyt"))
+                    "PERMANENT" -> ArkistointiResult.PermanentFailure(ArkistointiError.create("LATE_REJECTED", "Hylatty"))
+                    else -> error("private late failure")
+                }
+            }
+        } else {
+            doAnswer { invocation ->
+                entered.countDown()
+                check(release.await(30, TimeUnit.SECONDS))
+                invocation.callRealMethod()
+            }.`when`(loader).load(any())
+        }
+        val jobId = fixture()
+        // First worker stays alive but sends no further heartbeats during this test.
+        val first = scheduler(heartbeat = Duration.ofHours(1))
+        try {
+            first.triggerCheckForDueExecutions()
+            assertThat(entered.await(10, TimeUnit.SECONDS)).isTrue()
+            val recovery = scheduler()
+            runUntil(recovery) { assertParked(jobId) }
+            val parked = jobState(jobId)
+            assertThat(jobs.findById(jobId).orElseThrow().errorCode).isEqualTo("ARCHIVE_EXECUTION_LOST")
+            assertThat(first.currentlyExecuting).isNotEmpty()
+            await().during(Duration.ofMillis(500)).atMost(Duration.ofSeconds(3)).untilAsserted {
+                recovery.triggerCheckForDueExecutions()
+                assertThat(adapter.submissions).hasSize(if (insideAdapter) 1 else 0)
+            }
+            release.countDown()
+            await().atMost(Duration.ofSeconds(10)).until { first.currentlyExecuting.isEmpty() }
+            runUntil(recovery) { assertParked(jobId) }
+            assertThat(jobState(jobId)).isEqualTo(parked)
+            assertThat(adapter.submissions).hasSize(if (insideAdapter) 1 else 0)
+            assertThat(jobs.findById(jobId).orElseThrow().externalId).isNull()
+        } finally { release.countDown() }
+    }
+
+    @Test
+    fun `independent operations with identical payloads deliver distinct persisted UUIDs`() {
+        val firstId = fixture()
+        val secondId = fixture()
+        val scheduler = scheduler()
+
+        runUntil(scheduler) {
+            assertThat(taskCount(firstId)).isZero()
+            assertThat(taskCount(secondId)).isZero()
+        }
+
+        assertThat(adapter.submissions.map { it.key }).containsExactlyInAnyOrder(firstId, secondId)
+        assertThat(adapter.submissions.map { it.jobId }).containsExactlyInAnyOrder(firstId, secondId)
+        assertThat(adapter.submissions.map { it.payload }.distinct()).hasSize(1)
+        assertThat(jobs.findById(firstId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+        assertThat(jobs.findById(secondId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+    }
+
+    @Test
+    fun `two scheduler instances do not deliver the same active task concurrently`() {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        adapter.behavior = {
+            entered.countDown()
+            check(release.await(10, TimeUnit.SECONDS))
+            ArkistointiResult.Success(null)
+        }
+        val jobId = fixture()
+        val first = scheduler()
+        val second = scheduler()
+        try {
+            first.triggerCheckForDueExecutions()
+            second.triggerCheckForDueExecutions()
+            assertThat(entered.await(10, TimeUnit.SECONDS)).isTrue()
+            await().during(Duration.ofMillis(500)).atMost(Duration.ofSeconds(3)).untilAsserted {
+                second.triggerCheckForDueExecutions()
+                assertThat(adapter.submissions).hasSize(1)
+            }
+        } finally {
+            release.countDown()
+        }
+        runUntil(first) { assertThat(taskCount(jobId)).isZero() }
+        assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+        assertThat(adapter.submissions).hasSize(1)
+        assertThat(adapter.submissions.single().key).isEqualTo(jobId)
+    }
+
+    @ParameterizedTest
+    @CsvSource("DOCUMENT,true", "DATABASE,true", "DOCUMENT,false", "DATABASE,false")
+    fun `document processing and database failures retry safely and respect the scheduler limit`(kind: String, recover: Boolean) {
+        val jobId = fixture()
+        val attempts = AtomicInteger()
+        val secret = "private-background-filename-and-document-contents"
+        doAnswer { invocation ->
+            val attempt = attempts.incrementAndGet()
+            if (recover && attempt > 1) invocation.callRealMethod() else {
+                if (kind == "DATABASE") throw DataAccessResourceFailureException(secret, IllegalStateException(secret))
+                throw ArkistointiAsiakirjaException(ArkistointiError.create("ARCHIVE_DOCUMENT_PROCESSING_FAILED", secret),
+                    ArkistointiAsiakirjaErrorCategory.PROCESSING_FAILURE).also { it.addSuppressed(IllegalStateException(secret)) }
+            }
+        }.`when`(loader).load(any())
+        ArkistointiSafeLogCapture().use { logs ->
+            val worker = scheduler()
+            runUntil(worker) {
+                assertThat(jdbc.queryForObject("select consecutive_failures from scheduled_tasks where task_instance = ?",
+                    Int::class.javaObjectType, jobId.toString())).isEqualTo(1)
+            }
+            val waiting = jobs.findById(jobId).orElseThrow()
+            assertThat(waiting.status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
+            assertThat(waiting.lastError).doesNotContain(secret)
+            assertThat(adapter.submissions).isEmpty()
+            runUntil(worker) { if (recover) assertThat(taskCount(jobId)).isZero() else assertParked(jobId) }
+            val result = jobs.findById(jobId).orElseThrow()
+            if (recover) {
+                assertThat(result.status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+                assertThat(result.errorCode).isNull()
+                assertThat(result.lastError).isNull()
+                assertThat(adapter.submissions.map { it.key }).containsExactly(jobId)
+                assertThat(attempts.get()).isEqualTo(2)
+            } else {
+                assertThat(result.status).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
+                assertThat(result.errorCode).isEqualTo("ARCHIVE_RETRIES_EXHAUSTED")
+                assertThat(result.lastError).doesNotContain(secret)
+                assertThat(adapter.submissions).isEmpty()
+                assertThat(attempts.get()).isEqualTo(3)
+            }
+            logs.assertDoesNotContain(secret)
+        }
+    }
+
+    @Test
+    fun `SQL retry preserves delivery and fences the old execution`() {
+        val jobId = fixture()
+        adapter.behavior = { ArkistointiResult.PermanentFailure(ArkistointiError.create("REJECTED", "Hylatty")) }
+        val worker = scheduler()
+        runUntil(worker) { assertParked(jobId) }
+        worker.stop()
+        val parkedVersion = (schedulerState(jobId)["version"] as Number).toLong()
+        val old = ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, jobId.toString(), parkedVersion - 1)
+        ArchiveRetryTestSupport.retry(jdbc, transactions, jobId)
+        val restartedSchedule = schedulerState(jobId)
+        assertThat((restartedSchedule["version"] as Number).toLong()).isGreaterThan(parkedVersion)
+        assertThatThrownBy { ArchiveRetryTestSupport.retry(jdbc, transactions, jobId) }
+            .rootCause().hasMessageContaining("scheduler task is not parked")
+        assertThat(schedulerState(jobId)).isEqualTo(restartedSchedule)
+        assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.ODOTTAA)
+        assertThat(schedulerState(jobId)["consecutive_failures"]).isEqualTo(0)
+        org.junit.jupiter.api.assertThrows<StaleArkistointiExecutionException> {
+            state.fail(old, ArkistointiError.create("OLD", "Vanha"), true)
+        }
+        adapter.behavior = { ArkistointiResult.Success("recovered") }
+        val resumed = scheduler()
+        runUntil(resumed) { assertThat(taskCount(jobId)).isZero() }
+        assertThat(adapter.submissions.map { it.key }).containsExactly(jobId, jobId)
+        assertThat(adapter.submissions.map { it.payload }.distinct()).hasSize(1)
+        assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `live processor parks when recovery committed intervention before updating schedule`(insideAdapter: Boolean) {
+        val entered = CountDownLatch(1)
+        val releaseProcessor = CountDownLatch(1)
+        val recoveryCommitted = CountDownLatch(1)
+        val releaseRecovery = CountDownLatch(1)
+        val captured = AtomicReference<com.github.kagkarlsson.scheduler.task.Execution>()
+        val capturingTask = capturingTask(captured)
+        delayProcessor(insideAdapter, entered, releaseProcessor)
+        val jobId = fixture()
+        val worker = scheduler(capturingTask)
+        val executor = java.util.concurrent.Executors.newSingleThreadExecutor()
+        try {
+            worker.triggerCheckForDueExecutions()
+            assertThat(entered.await(10, TimeUnit.SECONDS)).isTrue()
+            val execution = captured.get()
+            val operations = mock<ExecutionOperations<Unit>>()
+            // Hold the real recovery handler precisely after its state commit, before its scheduler API call.
+            doAnswer {
+                recoveryCommitted.countDown()
+                check(releaseRecovery.await(10, TimeUnit.SECONDS))
+                null
+            }.whenever(operations).reschedule(any<ExecutionComplete>(), any<Instant>())
+            val recovery = executor.submit {
+                val now = Instant.now()
+                failureHandler.onFailure(ExecutionComplete.failure(execution, now, now,
+                    ArkistointiProcessingException(ArkistointiError.create("RECOVERY_STOP", "Keskeytetty"), false)), operations)
+            }
+            assertThat(recoveryCommitted.await(10, TimeUnit.SECONDS)).isTrue()
+            assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.VAATII_TOIMENPITEITA)
+            assertThat(schedulerState(jobId)["picked"]).isEqualTo(true)
+            releaseProcessor.countDown()
+            runUntil(worker) { assertParked(jobId) }
+            assertThat(adapter.submissions).hasSize(if (insideAdapter) 1 else 0)
+            releaseRecovery.countDown()
+            recovery.get(10, TimeUnit.SECONDS)
+            worker.stop()
+            ArchiveRetryTestSupport.retry(jdbc, transactions, jobId)
+            adapter.behavior = { ArkistointiResult.Success("recovered") }
+            val resumed = scheduler()
+            runUntil(resumed) { assertThat(taskCount(jobId)).isZero() }
+            assertThat(jobs.findById(jobId).orElseThrow().status).isEqualTo(ArkistointiJobStatus.LAHETETTY)
+            assertThat(adapter.submissions.map { it.key }).containsOnly(jobId)
+        } finally {
+            releaseProcessor.countDown()
+            releaseRecovery.countDown()
+            executor.shutdownNow()
+        }
+    }
+
+    private fun delayProcessor(insideAdapter: Boolean, entered: CountDownLatch, releaseProcessor: CountDownLatch) {
+        if (insideAdapter) {
+            adapter.behavior = {
+                entered.countDown()
+                check(releaseProcessor.await(10, TimeUnit.SECONDS))
+                ArkistointiResult.Success("late-success")
+            }
+        } else {
+            doAnswer { invocation ->
+                entered.countDown()
+                check(releaseProcessor.await(10, TimeUnit.SECONDS))
+                invocation.callRealMethod()
+            }.`when`(loader).load(any())
+        }
+    }
+
+    private fun capturingTask(captured: AtomicReference<com.github.kagkarlsson.scheduler.task.Execution>): OneTimeTask<Unit> =
+        object : OneTimeTask<Unit>(ARKISTOINTI_JOB_TASK.taskName, Unit::class.java, failureHandler, task.deadExecutionHandler) {
+            override fun executeOnce(instance: com.github.kagkarlsson.scheduler.task.TaskInstance<Unit>,
+                context: com.github.kagkarlsson.scheduler.task.ExecutionContext) = task.executeOnce(instance, context)
+
+            override fun execute(instance: com.github.kagkarlsson.scheduler.task.TaskInstance<Unit>,
+                context: com.github.kagkarlsson.scheduler.task.ExecutionContext): com.github.kagkarlsson.scheduler.task.CompletionHandler<Unit> {
+                captured.set(context.execution)
+                return task.execute(instance, context)
+            }
+        }
+
+    private fun blockCompletion() = transactions.executeWithoutResult {
+        jdbc.execute("""
+            CREATE FUNCTION $COMPLETION_BLOCKER() RETURNS trigger LANGUAGE plpgsql AS ${'$'}${'$'}
+            BEGIN
+                IF TG_OP = 'DELETE' THEN RAISE EXCEPTION 'Test scheduler removal failure'; END IF;
+                IF OLD.picked AND NOT NEW.picked THEN RAISE EXCEPTION 'Test scheduler parking failure'; END IF;
+                RETURN NEW;
+            END; ${'$'}${'$'}
+        """.trimIndent())
+        jdbc.execute("CREATE TRIGGER $COMPLETION_BLOCKER BEFORE DELETE OR UPDATE ON scheduled_tasks " +
+            "FOR EACH ROW EXECUTE FUNCTION $COMPLETION_BLOCKER()")
+    }
+
+    private class RescheduleGate {
+        val bothPrepared = CountDownLatch(2)
+        val releaseFirst = CountDownLatch(1)
+        val releaseSecond = CountDownLatch(1)
+        val firstFinished = CountDownLatch(1)
+        val secondFinished = CountDownLatch(1)
+        val firstError = AtomicReference<Throwable>()
+        val secondError = AtomicReference<Throwable>()
+        val versions = CopyOnWriteArrayList<Long>()
+        private val firstPrepared = CountDownLatch(1)
+        private val invocations = AtomicInteger()
+
+        fun task(delegate: OneTimeTask<Unit>, handler: ArkistointiJobFailureHandler): OneTimeTask<Unit> =
+            Tasks.oneTime(ARKISTOINTI_JOB_TASK).onFailure(handler)
+                .onDeadExecution { completed, operations ->
+                    val index = invocations.getAndIncrement()
+                    check(index < 2) { "Unexpected extra recovery before the gated handlers finished" }
+                    versions.add(completed.execution.version)
+                    try {
+                        if (index == 1) check(firstPrepared.await(10, TimeUnit.SECONDS))
+                        handler.onDeadExecution(completed, gatedOperations(operations, index))
+                    } catch (exception: Throwable) {
+                        (if (index == 0) firstError else secondError).set(exception)
+                    } finally {
+                        (if (index == 0) firstFinished else secondFinished).countDown()
+                    }
+                }
+                .execute { instance, context -> delegate.executeOnce(instance, context) }
+
+        private fun gatedOperations(operations: ExecutionOperations<Unit>, index: Int): ExecutionOperations<Unit> {
+            // Spy only inserts a latch at the API boundary. callRealMethod uses the actual scheduler repository.
+            val gated = spy(operations)
+            doAnswer { invocation ->
+                if (index == 0) firstPrepared.countDown()
+                bothPrepared.countDown()
+                check((if (index == 0) releaseFirst else releaseSecond).await(10, TimeUnit.SECONDS))
+                invocation.callRealMethod()
+            }.whenever(gated).reschedule(any<ExecutionComplete>(), any<Instant>())
+            return gated
+        }
+    }
+
+    private companion object {
+        const val COMPLETION_BLOCKER = "fail_archive_remove"
+    }
+}

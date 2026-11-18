@@ -28,7 +28,7 @@ open class AbstractAuditingEntity(
     @CreatedDate
     @Column(name = "created_date", updatable = false)
     @JsonIgnore
-    var createdDate: Instant? = Instant.now(),
+    var createdDate: Instant? = null,
 
     @LastModifiedBy
     @Column(name = "last_modified_by", length = 50)
@@ -38,7 +38,7 @@ open class AbstractAuditingEntity(
     @LastModifiedDate
     @Column(name = "last_modified_date")
     @JsonIgnore
-    var lastModifiedDate: Instant? = Instant.now()
+    var lastModifiedDate: Instant? = null
 
 ) : Serializable {
 

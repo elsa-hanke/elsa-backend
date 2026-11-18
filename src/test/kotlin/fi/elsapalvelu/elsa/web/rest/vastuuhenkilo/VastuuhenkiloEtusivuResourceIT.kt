@@ -148,18 +148,20 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
         kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
         vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, erikoisala = erikoisala1, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(
+            em, erikoisala = erikoisala1, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5), yliopisto = yliopisto1
+        )
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
-        tyoskentelyjaksoRepository.saveAndFlush(TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user))
+        val tyoskentelyjakso = tyoskentelyjaksoRepository.saveAndFlush(TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user))
 
         val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala1)
         arvioitavanKokonaisuudenKategoriaRepository.save(arvioitavanKokonaisuudenKategoria)
 
-        val arvioitavaKokonaisuus1 = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvioitavanKokonaisuudenKategoria)
+        val arvioitavaKokonaisuus1 = ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = arvioitavanKokonaisuudenKategoria)
         arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus1)
 
-        val arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = arvioitavanKokonaisuudenKategoria)
+        val arvioitavaKokonaisuus2 = ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = arvioitavanKokonaisuudenKategoria)
         arvioitavaKokonaisuusRepository.save(arvioitavaKokonaisuus2)
 
         arvioitavanKokonaisuudenKategoria.arvioitavatKokonaisuudet.add(arvioitavaKokonaisuus1)
@@ -167,14 +169,14 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
 
         // Vain korkein arvosana lasketaan
         suoritusarviointiRepository.save(SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 2,
-                arvioitavaKokonaisuus = arvioitavaKokonaisuus1))
+                arvioitavaKokonaisuus = arvioitavaKokonaisuus1, tyoskentelyjakso = tyoskentelyjakso))
         suoritusarviointiRepository.save(SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 4,
-                arvioitavaKokonaisuus = arvioitavaKokonaisuus1))
+                arvioitavaKokonaisuus = arvioitavaKokonaisuus1, tyoskentelyjakso = tyoskentelyjakso))
 
         suoritusarviointiRepository.save(SuoritusarviointiHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user, arviointiasteikonTaso = 3,
-                arvioitavaKokonaisuus = arvioitavaKokonaisuus2))
+                arvioitavaKokonaisuus = arvioitavaKokonaisuus2, tyoskentelyjakso = tyoskentelyjakso))
 
-        suoritemerkintaRepository.save(SuoritemerkintaHelper.createEntity(em))
+        suoritemerkintaRepository.save(SuoritemerkintaHelper.createEntity(em, tyoskentelyjakso = tyoskentelyjakso))
         seurantajaksoRepository.save(SeurantajaksoHelper.createEntity(erikoistuvaLaakari, vastuuhenkilo))
 
         val seurantajakso = SeurantajaksoHelper.createEntity(erikoistuvaLaakari, vastuuhenkilo)
@@ -225,7 +227,8 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
         val erikoistuvaLaakari =
             ErikoistuvaLaakariHelper.createEntity(
                 em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5),
+                yliopisto = yliopisto1, erikoisala = erikoisala1
             )
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
@@ -268,7 +271,8 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
         val erikoistuvaLaakari =
             ErikoistuvaLaakariHelper.createEntity(
                 em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5),
+                yliopisto = yliopisto1, erikoisala = erikoisala1
             )
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
@@ -309,14 +313,16 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
         val erikoistuvaLaakari =
             ErikoistuvaLaakariHelper.createEntity(
                 em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5),
+                yliopisto = yliopisto1, erikoisala = erikoisala1
             )
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
         erikoistuvaLaakariRepository.save(
             ErikoistuvaLaakariHelper.createEntity(
                 em,
-                opintooikeudenPaattymispaiva = LocalDate.now().minusDays(1)
+                opintooikeudenPaattymispaiva = LocalDate.now().minusDays(1),
+                yliopisto = yliopisto1, erikoisala = erikoisala1
             )
         )
 
@@ -324,7 +330,8 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
             ErikoistuvaLaakariHelper.createEntity(
                 em,
                 opintooikeudenAlkamispaiva = LocalDate.now().plusDays(1),
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5),
+                yliopisto = yliopisto1, erikoisala = erikoisala1
             )
         )
 
@@ -363,7 +370,8 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
         val erikoistuvaLaakari =
             ErikoistuvaLaakariHelper.createEntity(
                 em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5),
+                yliopisto = yliopisto1, erikoisala = erikoisala1
             )
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 
@@ -371,7 +379,8 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
             ErikoistuvaLaakariHelper.createEntity(
                 em,
                 opintooikeudenPaattymispaiva = LocalDate.now().plusYears(3),
-                erikoisala = erikoisala2
+                erikoisala = erikoisala2,
+                yliopisto = yliopisto1
             )
         )
 
@@ -392,7 +401,7 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
         kayttajaYliopistoErikoisalaRepository.save(yliopistoAndErikoisala)
         vastuuhenkilo.yliopistotAndErikoisalat.add(yliopistoAndErikoisala)
 
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5))
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5), yliopisto = yliopisto1)
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
         val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, erikoistuvaLaakari.kayttaja?.user)
         tyoskentelyjaksoRepository.saveAndFlush(tyoskentelyjakso)
@@ -486,7 +495,8 @@ class VastuuhenkiloEtusivuResourceIT: ResourceIntegrationTestBase() {
         val erikoistuvaLaakari =
             ErikoistuvaLaakariHelper.createEntity(
                 em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5),
+                yliopisto = yliopisto1, erikoisala = erikoisalaRepository.findById(1).get()
             )
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 

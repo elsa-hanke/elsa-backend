@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.suoritteet
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoritteenKategoriaRepository
@@ -22,7 +23,8 @@ class SuoritteenKategoriaServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val suoritteenKategoriaMapper: SuoritteenKategoriaMapper,
     private val suoritteenKategoriaSimpleMapper: SuoritteenKategoriaSimpleMapper,
-    private val suoritteenKategoriaWithErikoisalaMapper: SuoritteenKategoriaWithErikoisalaMapper
+    private val suoritteenKategoriaWithErikoisalaMapper: SuoritteenKategoriaWithErikoisalaMapper,
+    private val clock: Clock
 ) : SuoritteenKategoriaService {
 
     override fun save(
@@ -39,7 +41,7 @@ class SuoritteenKategoriaServiceImpl(
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
             suoritteenKategoriaRepository.findAllByErikoisalaIdAndValid(
                 it.erikoisala?.id,
-                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now(clock)
             ).map(suoritteenKategoriaMapper::toDto)
         }.orEmpty()
     }
@@ -48,7 +50,7 @@ class SuoritteenKategoriaServiceImpl(
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
             suoritteenKategoriaRepository.findAllByErikoisalaIdAndExpired(
                 it.erikoisala?.id,
-                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now(clock)
             ).map(suoritteenKategoriaMapper::toDto)
         }.orEmpty()
     }

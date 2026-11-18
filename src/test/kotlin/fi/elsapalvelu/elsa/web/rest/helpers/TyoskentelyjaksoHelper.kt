@@ -1,12 +1,10 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelyjakso
-import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelypaikka
 import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.koulutus.KaytannonKoulutusTyyppi
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
@@ -37,7 +35,8 @@ object TyoskentelyjaksoHelper {
             alkamispaiva: LocalDate = DEFAULT_ALKAMISPAIVA,
             paattymispaiva: LocalDate = DEFAULT_PAATTYMISPAIVA,
             tyoskentelyjaksoTyyppi: TyoskentelyjaksoTyyppi = TyoskentelypaikkaHelper.DEFAULT_TYYPPI,
-            kaytannonKoulutus: KaytannonKoulutusTyyppi? = DEFAULT_KAYTANNON_KOULUTUS
+            kaytannonKoulutus: KaytannonKoulutusTyyppi? = DEFAULT_KAYTANNON_KOULUTUS,
+            opintooikeus: Opintooikeus = Testisuhteet.opintooikeus(em, user)
         ): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
                 alkamispaiva = alkamispaiva,
@@ -53,17 +52,7 @@ object TyoskentelyjaksoHelper {
 
             tyoskentelyjakso.tyoskentelypaikka = tyoskentelypaikka
 
-            // Lisätään pakollinen tieto
-            val erikoistuvaLaakari: ErikoistuvaLaakari
-            if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
-                erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user)
-                em.persist(erikoistuvaLaakari)
-                em.flush()
-            } else {
-                erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
-            }
-
-            tyoskentelyjakso.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
+            tyoskentelyjakso.opintooikeus = opintooikeus
 
             return tyoskentelyjakso
         }
@@ -73,7 +62,8 @@ object TyoskentelyjaksoHelper {
             em: EntityManager,
             alkamispaiva: LocalDate = UPDATED_ALKAMISPAIVA,
             paattymispaiva: LocalDate = UPDATED_PAATTYMISPAIVA,
-            tyoskentelyjaksoTyyppi: TyoskentelyjaksoTyyppi = TyoskentelypaikkaHelper.UPDATED_TYYPPI
+            tyoskentelyjaksoTyyppi: TyoskentelyjaksoTyyppi = TyoskentelypaikkaHelper.UPDATED_TYYPPI,
+            opintooikeus: Opintooikeus
         ): Tyoskentelyjakso {
             val tyoskentelyjakso = Tyoskentelyjakso(
                 alkamispaiva = alkamispaiva,
@@ -83,27 +73,8 @@ object TyoskentelyjaksoHelper {
                 hyvaksyttyAiempaanErikoisalaan = UPDATED_HYVAKSYTTY_AIEMPAAN_ERIKOISALAAN
             )
 
-            // Lisätään pakollinen tieto
-            val tyoskentelypaikka: Tyoskentelypaikka
-            if (em.findAll(Tyoskentelypaikka::class).isEmpty()) {
-                tyoskentelypaikka =
-                    TyoskentelypaikkaHelper.createUpdatedEntity(em, tyoskentelyjaksoTyyppi)
-                em.persist(tyoskentelypaikka)
-                em.flush()
-            } else {
-                tyoskentelypaikka = em.findAll(Tyoskentelypaikka::class).get(0)
-            }
-            tyoskentelyjakso.tyoskentelypaikka = tyoskentelypaikka
-            // Lisätään pakollinen tieto
-            val erikoistuvaLaakari: ErikoistuvaLaakari
-            if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
-                erikoistuvaLaakari = ErikoistuvaLaakariHelper.createUpdatedEntity(em)
-                em.persist(erikoistuvaLaakari)
-                em.flush()
-            } else {
-                erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
-            }
-            tyoskentelyjakso.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
+            tyoskentelyjakso.tyoskentelypaikka = TyoskentelypaikkaHelper.createUpdatedEntity(em, tyoskentelyjaksoTyyppi).also(em::persist)
+            tyoskentelyjakso.opintooikeus = opintooikeus
             return tyoskentelyjakso
         }
 

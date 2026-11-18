@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -63,7 +64,8 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
     private val mailService: MailService,
     private val tyoskentelyjaksoService: TyoskentelyjaksoService,
     private val applicationProperties: ApplicationProperties,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService
+    private val erikoistuvaLaakariService: ErikoistuvaLaakariService,
+    private val clock: Clock
 ) : TerveyskeskuskoulutusjaksonHyvaksyntaService {
 
     override fun findByIdAndYliopistoIdVirkailija(
@@ -306,7 +308,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             hyvaksynta.erikoistujaLahettanyt = false
         } else {
             hyvaksynta.virkailijaHyvaksynyt = true
-            hyvaksynta.virkailijanKuittausaika = LocalDate.now()
+            hyvaksynta.virkailijanKuittausaika = LocalDate.now(clock)
             hyvaksynta.lisatiedotVirkailijalta = lisatiedotVirkailijalta
             hyvaksynta.vastuuhenkilonKorjausehdotus = null
             hyvaksynta.virkailijanKorjausehdotus = null
@@ -363,7 +365,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
             hyvaksynta.virkailijaHyvaksynyt = false
         } else {
             hyvaksynta.vastuuhenkiloHyvaksynyt = true
-            hyvaksynta.vastuuhenkilonKuittausaika = LocalDate.now()
+            hyvaksynta.vastuuhenkilonKuittausaika = LocalDate.now(clock)
 
             val tyoskentelyjaksot =
                 tyoskentelyjaksoRepository.findAllByOpintooikeusIdAndTyoskentelypaikkaTyyppiAndKaytannonKoulutus(

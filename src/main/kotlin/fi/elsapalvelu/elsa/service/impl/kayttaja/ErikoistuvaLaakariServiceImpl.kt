@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.kayttaja
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
@@ -73,7 +74,8 @@ class ErikoistuvaLaakariServiceImpl(
     private val mailService: MailService,
     private val asetusRepository: AsetusRepository,
     private val opintoopasRepository: OpintoopasRepository,
-    private val fileValidationService: FileValidationService
+    private val fileValidationService: FileValidationService,
+    private val clock: Clock
 ) : ErikoistuvaLaakariService {
 
     override fun save(
@@ -133,7 +135,7 @@ class ErikoistuvaLaakariServiceImpl(
             opintoopas = opintoopas,
             kaytossa = true,
             tila = OpintooikeudenTila.AKTIIVINEN,
-            muokkausaika = Instant.now()
+            muokkausaika = Instant.now(clock)
         )
         opintooikeus = opintooikeusRepository.save(opintooikeus)
 

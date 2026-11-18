@@ -2,7 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.tyoskentely
 
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.TyoskentelyjaksoRepository
-import fi.elsapalvelu.elsa.service.PdfTextTestSupport
+import fi.elsapalvelu.elsa.service.pdf.PdfTextTestSupport
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelypaikkaDTO
 import fi.elsapalvelu.elsa.service.mapper.kayttaja.AsiakirjaMapper
@@ -12,6 +12,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.*
+import java.time.Clock
 import java.time.LocalDate
 import kotlin.test.assertFailsWith
 
@@ -31,7 +32,8 @@ class TyoskentelyjaksoPdfTextValidationTest {
         opintooikeusRepository = opintooikeusRepository,
         pdfTextFieldValidator = PdfTextTestSupport.fieldValidator(),
         asiakirjaRepository = mock(),
-        koulutusjaksoRepository = mock()
+        koulutusjaksoRepository = mock(),
+        clock = Clock.systemDefaultZone()
     )
 
     @ParameterizedTest

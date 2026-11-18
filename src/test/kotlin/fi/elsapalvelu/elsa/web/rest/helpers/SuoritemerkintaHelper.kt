@@ -10,7 +10,6 @@ import fi.elsapalvelu.elsa.domain.seuranta.*
 import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
@@ -38,7 +37,8 @@ object SuoritemerkintaHelper {
             erikoisala: Erikoisala? = null,
             user: User? = null,
             suorituspaiva: LocalDate = DEFAULT_SUORITUSPAIVA,
-            existingSuorite: Suorite? = null
+            suorite: Suorite? = null,
+            tyoskentelyjakso: Tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user).also(em::persist)
         ): Suoritemerkinta {
             val suoritemerkinta = Suoritemerkinta(
                 suorituspaiva = suorituspaiva,
@@ -48,38 +48,15 @@ object SuoritemerkintaHelper {
                 lukittu = DEFAULT_LUKITTU
             )
 
-            // Lisätään pakollinen tieto
-            var suorite = existingSuorite
-            if (suorite == null) {
-                if (em.findAll(Suorite::class).isEmpty()) {
-                    suorite = SuoriteHelper.createEntity(em, erikoisala)
-                    em.persist(suorite)
-                    em.flush()
-                } else {
-                    suorite = em.findAll(Suorite::class)[0]
-                }
-            }
-            suoritemerkinta.suorite = suorite
-
-            // Lisätään pakollinen tieto
-            val tyoskentelyjakso: Tyoskentelyjakso
-            if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user)
-                em.persist(tyoskentelyjakso)
-                em.flush()
-            } else {
-                tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class)[0]
-            }
+            suoritemerkinta.suorite = suorite ?: SuoriteHelper.createEntity(em, erikoisala ?: tyoskentelyjakso.opintooikeus?.erikoisala).also(em::persist)
             suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
-
-            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
-            suoritemerkinta.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+            suoritemerkinta.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
 
             return suoritemerkinta
         }
 
         @JvmStatic
-        fun createUpdatedEntity(em: EntityManager): Suoritemerkinta {
+        fun createUpdatedEntity(tyoskentelyjakso: Tyoskentelyjakso, suorite: Suorite): Suoritemerkinta {
             val suoritemerkinta = Suoritemerkinta(
                 suorituspaiva = UPDATED_SUORITUSPAIVA,
                 arviointiasteikonTaso = UPDATED_LUOTTAMUKSEN_TASO,
@@ -88,30 +65,9 @@ object SuoritemerkintaHelper {
                 lukittu = UPDATED_LUKITTU
             )
 
-            // Lisätään pakollinen tieto
-            val suorite: Suorite
-            if (em.findAll(Suorite::class).isEmpty()) {
-                suorite = SuoriteHelper.createUpdatedEntity(em)
-                em.persist(suorite)
-                em.flush()
-            } else {
-                suorite = em.findAll(Suorite::class)[0]
-            }
             suoritemerkinta.suorite = suorite
-
-            // Lisätään pakollinen tieto
-            val tyoskentelyjakso: Tyoskentelyjakso
-            if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createUpdatedEntity(em)
-                em.persist(tyoskentelyjakso)
-                em.flush()
-            } else {
-                tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class)[0]
-            }
             suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
-
-            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
-            suoritemerkinta.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
+            suoritemerkinta.arviointiasteikko = tyoskentelyjakso.opintooikeus?.opintoopas?.arviointiasteikko
 
             return suoritemerkinta
         }

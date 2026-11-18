@@ -1,6 +1,14 @@
 package fi.elsapalvelu.elsa.service.arkistointi.louhi
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
+import fi.elsapalvelu.elsa.security.MDC_USER_ID_KEY
+import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.apache.sshd.sftp.client.SftpClient
+import org.apache.sshd.sftp.common.SftpException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
@@ -24,11 +32,38 @@ class TampereLouhiServiceTest {
 
     private val sessionFactory = mock<SessionFactory<SftpClient.DirEntry>>()
     private val session = mock<Session<SftpClient.DirEntry>>()
+    private val service = TampereLouhiService(sessionFactory)
     private var temporaryFile: Path? = null
 
     @AfterEach
     fun tearDown() {
+        service.close()
         temporaryFile?.let(Files::deleteIfExists)
+    }
+
+    @Test
+    fun `async connection failure logs original stack trace with requesting user`() {
+        val logger = LoggerFactory.getLogger(TampereLouhiService::class.java) as Logger
+        val appender = ListAppender<ILoggingEvent>().also { it.start(); logger.addAppender(it) }
+        val previousContext = MDC.getCopyOfContextMap()
+        val failure = IllegalStateException("Test connection failed", java.net.ConnectException("Test connection refused"))
+        whenever(sessionFactory.session).thenThrow(failure)
+        val zipFile = createTemporaryZip("failed-package")
+        try {
+            MDC.put(MDC_USER_ID_KEY, "test-approver")
+            MDC.put("archiveJobId", "test-job")
+            assertThatThrownBy { service.laheta(zipFile.toString(), false, LouhiExecutionPolicy.ASYNC) }
+                .isInstanceOf(LouhiTransferException::class.java)
+            val error = appender.list.single { it.level == Level.ERROR }
+            assertThat(error.formattedMessage).contains("CONNECT", "CONNECTION_REFUSED")
+            assertThat(error.throwableProxy.message).isEqualTo(failure.javaClass.name)
+            assertThat(error.throwableProxy.stackTraceElementProxyArray).isNotEmpty
+            assertThat(error.mdcPropertyMap).containsEntry(MDC_USER_ID_KEY, "test-approver").containsEntry("archiveJobId", "test-job")
+        } finally {
+            logger.detachAppender(appender)
+            appender.stop()
+            if (previousContext == null) MDC.clear() else MDC.setContextMap(previousContext)
+        }
     }
 
     @ParameterizedTest
@@ -49,7 +84,7 @@ class TampereLouhiServiceTest {
         }.whenever(session).write(any(), any())
         val zipFile = createTemporaryZip("louhi-package")
 
-        TampereLouhiService(sessionFactory).laheta(zipFile.toString(), yek)
+        service.laheta(zipFile.toString(), yek)
 
         verify(session).write(any(), org.mockito.kotlin.eq("InProgress/${zipFile.fileName}"))
         verify(session).rename(
@@ -58,6 +93,7 @@ class TampereLouhiServiceTest {
         )
         assertThat(uploadedBytes).isEqualTo("louhi-package".toByteArray())
         assertThat(zipFile).doesNotExist()
+        verify(session).close()
     }
 
     @Test
@@ -67,7 +103,7 @@ class TampereLouhiServiceTest {
         val zipFile = createTemporaryZip("unavailable-package")
 
         assertThatThrownBy {
-            TampereLouhiService(sessionFactory).laheta(zipFile.toString(), false)
+            service.laheta(zipFile.toString(), false)
         }
             .isInstanceOf(ResponseStatusException::class.java)
             .hasMessageContaining("Arkistointipalvelun hakemisto ei ole käytettävissä")
@@ -75,6 +111,7 @@ class TampereLouhiServiceTest {
         verify(session, never()).write(any(), any())
         verify(session, never()).rename(any(), any())
         assertThat(zipFile).doesNotExist()
+        verify(session).close()
     }
 
     @Test
@@ -85,13 +122,17 @@ class TampereLouhiServiceTest {
         val zipFile = createTemporaryZip("failed-package")
 
         assertThatThrownBy {
-            TampereLouhiService(sessionFactory).laheta(zipFile.toString(), false)
+            service.laheta(zipFile.toString(), false)
         }
-            .isInstanceOf(IllegalStateException::class.java)
-            .hasMessageContaining("SFTP write failed")
+            .isInstanceOfSatisfying(LouhiTransferException::class.java) {
+                assertThat(it.publicationMayHaveStarted).isFalse()
+                assertThat(it.cause).isNull()
+                assertThat(it.message).doesNotContain("SFTP write failed")
+            }
 
         verify(session, never()).rename(any(), any())
         assertThat(zipFile).doesNotExist()
+        verify(session).close()
     }
 
     @Test
@@ -100,12 +141,108 @@ class TampereLouhiServiceTest {
         Files.delete(missingFile)
 
         assertThatThrownBy {
-            TampereLouhiService(sessionFactory).laheta(missingFile.toString(), false)
+            service.laheta(missingFile.toString(), false)
         }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("Arkistointitiedostoa ei löydy")
 
         verify(sessionFactory, never()).session
+    }
+
+    @Test
+    fun `session close failure does not replace confirmed transfer success`() {
+        whenever(sessionFactory.session).thenReturn(session)
+        whenever(session.list("InProgress")).thenReturn(arrayOf(mock()))
+        whenever(session.close()).thenThrow(IllegalStateException("private cleanup failure"))
+        val file = createTemporaryZip("package")
+
+        service.laheta(file.toString(), false)
+
+        verify(session).rename(any(), any())
+        assertThat(file).doesNotExist()
+    }
+
+    @Test
+    fun `session close failure preserves uncertain publication result`() {
+        whenever(sessionFactory.session).thenReturn(session)
+        whenever(session.list("InProgress")).thenReturn(arrayOf(mock()))
+        whenever(session.rename(any(), any())).thenThrow(IllegalStateException("private transfer failure"))
+        whenever(session.close()).thenThrow(IllegalStateException("private cleanup failure"))
+        val file = createTemporaryZip("package")
+
+        assertThatThrownBy { service.laheta(file.toString(), false) }
+            .isInstanceOfSatisfying(LouhiTransferException::class.java) {
+                assertThat(it.publicationMayHaveStarted).isTrue()
+                assertThat(it.cause).isNull()
+                assertThat(it.message).doesNotContain("private")
+            }
+        assertThat(file).doesNotExist()
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "WRITE,3,ACCESS_DENIED", "RENAME,3,ACCESS_DENIED", "RENAME,12,ACCESS_DENIED",
+        "RENAME,2,PATH_NOT_FOUND", "RENAME,10,PATH_NOT_FOUND", "RENAME,11,TARGET_EXISTS",
+        "RENAME,8,UNSUPPORTED", "RENAME,20,INVALID_FILENAME",
+        "WRITE,14,STORAGE_UNAVAILABLE", "RENAME,14,STORAGE_UNAVAILABLE", "RENAME,15,STORAGE_UNAVAILABLE",
+        "RENAME,17,REMOTE_BUSY", "RENAME,25,REMOTE_BUSY", "RENAME,26,REMOTE_BUSY",
+        "WRITE,4,TRANSFER_FAILED", "RENAME,4,DELIVERY_UNCERTAIN", "RENAME,5,DELIVERY_UNCERTAIN",
+        "RENAME,6,DELIVERY_UNCERTAIN", "RENAME,7,DELIVERY_UNCERTAIN", "RENAME,999,DELIVERY_UNCERTAIN"
+    )
+    fun `server responses are classified by status and operation without retaining private details`(
+        stage: LouhiTransferStage, status: Int, expected: LouhiTransferFailure
+    ) {
+        whenever(sessionFactory.session).thenReturn(session)
+        whenever(session.list("InProgress")).thenReturn(arrayOf(mock()))
+        val rejection = SftpException(status, "private filename person credentials")
+        if (stage == LouhiTransferStage.WRITE) {
+            whenever(session.write(any(), any())).thenThrow(rejection)
+        } else {
+            whenever(session.rename(any(), any())).thenThrow(rejection)
+        }
+        val file = createTemporaryZip("package")
+
+        assertThatThrownBy { service.laheta(file.toString(), false) }
+            .isInstanceOfSatisfying(LouhiTransferException::class.java) {
+                assertThat(it.failure).isEqualTo(expected)
+                assertThat(it.stage).isEqualTo(stage)
+                assertThat(it.sftpStatus).isEqualTo(status)
+                assertThat(it.publicationMayHaveStarted).isEqualTo(expected == LouhiTransferFailure.DELIVERY_UNCERTAIN)
+                assertThat(it.cause).isNull()
+                assertThat(it.message).doesNotContain("private", "filename", "person", "credentials")
+            }
+        if (stage == LouhiTransferStage.WRITE) verify(session, never()).rename(any(), any())
+        verify(session).close()
+        assertThat(file).doesNotExist()
+    }
+
+    @Test
+    fun `connection failure is safe and removes the local package`() {
+        whenever(sessionFactory.session).thenThrow(IllegalStateException("private connection details"))
+        val file = createTemporaryZip("package")
+
+        assertThatThrownBy { service.laheta(file.toString(), false) }
+            .isInstanceOfSatisfying(LouhiTransferException::class.java) {
+                assertThat(it.publicationMayHaveStarted).isFalse()
+                assertThat(it.cause).isNull()
+                assertThat(it.message).doesNotContain("private")
+            }
+        assertThat(file).doesNotExist()
+    }
+
+    @Test
+    fun `shutdown during session acquisition closes the session without sending`() {
+        whenever(sessionFactory.session).thenReturn(session)
+        val file = createTemporaryZip("package")
+        service.close()
+
+        assertThatThrownBy { service.laheta(file.toString(), false, LouhiExecutionPolicy.ASYNC) }
+            .isInstanceOfSatisfying(LouhiTransferException::class.java) {
+                assertThat(it.publicationMayHaveStarted).isFalse()
+            }
+        verify(session).close()
+        verify(session, never()).write(any(), any())
+        assertThat(file).doesNotExist()
     }
 
     private fun createTemporaryZip(content: String): Path {

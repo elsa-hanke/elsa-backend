@@ -6,12 +6,14 @@ import fi.elsapalvelu.elsa.repository.arviointi.SuoritusarviointiRepository
 import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.ValmistumispyyntoArviointienTilaDTO
 import org.springframework.stereotype.Service
+import java.time.Clock
 import java.time.LocalDate
 
 @Service
 class ValmistumispyynnonArviointienTilaService(
     private val arvioitavaKokonaisuusRepository: ArvioitavaKokonaisuusRepository,
-    private val suoritusarviointiRepository: SuoritusarviointiRepository
+    private val suoritusarviointiRepository: SuoritusarviointiRepository,
+    private val clock: Clock
 ) {
 
     fun haeArviointienTila(
@@ -21,7 +23,7 @@ class ValmistumispyynnonArviointienTilaService(
         val arvioitavatKokonaisuudet =
             arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
             opintooikeus?.erikoisala?.id,
-            opintooikeus?.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+            opintooikeus?.osaamisenArvioinninOppaanPvm ?: LocalDate.now(clock)
         )
         val arvioinnit = suoritusarviointiRepository.findAllByTyoskentelyjaksoOpintooikeusId(
             opintooikeus?.id.required()

@@ -2,21 +2,21 @@ import {
   acceptRequirements,
   fillContactInformation,
   fillLicensingInformation,
-  openYekGraduationRequest,
-  setupYekGraduationRequest,
-  submitGraduationRequest,
+  openYekValmistumispyynto,
+  setupYekValmistumispyynto,
+  submitValmistumispyynto,
 } from './valmistumispyynto-yek.helpers'
 
 describe('YEK-valmistumispyynnön lähettäminen', () => {
-  beforeEach(setupYekGraduationRequest)
+  beforeEach(setupYekValmistumispyynto)
 
   it('YEK-koulutettava täyttää ja lähettää valmistumispyynnön', () => {
-    openYekGraduationRequest()
+    openYekValmistumispyynto()
     acceptRequirements()
     fillContactInformation('+358401234567')
     fillLicensingInformation()
 
-    submitGraduationRequest('POST', 'postYekValmistumispyynto')
+    submitValmistumispyynto('POST', 'postYekValmistumispyynto')
 
     cy.contains('Valmistumispyyntö lähetetty onnistuneesti').should('be.visible')
     cy.contains(

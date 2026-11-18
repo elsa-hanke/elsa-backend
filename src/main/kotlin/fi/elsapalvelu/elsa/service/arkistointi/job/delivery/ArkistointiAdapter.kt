@@ -1,0 +1,39 @@
+package fi.elsapalvelu.elsa.service.arkistointi.job.delivery
+
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+
+interface ArkistointiAdapter {
+    val university: YliopistoEnum
+
+    /** Explicit capabilities; configuring another case type must not silently enable its delivery. */
+    val supportedCaseTypes: Set<CaseType>
+
+    /** True when the submission belongs to this adapter's university and one of its supported case types. */
+    fun supports(submission: ArkistointiSubmission): Boolean =
+        submission.university == university && submission.caseType in supportedCaseTypes
+
+    /** True only when a repeated invocation safely resumes an already accepted delivery. */
+    val canResumeAfterSuccessPersistenceFailure: Boolean get() = false
+
+    /** Validate transport settings for an enabled case type before starting the worker. */
+    fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {}
+
+    /**
+     * Deduplicate by the persisted pyynto.key UUID, including concurrent calls and retries after an uncertain success.
+     * The key is the saved job UUID (pyynto.jobId). Serialize it as the canonical UUID string, not a business key.
+     * Legacy Louhi/Siilo transports cannot provide receiver deduplication: retries may deliver duplicates.
+     * Their limitations must be documented explicitly; the UUID alone does not prevent duplicates.
+     * Where supported, deduplication must be atomic at the receiving system; a separate lookup followed by create is insufficient.
+     * A manual retry retains the original key. This contract provides at-least-once delivery, not exactly-once.
+     * Error codes/descriptions must not contain personal data, filenames, credentials or response bodies.
+     * Success.externalId is null or a nonblank, well-formed Unicode string of at most 255 UTF-16
+     * code units (matching the entity's Size validation), without NUL. The ID is stored unchanged,
+     * including any leading/trailing whitespace; it is never truncated, trimmed or hashed.
+     * An invalid success response requires manual reconciliation: the archive may already have accepted it.
+     * Treat each document's sisalto as read-only. Mutating it changes the current submission;
+     * a retry always reloads the immutable bytes from the database.
+     */
+    fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult
+}

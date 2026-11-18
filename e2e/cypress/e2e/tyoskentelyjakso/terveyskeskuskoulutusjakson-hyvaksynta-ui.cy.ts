@@ -3,7 +3,7 @@ import {
   VASTUUHENKILO_EMAIL,
   VIRKAILIJA_EMAIL
 } from '../../support/commands/credentials'
-import { setupYekGraduationRequest } from '../valmistumispyynto-yek/valmistumispyynto-yek.helpers'
+import { setupYekValmistumispyynto } from '../valmistumispyynto-yek/valmistumispyynto-yek.helpers'
 import { downloadPdfPages } from '../../support/pdf'
 
 const MAIN = 'main[role="main"]'
@@ -198,7 +198,7 @@ for (const yek of [false, true]) {
       corrected = false
       sentForms = []
       cy.task('db:cleanupTerveyskeskusE2e', { email: E2E_ERIKOISTUVA_EMAIL })
-      if (yek) setupYekGraduationRequest()
+      if (yek) setupYekValmistumispyynto()
       else
         cy.prepareKoejaksoE2e({
           cleanupSupportUsers: true,

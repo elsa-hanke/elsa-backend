@@ -3,7 +3,7 @@ package fi.elsapalvelu.elsa.service.impl.koulutus
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.koulutus.TeoriakoulutusRepository
 import fi.elsapalvelu.elsa.repository.seuranta.PaivakirjamerkintaRepository
-import fi.elsapalvelu.elsa.service.PdfTextTestSupport
+import fi.elsapalvelu.elsa.service.pdf.PdfTextTestSupport
 import fi.elsapalvelu.elsa.service.dto.koulutus.TeoriakoulutusDTO
 import fi.elsapalvelu.elsa.service.mapper.kayttaja.AsiakirjaMapper
 import fi.elsapalvelu.elsa.service.mapper.koulutus.TeoriakoulutusMapper
@@ -12,6 +12,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.*
+import java.time.Clock
 import java.time.LocalDate
 import kotlin.test.assertFailsWith
 
@@ -27,7 +28,8 @@ class TeoriakoulutusPdfTextValidationTest {
         opintooikeusRepository = opintooikeusRepository,
         asiakirjaMapper = asiakirjaMapper,
         paivakirjamerkintaRepository = paivakirjamerkintaRepository,
-        pdfTextFieldValidator = PdfTextTestSupport.fieldValidator()
+        pdfTextFieldValidator = PdfTextTestSupport.fieldValidator(),
+        clock = Clock.systemDefaultZone()
     )
 
     @ParameterizedTest

@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
 import fi.elsapalvelu.elsa.service.impl.kayttaja.FileValidationServiceImpl
 import fi.elsapalvelu.elsa.service.kayttaja.AsiakirjaService
+import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach

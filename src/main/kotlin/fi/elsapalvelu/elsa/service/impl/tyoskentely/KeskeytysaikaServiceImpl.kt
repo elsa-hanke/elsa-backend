@@ -69,7 +69,7 @@ class KeskeytysaikaServiceImpl(
     override fun delete(id: Long, opintooikeusId: Long) {
         keskeytysaikaRepository.findOneByIdAndTyoskentelyjaksoOpintooikeusId(id, opintooikeusId)
             ?.let {
-                tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(it.id.required(), opintooikeusId)
+                tyoskentelyjaksoRepository.findOneByIdAndOpintooikeusId(it.tyoskentelyjakso?.id.required(), opintooikeusId)
                     ?.let { tyoskentelyjakso ->
                         if (tyoskentelyjakso.liitettyTerveyskeskuskoulutusjaksoon) {
                             throw ValidationException("Terveyskeskuskoulutusjaksoon liitetyn työskentelyjakson poissaoloja ei voi päivittää")

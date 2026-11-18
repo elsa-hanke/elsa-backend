@@ -8,7 +8,7 @@ services:
     networks:
       - elsa
     ports:
-      - 5432:5432
+      - "${E2E_DB_PORT:-5432}:5432"
     environment:
       - POSTGRES_USER=elsaBackend
       - POSTGRES_PASSWORD=
@@ -24,7 +24,7 @@ services:
     networks:
       - elsa
     ports:
-      - "8080:80"
+      - "${E2E_FRONTEND_PORT:-8080}:80"
     environment:
       - BACKEND_URL=http://elsa-backend:8080
     depends_on:
@@ -44,7 +44,8 @@ services:
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_USER=elsaBackend
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=dev,e2e-archive
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/application-e2e.yml
       - POSTGRES_PASSWORD=
       - APPLICATION_SECURITY_ENCODED_KEY
       - SAML_PRIVATE_KEY_LOCATION=file:/run/secrets/private_key
@@ -52,8 +53,10 @@ services:
       - SISUHY_PRIVATE_KEY_LOCATION=file:/run/secrets/hy_sisu_key
       - SISUHY_CERT_LOCATION=file:/run/secrets/hy_sisu_crt
       - SERVER_SERVLET_SESSION_COOKIE_SECURE
+    volumes:
+      - ./application-e2e.yml:/app/application-e2e.yml:ro
     ports:
-      - 9080:8080
+      - "${E2E_BACKEND_PORT:-9080}:8080"
     depends_on:
       db:
         condition: service_healthy

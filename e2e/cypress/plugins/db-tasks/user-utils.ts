@@ -1,3 +1,4 @@
+import { cleanupArchiveForKayttaja } from './archive-cleanup'
 import { randomUUID } from 'node:crypto'
 import type { Client } from 'pg'
 
@@ -90,6 +91,7 @@ export async function cleanupUser(
   linkCleanupFn?: (client: Client, kayttajaId: number) => Promise<void>
 ): Promise<void> {
   if (kayttajaId) {
+    await cleanupArchiveForKayttaja(client, kayttajaId)
     if (linkCleanupFn) {
       await linkCleanupFn(client, kayttajaId)
     }

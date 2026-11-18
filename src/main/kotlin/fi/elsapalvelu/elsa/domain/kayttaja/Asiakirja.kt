@@ -64,7 +64,10 @@ data class Asiakirja(
     )
     @JoinColumn(unique = true)
     @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
-    var asiakirjaData: AsiakirjaData? = null
+    var asiakirjaData: AsiakirjaData? = null,
+
+    @Column(name = "archive_snapshot", nullable = false, updatable = false)
+    var archiveSnapshot: Boolean = false
 
 ) : Serializable {
 

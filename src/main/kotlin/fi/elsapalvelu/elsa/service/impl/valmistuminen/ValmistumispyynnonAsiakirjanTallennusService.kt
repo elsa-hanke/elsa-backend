@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.repository.kayttaja.AsiakirjaRepository
 import fi.elsapalvelu.elsa.repository.valmistuminen.ValmistumispyyntoRepository
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -18,7 +19,8 @@ import java.time.format.DateTimeFormatter
 @Service
 class ValmistumispyynnonAsiakirjanTallennusService(
     private val asiakirjaRepository: AsiakirjaRepository,
-    private val valmistumispyyntoRepository: ValmistumispyyntoRepository
+    private val valmistumispyyntoRepository: ValmistumispyyntoRepository,
+    private val clock: Clock
 ) {
 
     /**
@@ -31,13 +33,13 @@ class ValmistumispyynnonAsiakirjanTallennusService(
         data: ByteArray,
         kiinnita: (Valmistumispyynto, Asiakirja) -> Unit
     ): Asiakirja {
-        val aikaleima = LocalDate.now().format(DateTimeFormatter.ofPattern(PAIVAMAARAFORMAATTI))
+        val aikaleima = LocalDate.now(clock).format(DateTimeFormatter.ofPattern(PAIVAMAARAFORMAATTI))
         val asiakirja = asiakirjaRepository.save(
             Asiakirja(
                 opintooikeus = valmistumispyynto.opintooikeus,
                 nimi = "${tiedostonimenAlku}_${aikaleima}.pdf",
                 tyyppi = MediaType.APPLICATION_PDF_VALUE,
-                lisattypvm = LocalDateTime.now(),
+                lisattypvm = LocalDateTime.now(clock),
                 asiakirjaData = AsiakirjaData(data = data)
             )
         )

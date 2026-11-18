@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.suoritteet
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.suoritteet.SuoriteRepository
@@ -25,7 +26,8 @@ class SuoriteServiceImpl(
     private val suoriteMapper: SuoriteMapper,
     private val suoriteWithErikoisalaMapper: SuoriteWithErikoisalaMapper,
     private val suoritteenKategoriaWithErikoisalaMapper: SuoritteenKategoriaWithErikoisalaMapper,
-    private val suoritemerkintaRepository: SuoritemerkintaRepository
+    private val suoritemerkintaRepository: SuoritemerkintaRepository,
+    private val clock: Clock
 ) : SuoriteService {
 
     override fun create(suoriteDTO: SuoriteWithErikoisalaDTO): SuoriteWithErikoisalaDTO {
@@ -69,7 +71,7 @@ class SuoriteServiceImpl(
             // Jos päivämäärää jonka mukainen osaamisen arvioinnin opas käytössä ei ole määritetty, käytetään nykyistä päivää
             // voimassaolon rajaamisessa
             return suoriteRepository.findAllByValid(
-                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now(clock)
             ).map(suoriteMapper::toDto)
         } ?: listOf()
     }

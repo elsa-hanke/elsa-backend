@@ -93,6 +93,7 @@ logging:
     org.thymeleaf: WARN
     org.xnio: WARN
     sun.rmi: WARN
+    com.github.kagkarlsson: INFO
     com.itextpdf.styledxmlparser.css.parse.syntax: OFF
     com.itextpdf.layout.renderer: OFF
     com.itextpdf.pdfa.PdfADocument: OFF
@@ -292,8 +293,18 @@ application:
     turku:
     uef:
   arkistointi:
+    retry:
+      max-attempts: 25
+      initial-delay: 1m
+      max-delay: 4h
+      multiplier: 2.0
+      jitter-factor: 0.1
+      alert-attempts: [3, 10, 20]
     tre:
       kaytossa: false
+      transfer:
+        operation-timeout: 30s
+        transfer-timeout: 2m
       host:
       port:
       user:
@@ -310,6 +321,7 @@ application:
         retention-reason: "Sisältää henkilötietoja"
         cases:
           valmistuminen:
+            async-enabled: ${APPLICATION_ARKISTOINTI_TRE_METADATA_CASES_VALMISTUMINEN_ASYNCENABLED:true}
             title: "Valmistuminen"
             type: "Valmistuminen"
             function: "04.02.05"
@@ -319,6 +331,7 @@ application:
               liite:
                 retention-period: "10"
           koejakso:
+            async-enabled: ${APPLICATION_ARKISTOINTI_TRE_METADATA_CASES_KOEJAKSO_ASYNCENABLED:true}
             title: "Koejakson arviointi"
             type: "Koejakson arviointi"
             function: "04.01.04"
@@ -329,6 +342,10 @@ application:
       kaytossa: false
       host:
       api-key:
+      # Applies only to the asynchronous Siilo call; legacy sync timeouts stay unchanged.
+      async-transfer-timeout: 2m
+      # Async requires HTTPS. HTTP opt-in is limited to literal loopback test receivers.
+      async-allow-loopback-http-for-tests: false
       metadata:
         zip-metadata: true
         contact:
@@ -342,6 +359,7 @@ application:
         use-type: "Säilytys"
         cases:
           valmistuminen:
+            async-enabled: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_VALMISTUMINEN_ASYNCENABLED:true}
             title: "Valmistumisen yhteenveto"
             type: "Raportti"
             siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_VALMISTUMINEN_SIILO_KOODI:0b00000000000008}
@@ -350,6 +368,7 @@ application:
               yhteenveto:
                 retention-period: "20"
           koejakso:
+            async-enabled: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_KOEJAKSO_ASYNCENABLED:true}
             title: "Koejakson arviointi"
             siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_KOEJAKSO_SIILO_KOODI:0b00000000000006}
             type: "Muu"
@@ -358,6 +377,7 @@ application:
               arviointi:
                 retention-period: "20"
           sopimus:
+            async-enabled: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_SOPIMUS_ASYNCENABLED:true}
             title: "Koulutuspaikkasopimus"
             siilo-koodi: ${APPLICATION_ARKISTOINTI_HKI_METADATA_CASES_SOPIMUS_SIILO_KOODI:0b00000000000007}
             type: "Sopimus"
@@ -368,6 +388,56 @@ application:
     oulu:
       kaytossa: false
     turku:
-      kaytossa: false
+      kaytossa: ${APPLICATION_ARKISTOINTI_TURKU_KAYTOSSA:false}
+      dynasty:
+        base-url: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_BASE_URL:https://asta.utu.fi/dynasty.externalinterface.archive.oauth}
+        token-url: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_TOKEN_URL:https://asta.utu.fi/dynasty.identityserver/connect/token}
+        client-id: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_ID:}
+        client-secret: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_SECRET:}
+        organization: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_ORGANIZATION:0}
+        case-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CASE_SCHEMA_ID:30e1cd27-54f9-44c1-9853-401cbdc871de}
+        document-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_DOCUMENT_SCHEMA_ID:b11af6ae-afc6-42e8-b09b-6b37d3f29397}
+        call-timeout: 2m
+        in-progress-grace: 5m
+        allow-loopback-http-for-tests: false
+      metadata:
+        cases:
+          koejakso:
+            async-enabled: ${APPLICATION_ARKISTOINTI_TURKU_METADATA_CASES_KOEJAKSO_ASYNCENABLED:true}
+            documents:
+              arviointi:
+                retention-period: "-1"
+          valmistuminen:
+            async-enabled: ${APPLICATION_ARKISTOINTI_TURKU_METADATA_CASES_VALMISTUMINEN_ASYNCENABLED:true}
+            documents:
+              yhteenveto:
+                retention-period: "20"
+              liite:
+                retention-period: "10"
+              laillistamistodistus:
+                retention-period: "10"
     uef:
       kaytossa: false
+      metadata:
+        cases:
+          koejakso:
+            async-enabled: false
+            # Dynasty-specific metadata will be configured with its adapter.
+            documents:
+              arviointi:
+                retention-period: ""
+          valmistuminen:
+            async-enabled: false
+            # Document selection only; Dynasty-specific metadata will be configured with its adapter.
+            documents:
+              yhteenveto:
+                retention-period: ""
+              liite:
+                retention-period: ""
+              laillistamistodistus:
+                retention-period: ""
+
+db-scheduler:
+  delay-startup-until-context-ready: true
+  polling-interval: 10s
+  threads: 2

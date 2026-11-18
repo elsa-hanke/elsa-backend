@@ -10,6 +10,7 @@ import fi.elsapalvelu.elsa.service.mapper.koulutus.KoulutussuunnitelmaMapper
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
 import java.time.LocalDateTime
 
 @Service
@@ -18,7 +19,8 @@ class KoulutussuunnitelmaServiceImpl(
     private val koulutussuunnitelmaRepository: KoulutussuunnitelmaRepository,
     private val koulutussuunnitelmaMapper: KoulutussuunnitelmaMapper,
     private val opintooikeusRepository: OpintooikeusRepository,
-    private val pdfTextFieldValidator: PdfTextFieldValidator
+    private val pdfTextFieldValidator: PdfTextFieldValidator,
+    private val clock: Clock
 ) : KoulutussuunnitelmaService {
 
     override fun save(
@@ -54,7 +56,7 @@ class KoulutussuunnitelmaServiceImpl(
                     koulutussuunnitelma.koulutussuunnitelmaAsiakirja?.opintooikeus = koulutussuunnitelma.opintooikeus
                     koulutussuunnitelma.koulutussuunnitelmaAsiakirja?.asiakirjaData?.data =
                         koulutussuunnitelmaDTO.koulutussuunnitelmaAsiakirja?.asiakirjaData?.fileInputStream?.readAllBytes()
-                    koulutussuunnitelma.koulutussuunnitelmaAsiakirja?.lisattypvm = LocalDateTime.now()
+                    koulutussuunnitelma.koulutussuunnitelmaAsiakirja?.lisattypvm = LocalDateTime.now(clock)
                 } else {
                     koulutussuunnitelma.koulutussuunnitelmaAsiakirja =
                         existingKoulutussuunnitelma.koulutussuunnitelmaAsiakirja
@@ -65,7 +67,7 @@ class KoulutussuunnitelmaServiceImpl(
                     koulutussuunnitelma.motivaatiokirjeAsiakirja?.opintooikeus = koulutussuunnitelma.opintooikeus
                     koulutussuunnitelma.motivaatiokirjeAsiakirja?.asiakirjaData?.data =
                         koulutussuunnitelmaDTO.motivaatiokirjeAsiakirja?.asiakirjaData?.fileInputStream?.readAllBytes()
-                    koulutussuunnitelma.motivaatiokirjeAsiakirja?.lisattypvm = LocalDateTime.now()
+                    koulutussuunnitelma.motivaatiokirjeAsiakirja?.lisattypvm = LocalDateTime.now(clock)
                 } else {
                     koulutussuunnitelma.motivaatiokirjeAsiakirja =
                         existingKoulutussuunnitelma.motivaatiokirjeAsiakirja

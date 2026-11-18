@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
+import java.time.Clock
 import java.time.Instant
 import java.util.*
 
@@ -29,6 +30,7 @@ class ArviointityokaluServiceImpl(
     private val arviointityokaluRepository: ArviointityokaluRepository,
     private val arviointityokaluMapper: ArviointityokaluMapper,
     private val arviointityokaluKategoriaRepository: ArviointityokaluKategoriaRepository,
+    private val clock: Clock,
 ) : ArviointityokaluService {
 
     override fun save(
@@ -37,12 +39,12 @@ class ArviointityokaluServiceImpl(
         liiteData: MultipartFile?
     ): ArviointityokaluDTO {
         var arviointityokalu = arviointityokaluMapper.toEntity(arviointityokaluDTO)
-        val now = Instant.now()
+        val aikaleima = Instant.now(clock)
         if (arviointityokalu.id == null) {
-            arviointityokalu.luontiaika = now
+            arviointityokalu.luontiaika = aikaleima
             arviointityokalu.versio = 1
         }
-        arviointityokalu.muokkausaika = now
+        arviointityokalu.muokkausaika = aikaleima
         arviointityokalu.kayttaja = null
         arviointityokalu.kategoria = arviointityokalu.kategoria?.let {
             arviointityokaluKategoriaRepository.findById(it.id.required()).orElse(null)
@@ -73,7 +75,7 @@ class ArviointityokaluServiceImpl(
                 vanhaArviointityokalu.ohjeteksti = RichTextHtmlSanitizer.sanitize(vanhaArviointityokalu.ohjeteksti)
                 vanhaArviointityokalu.kaytossa = false
                 arviointityokaluRepository.save(vanhaArviointityokalu)
-                val now = Instant.now()
+                val aikaleima = Instant.now(clock)
                 val uusiArviointityokalu = Arviointityokalu(
                     id = null,
                     alkuperainenId = vanhaArviointityokalu.alkuperainenId ?: vanhaArviointityokalu.id.required(),
@@ -83,7 +85,7 @@ class ArviointityokaluServiceImpl(
                     tila = arviointityokaluDTO.tila,
                     kaytossa = true,
                     luontiaika = vanhaArviointityokalu.luontiaika,
-                    muokkausaika = now,
+                    muokkausaika = aikaleima,
                     kayttaja = null,
                     kategoria = arviointityokaluDTO.kategoria?.let {
                         arviointityokaluKategoriaRepository.findById(it.id.required()).orElse(null)

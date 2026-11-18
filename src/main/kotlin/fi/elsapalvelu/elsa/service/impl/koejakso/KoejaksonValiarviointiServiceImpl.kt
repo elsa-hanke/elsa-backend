@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.koejakso
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.koejakso.KoejaksonValiarviointi
 import fi.elsapalvelu.elsa.domain.perustiedot.VastuuhenkilonTehtavatyyppiEnum
@@ -26,7 +27,6 @@ import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.ZoneId
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
 
@@ -43,7 +43,8 @@ class KoejaksonValiarviointiServiceImpl(
     private val koejaksonAloituskeskusteluRepository: KoejaksonAloituskeskusteluRepository,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
     private val opintooikeusService: OpintooikeusService,
-    private val pdfTextFieldValidator: PdfTextFieldValidator
+    private val pdfTextFieldValidator: PdfTextFieldValidator,
+    private val clock: Clock
 ) : KoejaksonValiarviointiService {
 
     override fun create(
@@ -110,7 +111,7 @@ class KoejaksonValiarviointiServiceImpl(
         valiarviointi.vahvuudet = updated.vahvuudet
         valiarviointi.kehittamistoimenpiteet = updated.kehittamistoimenpiteet
         valiarviointi.lahikouluttajaHyvaksynyt = true
-        valiarviointi.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+        valiarviointi.lahikouluttajanKuittausaika = LocalDate.now(clock)
         valiarviointi.korjausehdotus = null
 
         val result = koejaksonValiarviointiRepository.save(valiarviointi)
@@ -135,7 +136,7 @@ class KoejaksonValiarviointiServiceImpl(
         // Hyväksytty
         if (updated.korjausehdotus.isNullOrBlank()) {
             valiarviointi.lahiesimiesHyvaksynyt = true
-            valiarviointi.lahiesimiehenKuittausaika = LocalDate.now(ZoneId.systemDefault())
+            valiarviointi.lahiesimiehenKuittausaika = LocalDate.now(clock)
         }
         // Palautettu korjattavaksi
         else {

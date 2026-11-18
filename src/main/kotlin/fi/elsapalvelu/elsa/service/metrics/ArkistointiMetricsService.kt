@@ -22,5 +22,12 @@ class ArkistointiMetricsService(registry: MeterRegistry) : ElsaMetricsService(re
     fun recordError(yliopisto: YliopistoEnum, caseType: CaseType) {
         counter("arkistointi.errors.total", "Total failed archiving operations", "yliopisto", yliopisto.name, "caseType", caseType.value).increment()
     }
+
+    fun recordAsyncAttempt(yliopisto: YliopistoEnum, caseType: CaseType, outcome: String) {
+        counter(
+            "arkistointi.async.attempts.total", "Committed asynchronous archiving attempt outcomes",
+            "yliopisto", yliopisto.name, "caseType", caseType.value, "outcome", outcome
+        ).increment()
+    }
 }
 

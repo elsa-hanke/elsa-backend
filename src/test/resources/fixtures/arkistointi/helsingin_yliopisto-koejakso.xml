@@ -1,0 +1,120 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Metadata xmlns="http://www.arkisto.fi/skeemat/Sahke2/2019/08/29" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <CaseFile xmlns="">
+        <Created>2024-12-31</Created>
+        <NativeId>CASE-4242</NativeId>
+        <Language>fi</Language>
+        <Restriction>
+            <PublicityClass>Julkinen</PublicityClass>
+            <PersonalData>sisältää henkilötietoja</PersonalData>
+            <Person>
+                <Name>Ääni Östergård</Name>
+                <Ssn>1991-02-03</Ssn>
+            </Person>
+            <SecurityPeriod>100</SecurityPeriod>
+            <SecurityReason></SecurityReason>
+            <SecurityClass>Ei turvallisuusluokiteltu</SecurityClass>
+            <Owner>Helsingin yliopisto</Owner>
+        </Restriction>
+        <Title>Koejakson arviointi</Title>
+        <Type>Muu</Type>
+        <RetentionPeriod>20</RetentionPeriod>
+        <RetentionReason>Helsingin yliopiston päätös (tiedonhallintamalli)</RetentionReason>
+        <Status>Valmis</Status>
+        <ClassificationScheme>
+            <MainFunction>
+                <Title/>
+                <FunctionCode/>
+                <FunctionClassification>
+                    <Title/>
+                    <FunctionCode/>
+                    <SubFunction>
+                        <Title/>
+                        <FunctionCode/>
+                    </SubFunction>
+                </FunctionClassification>
+            </MainFunction>
+        </ClassificationScheme>
+        <Function>04.12</Function>
+        <Action>
+            <Created>2024-12-31</Created>
+            <Title>Koejakson arviointi</Title>
+            <Type>Muu</Type>
+            <Record>
+                <Created>2024-12-31</Created>
+                <NativeId>5101</NativeId>
+                <Language>fi</Language>
+                <Restriction>
+                    <PublicityClass>Julkinen</PublicityClass>
+                    <PersonalData>sisältää henkilötietoja</PersonalData>
+                    <Person>
+                        <Name>Ääni Östergård</Name>
+                        <Ssn>1991-02-03</Ssn>
+                    </Person>
+                    <SecurityPeriod>100</SecurityPeriod>
+                    <SecurityReason></SecurityReason>
+                    <SecurityClass>Ei turvallisuusluokiteltu</SecurityClass>
+                    <Owner>Helsingin yliopisto</Owner>
+                </Restriction>
+                <Title>Östergård, Ääni, Yleislääketiede</Title>
+                <RetentionPeriod>20</RetentionPeriod>
+                <RetentionReason>-</RetentionReason>
+                <Status>Valmis</Status>
+                <Version>1.0</Version>
+                <Function>04.12</Function>
+                <Type>Muu</Type>
+                <Authenticity>
+                    <Checker/>
+                    <Date>0001-01-01</Date>
+                    <Description/>
+                </Authenticity>
+                <Document>
+                    <NativeId>arviointi.pdf</NativeId>
+                    <UseType>Natiivi</UseType>
+                    <File>
+                        <Name>arviointi.pdf</Name>
+                        <Path>pdf/arviointi.pdf</Path>
+                    </File>
+                    <Format>
+                        <Name>application/pdf</Name>
+                        <Version>1.0</Version>
+                    </Format>
+                    <HashAlgorithm>SHA-256</HashAlgorithm>
+                    <HashValue>9380198b4e8d40768ce0ecdf9b391f45a2e3edd956c701d85e290976e1d29ebe</HashValue>
+                </Document>
+                <Custom>
+                    <Elsa_Henkilonimi>Ääni Östergård</Elsa_Henkilonimi>
+                    <Elsa_Erikoisala>Yleislääketiede</Elsa_Erikoisala>
+                    <Elsa_Opiskelijanumero>TEST-20240042</Elsa_Opiskelijanumero>
+                    <Elsa_Syntymaaika>1991-02-03</Elsa_Syntymaaika>
+                    <Elsa_Yliopisto>Helsingin yliopisto</Elsa_Yliopisto>
+                    <dyn_PersonalDataCollectionReason>Rekisterinpitäjän lakisääteisten velvotteiden noudattaminen</dyn_PersonalDataCollectionReason>
+                    <Elsa_Tarkastuspaiva>2024-12-29</Elsa_Tarkastuspaiva>
+                    <Elsa_Tarkastaja>Tarkastaja Å</Elsa_Tarkastaja>
+                    <Elsa_Hyvaksymispaiva>2024-12-30</Elsa_Hyvaksymispaiva>
+                    <Elsa_Hyvaksyja>Hyväksyjä Ö</Elsa_Hyvaksyja>
+                    <Elsa_Asiakirjatyyppi>Koejakson arviointi</Elsa_Asiakirjatyyppi>
+                </Custom>
+            </Record>
+        </Action>
+    </CaseFile>
+    <TransferInformation xmlns="">
+        <NativeId>urn:oid:1.2.246.582.200.41012024.2024.0001</NativeId>
+        <Title>ELSA</Title>
+        <UseType>Säilytys</UseType>
+        <TransferContractId>4101</TransferContractId>
+        <MetadataSchema>http://www.arkisto.fi/skeemat/Sahke2_2019_03.xsd</MetadataSchema>
+    </TransferInformation>
+    <ContactInformation xmlns="">
+        <Organisation>
+            <Name>Helsingin yliopisto</Name>
+        </Organisation>
+        <ContactPerson>
+            <Name/>
+            <Address/>
+            <PhoneNumber/>
+            <Email/>
+        </ContactPerson>
+    </ContactInformation>
+</Metadata>

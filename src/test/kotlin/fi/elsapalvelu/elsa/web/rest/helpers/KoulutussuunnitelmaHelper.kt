@@ -1,9 +1,8 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
-import fi.elsapalvelu.elsa.domain.kayttaja.ErikoistuvaLaakari
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 
 object KoulutussuunnitelmaHelper {
@@ -47,7 +46,7 @@ object KoulutussuunnitelmaHelper {
     val DEFAULT_FILE: ByteArray = AsiakirjaHelper.ASIAKIRJA_PDF_DATA
     val UPDATED_FILE: ByteArray = AsiakirjaHelper.ASIAKIRJA_PDF_DATA
 
-    fun createEntity(em: EntityManager, user: User? = null): Koulutussuunnitelma {
+    fun createEntity(em: EntityManager, user: User? = null, opintooikeus: Opintooikeus = Testisuhteet.opintooikeus(em, user)): Koulutussuunnitelma {
 
         val koulutussuunnitelma = Koulutussuunnitelma(
             motivaatiokirje = DEFAULT_MOTIVAATIOKIRJE,
@@ -64,14 +63,12 @@ object KoulutussuunnitelmaHelper {
             elamankenttaYksityinen = DEFAULT_ELAMANKENTTA_YKSITYINEN
         )
 
-        koulutussuunnitelma.opintooikeus =
-            resolveErikoistuvaLaakari(em, user, updated = false)
-                .getOpintooikeusKaytossa()
+        koulutussuunnitelma.opintooikeus = opintooikeus
 
         return koulutussuunnitelma
     }
 
-    fun createUpdatedEntity(em: EntityManager): Koulutussuunnitelma {
+    fun createUpdatedEntity(opintooikeus: Opintooikeus): Koulutussuunnitelma {
 
         val koulutussuunnitelma = Koulutussuunnitelma(
             motivaatiokirje = UPDATED_MOTIVAATIOKIRJE,
@@ -88,35 +85,9 @@ object KoulutussuunnitelmaHelper {
             elamankenttaYksityinen = UPDATED_ELAMANKENTTA_YKSITYINEN
         )
 
-        koulutussuunnitelma.opintooikeus =
-            resolveErikoistuvaLaakari(em, updated = true)
-                .getOpintooikeusKaytossa()
+        koulutussuunnitelma.opintooikeus = opintooikeus
 
         return koulutussuunnitelma
     }
 
-    private fun resolveErikoistuvaLaakari(
-        em: EntityManager,
-        user: User? = null,
-        updated: Boolean
-    ): ErikoistuvaLaakari {
-
-        val existing =
-            em.findAll(ErikoistuvaLaakari::class)
-                .firstOrNull { it.kayttaja?.user == user }
-
-        if (existing != null) return existing
-
-        val created =
-            if (updated) {
-                ErikoistuvaLaakariHelper.createUpdatedEntity(em)
-            } else {
-                ErikoistuvaLaakariHelper.createEntity(em, user)
-            }
-
-        em.persist(created)
-        em.flush()
-
-        return created
-    }
 }

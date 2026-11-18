@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import java.time.Clock
 import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.web.rest.toFileDownloadResponse
@@ -40,7 +41,6 @@ import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import tech.jhipster.web.util.ResponseUtil
 import java.net.URI
-import java.time.ZoneId
 import jakarta.validation.Valid
 
 private const val ENTITY_NAME = "suoritusarviointi"
@@ -62,7 +62,8 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
     private val opintooikeusService: OpintooikeusService,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
     private val objectMapper: ObjectMapper,
-    private val fileValidationService: FileValidationService
+    private val fileValidationService: FileValidationService,
+    private val clock: Clock
 ) {
 
     @GetMapping("/suoritusarvioinnit-rajaimet")
@@ -168,7 +169,7 @@ class ErikoistuvaLaakariSuoritusarviointiResource(
 
         suoritusarviointiDTO.arviointiasteikko =
             arviointiasteikkoService.findByOpintooikeusId(opintooikeusId)
-        suoritusarviointiDTO.pyynnonAika = LocalDate.now(ZoneId.systemDefault())
+        suoritusarviointiDTO.pyynnonAika = LocalDate.now(clock)
 
         val result = suoritusarviointiService.save(suoritusarviointiDTO)
         kouluttajavaltuutusService.lisaaValtuutus(

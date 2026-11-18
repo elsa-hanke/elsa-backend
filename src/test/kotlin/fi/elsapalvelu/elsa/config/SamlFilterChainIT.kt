@@ -144,8 +144,8 @@ class SamlFilterChainIT {
     @Test
     fun nameMismatchDetailsStayInTheirOwnFailedLoginSessionThroughSecurityFilters() {
         val endpoint = "/api/julkinen/kirjautuminen/nimivirhe"
-        val firstSession = failedNameLogin(LoginNameMismatch("Aleksi Räisänen", "Kari Räisänen"))
-        val secondSession = failedNameLogin(LoginNameMismatch("Mia Haavisto", "Anna Mia Haavisto"))
+        val firstSession = failedNameLogin(LoginNameMismatch("Aleksi Räisänen", "Kari Räisänen", Instant.now().plusSeconds(300)))
+        val secondSession = failedNameLogin(LoginNameMismatch("Mia Haavisto", "Anna Mia Haavisto", Instant.now().plusSeconds(300)))
 
         mockMvc.perform(get("/kirjaudu").session(firstSession))
             .andExpect(status().isFound)

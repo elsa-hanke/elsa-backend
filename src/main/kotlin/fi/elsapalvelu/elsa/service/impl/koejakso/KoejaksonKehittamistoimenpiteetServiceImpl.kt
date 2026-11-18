@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.impl.koejakso
 
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
@@ -21,7 +22,6 @@ import fi.elsapalvelu.elsa.service.mapper.koejakso.KoejaksonKehittamistoimenpite
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.ZoneId
 import java.util.*
 import jakarta.persistence.EntityNotFoundException
 
@@ -38,6 +38,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val kouluttajavaltuutusService: KouluttajavaltuutusService,
     private val opintooikeusService: OpintooikeusService,
+    private val clock: Clock,
 ) : KoejaksonKehittamistoimenpiteetService {
 
     override fun create(
@@ -108,7 +109,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         kehittamistoimenpiteet.kehittamistoimenpiteetRiittavat =
             updated.kehittamistoimenpiteetRiittavat
         kehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
-        kehittamistoimenpiteet.lahikouluttajanKuittausaika = LocalDate.now(ZoneId.systemDefault())
+        kehittamistoimenpiteet.lahikouluttajanKuittausaika = LocalDate.now(clock)
         kehittamistoimenpiteet.korjausehdotus = null
 
         val result = koejaksonKehittamistoimenpiteetRepository.save(kehittamistoimenpiteet)
@@ -133,8 +134,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         // Hyväksytty
         if (updated.korjausehdotus.isNullOrBlank()) {
             kehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
-            kehittamistoimenpiteet.lahiesimiehenKuittausaika =
-                LocalDate.now(ZoneId.systemDefault())
+            kehittamistoimenpiteet.lahiesimiehenKuittausaika = LocalDate.now(clock)
         }
         // Palautettu korjattavaksi
         else {
@@ -203,7 +203,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
                 id,
                 userId
             )
-        return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
+        return taydennaValiarvioinninTiedoilla(kehittamistoimenpiteet)
     }
 
     @Transactional(readOnly = true)
@@ -216,7 +216,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
                 id,
                 userId
             )
-        return applyWithKehittamistoimenpiteetDescription(kehittamistoimenpiteet)
+        return taydennaValiarvioinninTiedoilla(kehittamistoimenpiteet)
     }
 
     @Transactional(readOnly = true)
@@ -243,7 +243,7 @@ class KoejaksonKehittamistoimenpiteetServiceImpl(
         return Optional.empty()
     }
 
-    private fun applyWithKehittamistoimenpiteetDescription(
+    private fun taydennaValiarvioinninTiedoilla(
         kehittamistoimenpiteet: Optional<KoejaksonKehittamistoimenpiteet>
     ): Optional<KoejaksonKehittamistoimenpiteetDTO> {
         val kehittamistoimenpiteetDto =

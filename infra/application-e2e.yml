@@ -1,0 +1,63 @@
+# Configuration for the disposable Cypress stack using the candidate image.
+# EHL setup changes a study right after login with SQL. Bypass Hibernate caches
+# so the application reads the new specialty and study guide on its next request.
+spring:
+  main:
+    # Cypress DB tasks run before the first application request. Initialize
+    # Liquibase during startup instead of inheriting dev's lazy initialization.
+    lazy-initialization: false
+  liquibase:
+    enabled: true
+  jpa:
+    properties:
+      hibernate.cache.use_second_level_cache: false
+      hibernate.cache.use_query_cache: false
+
+# Process jobs through profile-scoped test adapters; never call external archive systems.
+db-scheduler:
+  enabled: true
+  polling-interval: 1s
+
+application:
+  e2e:
+    archive-stub-enabled: true
+  arkistointi:
+    # Placeholder connection settings for beans used elsewhere in the application.
+    # The E2E profile replaces async delivery adapters for Helsinki and Tampere.
+    tre:
+      kaytossa: true
+      metadata:
+        cases:
+          valmistuminen:
+            async-enabled: true
+          koejakso:
+            async-enabled: true
+      host: 127.0.0.1
+      user: unused-e2e
+    turku:
+      kaytossa: false
+    hki:
+      kaytossa: true
+      metadata:
+        cases:
+          valmistuminen:
+            async-enabled: true
+          koejakso:
+            async-enabled: true
+          sopimus:
+            async-enabled: true
+    uef:
+      kaytossa: true
+      metadata:
+        cases:
+          # University enablement also activates KOEJAKSO metadata inherited from application.yml.
+          # UEF has no synchronous adapter; use the profile-scoped stub for both case types.
+          koejakso:
+            async-enabled: true
+          valmistuminen:
+            async-enabled: true
+            documents:
+              yhteenveto:
+                retention-period: "20"
+              liite:
+                retention-period: "10"

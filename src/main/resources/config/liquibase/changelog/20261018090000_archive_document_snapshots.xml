@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <changeSet id="20261018090000-1" author="elsa">
+        <addColumn tableName="asiakirja">
+            <column name="archive_snapshot" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="asiakirja_audit">
+            <column name="archive_snapshot" type="boolean"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="20261018090000-2" author="elsa" dbms="postgresql">
+        <sql splitStatements="false"><![CDATA[
+CREATE FUNCTION prevent_archive_snapshot_change() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF OLD.archive_snapshot THEN
+        RAISE EXCEPTION 'Archive snapshots are immutable' USING ERRCODE = '23514';
+    END IF;
+    IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+    RETURN NEW;
+END;
+$$;
+CREATE TRIGGER immutable_archive_snapshot BEFORE UPDATE OR DELETE ON asiakirja
+    FOR EACH ROW EXECUTE FUNCTION prevent_archive_snapshot_change();
+
+CREATE FUNCTION prevent_archive_snapshot_data_change() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM asiakirja WHERE asiakirja_data_id = OLD.id AND archive_snapshot) THEN
+        RAISE EXCEPTION 'Archive snapshot contents are immutable' USING ERRCODE = '23514';
+    END IF;
+    IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+    RETURN NEW;
+END;
+$$;
+CREATE TRIGGER immutable_archive_snapshot_data BEFORE UPDATE OR DELETE ON asiakirja_data
+    FOR EACH ROW EXECUTE FUNCTION prevent_archive_snapshot_data_change();
+        ]]></sql>
+        <rollback>
+            <sql>DROP TRIGGER immutable_archive_snapshot_data ON asiakirja_data;
+                DROP FUNCTION prevent_archive_snapshot_data_change();
+                DROP TRIGGER immutable_archive_snapshot ON asiakirja;
+                DROP FUNCTION prevent_archive_snapshot_change();</sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

@@ -7,6 +7,7 @@ import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.service.dto.arkistointi.ArkistointiPackage
 import org.springframework.stereotype.Component
 import java.io.FileOutputStream
+import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -18,12 +19,25 @@ class SahkePakettiBuilder {
         opintooikeus: Opintooikeus?,
         zipMetadata: Boolean
     ): ArkistointiPackage {
-        val mapper = createXmlMapper()
         val metadata = metadataResult.metadata
         val user = opintooikeus?.erikoistuvaLaakari?.kayttaja?.user
-        val title = "${metadata.caseFile.action.type?.lowercase()}_" +
-            "${user?.firstName?.lowercase()}_${user?.lastName?.lowercase()}"
-        val filePath = "/tmp/$title.zip"
+        val filePath = "/tmp/${filename(metadata.caseFile.action.type, user?.firstName, user?.lastName)}"
+
+        return build(metadataResult, Path.of(filePath), zipMetadata)
+    }
+
+    fun filename(type: String?, firstName: String?, lastName: String?): String =
+        "${type?.lowercase()}_${firstName?.lowercase()}_${lastName?.lowercase()}.zip"
+
+    /** The caller owns a unique temporary directory and removes it on both success and failure. */
+    fun build(
+        metadataResult: SahkeMetadataResult,
+        destination: Path,
+        zipMetadata: Boolean
+    ): ArkistointiPackage {
+        val mapper = createXmlMapper()
+        val metadata = metadataResult.metadata
+        val filePath = destination.toString()
 
         ZipOutputStream(FileOutputStream(filePath)).use { zipOut ->
             if (zipMetadata) {

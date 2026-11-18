@@ -150,6 +150,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(opintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultOpintopasVoimassaoloAlkaa)
         assertThat(opintooikeus.opintoopas?.voimassaoloPaattyy).isEqualTo(defaultOpintopasVoimassaoloPaattyy)
         assertThat(opintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
+        assertThat(opintooikeus.muokkausaika).isEqualTo(Instant.now(clock))
         assertThat(opintooikeus.kaytossa).isEqualTo(true)
         assertThat(opintooikeus.muokkausaika).isNotNull
         assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
@@ -491,8 +492,12 @@ class OpintotietodataPersistenceServiceIT {
         val secondOpintoopas = em.findAll(Opintoopas::class)
             .first { it.erikoisala == secondErikoisala && it.voimassaoloPaattyy == null }
         addValidOpintooikeus(
-            em, erikoistuvaLaakari, yliopistoRepository.findOneByNimi(yliopisto)!!,
-            secondErikoisala, secondOpintoopas, secondAsetus, currentDate, secondOpintooikeusId
+            em, erikoistuvaLaakari,
+            StudyProgramme(
+                yliopisto = yliopistoRepository.findOneByNimi(yliopisto)!!,
+                erikoisala = secondErikoisala, opintoopas = secondOpintoopas, asetus = secondAsetus
+            ),
+            currentDate, secondOpintooikeusId
         )
         val validYekOikeus = OpintooikeusHelper.addOpintooikeusForYekKoulutettava(em, erikoistuvaLaakari, alkamispaiva = currentDate.minusYears(1),
             paattymispaiva = currentDate.plusYears(5)
@@ -602,6 +607,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(opintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
         assertThat(opintooikeus.opintoopas?.voimassaoloPaattyy).isNull()
         assertThat(opintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
+        assertThat(opintooikeus.muokkausaika).isEqualTo(Instant.now(clock))
         assertThat(opintooikeus.kaytossa).isEqualTo(true)
         assertThat(opintooikeus.muokkausaika).isNotNull
         assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
@@ -724,6 +730,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(opintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
         assertThat(opintooikeus.opintoopas?.voimassaoloPaattyy).isNull()
         assertThat(opintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
+        assertThat(opintooikeus.muokkausaika).isEqualTo(Instant.now(clock))
         assertThat(opintooikeus.kaytossa).isEqualTo(true)
         assertThat(opintooikeus.muokkausaika).isNotNull
         assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
@@ -732,7 +739,9 @@ class OpintotietodataPersistenceServiceIT {
     private fun initUserWithOpintooikeus(opintooikeusId: String? = null, opintooikeudenMyontamispaiva: LocalDate = defaultOpintooikeudenMyontamispaiva,
         opintooikeudenPaattymispaiva: LocalDate = defaultOpintooikeudenPaattymispaiva, yliopistoEnum: YliopistoEnum): String {
         val yliopisto = yliopistoRepository.findOneByNimi(yliopistoEnum)
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, null, opintooikeudenMyontamispaiva, opintooikeudenPaattymispaiva, erikoisala, opintoopas, yliopisto)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(
+            em, null, opintooikeudenMyontamispaiva, opintooikeudenPaattymispaiva, erikoisala, opintoopas, yliopisto, asetus = em.find(Asetus::class.java, 1L)
+        )
         val opintooikeus = erikoistuvaLaakari.opintooikeudet.first()
         opintooikeus.opintoopas = opintoopas
         opintooikeus.yliopistoOpintooikeusId = opintooikeusId
@@ -850,14 +859,17 @@ class OpintotietodataPersistenceServiceIT {
     }
 }
 
-@Suppress("LongParameterList")
+private data class StudyProgramme(
+    val yliopisto: Yliopisto,
+    val erikoisala: Erikoisala,
+    val opintoopas: Opintoopas,
+    val asetus: Asetus
+)
+
 private fun addValidOpintooikeus(
     em: EntityManager,
     erikoistuvaLaakari: ErikoistuvaLaakari,
-    yliopisto: Yliopisto,
-    erikoisala: Erikoisala,
-    opintoopas: Opintoopas,
-    asetus: Asetus,
+    programme: StudyProgramme,
     currentDate: LocalDate,
     yliopistoOpintooikeusId: String
 ) {
@@ -869,10 +881,10 @@ private fun addValidOpintooikeus(
         opiskelijatunnus = "123456",
         osaamisenArvioinninOppaanPvm = currentDate,
         erikoistuvaLaakari = erikoistuvaLaakari,
-        yliopisto = yliopisto,
-        erikoisala = erikoisala,
-        opintoopas = opintoopas,
-        asetus = asetus,
+        yliopisto = programme.yliopisto,
+        erikoisala = programme.erikoisala,
+        opintoopas = programme.opintoopas,
+        asetus = programme.asetus,
         kaytossa = false,
         tila = OpintooikeudenTila.AKTIIVINEN
     )

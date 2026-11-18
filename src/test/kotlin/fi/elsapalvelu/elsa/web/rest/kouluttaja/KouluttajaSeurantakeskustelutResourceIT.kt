@@ -130,7 +130,7 @@ class KouluttajaSeurantakeskustelutResourceIT {
         // In
         val suoritusarviointi = SuoritusarviointiHelper.createEntity(
             em,
-            user,
+            erikoistuvaLaakari.kayttaja?.user,
             tapahtumaPvm
         )
         suoritusarviointiRepository.saveAndFlush(suoritusarviointi)
