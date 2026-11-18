@@ -1,6 +1,6 @@
 # ELSA-palvelun backend
 
-## Asynkronisen arkistoinnin koodirakenne
+## Asynkronisen arkistoinnin koodirakenne 
 
 Asynkronisen arkistoinnin rajapinnat ja toteutukset on jaettu vastuiden mukaan paketin
 `service.arkistointi.job` alle:
