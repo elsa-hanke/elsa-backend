@@ -633,7 +633,7 @@ class VirkailijaEtusivuResourceIT {
 
         val erikoistuvaLaakari =
             ErikoistuvaLaakariHelper.createEntity(
-                em,
+                em, yliopisto = defaultYliopisto, erikoisala = erikoisala1,
                 opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
             )
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)

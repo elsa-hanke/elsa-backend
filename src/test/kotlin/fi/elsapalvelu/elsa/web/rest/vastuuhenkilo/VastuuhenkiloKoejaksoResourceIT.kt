@@ -11,7 +11,6 @@ import fi.elsapalvelu.elsa.domain.seuranta.*
 import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
-import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonKoulutussopimusRepository
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonLoppukeskusteluRepository
 import fi.elsapalvelu.elsa.repository.koejakso.KoejaksonVastuuhenkilonArvioRepository
@@ -196,14 +195,7 @@ class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
     fun getAloituskeskustelu_VastuuhenkilonArvioForSameOpintooikeusDoesNotExist_ExpectNotFound() {
         initTest(false)
 
-        val newUser = KayttajaResourceWithMockUserIT.createEntity()
-        em.persist(newUser)
-        em.flush()
-        val erikoistuvaLaakari =
-            ErikoistuvaLaakariHelper.createEntity(em, newUser, erikoisala = Erikoisala(5))
-        em.persist(erikoistuvaLaakari)
-
-        koejaksonAloituskeskustelu.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
+        koejaksonAloituskeskustelu.opintooikeus = luoToisenErikoisalanOpintooikeus()
         koejaksonAloituskeskustelu.lahikouluttajaHyvaksynyt = true
         koejaksonAloituskeskustelu.lahiesimiesHyvaksynyt = true
 
@@ -293,14 +285,7 @@ class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
     fun getValiarviointi_VastuuhenkilonArvioForSameOpintooikeusDoesNotExist_ExpectNotFound() {
         initTest(false)
 
-        val newUser = KayttajaResourceWithMockUserIT.createEntity()
-        em.persist(newUser)
-        em.flush()
-        val erikoistuvaLaakari =
-            ErikoistuvaLaakariHelper.createEntity(em, newUser, erikoisala = Erikoisala(5))
-        em.persist(erikoistuvaLaakari)
-
-        koejaksonValiarviointi.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
+        koejaksonValiarviointi.opintooikeus = luoToisenErikoisalanOpintooikeus()
         koejaksonValiarviointi.lahikouluttajaHyvaksynyt = true
         koejaksonValiarviointi.lahiesimiesHyvaksynyt = true
 
@@ -386,13 +371,7 @@ class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
     fun getKehittamistoimenpiteet_VastuuhenkilonArvioForSameOpintooikeusDoesNotExist_ExpectNotFound() {
         initTest(false)
 
-        val newUser = KayttajaResourceWithMockUserIT.createEntity()
-        em.persist(newUser)
-        em.flush()
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, newUser, erikoisala = Erikoisala(5))
-        em.persist(erikoistuvaLaakari)
-
-        koejaksonKehittamistoimenpiteet.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
+        koejaksonKehittamistoimenpiteet.opintooikeus = luoToisenErikoisalanOpintooikeus()
         koejaksonKehittamistoimenpiteet.lahikouluttajaHyvaksynyt = true
         koejaksonKehittamistoimenpiteet.lahiesimiesHyvaksynyt = true
 
@@ -466,13 +445,7 @@ class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
     fun getLoppukeskustelu_VastuuhenkilonArvioForSameOpintooikeusDoesNotExist_ExpectNotFound() {
         initTest(false)
 
-        val newUser = KayttajaResourceWithMockUserIT.createEntity()
-        em.persist(newUser)
-        em.flush()
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, newUser, erikoisala = Erikoisala(5))
-        em.persist(erikoistuvaLaakari)
-
-        koejaksonLoppukeskustelu.opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()
+        koejaksonLoppukeskustelu.opintooikeus = luoToisenErikoisalanOpintooikeus()
         koejaksonLoppukeskustelu.lahikouluttajaHyvaksynyt = true
         koejaksonLoppukeskustelu.lahiesimiesHyvaksynyt = true
         koejaksonLoppukeskusteluRepository.saveAndFlush(koejaksonLoppukeskustelu)
@@ -696,6 +669,14 @@ class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
         assertThat(testVastuuhenkilonArvio.vastuuhenkilonKuittausaika).isNotNull
     }
 
+    private fun luoToisenErikoisalanOpintooikeus(): Opintooikeus {
+        val yliopisto = requireNotNull(koejaksonKoulutussopimus.opintooikeus?.yliopisto)
+        val erikoisala = requireNotNull(em.find(Erikoisala::class.java, 5L))
+        return requireNotNull(ErikoistuvaLaakariHelper.createEntity(
+            em, erikoisala = erikoisala, yliopisto = yliopisto
+        ).getOpintooikeusKaytossa())
+    }
+
     fun initTest(createVastuuhenkilonArvio: Boolean? = true) {
         user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(name = VASTUUHENKILO))
         em.persist(user)
@@ -712,8 +693,7 @@ class VastuuhenkiloKoejaksoResourceIT : ResourceIntegrationTestBase() {
         em.persist(kouluttaja)
         val esimies = KayttajaHelper.createEntity(em)
         em.persist(esimies)
-        val yliopisto = Yliopisto(nimi = YliopistoEnum.TAMPEREEN_YLIOPISTO)
-        em.persist(yliopisto)
+        val yliopisto = requireNotNull(erikoistuvaLaakari.getOpintooikeusKaytossa()?.yliopisto)
 
         val vaiheet = KoejaksonVaiheetHelper.persistKoejaksoVaiheet(
             em, erikoistuvaLaakari, kouluttaja, esimies, vastuuhenkilo, yliopisto

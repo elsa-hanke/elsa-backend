@@ -4,5 +4,6 @@ import java.time.Instant
 import java.util.UUID
 
 interface ArkistointiJobScheduler {
-    fun schedule(jobId: UUID, executionTime: Instant = Instant.now()): Boolean
+    fun schedule(jobId: UUID): Boolean
+    fun schedule(jobId: UUID, executionTime: Instant): Boolean
 }

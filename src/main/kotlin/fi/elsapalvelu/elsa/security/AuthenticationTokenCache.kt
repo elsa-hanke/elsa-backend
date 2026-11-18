@@ -1,18 +1,21 @@
 package fi.elsapalvelu.elsa.security
 
+import org.springframework.stereotype.Component
+import java.time.Clock
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 
-object AuthenticationTokenCache {
+@Component
+class AuthenticationTokenCache(private val clock: Clock) {
 
-    private val tokens: ConcurrentHashMap<String, AuthenticationToken> = ConcurrentHashMap()
+    private val tokenit: ConcurrentHashMap<String, AuthenticationToken> = ConcurrentHashMap()
 
     fun getTokenByClientId(clientId: String): AuthenticationToken? {
-        return tokens[clientId]
-            ?.takeIf { it.expires.isAfter(LocalDateTime.now()) }
+        return tokenit[clientId]
+            ?.takeIf { it.expires.isAfter(LocalDateTime.now(clock)) }
     }
 
     fun storeTokenByClientId(clientId: String, token: AuthenticationToken) {
-        tokens[clientId] = token
+        tokenit[clientId] = token
     }
 }

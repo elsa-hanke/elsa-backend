@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
+import java.time.Clock
 import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
@@ -21,7 +22,8 @@ private const val ENTITY_NAME = "suoritusarvioinnin_kommentti"
 @RequestMapping("/api/")
 class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
     private val suoritusarvioinninKommenttiService: SuoritusarvioinninKommenttiService,
-    private val userService: UserService
+    private val userService: UserService,
+    private val clock: Clock
 ) {
 
     @PostMapping("/suoritusarvioinnit/{id}/kommentti")
@@ -38,9 +40,9 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
             )
         }
         val user = userService.getAuthenticatedUser(principal)
-        val now = Instant.now()
-        suoritusarvioinninKommenttiDTO.luontiaika = now
-        suoritusarvioinninKommenttiDTO.muokkausaika = now
+        val nykyhetki = Instant.now(clock)
+        suoritusarvioinninKommenttiDTO.luontiaika = nykyhetki
+        suoritusarvioinninKommenttiDTO.muokkausaika = nykyhetki
         suoritusarvioinninKommenttiDTO.suoritusarviointiId = id
         val result = suoritusarvioinninKommenttiService
             .save(suoritusarvioinninKommenttiDTO, user.id.required())
@@ -58,7 +60,7 @@ class ErikoistuvaLaakariSuoritusarvioinninKommenttiResource(
             throw BadRequestAlertException("Virheellinen id", ENTITY_NAME, "idnull")
         }
         val user = userService.getAuthenticatedUser(principal)
-        suoritusarvioinninKommenttiDTO.muokkausaika = Instant.now()
+        suoritusarvioinninKommenttiDTO.muokkausaika = Instant.now(clock)
         val result =
             suoritusarvioinninKommenttiService.save(suoritusarvioinninKommenttiDTO, user.id.required())
         return ResponseEntity.ok(result)

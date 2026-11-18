@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.service.koejakso.KoejaksonTilasaannot
 import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
@@ -76,21 +77,21 @@ class ErikoistuvaLaakariKoejaksoResource(
             .ifPresent {
                 result.koulutussopimus = it
             }
-        result.koulutusSopimuksenTila = KoejaksoTila.fromSopimus(result.koulutussopimus, false)
+        result.koulutusSopimuksenTila = KoejaksonTilasaannot.maaritaSopimuksenTila(result.koulutussopimus, false)
 
         koejaksonAloituskeskusteluService.findByOpintooikeusId(opintooikeusId)
             .ifPresent {
                 result.aloituskeskustelu = it
             }
         result.aloituskeskustelunTila =
-            KoejaksoTila.fromAloituskeskustelu(result.aloituskeskustelu)
+            KoejaksonTilasaannot.maaritaAloituskeskustelunTila(result.aloituskeskustelu)
 
         koejaksonValiarviointiService.findByOpintooikeusId(opintooikeusId)
             .ifPresent {
                 result.valiarviointi = it
             }
         result.valiarvioinninTila =
-            KoejaksoTila.fromValiarvointi(
+            KoejaksonTilasaannot.maaritaValiarvioinninTila(
                 result.aloituskeskustelunTila == KoejaksoTila.HYVAKSYTTY,
                 result.valiarviointi
             )
@@ -102,7 +103,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 result.kehittamistoimenpiteet = it
             }
         result.kehittamistoimenpiteidenTila =
-            KoejaksoTila.fromKehittamistoimenpiteet(
+            KoejaksonTilasaannot.maaritaKehittamistoimenpiteidenTila(
                 valiarviointiHyvaksytty && result.valiarviointi?.edistyminenTavoitteidenMukaista != true,
                 result.kehittamistoimenpiteet
             )
@@ -112,7 +113,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 result.loppukeskustelu = it
             }
         result.loppukeskustelunTila =
-            KoejaksoTila.fromLoppukeskustelu(
+            KoejaksonTilasaannot.maaritaLoppukeskustelunTila(
                 result.kehittamistoimenpiteidenTila == KoejaksoTila.HYVAKSYTTY
                     || (valiarviointiHyvaksytty && result.valiarviointi?.edistyminenTavoitteidenMukaista == true),
                 result.loppukeskustelu
@@ -123,7 +124,7 @@ class ErikoistuvaLaakariKoejaksoResource(
                 result.vastuuhenkilonArvio = it
             }
         result.vastuuhenkilonArvionTila =
-            KoejaksoTila.fromVastuuhenkilonArvio(
+            KoejaksonTilasaannot.maaritaVastuuhenkilonArvionVaihetila(
                 result.loppukeskustelunTila == KoejaksoTila.HYVAKSYTTY,
                 result.vastuuhenkilonArvio
             )

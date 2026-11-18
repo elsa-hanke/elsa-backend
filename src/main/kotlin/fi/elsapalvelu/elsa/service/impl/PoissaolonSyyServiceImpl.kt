@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
 import fi.elsapalvelu.elsa.repository.tyoskentely.PoissaolonSyyRepository
@@ -15,7 +16,8 @@ import org.springframework.transaction.annotation.Transactional
 class PoissaolonSyyServiceImpl(
     private val poissaolonSyyRepository: PoissaolonSyyRepository,
     private val poissaolonSyyMapper: PoissaolonSyyMapper,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val clock: Clock
 ) : PoissaolonSyyService {
 
     override fun save(poissaolonSyyDTO: PoissaolonSyyDTO): PoissaolonSyyDTO {
@@ -30,7 +32,7 @@ class PoissaolonSyyServiceImpl(
             // Jos päivämäärää jonka mukainen opintosuunnitelma käytössä ei ole määritetty, käytetään nykyistä päivää
             // voimassaolon rajaamisessa
             return poissaolonSyyRepository.findAllByValid(
-                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now(clock)
             ).map(poissaolonSyyMapper::toDto)
         } ?: listOf()
     }

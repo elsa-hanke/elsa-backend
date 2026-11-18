@@ -11,6 +11,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.*
+import java.time.Clock
 import java.util.UUID
 
 class DynastyDeliveryTest {
@@ -23,7 +24,7 @@ class DynastyDeliveryTest {
             val submission = dynastySubmission(mapper)
             val ledger = resumableLedger(submission.execution)
             val adapter = TurkuDynastyArkistointiAdapter(
-                DynastyClient(properties.getArkistointi().getTurku().dynasty,mapper),
+                DynastyClient(properties.getArkistointi().getTurku().dynasty,mapper, Clock.systemDefaultZone()),
                 TurkuDynastyMetadataMapper(properties,mapper,ArchivePayloadReader(mapper)),
                 DynastyStepExecutor(ledger, properties)
             )

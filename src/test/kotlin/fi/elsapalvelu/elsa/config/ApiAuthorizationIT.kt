@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI
+import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.KOULUTTAJA
 import fi.elsapalvelu.elsa.security.OPINTOHALLINNON_VIRKAILIJA
 import fi.elsapalvelu.elsa.security.TEKNINEN_PAAKAYTTAJA
@@ -9,6 +10,8 @@ import fi.elsapalvelu.elsa.security.VASTUUHENKILO
 import fi.elsapalvelu.elsa.security.YEK_KOULUTETTAVA
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
@@ -161,6 +164,22 @@ class ApiAuthorizationIT {
         mockMvc.perform(get("/api/login/impersonate")
             .with(user("test-user").authorities(SimpleGrantedAuthority(YEK_KOULUTETTAVA))))
             .andExpect(status().isForbidden)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "/api/erikoistuva-laakari, POST",
+        "/api/erikoistuva-laakari, PUT",
+        "/api/yek-koulutettava, POST",
+        "/api/yek-koulutettava, PUT"
+    )
+    fun virkailijaEiVoiLahettaaTaiUudelleenlahettaaHyvaksyntaa(polku: String, menetelma: String) {
+        TestSecurityContextHolder.clearContext()
+        mockMvc.perform(
+            request(HttpMethod.valueOf(menetelma), "$polku/tyoskentelyjaksot/terveyskeskuskoulutusjakson-hyvaksynta")
+                .with(user("virkailija").authorities(SimpleGrantedAuthority(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)))
+                .with(csrf())
+        ).andExpect(status().isForbidden)
     }
 
     private fun isPublic(path: String): Boolean =

@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
@@ -150,7 +152,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest()
+        initTest(erikoistuvaLaakari.getOpintooikeusKaytossa())
 
         val databaseSizeBeforeCreate = suoritemerkintaRepository.findAll().size
 
@@ -201,7 +203,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest()
+        initTest(erikoistuvaLaakari.getOpintooikeusKaytossa())
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
 
@@ -285,7 +287,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest()
+        initTest(erikoistuvaLaakari.getOpintooikeusKaytossa())
 
         val databaseSizeBeforeCreate = suoritemerkintaRepository.findAll().size
 
@@ -368,7 +370,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
         val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em)
         erikoistuvaLaakariRepository.saveAndFlush(erikoistuvaLaakari)
 
-        initTest()
+        initTest(erikoistuvaLaakari.getOpintooikeusKaytossa())
 
         suoritemerkintaRepository.saveAndFlush(suoritemerkinta)
 
@@ -492,7 +494,7 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
             )
     }
 
-    fun initTest() {
+    fun initTest(opintooikeus: Opintooikeus? = null) {
         user = KayttajaResourceWithMockUserIT.createEntity()
         em.persist(user)
         em.flush()
@@ -508,15 +510,9 @@ class ErikoistuvaLaakariSuoritemerkintaResourceIT {
 
         suoritemerkinta = createEntity(em, erikoisala)
 
-        // Lisätään pakollinen tieto
-        val tyoskentelyjakso: Tyoskentelyjakso
-        if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-            tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, user)
-            em.persist(tyoskentelyjakso)
-            em.flush()
-        } else {
-            tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class)[0]
-        }
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(
+            em, user, opintooikeus = opintooikeus ?: Testisuhteet.opintooikeus(em, user)
+        ).also(em::persist)
 
         suoritemerkinta.tyoskentelyjakso = tyoskentelyjakso
         suoritemerkinta.arviointiasteikko =

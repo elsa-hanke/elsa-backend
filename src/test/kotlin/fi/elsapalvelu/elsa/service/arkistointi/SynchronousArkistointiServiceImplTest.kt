@@ -42,6 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.time.Clock
 import java.time.LocalDate
 import java.util.zip.ZipInputStream
 
@@ -271,7 +272,7 @@ class SynchronousArkistointiServiceImplTest {
 
         return SynchronousArkistointiServiceImpl(
             configurationProvider = configurationProvider,
-            metadataBuilder = SahkeMetadataBuilder(),
+            metadataBuilder = SahkeMetadataBuilder(Clock.systemDefaultZone()),
             pakettiBuilder = SahkePakettiBuilder(),
             dispatcher = dispatcher
         )

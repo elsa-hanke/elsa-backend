@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.config.arkistointi
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
@@ -54,7 +55,8 @@ class DbSchedulerArkistointiJobTransactionIT {
                 "insert into yliopisto (nimi) select ? where not exists (select 1 from yliopisto)",
                 YliopistoEnum.TURUN_YLIOPISTO.name
             )
-            val asiakirja = AsiakirjaHelper.createEntity(entityManager)
+            val asiakirja = AsiakirjaHelper.createEntity(entityManager, opintooikeus =
+                Testisuhteet.opintooikeusViitetiedoilla(entityManager, YliopistoEnum.TURUN_YLIOPISTO))
             entityManager.persist(asiakirja)
             val job = ArkistointiJob(
                 university = YliopistoEnum.TURUN_YLIOPISTO,

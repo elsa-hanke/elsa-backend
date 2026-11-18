@@ -25,6 +25,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.time.LocalDate
 import java.util.Optional
 
@@ -47,7 +48,8 @@ class OpintosuorituksetPersistenceServiceImplTest {
         opintosuoritusKurssikoodiRepository,
         opintosuoritusOsakokonaisuusMapper,
         opintosuoritusTyyppiMapper,
-        opintooikeusRepository
+        opintooikeusRepository,
+        Clock.systemDefaultZone()
     )
 
     @Test

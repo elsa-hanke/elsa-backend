@@ -1,6 +1,9 @@
 package fi.elsapalvelu.elsa.service.impl
 
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.verify
+import org.assertj.core.api.Assertions.assertThat
 import org.mockito.kotlin.whenever
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.*
@@ -110,7 +113,7 @@ class OpintotietodataPersistenceServiceImplTest {
     }
 
     @Test
-    fun `createWithoutOpintotietodataOnlyDevDoNotUseInProd does not throw when in dev profile`() {
+    fun `kehitysympariston opintooikeuden paivamaarat tulevat kellosta`() {
         whenever(env.activeProfiles).thenReturn(arrayOf(SPRING_PROFILE_DEVELOPMENT))
 
         val userId = "test-user-id"
@@ -158,6 +161,18 @@ class OpintotietodataPersistenceServiceImplTest {
                 cipher, originalKey, "010190-1234", "Testi", "Henkilö"
             )
         }
+        tarkistaKehitysymparistonPaivamaarat()
+    }
+
+    private fun tarkistaKehitysymparistonPaivamaarat() {
+        val tallennettu = argumentCaptor<Opintooikeus>()
+        verify(opintooikeusRepository).save(tallennettu.capture())
+        val tanaan = LocalDate.now(clock)
+        assertThat(tallennettu.firstValue.opintooikeudenMyontamispaiva).isEqualTo(tanaan)
+        assertThat(tallennettu.firstValue.opintooikeudenPaattymispaiva).isEqualTo(tanaan.plusYears(10))
+        assertThat(tallennettu.firstValue.viimeinenKatselupaiva)
+            .isEqualTo(tanaan.plusYears(10).plusMonths(fi.elsapalvelu.elsa.config.PAATTYNEEN_OPINTOOIKEUDEN_KATSELUAIKA_KUUKAUDET))
+        assertThat(tallennettu.firstValue.osaamisenArvioinninOppaanPvm).isEqualTo(tanaan)
     }
 
     // -------------------------------------------------------------------------

@@ -91,9 +91,9 @@ class User(
     var activeAuthority: Authority? = null,
 
     createdBy: String? = null,
-    createdDate: Instant? = Instant.now(),
+    createdDate: Instant? = null,
     lastModifiedBy: String? = null,
-    lastModifiedDate: Instant? = Instant.now()
+    lastModifiedDate: Instant? = null
 ) : AbstractAuditingEntity(createdBy, createdDate, lastModifiedBy, lastModifiedDate), Serializable {
 
     override fun equals(other: Any?): Boolean {

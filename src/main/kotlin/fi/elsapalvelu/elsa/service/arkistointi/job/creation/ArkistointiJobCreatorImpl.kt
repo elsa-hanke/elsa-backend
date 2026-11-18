@@ -5,6 +5,7 @@ import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobAsiakirja
 import fi.elsapalvelu.elsa.repository.arkistointi.ArkistointiJobRepository
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
 import java.util.UUID
+import java.time.Clock
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,7 +16,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 class ArkistointiJobCreatorImpl(
     private val jobRepository: ArkistointiJobRepository,
     private val jobScheduler: ArkistointiJobScheduler,
-    private val snapshotService: ArkistointiAsiakirjaSnapshotService
+    private val snapshotService: ArkistointiAsiakirjaSnapshotService,
+    private val clock: Clock
 ) : ArkistointiJobCreator {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -24,13 +26,16 @@ class ArkistointiJobCreatorImpl(
         validate(jobRequest)
 
         jobRepository.findByKey(jobRequest.key)?.let { return it }
+        val luontiaika = clock.instant()
         val job = ArkistointiJob(
             university = jobRequest.university,
             caseType = jobRequest.caseType,
             payload = jobRequest.payload,
             key = jobRequest.key,
             expectedDocumentCount = jobRequest.asiakirjat.size,
-            requestedByUserId = jobRequest.requestedByUserId
+            requestedByUserId = jobRequest.requestedByUserId,
+            createdAt = luontiaika,
+            updatedAt = luontiaika
         )
         jobRequest.asiakirjat.sortedBy { it.jarjestysnumero }.forEach { reference ->
             val snapshot = snapshotService.resolveReference(reference)
@@ -48,7 +53,7 @@ class ArkistointiJobCreatorImpl(
 
         val saved = jobRepository.saveAndFlush(job)
         val jobId = requireNotNull(saved.id)
-        check(jobScheduler.schedule(jobId)) { "Arkistointi-jobin ajastus epaonnistui" }
+        check(jobScheduler.schedule(jobId, clock.instant())) { "Arkistointi-jobin ajastus epaonnistui" }
         logCreatedAfterCommit(jobRequest.key, jobId)
         return saved
     }

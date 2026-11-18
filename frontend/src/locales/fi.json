@@ -1639,7 +1639,6 @@
   "valmistumispyynto-kuulustelu-ja-johtamisopinnot": "Kuulustelu ja johtamisopinnot on suoritettu.",
   "valmistumispyynto-lahetetty": "Valmistumispyyntö lähetetty {lahetetty}",
   "valmistumispyynto-lahetetty-onnistuneesti": "Valmistumispyyntö lähetetty onnistuneesti",
-  "valmistumispyynto-mikali-olet-toimittanut-tarvittavat-tiedot": "Mikäli olet toimittanut tarvittavat tiedot muulla tavoin opintohallintoon ja erikoisalan vastuuhenkilölle, suoritusten ei tarvitse löytyä täysimääräisenä ELSAsta ja voit edetä valmistumispyyntöön.",
   "valmistumispyynto-odottaa-osaamisen-tarkastusta-selite": "Valmistumispyyntö odottaa vastuuhenkilön suorittamaa osaamisten tarkastusta, opintohallinnon tarkastusta sekä vastuuhenkilön lopullista hyväksyntää.",
   "valmistumispyynto-opintohallinto-ei-viela-tarkistanut": "Opintohallinto ei ole vielä tarkistanut valmistumispyyntöä.",
   "valmistumispyynto-opintohallinto-tarkistanut-osaamisen": "Opintohallinto on tarkistanut valmistumispyynnön {virkailijanKuittausaika}",

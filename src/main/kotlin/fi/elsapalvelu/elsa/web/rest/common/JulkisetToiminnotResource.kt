@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.common
 
+import java.time.Clock
 import fi.elsapalvelu.elsa.domain.perustiedot.ApplicationSettingTyyppi
 import fi.elsapalvelu.elsa.service.perustiedot.ApplicationSettingService
 import fi.elsapalvelu.elsa.service.seuranta.IlmoitusService
@@ -21,7 +22,8 @@ import java.time.temporal.ChronoUnit
 class JulkisetToiminnotResource(
     private val applicationSettingService: ApplicationSettingService,
     private val ilmoitusService: IlmoitusService,
-    private val poissaolonSyyService: PoissaolonSyyService
+    private val poissaolonSyyService: PoissaolonSyyService,
+    private val clock: Clock
 ) {
 
     @GetMapping("/seuraava-paivitys")
@@ -30,9 +32,9 @@ class JulkisetToiminnotResource(
         val paivitysAika = applicationSettingService.getDatetimeSettingValue(
             ApplicationSettingTyyppi.SEURAAVAN_PAIVITYKSEN_AIKA
         )
-        val now = Instant.now()
-        if (paivitysAika != null && paivitysAika.isAfter(now) && ChronoUnit.DAYS.between(
-                now,
+        val nykyhetki = Instant.now(clock)
+        if (paivitysAika != null && paivitysAika.isAfter(nykyhetki) && ChronoUnit.DAYS.between(
+                nykyhetki,
                 paivitysAika
             ) < 3
         ) {

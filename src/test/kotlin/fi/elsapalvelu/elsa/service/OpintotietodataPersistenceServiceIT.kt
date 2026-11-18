@@ -150,6 +150,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(opintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultOpintopasVoimassaoloAlkaa)
         assertThat(opintooikeus.opintoopas?.voimassaoloPaattyy).isEqualTo(defaultOpintopasVoimassaoloPaattyy)
         assertThat(opintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
+        assertThat(opintooikeus.muokkausaika).isEqualTo(Instant.now(clock))
         assertThat(opintooikeus.kaytossa).isEqualTo(true)
         assertThat(opintooikeus.muokkausaika).isNotNull
         assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
@@ -606,6 +607,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(opintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
         assertThat(opintooikeus.opintoopas?.voimassaoloPaattyy).isNull()
         assertThat(opintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
+        assertThat(opintooikeus.muokkausaika).isEqualTo(Instant.now(clock))
         assertThat(opintooikeus.kaytossa).isEqualTo(true)
         assertThat(opintooikeus.muokkausaika).isNotNull
         assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
@@ -728,6 +730,7 @@ class OpintotietodataPersistenceServiceIT {
         assertThat(opintooikeus.opintoopas?.voimassaoloAlkaa).isEqualTo(defaultLatestOpintopasVoimassaoloAlkaa)
         assertThat(opintooikeus.opintoopas?.voimassaoloPaattyy).isNull()
         assertThat(opintooikeus.osaamisenArvioinninOppaanPvm).isEqualTo(LocalDate.now(clock))
+        assertThat(opintooikeus.muokkausaika).isEqualTo(Instant.now(clock))
         assertThat(opintooikeus.kaytossa).isEqualTo(true)
         assertThat(opintooikeus.muokkausaika).isNotNull
         assertThat(opintooikeus.tila).isEqualTo(OpintooikeudenTila.AKTIIVINEN)
@@ -736,7 +739,9 @@ class OpintotietodataPersistenceServiceIT {
     private fun initUserWithOpintooikeus(opintooikeusId: String? = null, opintooikeudenMyontamispaiva: LocalDate = defaultOpintooikeudenMyontamispaiva,
         opintooikeudenPaattymispaiva: LocalDate = defaultOpintooikeudenPaattymispaiva, yliopistoEnum: YliopistoEnum): String {
         val yliopisto = yliopistoRepository.findOneByNimi(yliopistoEnum)
-        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, null, opintooikeudenMyontamispaiva, opintooikeudenPaattymispaiva, erikoisala, opintoopas, yliopisto)
+        val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(
+            em, null, opintooikeudenMyontamispaiva, opintooikeudenPaattymispaiva, erikoisala, opintoopas, yliopisto, asetus = em.find(Asetus::class.java, 1L)
+        )
         val opintooikeus = erikoistuvaLaakari.opintooikeudet.first()
         opintooikeus.opintoopas = opintoopas
         opintooikeus.yliopistoOpintooikeusId = opintooikeusId

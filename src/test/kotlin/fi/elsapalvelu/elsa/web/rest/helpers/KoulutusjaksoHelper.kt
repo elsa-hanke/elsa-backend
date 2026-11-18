@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutusjakso
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
 import fi.elsapalvelu.elsa.domain.kayttaja.User
-import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 import java.time.LocalDate
 import java.time.ZoneId
@@ -25,7 +24,11 @@ object KoulutusjaksoHelper {
     private const val DEFAULT_LUKITTU = false
     private const val UPDATED_LUKITTU = true
 
-    fun createEntity(em: EntityManager, user: User? = null): Koulutusjakso {
+    fun createEntity(
+        em: EntityManager,
+        user: User? = null,
+        koulutussuunnitelma: Koulutussuunnitelma = KoulutussuunnitelmaHelper.createEntity(em, user).also(em::persist)
+    ): Koulutusjakso {
         val koulutusjakso = Koulutusjakso(
             nimi = DEFAULT_NIMI,
             muutOsaamistavoitteet = DEFAULT_MUUT_OSAAMISTAVOITTEET,
@@ -34,13 +37,12 @@ object KoulutusjaksoHelper {
             lukittu = DEFAULT_LUKITTU
         )
 
-        val koulutussuunnitelma = resolveKoulutussuunnitelma(em, user, updated = false)
         koulutusjakso.koulutussuunnitelma = koulutussuunnitelma
 
         return koulutusjakso
     }
 
-    fun createUpdatedEntity(em: EntityManager): Koulutusjakso {
+    fun createUpdatedEntity(koulutussuunnitelma: Koulutussuunnitelma): Koulutusjakso {
         val koulutusjakso = Koulutusjakso(
             nimi = UPDATED_NIMI,
             muutOsaamistavoitteet = UPDATED_MUUT_OSAAMISTAVOITTEET,
@@ -49,31 +51,9 @@ object KoulutusjaksoHelper {
             lukittu = UPDATED_LUKITTU
         )
 
-        val koulutussuunnitelma = resolveKoulutussuunnitelma(em, updated = true)
         koulutusjakso.koulutussuunnitelma = koulutussuunnitelma
 
         return koulutusjakso
     }
 
-    private fun resolveKoulutussuunnitelma(
-        em: EntityManager,
-        user: User? = null,
-        updated: Boolean
-    ): Koulutussuunnitelma {
-        val existing = em.findAll(Koulutussuunnitelma::class).firstOrNull()
-
-        if (existing != null) return existing
-
-        val created =
-            if (updated) {
-                KoulutussuunnitelmaHelper.createUpdatedEntity(em)
-            } else {
-                KoulutussuunnitelmaHelper.createEntity(em, user)
-            }
-
-        em.persist(created)
-        em.flush()
-
-        return created
-    }
 }

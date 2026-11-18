@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.service.impl.arviointi
 import fi.elsapalvelu.elsa.service.RichTextHtmlSanitizer
 import fi.elsapalvelu.elsa.required
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.arviointi.ArvioitavaKokonaisuusRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
@@ -28,7 +29,8 @@ class ArvioitavaKokonaisuusServiceImpl(
     private val arvioitavaKokonaisuusWithErikoisalaMapper: ArvioitavaKokonaisuusWithErikoisalaMapper,
     private val opintooikeusRepository: OpintooikeusRepository,
     private val arvioitavanKokonaisuudenKategoriaSimpleMapper: ArvioitavanKokonaisuudenKategoriaSimpleMapper,
-    private val suoritusarviointiRepository: SuoritusarviointiRepository
+    private val suoritusarviointiRepository: SuoritusarviointiRepository,
+    private val clock: Clock
 ) : ArvioitavaKokonaisuusService {
 
     override fun create(arvioitavaKokonaisuusDTO: ArvioitavaKokonaisuusDTO): ArvioitavaKokonaisuusDTO {
@@ -75,7 +77,7 @@ class ArvioitavaKokonaisuusServiceImpl(
             // Jos päivämäärää jonka mukainen osaamisen arvioinnin opas käytössä, ei ole määritetty, käytetään nykyistä päivää
             // voimassaolon rajaamisessa
             arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
-                it.erikoisala?.id, it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+                it.erikoisala?.id, it.osaamisenArvioinninOppaanPvm ?: LocalDate.now(clock)
             ).map(arvioitavaKokonaisuusMapper::toDto)
         }.orEmpty()
     }
@@ -85,16 +87,16 @@ class ArvioitavaKokonaisuusServiceImpl(
         voimassaolevat: Boolean?,
         pageable: Pageable
     ): Page<ArvioitavaKokonaisuusDTO> {
-        val now = LocalDate.now()
+        val nykyinenPaiva = LocalDate.now(clock)
         val arvioitavatKokonaisuudet =
             if (voimassaolevat == true) arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndValid(
                 erikoisalaId,
-                now,
+                nykyinenPaiva,
                 pageable
             )
             else arvioitavaKokonaisuusRepository.findAllByErikoisalaIdAndExpired(
                 erikoisalaId,
-                now,
+                nykyinenPaiva,
                 pageable
             )
         return arvioitavatKokonaisuudet.map(arvioitavaKokonaisuusMapper::toDto)

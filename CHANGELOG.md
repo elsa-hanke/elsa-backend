@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.2...HEAD)
 
+- Release v2.5.X merge [`#831`](https://github.com/elsa-hanke/elsa-backend/pull/831)(18 November 2026)
+- Backendin ylläpidettävyyden parantaminen ja yhteisen toimintalogiikan yhtenäistäminen [`#826`](https://github.com/elsa-hanke/elsa-backend/pull/826)(17 November 2026)
 - ELSAINSI-58: Lisätty tarkistus avatartiedoston kokorajoituksista [`#814`](https://github.com/elsa-hanke/elsa-backend/pull/814)(16 November 2026)
 - test: add Tampere archive e2e and retry failure coverage [`#825`](https://github.com/elsa-hanke/elsa-backend/pull/825)(15 November 2026)
 - Improve arkistointi slack alert message [`#824`](https://github.com/elsa-hanke/elsa-backend/pull/824)(14 November 2026)

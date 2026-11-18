@@ -31,6 +31,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.transaction.annotation.EnableTransactionManagement
+import java.time.Clock
 
 /**
  * Interrupts a Turku graduation delivery (case, task, three documents, archive) at every step in three ways and
@@ -74,7 +75,7 @@ class DynastyValmistuminenFaultMatrixIT {
         try {
             val properties = dynastyTestProperties(server.url("/").newBuilder().host("127.0.0.1").build().toString())
             val adapter = TurkuDynastyArkistointiAdapter(
-                DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper),
+                DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
                 TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
                 DynastyStepExecutor(ledger, properties)
             )

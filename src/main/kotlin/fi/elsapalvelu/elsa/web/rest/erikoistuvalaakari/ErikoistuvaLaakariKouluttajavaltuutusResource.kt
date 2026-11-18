@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import java.time.Clock
 import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.service.kayttaja.UserService
@@ -21,7 +22,8 @@ private const val KAYTTAJA_ENTITY_NAME = "kayttaja"
 @RequestMapping("/api/erikoistuva-laakari")
 class ErikoistuvaLaakariKouluttajavaltuutusResource(
     private val userService: UserService,
-    private val kouluttajavaltuutusService: KouluttajavaltuutusService
+    private val kouluttajavaltuutusService: KouluttajavaltuutusService,
+    private val clock: Clock
 ) {
 
     @GetMapping("/kouluttajavaltuutukset")
@@ -62,8 +64,8 @@ class ErikoistuvaLaakariKouluttajavaltuutusResource(
         val result = kouluttajavaltuutusService.save(
             user.id.required(),
             KouluttajavaltuutusDTO(
-                alkamispaiva = LocalDate.now(),
-                paattymispaiva = LocalDate.now().plusMonths(6),
+                alkamispaiva = LocalDate.now(clock),
+                paattymispaiva = LocalDate.now(clock).plusMonths(6),
                 valtuutettu = valtuutettu
             ), true
         )

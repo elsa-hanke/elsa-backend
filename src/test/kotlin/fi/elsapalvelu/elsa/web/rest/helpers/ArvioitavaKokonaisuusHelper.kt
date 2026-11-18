@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavaKokonaisuus
 import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavanKokonaisuudenKategoria
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.LocalDate
 import java.time.ZoneId
 import jakarta.persistence.EntityManager
@@ -22,7 +21,7 @@ object ArvioitavaKokonaisuusHelper {
         em: EntityManager,
         voimassaoloAlkaa: LocalDate? = DEFAULT_VOIMASSAOLO_ALKAA,
         voimassaoloLoppuu: LocalDate? = DEFAULT_VOIMASSAOLO_LOPPUU,
-        existingKategoria: ArvioitavanKokonaisuudenKategoria? = null
+        kategoria: ArvioitavanKokonaisuudenKategoria? = null
     ): ArvioitavaKokonaisuus {
         val arvioitavaKokonaisuus = ArvioitavaKokonaisuus(
             nimi = DEFAULT_NIMI,
@@ -31,26 +30,13 @@ object ArvioitavaKokonaisuusHelper {
             voimassaoloLoppuu = voimassaoloLoppuu
         )
 
-        // Lisätään pakollinen tieto
-        var arvioitavanKokonaisuudenKategoria = existingKategoria
-        if (arvioitavanKokonaisuudenKategoria == null) {
-            if (em.findAll(ArvioitavanKokonaisuudenKategoria::class).isEmpty()) {
-                arvioitavanKokonaisuudenKategoria =
-                    ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em)
-                em.persist(arvioitavanKokonaisuudenKategoria)
-                em.flush()
-            } else {
-                arvioitavanKokonaisuudenKategoria =
-                    em.findAll(ArvioitavanKokonaisuudenKategoria::class)[0]
-            }
-        }
-        arvioitavaKokonaisuus.kategoria = arvioitavanKokonaisuudenKategoria
+        arvioitavaKokonaisuus.kategoria = kategoria ?: ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em).also(em::persist)
 
         return arvioitavaKokonaisuus
     }
 
     @JvmStatic
-    fun createUpdatedEntity(em: EntityManager): ArvioitavaKokonaisuus {
+    fun createUpdatedEntity(em: EntityManager, kategoria: ArvioitavanKokonaisuudenKategoria? = null): ArvioitavaKokonaisuus {
         val arvioitavaKokonaisuus = ArvioitavaKokonaisuus(
             nimi = UPDATED_NIMI,
             kuvaus = UPDATED_KUVAUS,
@@ -58,18 +44,7 @@ object ArvioitavaKokonaisuusHelper {
             voimassaoloLoppuu = UPDATED_VOIMASSAOLO_LOPPUU
         )
 
-        // Lisätään pakollinen tieto
-        val arvioitavanKokonaisuudenKategoria: ArvioitavanKokonaisuudenKategoria
-        if (em.findAll(ArvioitavanKokonaisuudenKategoria::class).isEmpty()) {
-            arvioitavanKokonaisuudenKategoria =
-                ArvioitavanKokonaisuudenKategoriaHelper.createUpdatedEntity(em)
-            em.persist(arvioitavanKokonaisuudenKategoria)
-            em.flush()
-        } else {
-            arvioitavanKokonaisuudenKategoria =
-                em.findAll(ArvioitavanKokonaisuudenKategoria::class)[0]
-        }
-        arvioitavaKokonaisuus.kategoria = arvioitavanKokonaisuudenKategoria
+        arvioitavaKokonaisuus.kategoria = kategoria ?: ArvioitavanKokonaisuudenKategoriaHelper.createUpdatedEntity(em).also(em::persist)
 
         return arvioitavaKokonaisuus
     }

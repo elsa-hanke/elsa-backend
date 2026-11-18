@@ -11,7 +11,6 @@ import fi.elsapalvelu.elsa.domain.valmistuminen.*
 import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.domain.koulutus.OpintosuoritusTyyppiEnum
-import fi.elsapalvelu.elsa.web.rest.findAll
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -55,21 +54,7 @@ object OpintosuoritusHelper {
             tyyppi = tyyppi
         )
 
-        var opintooikeusKaytossa = opintooikeus
-        if (opintooikeus == null) {
-            val erikoistuvaLaakari: ErikoistuvaLaakari
-            if (em.findAll(ErikoistuvaLaakari::class).isEmpty()) {
-                erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user)
-                em.persist(erikoistuvaLaakari)
-                em.flush()
-            } else {
-                erikoistuvaLaakari = em.findAll(ErikoistuvaLaakari::class).get(0)
-            }
-
-            opintooikeusKaytossa = erikoistuvaLaakari.getOpintooikeusKaytossa()
-        }
-
-        opintosuoritus.opintooikeus = opintooikeusKaytossa
+        opintosuoritus.opintooikeus = opintooikeus ?: Testisuhteet.opintooikeus(em, user)
         em.persist(opintosuoritus)
 
         return opintosuoritus

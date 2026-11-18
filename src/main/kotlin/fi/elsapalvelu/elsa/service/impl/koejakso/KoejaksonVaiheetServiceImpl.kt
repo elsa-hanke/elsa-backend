@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.koejakso
 
+import fi.elsapalvelu.elsa.service.koejakso.KoejaksonTilasaannot
 import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
@@ -158,7 +159,7 @@ class KoejaksonVaiheetServiceImpl(
                     KoejaksonVaiheDTO(
                         arvio.id,
                         KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
-                        KoejaksoTila.fromVastuuhenkilonArvio(arvio, virkailija = true),
+                        KoejaksonTilasaannot.maaritaVastuuhenkilonArvionKasittelytila(arvio, virkailija = true),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getNimi(),
                         arvio.opintooikeus?.erikoistuvaLaakari?.kayttaja?.getAvatar(),
                         arvio.muokkauspaiva
@@ -528,7 +529,7 @@ class KoejaksonVaiheetServiceImpl(
         return KoejaksonVaiheDTO(
             koejaksonKoulutussopimusDTO.id,
             KoejaksoTyyppi.KOULUTUSSOPIMUS,
-            KoejaksoTila.fromSopimus(koejaksonKoulutussopimusDTO, isVastuuhenkilo, kayttajaId),
+            KoejaksonTilasaannot.maaritaSopimuksenTila(koejaksonKoulutussopimusDTO, isVastuuhenkilo, kayttajaId),
             koejaksonKoulutussopimusDTO.erikoistuvanNimi,
             koejaksonKoulutussopimusDTO.erikoistuvanAvatar,
             koejaksonKoulutussopimusDTO.muokkauspaiva
@@ -542,7 +543,7 @@ class KoejaksonVaiheetServiceImpl(
         return KoejaksonVaiheDTO(
             koejaksonAloituskeskusteluDTO.id,
             KoejaksoTyyppi.ALOITUSKESKUSTELU,
-            KoejaksoTila.fromAloituskeskustelu(koejaksonAloituskeskusteluDTO, kayttajaId),
+            KoejaksonTilasaannot.maaritaAloituskeskustelunTila(koejaksonAloituskeskusteluDTO, kayttajaId),
             koejaksonAloituskeskusteluDTO.erikoistuvanNimi,
             koejaksonAloituskeskusteluDTO.erikoistuvanAvatar,
             koejaksonAloituskeskusteluDTO.muokkauspaiva
@@ -566,7 +567,7 @@ class KoejaksonVaiheetServiceImpl(
         return KoejaksonVaiheDTO(
             koejaksonValiarviointiDTO.id,
             KoejaksoTyyppi.VALIARVIOINTI,
-            KoejaksoTila.fromValiarvointi(true, koejaksonValiarviointiDTO, kayttajaId),
+            KoejaksonTilasaannot.maaritaValiarvioinninTila(true, koejaksonValiarviointiDTO, kayttajaId),
             koejaksonValiarviointiDTO.erikoistuvanNimi,
             koejaksonValiarviointiDTO.erikoistuvanAvatar,
             koejaksonValiarviointiDTO.muokkauspaiva
@@ -590,7 +591,7 @@ class KoejaksonVaiheetServiceImpl(
         return KoejaksonVaiheDTO(
             koejaksonKehittamistoimenpiteetDTO.id,
             KoejaksoTyyppi.KEHITTAMISTOIMENPITEET,
-            KoejaksoTila.fromKehittamistoimenpiteet(
+            KoejaksonTilasaannot.maaritaKehittamistoimenpiteidenTila(
                 true,
                 koejaksonKehittamistoimenpiteetDTO,
                 kayttajaId
@@ -618,7 +619,7 @@ class KoejaksonVaiheetServiceImpl(
         return KoejaksonVaiheDTO(
             koejaksonLoppukeskusteluDTO.id,
             KoejaksoTyyppi.LOPPUKESKUSTELU,
-            KoejaksoTila.fromLoppukeskustelu(true, koejaksonLoppukeskusteluDTO, kayttajaId),
+            KoejaksonTilasaannot.maaritaLoppukeskustelunTila(true, koejaksonLoppukeskusteluDTO, kayttajaId),
             koejaksonLoppukeskusteluDTO.erikoistuvanNimi,
             koejaksonLoppukeskusteluDTO.erikoistuvanAvatar,
             koejaksonLoppukeskusteluDTO.muokkauspaiva
@@ -641,7 +642,7 @@ class KoejaksonVaiheetServiceImpl(
         return KoejaksonVaiheDTO(
             vastuuhenkilonArvioDTO.id,
             KoejaksoTyyppi.VASTUUHENKILON_ARVIO,
-            KoejaksoTila.fromVastuuhenkilonArvio(true, vastuuhenkilonArvioDTO, vastuuhenkilo = true),
+            KoejaksonTilasaannot.maaritaVastuuhenkilonArvionVaihetila(true, vastuuhenkilonArvioDTO, vastuuhenkilo = true),
             vastuuhenkilonArvioDTO.erikoistuvanNimi,
             vastuuhenkilonArvioDTO.erikoistuvanAvatar,
             vastuuhenkilonArvioDTO.muokkauspaiva
