@@ -49,6 +49,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
 import org.springframework.test.context.ActiveProfiles
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -147,7 +148,7 @@ class TurkuArkistointiExternalIntegrationTests : ExternalIntegrationTestSupport(
 )
 class TurkuArkistointiExternalIntegrationTestApplication {
     @Bean
-    fun turkuDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper): DynastyClient {
+    fun turkuDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper, clock: Clock): DynastyClient {
         val settings = properties.getArkistointi().getTurku().dynasty
         val transport = OkHttpClient.Builder()
             .protocols(listOf(Protocol.HTTP_1_1))
@@ -156,7 +157,7 @@ class TurkuArkistointiExternalIntegrationTestApplication {
             .retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false)
             .addInterceptor(DynastyTrafficLoggingInterceptor(settings))
             .build()
-        return DynastyClient(settings, mapper, transport)
+        return DynastyClient(settings, mapper, transport, clock)
     }
 
     @Bean
