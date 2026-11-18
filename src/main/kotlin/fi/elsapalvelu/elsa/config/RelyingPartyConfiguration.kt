@@ -65,6 +65,7 @@ class RelyingPartyConfiguration(
                 .signingX509Credentials { signing -> signing.add(signingCredential) }
                 .decryptionX509Credentials { decryption -> decryption.add(decryptionCredential) }
                 .singleLogoutServiceBinding(Saml2MessageBinding.REDIRECT)
+                .singleLogoutServiceLocation("{baseUrl}/logout/saml2/slo")
                 .singleLogoutServiceResponseLocation("{baseUrl}/logout/saml2/slo")
                 .build()
 
@@ -102,6 +103,7 @@ class RelyingPartyConfiguration(
                         .signingX509Credentials { signing -> signing.add(signingCredential) }
                         .decryptionX509Credentials { decryption -> decryption.add(decryptionCredential) }
                         .singleLogoutServiceBinding(Saml2MessageBinding.REDIRECT)
+                        .singleLogoutServiceLocation("{baseUrl}/logout/saml2/slo")
                         .singleLogoutServiceResponseLocation("{baseUrl}/logout/saml2/slo")
                         .build()
                 )

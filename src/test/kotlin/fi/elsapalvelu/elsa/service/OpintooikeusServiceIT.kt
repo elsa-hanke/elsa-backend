@@ -643,6 +643,37 @@ class OpintooikeusServiceIT {
         assertEquals(1, erikoistuvaLaakari.opintooikeudet.count { it.kaytossa })
     }
 
+    @Test
+    fun `restore only YEK role for trainer and persist it without changing selection`() {
+        val user = erikoistuvaLaakari.kayttaja?.user!!
+        erikoistuvaLaakari.opintooikeudet.filter { it.erikoisala?.id != YEK_ERIKOISALA_ID }.toList().forEach {
+            erikoistuvaLaakari.opintooikeudet.remove(it)
+            em.remove(it)
+        }
+        erikoistuvaLaakari.aktiivinenOpintooikeus = null
+        OpintooikeusHelper.setOpintooikeusKaytossa(erikoistuvaLaakari, yekOikeus)
+        user.authorities.clear()
+        user.authorities.add(Authority(KOULUTTAJA))
+        user.activeAuthority = Authority(KOULUTTAJA)
+        val userId = user.id!!
+        val rightId = yekOikeus.id!!
+        em.flush()
+        em.clear()
+
+        repeat(2) { _ ->
+            opintooikeusService.checkOpintooikeusAndRoles(em.find(User::class.java, userId))
+            em.flush()
+            em.clear()
+
+            val persistedUser = em.find(User::class.java, userId)
+            assertEquals(setOf(KOULUTTAJA, YEK_KOULUTETTAVA), persistedUser.authorities.map { it.name }.toSet())
+            assertEquals(KOULUTTAJA, persistedUser.activeAuthority?.name)
+            val persistedRight = em.find(Opintooikeus::class.java, rightId)
+            assertTrue(persistedRight.kaytossa)
+            assertEquals(listOf(rightId), persistedRight.erikoistuvaLaakari!!.opintooikeudet.map { it.id })
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(strings = [KOULUTTAJA, VASTUUHENKILO])
     fun `restore study roles without changing an active staff role`(role: String) {
