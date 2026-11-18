@@ -12,8 +12,8 @@ application:
     turku:
       kaytossa: true
       dynasty:
-        base-url: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_BASE_URL:https://asta.utu.fi/dynasty.externalinterface.archive.oauth}
-        token-url: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_TOKEN_URL:https://asta.utu.fi/dynasty.identityserver/connect/token}
+        base-url: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_BASE_URL:https://asta-test.utu.fi/dynasty.externalinterface.archive.oauth}
+        token-url: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_TOKEN_URL:https://asta-test.utu.fi/dynasty.identityserver/connect/token}
         client-id: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_ID:}
         client-secret: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_SECRET:}
         organization: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_ORGANIZATION:0}
