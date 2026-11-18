@@ -31,13 +31,17 @@ class SisuHyOpintosuorituksetFetchingServiceImpl(
         val response = sisuHyClientBuilder.apolloClient()
             .query(OpintosuorituksetSisuHyQuery(id = hetu))
             .execute()
-            .checkErrors("Opintosuoritustietoja ei saatu haettua HY:n Sisusta", log) { authenticated ->
-                integrationAlertService.updateGraphQlAuthentication(
-                    IntegrationAlertKey.SISU_HY_AUTHENTICATION,
-                    "Helsingin Sisu",
-                    authenticated
-                )
-            }
+            .checkErrors(
+                "Opintosuoritustietoja ei saatu haettua HY:n Sisusta",
+                log,
+                onAuthenticationResult = { authenticated ->
+                    integrationAlertService.updateGraphQlAuthentication(
+                        IntegrationAlertKey.SISU_HY_AUTHENTICATION,
+                        "Helsingin Sisu",
+                        authenticated
+                    )
+                }
+            )
 
         return response.data?.private_person_by_personal_identity_code?.attainments?.filter {
             it.state in validStates
