@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import java.io.ByteArrayInputStream
+import java.time.Clock
 import java.time.LocalDateTime
 
 @Service
@@ -25,7 +26,8 @@ class AsiakirjaServiceImpl(
     private val asiakirjaRepository: AsiakirjaRepository,
     private val asiakirjaMapper: AsiakirjaMapper,
     private val koulutussuunnitelmaRepository: KoulutussuunnitelmaRepository,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val clock: Clock
 ) : AsiakirjaService {
 
     override fun create(
@@ -36,7 +38,7 @@ class AsiakirjaServiceImpl(
         opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let { opintooikeus ->
             var asiakirjaEntities = asiakirjat.map {
                 asiakirjaMapper.toEntity(it).apply {
-                    this.lisattypvm = LocalDateTime.now()
+                    this.lisattypvm = LocalDateTime.now(clock)
                     this.opintooikeus = opintooikeus
                     this.asiakirjaData?.data = it.asiakirjaData?.fileInputStream?.readAllBytes()
                 }

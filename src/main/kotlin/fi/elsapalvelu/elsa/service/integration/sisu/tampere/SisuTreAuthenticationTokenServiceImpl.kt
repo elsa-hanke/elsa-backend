@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import java.io.IOException
+import java.time.Clock
 import java.time.LocalDateTime
 
 private const val TOKEN_PATH = "oauth2/v2.0/token"
@@ -30,7 +31,9 @@ class SisuTreAuthenticationTokenServiceImpl(
     @Qualifier("AuthenticationTokenClient") private val sisuTreAuthTokenClientBuilder: OkHttpClientBuilder,
     private val objectMapper: ObjectMapper,
     private val applicationProperties: ApplicationProperties,
-    private val integrationAlertService: IntegrationAlertService
+    private val integrationAlertService: IntegrationAlertService,
+    private val tokenCache: AuthenticationTokenCache,
+    private val clock: Clock
 ) : AuthenticationTokenService {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -38,7 +41,7 @@ class SisuTreAuthenticationTokenServiceImpl(
     override fun getCachedTokenOrRequestNew(): String? {
         val sisuTreProperties = applicationProperties.getSecurity().getSisuTre()
 
-        AuthenticationTokenCache.getTokenByClientId(sisuTreProperties.clientId.required())?.let {
+        tokenCache.getTokenByClientId(sisuTreProperties.clientId.required())?.let {
             return it.accessToken
         }
 
@@ -87,11 +90,11 @@ class SisuTreAuthenticationTokenServiceImpl(
                         return null
                     }
 
-                    AuthenticationTokenCache.storeTokenByClientId(
+                    tokenCache.storeTokenByClientId(
                         sisuTreProperties.clientId.required(), AuthenticationToken(
                             accessToken = accessToken,
                             // Huomioidaan umpeutumisajassa verkkoviive 5 sekuntia.
-                            expires = LocalDateTime.now().plusSeconds(expiresIn - 5)
+                            expires = LocalDateTime.now(clock).plusSeconds(expiresIn - 5)
                         )
                     )
                     integrationAlertService.markSuccessful(IntegrationAlertKey.SISU_TRE_OAUTH)

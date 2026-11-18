@@ -32,6 +32,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.support.TransactionSynchronizationManager
+import java.time.Clock
 
 @ExtendWith(MockitoExtension::class)
 class ArkistointiJobCreatorImplTest {
@@ -49,7 +50,25 @@ class ArkistointiJobCreatorImplTest {
 
     @BeforeEach
     fun setUp() {
-        creator = ArkistointiJobCreatorImpl(repository, scheduler, snapshotService)
+        creator = ArkistointiJobCreatorImpl(repository, scheduler, snapshotService, Clock.systemDefaultZone())
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.MethodSource(fi.elsapalvelu.elsa.service.helpers.KELLON_TESTITAPAUKSET)
+    fun `luonti ja ajastus kayttavat samaa kelloa`(aika: fi.elsapalvelu.elsa.service.helpers.KellonTestitapaus) {
+        val luontipalvelu = ArkistointiJobCreatorImpl(repository, scheduler, snapshotService, aika.kello())
+        val tunniste = UUID.randomUUID()
+        whenever(snapshotService.resolveReference(any())).thenAnswer { it.getArgument<ArkistointiAsiakirjaReference>(0) }
+        whenever(repository.saveAndFlush(any<ArkistointiJob>())).thenAnswer {
+            it.getArgument<ArkistointiJob>(0).apply { id = tunniste }
+        }
+        whenever(scheduler.schedule(any(), any())).thenReturn(true)
+
+        val arkistointityo = luontipalvelu.create(request())
+
+        assertThat(arkistointityo.createdAt).isEqualTo(aika.aikaleima())
+        assertThat(arkistointityo.updatedAt).isEqualTo(aika.aikaleima())
+        verify(scheduler).schedule(tunniste, aika.aikaleima())
     }
 
     @Test

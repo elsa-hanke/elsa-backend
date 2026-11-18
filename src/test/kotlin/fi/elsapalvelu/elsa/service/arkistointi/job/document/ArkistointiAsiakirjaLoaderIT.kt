@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.document
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import fi.elsapalvelu.elsa.service.arkistointi.support.ArchiveProcessingTestSupport
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.SchedulerName
@@ -168,8 +169,8 @@ class ArkistointiAsiakirjaLoaderIT : ArchiveProcessingTestSupport() {
     }
 
     private fun fixture(kind: String = "PDF_100"): UUID = transactions.execute {
-        YliopistoHelper.createReferenceData(em, YliopistoEnum.TURUN_YLIOPISTO)
-        val source = AsiakirjaHelper.createEntity(em)
+        val yliopisto = YliopistoHelper.createReferenceData(em, YliopistoEnum.TURUN_YLIOPISTO)
+        val source = AsiakirjaHelper.createEntity(em, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(em, yliopisto))
         source.asiakirjaData!!.data = if (kind == "CMYK_JPEG") PdfTestData.cmykJpeg() else PdfTestData.unembeddedFontPdf(100)
         source.nimi = if (kind == "CMYK_JPEG") "certificate.jpg" else "attachment.pdf"
         source.tyyppi = if (kind == "CMYK_JPEG") "image/jpg" else "application/pdf"

@@ -276,45 +276,21 @@ class KouluttajaSuoritusarviointiResourceIT {
                 lisatiedot = DEFAULT_LISATIEDOT
             )
 
-            // Lisätään pakollinen tieto
-            val kayttaja: Kayttaja
-            if (em.findAll(Kayttaja::class).isEmpty()) {
-                kayttaja = KayttajaHelper.createEntity(em, user)
-                em.persist(kayttaja)
-                em.flush()
-            } else {
-                kayttaja = em.findAll(Kayttaja::class).get(0)
-            }
+            val kayttaja = Testisuhteet.kayttaja(em, user)
             suoritusarviointi.arvioinninAntaja = kayttaja
 
             val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(
                 suoritusarviointi = suoritusarviointi
             )
 
-            // Lisätään pakollinen tieto
-            val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
-            if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
-                arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
-                em.persist(arvioitavaKokonaisuus)
-                em.flush()
-            } else {
-                arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
-            }
+            val arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em).also(em::persist)
             suoritusarvioinninArvioitavaKokonaisuus.arvioitavaKokonaisuus = arvioitavaKokonaisuus
             suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
-            // Lisätään pakollinen tieto
-            val tyoskentelyjakso: Tyoskentelyjakso
-            if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em)
-                em.persist(tyoskentelyjakso)
-                em.flush()
-            } else {
-                tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).get(0)
-            }
+            val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em).also(em::persist)
             suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
 
-            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            val opintooikeus = requireNotNull(tyoskentelyjakso.opintooikeus)
             suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
 
             return suoritusarviointi
@@ -329,45 +305,23 @@ class KouluttajaSuoritusarviointiResourceIT {
                 lisatiedot = UPDATED_LISATIEDOT
             )
 
-            // Lisätään pakollinen tieto
-            val kayttaja: Kayttaja
-            if (em.findAll(Kayttaja::class).isEmpty()) {
-                kayttaja = KayttajaHelper.createUpdatedEntity(em)
-                em.persist(kayttaja)
-                em.flush()
-            } else {
-                kayttaja = em.findAll(Kayttaja::class).get(0)
-            }
+            val kayttaja = KayttajaHelper.createUpdatedEntity(em).also(em::persist)
             suoritusarviointi.arvioinninAntaja = kayttaja
 
             val suoritusarvioinninArvioitavaKokonaisuus = SuoritusarvioinninArvioitavaKokonaisuus(
                 suoritusarviointi = suoritusarviointi
             )
 
-            // Lisätään pakollinen tieto
-            val arvioitavaKokonaisuus: ArvioitavaKokonaisuus
-            if (em.findAll(ArvioitavaKokonaisuus::class).isEmpty()) {
-                arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createUpdatedEntity(em)
-                em.persist(arvioitavaKokonaisuus)
-                em.flush()
-            } else {
-                arvioitavaKokonaisuus = em.findAll(ArvioitavaKokonaisuus::class).get(0)
-            }
+            val arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createUpdatedEntity(em).also(em::persist)
             suoritusarvioinninArvioitavaKokonaisuus.arvioitavaKokonaisuus = arvioitavaKokonaisuus
             suoritusarviointi.arvioitavatKokonaisuudet = mutableSetOf(suoritusarvioinninArvioitavaKokonaisuus)
 
-            // Lisätään pakollinen tieto
-            val tyoskentelyjakso: Tyoskentelyjakso
-            if (em.findAll(Tyoskentelyjakso::class).isEmpty()) {
-                tyoskentelyjakso = TyoskentelyjaksoHelper.createUpdatedEntity(em)
-                em.persist(tyoskentelyjakso)
-                em.flush()
-            } else {
-                tyoskentelyjakso = em.findAll(Tyoskentelyjakso::class).get(0)
-            }
+            val tyoskentelyjakso = TyoskentelyjaksoHelper.createUpdatedEntity(
+                em, opintooikeus = Testisuhteet.opintooikeus(em, null)
+            ).also(em::persist)
             suoritusarviointi.tyoskentelyjakso = tyoskentelyjakso
 
-            val opintooikeus = em.findAll(Opintooikeus::class).get(0)
+            val opintooikeus = requireNotNull(tyoskentelyjakso.opintooikeus)
             suoritusarviointi.arviointiasteikko = opintooikeus.opintoopas?.arviointiasteikko
 
             return suoritusarviointi

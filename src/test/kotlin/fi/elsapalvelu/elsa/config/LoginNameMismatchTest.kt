@@ -16,11 +16,9 @@ import org.mockito.kotlin.whenever
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
-import java.lang.reflect.InvocationTargetException
 import java.util.Optional
 import java.time.Instant
 import javax.crypto.Cipher
-import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
 class LoginNameMismatchTest {
@@ -40,23 +38,19 @@ class LoginNameMismatchTest {
         doAnswer { throw failure }.whenever(userService).createOrUpdateUserWithToken(
             invited, token, cipher, key, null, null, "Kari", "Räisänen"
         )
-        val config = testSecurityConfiguration(
+        val palvelut = testKirjautumisenPalvelut(
             userService = userService,
             userRepository = userRepository,
-            kirjautumisenRepositories = KirjautumisenTestRepositories(verificationTokenRepository = tokenRepository)
+            kirjautumisenKonteksti = KirjautumisenTestikonteksti(verificationTokenRepository = tokenRepository)
         )
-        val findUser = SecurityConfiguration::class.java.getDeclaredMethod(
-            "findLoginUser", Cipher::class.java, SecretKey::class.java,
-            String::class.java, String::class.java, String::class.java, String::class.java
-        ).apply { isAccessible = true }
         val request = MockHttpServletRequest().apply { setParameter("RelayState", token.id!!) }
         RequestContextHolder.setRequestAttributes(ServletRequestAttributes(request))
         try {
             val beforeLogin = Instant.now()
-            val thrown = assertThrows<InvocationTargetException> {
-                findUser.invoke(config, cipher, key, null, null, "Kari", "Räisänen")
+            val thrown = assertThrows<Exception> {
+                palvelut.kirjautumispalvelu.haeKirjautuvaKayttaja(cipher, key, null, null, "Kari", "Räisänen")
             }
-            assertThat(thrown.cause).isSameAs(failure)
+            assertThat(thrown).isSameAs(failure)
             val mismatch = request.session.getAttribute(LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE) as LoginNameMismatch
             assertThat(mismatch.invitationName).isEqualTo("Aleksi Räisänen")
             assertThat(mismatch.authenticatedName).isEqualTo("Kari Räisänen")
@@ -65,7 +59,7 @@ class LoginNameMismatchTest {
             request.removeParameter("RelayState")
             val existing = User(id = "existing-user", firstName = "Kari", lastName = "Räisänen")
             whenever(userService.findExistingUser(cipher, key, null, null)).thenReturn(existing)
-            assertThat(findUser.invoke(config, cipher, key, null, null, "Kari", "Räisänen"))
+            assertThat(palvelut.kirjautumispalvelu.haeKirjautuvaKayttaja(cipher, key, null, null, "Kari", "Räisänen"))
                 .isSameAs(existing)
             assertThat(request.session.getAttribute(LOGIN_NAME_MISMATCH_SESSION_ATTRIBUTE)).isNull()
         } finally {

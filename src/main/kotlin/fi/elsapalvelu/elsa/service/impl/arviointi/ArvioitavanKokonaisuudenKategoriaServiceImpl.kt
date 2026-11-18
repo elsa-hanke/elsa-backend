@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.impl.arviointi
 
+import java.time.Clock
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.repository.arviointi.ArvioitavanKokonaisuudenKategoriaRepository
 import fi.elsapalvelu.elsa.repository.kayttaja.OpintooikeusRepository
@@ -22,7 +23,8 @@ class ArvioitavanKokonaisuudenKategoriaServiceImpl(
     private val arvioitavanKokonaisuudenKategoriaMapper: ArvioitavanKokonaisuudenKategoriaMapper,
     private val arvioitavanKokonaisuudenKategoriaSimpleMapper: ArvioitavanKokonaisuudenKategoriaSimpleMapper,
     private val arvioitavanKokonaisuudenKategoriaWithErikoisalaMapper: ArvioitavanKokonaisuudenKategoriaWithErikoisalaMapper,
-    private val opintooikeusRepository: OpintooikeusRepository
+    private val opintooikeusRepository: OpintooikeusRepository,
+    private val clock: Clock
 ) : ArvioitavanKokonaisuudenKategoriaService {
 
     override fun save(
@@ -50,7 +52,7 @@ class ArvioitavanKokonaisuudenKategoriaServiceImpl(
         return opintooikeusRepository.findByIdOrNull(opintooikeusId)?.let {
             arvioitavanKokonaisuudenKategoriaRepository.findAllByErikoisalaIdAndValid(
                 it.erikoisala?.id,
-                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now()
+                it.osaamisenArvioinninOppaanPvm ?: LocalDate.now(clock)
             ).map(arvioitavanKokonaisuudenKategoriaMapper::toDto)
         }.orEmpty()
     }

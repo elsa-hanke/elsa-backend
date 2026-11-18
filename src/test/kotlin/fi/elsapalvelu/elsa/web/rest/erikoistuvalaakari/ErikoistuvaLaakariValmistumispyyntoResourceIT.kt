@@ -256,7 +256,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         assertThat(valmistumispyynnotList).hasSize(valmistumispyyntoTableSizeBeforeCreate + 1)
 
         val valmistumispyynto = valmistumispyynnotList.first()
-        assertThat(valmistumispyynto.erikoistujanKuittausaika).isEqualTo(LocalDate.now())
+        assertThat(valmistumispyynto.erikoistujanKuittausaika).isEqualTo(LocalDate.now(clock))
         assertThat(valmistumispyynto.selvitysVanhentuneistaSuorituksista).isNull()
     }
 
@@ -385,7 +385,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         assertThat(valmistumispyynnotList).hasSize(valmistumispyyntoTableSizeBeforeCreate + 1)
 
         val valmistumispyynto = valmistumispyynnotList.first()
-        assertThat(valmistumispyynto.erikoistujanKuittausaika).isEqualTo(LocalDate.now())
+        assertThat(valmistumispyynto.erikoistujanKuittausaika).isEqualTo(LocalDate.now(clock))
         assertThat(valmistumispyynto.selvitysVanhentuneistaSuorituksista).isEqualTo(selvitysVanhentuneistaSuorituksista)
     }
 
@@ -432,7 +432,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
         assertThat(valmistumispyynnotList).hasSize(valmistumispyyntoTableSizeBeforeCreate)
 
         val valmistumispyyntoSaved = valmistumispyynnotList.first()
-        assertThat(valmistumispyyntoSaved.erikoistujanKuittausaika).isEqualTo(LocalDate.now())
+        assertThat(valmistumispyyntoSaved.erikoistujanKuittausaika).isEqualTo(LocalDate.now(clock))
         assertThat(valmistumispyyntoSaved.vastuuhenkiloOsaamisenArvioijaKorjausehdotus).isNull()
         assertThat(valmistumispyyntoSaved.vastuuhenkiloOsaamisenArvioijaPalautusaika).isNull()
         assertThat(valmistumispyyntoSaved.selvitysVanhentuneistaSuorituksista).isEqualTo(selvitysVanhentuneistaSuorituksistaUpdated)
@@ -543,7 +543,7 @@ class ErikoistuvaLaakariValmistumispyyntoResourceIT {
             .andExpect(jsonPath("$.erikoistujanAsetus").value(opintooikeus.asetus?.nimi))
             .andExpect(jsonPath("$.opintooikeudenMyontamispaiva").value(opintooikeus.opintooikeudenMyontamispaiva.toString()))
             .andExpect(jsonPath("$.erikoistujanKuittausaika").value(LocalDate.now().toString()))
-            .andExpect(jsonPath("$.muokkauspaiva").value(LocalDate.now().toString()))
+            .andExpect(jsonPath("$.muokkauspaiva").value(LocalDate.now(clock).toString()))
     }
 
     @Test

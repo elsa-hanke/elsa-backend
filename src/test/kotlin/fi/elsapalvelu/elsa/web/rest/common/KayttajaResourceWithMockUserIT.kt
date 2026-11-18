@@ -78,7 +78,9 @@ class KayttajaResourceWithMockUserIT {
             activated = true,
             langKey = DEFAULT_LANGKEY,
             createdBy = DEFAULT_LOGIN,
+            createdDate = Instant.EPOCH,
             lastModifiedBy = DEFAULT_LOGIN,
+            lastModifiedDate = Instant.EPOCH,
             authorities = setOf(USER)
         )
 
@@ -94,9 +96,9 @@ class KayttajaResourceWithMockUserIT {
         assertThat(user.activated).isEqualTo(true)
         assertThat(user.langKey).isEqualTo(DEFAULT_LANGKEY)
         assertThat(user.createdBy).isNull()
-        assertThat(user.createdDate).isNotNull
+        assertThat(user.createdDate).isNull()
         assertThat(user.lastModifiedBy).isNull()
-        assertThat(user.lastModifiedDate).isNotNull
+        assertThat(user.lastModifiedDate).isNull()
         assertThat(user.authorities).extracting("name").containsExactly(USER)
     }
 

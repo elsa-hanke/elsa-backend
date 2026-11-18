@@ -73,7 +73,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoDeleteResourceIT : ErikoistuvaLaakariTyo
         val tyoskentelyjaksoTableSizeBeforeDelete = tyoskentelyjaksoRepository.findAll().size
 
         em.detach(tyoskentelyjakso)
-        suoritusarviointiRepository.saveAndFlush(SuoritusarviointiHelper.createEntity(em, user))
+        suoritusarviointiRepository.saveAndFlush(SuoritusarviointiHelper.createEntity(em, user, tyoskentelyjakso = tyoskentelyjakso))
 
         testMockMvc.perform(delete("$API_TYOSKENTELYJAKSOT/{id}", tyoskentelyjakso.id).accept(APPLICATION_JSON).with(csrf())).andExpect(status().isBadRequest)
 
@@ -133,7 +133,7 @@ class ErikoistuvaLaakariTyoskentelyjaksoDeleteResourceIT : ErikoistuvaLaakariTyo
         assertNotNull(asiakirjaId)
 
         em.detach(tyoskentelyjakso)
-        suoritusarviointiRepository.saveAndFlush(SuoritusarviointiHelper.createEntity(em, user))
+        suoritusarviointiRepository.saveAndFlush(SuoritusarviointiHelper.createEntity(em, user, tyoskentelyjakso = tyoskentelyjakso))
 
         testMockMvc.perform(delete("$API_TYOSKENTELYJAKSOT/{id}", tyoskentelyjaksoId).accept(APPLICATION_JSON).with(csrf())).andExpect(status().isBadRequest)
         flushClear()

@@ -271,21 +271,21 @@ class VirkailijaValmistumispyyntoResourceIT : ResourceIntegrationTestBase() {
         val terveyskeskustyoHyvaksynta = TerveyskeskustyoHelper.createTerveyskeskustyoHyvaksyntaHyvaksytty(opintooikeus, hyvaksyntaPvm)
         em.persist(terveyskeskustyoHyvaksynta)
 
-        val terveyssuoritus = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO)
+        val terveyssuoritus = OpintosuoritusHelper.createEntity(em, opintooikeus = opintooikeus, tyyppiEnum = OpintosuoritusTyyppiEnum.TERVEYSKESKUSKOULUTUSJAKSO)
         em.persist(terveyssuoritus)
         val teoriakoulutus1 = TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
         em.persist(teoriakoulutus1)
         val teoriakoulutus2 = TeoriakoulutusHelper.createEntity(em, user = erikoistuvaLaakari.kayttaja?.user)
         em.persist(teoriakoulutus2)
 
-        val sateilysuojakoulutus = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
+        val sateilysuojakoulutus = OpintosuoritusHelper.createEntity(em, opintooikeus = opintooikeus, tyyppiEnum = OpintosuoritusTyyppiEnum.SATEILYSUOJAKOULUTUS)
         em.persist(sateilysuojakoulutus)
 
-        val johtamiskoulutus = OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
+        val johtamiskoulutus = OpintosuoritusHelper.createEntity(em, opintooikeus = opintooikeus, tyyppiEnum = OpintosuoritusTyyppiEnum.JOHTAMISOPINTO)
         em.persist(johtamiskoulutus)
 
-        em.persist(OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU))
-        em.persist(OpintosuoritusHelper.createEntity(em, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU))
+        em.persist(OpintosuoritusHelper.createEntity(em, opintooikeus = opintooikeus, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU))
+        em.persist(OpintosuoritusHelper.createEntity(em, opintooikeus = opintooikeus, tyyppiEnum = OpintosuoritusTyyppiEnum.VALTAKUNNALLINEN_KUULUSTELU))
 
         val koejaksoHyvaksyttyPvm = LocalDate.ofEpochDay(20)
         val vastuuhenkilonArvio = KoejaksonVaiheetHelper.createVastuuhenkilonArvio(erikoistuvaLaakari, vastuuhenkilo)

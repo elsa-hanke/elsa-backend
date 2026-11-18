@@ -38,6 +38,10 @@ import fi.elsapalvelu.elsa.security.testSamlPrincipal
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.test.web.servlet.MockMvc
+import java.time.Clock
+import org.junit.jupiter.api.BeforeEach
+import org.mockito.Mockito.mockingDetails
+import org.mockito.kotlin.whenever
 import java.io.File
 import kotlin.test.assertNotNull
 
@@ -45,6 +49,17 @@ const val API_TYOSKENTELYJAKSOT = "/api/erikoistuva-laakari/tyoskentelyjaksot"
 
 @AutoConfigureMockMvc
 open class ResourceIntegrationTestBase {
+    @Autowired private lateinit var testikello: Clock
+
+    @BeforeEach
+    fun asetaOletusTestikello() {
+        if (mockingDetails(testikello).isMock && testikello.instant() == null) {
+            val oletuskello = Clock.systemDefaultZone()
+            whenever(testikello.instant()).thenAnswer { oletuskello.instant() }
+            whenever(testikello.zone).thenReturn(oletuskello.zone)
+        }
+    }
+
 
     @Autowired protected lateinit var em: EntityManager
     @Autowired protected lateinit var testMockMvc: MockMvc

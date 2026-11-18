@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import java.time.Clock
 
 /**
  * Unit tests verifying that synchronous delivery through [SynchronousArkistointiServiceImpl.laheta]
@@ -64,7 +65,7 @@ class ArkistointiAlertTest {
         )
         arkistointiService = SynchronousArkistointiServiceImpl(
             configurationProvider = configurationProvider,
-            metadataBuilder = SahkeMetadataBuilder(),
+            metadataBuilder = SahkeMetadataBuilder(Clock.systemDefaultZone()),
             pakettiBuilder = SahkePakettiBuilder(),
             dispatcher = dispatcher
         )

@@ -380,8 +380,8 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
         val kategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala)
         arvioitavanKokonaisuudenKategoriaRepository.saveAndFlush(kategoria)
-        arvioitavaKokonaisuusRepository.saveAndFlush(ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = kategoria))
-        arvioitavaKokonaisuusRepository.saveAndFlush(ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = kategoria))
+        arvioitavaKokonaisuusRepository.saveAndFlush(ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = kategoria))
+        arvioitavaKokonaisuusRepository.saveAndFlush(ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = kategoria))
 
         flushAndClear()
 
@@ -461,7 +461,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         val kategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala)
         arvioitavanKokonaisuudenKategoriaRepository.saveAndFlush(kategoria)
 
-        val kokonaisuus = arvioitavaKokonaisuusRepository.saveAndFlush(ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = kategoria))
+        val kokonaisuus = arvioitavaKokonaisuusRepository.saveAndFlush(ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = kategoria))
 
         restOpetussuunnitelmatMockMvc.perform(get("/api/tekninen-paakayttaja/arvioitavakokonaisuus/${kokonaisuus.id}")).andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.id").value(kokonaisuus.id))
@@ -479,7 +479,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
         val kategoria = arvioitavanKokonaisuudenKategoriaRepository.saveAndFlush(ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala))
 
-        val kokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = kategoria)
+        val kokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = kategoria)
         val kokonaisuusDTO = arvioitavaKokonaisuusMapper.toDto(kokonaisuus)
 
         val databaseSizeBeforeCreate = arvioitavaKokonaisuusRepository.findAll().size
@@ -507,7 +507,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
         val kategoria = arvioitavanKokonaisuudenKategoriaRepository.saveAndFlush(ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala))
 
-        val kokonaisuus = arvioitavaKokonaisuusRepository.saveAndFlush(ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = kategoria))
+        val kokonaisuus = arvioitavaKokonaisuusRepository.saveAndFlush(ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = kategoria))
 
         val kokonaisuusDTO = arvioitavaKokonaisuusMapper.toDto(kokonaisuus)
         kokonaisuusDTO.nimi = "updated"
@@ -539,7 +539,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
         val kategoria = arvioitavanKokonaisuudenKategoriaRepository.saveAndFlush(ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala))
 
-        val kokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = kategoria)
+        val kokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = kategoria)
         val kokonaisuusDTO = arvioitavaKokonaisuusMapper.toDto(kokonaisuus)
         kokonaisuusDTO.voimassaoloAlkaa = kokonaisuusDTO.voimassaoloAlkaa?.plusYears(1)
 
@@ -555,7 +555,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
         val kategoria = arvioitavanKokonaisuudenKategoriaRepository.saveAndFlush(ArvioitavanKokonaisuudenKategoriaHelper.createEntity(em, erikoisala))
 
-        val kokonaisuus = arvioitavaKokonaisuusRepository.saveAndFlush(ArvioitavaKokonaisuusHelper.createEntity(em, existingKategoria = kategoria))
+        val kokonaisuus = arvioitavaKokonaisuusRepository.saveAndFlush(ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = kategoria))
 
         suoritusarviointiRepository.saveAndFlush(SuoritusarviointiHelper.createEntity(em, arvioitavaKokonaisuus = kokonaisuus))
 
@@ -588,8 +588,8 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         val kategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
         suoritteenKategoriaRepository.saveAndFlush(kategoria)
 
-        suoriteRepository.saveAndFlush(SuoriteHelper.createEntity(em, existingKategoria = kategoria))
-        suoriteRepository.saveAndFlush(SuoriteHelper.createEntity(em, existingKategoria = kategoria))
+        suoriteRepository.saveAndFlush(SuoriteHelper.createEntity(em, kategoria = kategoria))
+        suoriteRepository.saveAndFlush(SuoriteHelper.createEntity(em, kategoria = kategoria))
 
         flushAndClear()
 
@@ -670,7 +670,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         val kategoria = SuoritteenKategoriaHelper.createEntity(em, erikoisala)
         suoritteenKategoriaRepository.saveAndFlush(kategoria)
 
-        val kokonaisuus = suoriteRepository.saveAndFlush(SuoriteHelper.createEntity(em, existingKategoria = kategoria))
+        val kokonaisuus = suoriteRepository.saveAndFlush(SuoriteHelper.createEntity(em, kategoria = kategoria))
 
         restOpetussuunnitelmatMockMvc.perform(get("/api/tekninen-paakayttaja/suorite/${kokonaisuus.id}")).andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(jsonPath("$.id").value(kokonaisuus.id))
@@ -689,7 +689,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
         val kategoria = suoritteenKategoriaRepository.saveAndFlush(SuoritteenKategoriaHelper.createEntity(em, erikoisala))
 
-        val suorite = SuoriteHelper.createEntity(em, existingKategoria = kategoria)
+        val suorite = SuoriteHelper.createEntity(em, kategoria = kategoria)
         val suoriteDTO = suoriteWithErikoisalaMapper.toDto(suorite)
 
         val databaseSizeBeforeCreate = suoriteRepository.findAll().size
@@ -716,7 +716,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
         val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
         val kategoria = suoritteenKategoriaRepository.saveAndFlush(SuoritteenKategoriaHelper.createEntity(em, erikoisala))
 
-        val suorite = suoriteRepository.saveAndFlush(SuoriteHelper.createEntity(em, existingKategoria = kategoria))
+        val suorite = suoriteRepository.saveAndFlush(SuoriteHelper.createEntity(em, kategoria = kategoria))
 
         val suoriteDTO = suoriteWithErikoisalaMapper.toDto(suorite)
         suoriteDTO.nimi = "updated"
@@ -745,7 +745,7 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
 
         val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
         val kategoria = suoritteenKategoriaRepository.saveAndFlush(SuoritteenKategoriaHelper.createEntity(em, erikoisala))
-        val suorite = SuoriteHelper.createEntity(em, existingKategoria = kategoria)
+        val suorite = SuoriteHelper.createEntity(em, kategoria = kategoria)
         val suoriteDTO = suoriteWithErikoisalaMapper.toDto(suorite)
         suoriteDTO.voimassaolonAlkamispaiva = suoriteDTO.voimassaolonAlkamispaiva?.plusYears(1)
 
@@ -760,8 +760,8 @@ class TekninenPaakayttajaOpetussuunnitelmatResourceIT {
 
         val erikoisala = erikoisalaRepository.saveAndFlush(ErikoisalaHelper.createEntity())
         val kategoria = suoritteenKategoriaRepository.saveAndFlush(SuoritteenKategoriaHelper.createEntity(em, erikoisala))
-        val suorite = suoriteRepository.saveAndFlush(SuoriteHelper.createEntity(em, existingKategoria = kategoria))
-        suoritemerkintaRepository.saveAndFlush(SuoritemerkintaHelper.createEntity(em, existingSuorite = suorite))
+        val suorite = suoriteRepository.saveAndFlush(SuoriteHelper.createEntity(em, kategoria = kategoria))
+        suoritemerkintaRepository.saveAndFlush(SuoritemerkintaHelper.createEntity(em, suorite = suorite))
 
         val suoriteDTO = suoriteWithErikoisalaMapper.toDto(suorite)
         suoriteDTO.voimassaolonAlkamispaiva = suoriteDTO.voimassaolonAlkamispaiva?.plusDays(1)

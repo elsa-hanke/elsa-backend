@@ -1,5 +1,7 @@
 package fi.elsapalvelu.elsa.domain.valmistuminen
 
+import fi.elsapalvelu.elsa.domain.Muokkauspaivallinen
+import fi.elsapalvelu.elsa.domain.MuokkauspaivanKuuntelija
 import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -9,13 +11,13 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode
 import java.io.Serializable
-import java.time.ZoneId
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
 import fi.elsapalvelu.elsa.domain.kayttaja.Kayttaja
 @Entity
+@EntityListeners(MuokkauspaivanKuuntelija::class)
 @Audited
 @Table(name = "valmistumispyynto")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -81,7 +83,7 @@ data class Valmistumispyynto(
 
     @NotNull
     @Column(name = "muokkauspaiva", nullable = false)
-    var muokkauspaiva: LocalDate? = null,
+    override var muokkauspaiva: LocalDate? = null,
 
     @OneToOne(
         mappedBy = "valmistumispyynto",
@@ -102,17 +104,7 @@ data class Valmistumispyynto(
     @JoinColumn(unique = true)
     var erikoistujanTiedotAsiakirja: Asiakirja? = null
 
-) : Serializable {
-
-    @PrePersist
-    fun onCreate() {
-        muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
-    }
-
-    @PreUpdate
-    fun onUpdate() {
-        muokkauspaiva = LocalDate.now(ZoneId.systemDefault())
-    }
+) : Serializable, Muokkauspaivallinen {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

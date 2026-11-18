@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 import fi.elsapalvelu.elsa.domain.perustiedot.Kunta
 import fi.elsapalvelu.elsa.domain.tyoskentely.Tyoskentelypaikka
 import fi.elsapalvelu.elsa.domain.tyoskentely.TyoskentelyjaksoTyyppi
-import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 
 object TyoskentelypaikkaHelper {
@@ -18,7 +17,8 @@ object TyoskentelypaikkaHelper {
         @JvmStatic
         fun createEntity(
             em: EntityManager,
-            tyyppi: TyoskentelyjaksoTyyppi = DEFAULT_TYYPPI
+            tyyppi: TyoskentelyjaksoTyyppi = DEFAULT_TYYPPI,
+            kunta: Kunta = em.find(Kunta::class.java, "000") ?: em.find(Kunta::class.java, "001") ?: KuntaHelper.createEntity().also(em::persist)
         ): Tyoskentelypaikka {
             val tyoskentelypaikka = Tyoskentelypaikka(
                 nimi = DEFAULT_NIMI,
@@ -26,15 +26,6 @@ object TyoskentelypaikkaHelper {
                 muuTyyppi = null
             )
 
-            // Lisätään pakollinen tieto
-            val kunta: Kunta
-            if (em.findAll(Kunta::class).isEmpty()) {
-                kunta = KuntaHelper.createEntity()
-                em.persist(kunta)
-                em.flush()
-            } else {
-                kunta = em.findAll(Kunta::class).get(0)
-            }
             tyoskentelypaikka.kunta = kunta
 
             return tyoskentelypaikka
@@ -43,7 +34,8 @@ object TyoskentelypaikkaHelper {
         @JvmStatic
         fun createUpdatedEntity(
             em: EntityManager,
-            tyyppi: TyoskentelyjaksoTyyppi = UPDATED_TYYPPI
+            tyyppi: TyoskentelyjaksoTyyppi = UPDATED_TYYPPI,
+            kunta: Kunta = em.find(Kunta::class.java, "000") ?: em.find(Kunta::class.java, "001") ?: KuntaHelper.createUpdatedEntity().also(em::persist)
         ): Tyoskentelypaikka {
             val tyoskentelypaikka = Tyoskentelypaikka(
                 nimi = UPDATED_NIMI,
@@ -51,15 +43,6 @@ object TyoskentelypaikkaHelper {
                 muuTyyppi = UPDATED_MUU_TYYPPI
             )
 
-            // Lisätään pakollinen tieto
-            val kunta: Kunta
-            if (em.findAll(Kunta::class).isEmpty()) {
-                kunta = KuntaHelper.createUpdatedEntity()
-                em.persist(kunta)
-                em.flush()
-            } else {
-                kunta = em.findAll(Kunta::class).get(0)
-            }
             tyoskentelypaikka.kunta = kunta
 
             return tyoskentelypaikka

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.processing
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
@@ -160,8 +161,8 @@ class ArkistointiJobObservationIT {
     private fun fixture(previousFailures: Int): ArkistointiJobExecution {
         val id = transactions.execute {
             val university = YliopistoEnum.TURUN_YLIOPISTO
-            YliopistoHelper.createReferenceData(em, university)
-            val source = AsiakirjaHelper.createEntity(em)
+            val yliopisto = YliopistoHelper.createReferenceData(em, university)
+            val source = AsiakirjaHelper.createEntity(em, opintooikeus = Testisuhteet.opintooikeusViitetiedoilla(em, yliopisto))
             em.persist(source)
             creator.create(CreateArkistointiJobRequest(university, CaseType.VALMISTUMINEN, """{"caseId":17,"opintooikeusId":62}""", "observation-${UUID.randomUUID()}",
                 listOf(snapshots.createReference(source, RecordType.YHTEENVETO, 0)), requestedByUserId = "test-approver")).id!!

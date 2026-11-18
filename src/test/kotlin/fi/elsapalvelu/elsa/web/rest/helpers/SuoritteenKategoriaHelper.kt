@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
 import fi.elsapalvelu.elsa.domain.suoritteet.SuoritteenKategoria
-import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 
 object SuoritteenKategoriaHelper {
@@ -12,7 +11,7 @@ object SuoritteenKategoriaHelper {
 
     fun createEntity(
         em: EntityManager,
-        existingErikoisala: Erikoisala? = null
+        erikoisala: Erikoisala? = null
     ): SuoritteenKategoria {
 
         val suoritteenKategoria = SuoritteenKategoria(
@@ -20,31 +19,27 @@ object SuoritteenKategoriaHelper {
         )
 
         suoritteenKategoria.erikoisala =
-            existingErikoisala ?: resolveErikoisala(em, updated = false)
+            erikoisala ?: luoErikoisala(em, updated = false)
 
         return suoritteenKategoria
     }
 
-    fun createUpdatedEntity(em: EntityManager): SuoritteenKategoria {
+    fun createUpdatedEntity(em: EntityManager, erikoisala: Erikoisala? = null): SuoritteenKategoria {
 
         val suoritteenKategoria = SuoritteenKategoria(
             nimi = UPDATED_NIMI
         )
 
         suoritteenKategoria.erikoisala =
-            resolveErikoisala(em, updated = true)
+            erikoisala ?: luoErikoisala(em, updated = true)
 
         return suoritteenKategoria
     }
 
-    private fun resolveErikoisala(
+    private fun luoErikoisala(
         em: EntityManager,
         updated: Boolean
     ): Erikoisala {
-        val existing = em.findAll(Erikoisala::class).firstOrNull()
-
-        if (existing != null) return existing
-
         val created =
             if (updated) {
                 ErikoisalaHelper.createUpdatedEntity()

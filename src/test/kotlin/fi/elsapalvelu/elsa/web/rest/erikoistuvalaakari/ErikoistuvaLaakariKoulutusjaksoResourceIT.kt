@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.erikoistuvalaakari
 
+import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavanKokonaisuudenKategoriaHelper
 import fi.elsapalvelu.elsa.ElsaBackendApp
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutusjakso
 import fi.elsapalvelu.elsa.domain.koulutus.Koulutussuunnitelma
@@ -12,6 +13,7 @@ import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.convertObjectToJsonBytes
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ArvioitavaKokonaisuusHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import fi.elsapalvelu.elsa.web.rest.helpers.KoulutussuunnitelmaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.OpintooikeusHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
@@ -439,7 +441,10 @@ class ErikoistuvaLaakariKoulutusjaksoResourceIT {
         em.persist(tyoskentelyjakso)
         em.flush()
 
-        val arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em)
+        val kategoria = ArvioitavanKokonaisuudenKategoriaHelper.createEntity(
+            em, erikoisala = tyoskentelyjakso.opintooikeus?.erikoisala
+        ).also(em::persist)
+        val arvioitavaKokonaisuus = ArvioitavaKokonaisuusHelper.createEntity(em, kategoria = kategoria)
         em.persist(arvioitavaKokonaisuus)
         em.flush()
 
@@ -535,7 +540,7 @@ class ErikoistuvaLaakariKoulutusjaksoResourceIT {
             // Lisätään pakollinen tieto
             val koulutussuunnitelma: Koulutussuunnitelma
             if (em.findAll(Koulutussuunnitelma::class).isEmpty()) {
-                koulutussuunnitelma = KoulutussuunnitelmaHelper.createUpdatedEntity(em)
+                koulutussuunnitelma = KoulutussuunnitelmaHelper.createUpdatedEntity(opintooikeus = Testisuhteet.opintooikeus(em, null))
                 em.persist(koulutussuunnitelma)
                 em.flush()
             } else {

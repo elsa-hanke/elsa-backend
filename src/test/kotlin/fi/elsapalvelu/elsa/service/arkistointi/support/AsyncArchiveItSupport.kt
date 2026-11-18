@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.support
 
+import fi.elsapalvelu.elsa.web.rest.helpers.Testisuhteet
 import com.github.kagkarlsson.scheduler.Scheduler
 import com.github.kagkarlsson.scheduler.task.schedule.Schedule
 import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
@@ -164,7 +165,7 @@ open class AsyncArchiveItSupport : ResourceIntegrationTestBase() {
         em.persist(erikoistuvaLaakari)
         val opintooikeus = erikoistuvaLaakari.getOpintooikeusKaytossa()!!
         em.persist(Koulutussuunnitelma(opintooikeus = opintooikeus))
-        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em).also { it.opintooikeus = opintooikeus }.also(em::persist)
+        val tyoskentelyjakso = TyoskentelyjaksoHelper.createEntity(em, opintooikeus = opintooikeus).also(em::persist)
         val attachment = Asiakirja(nimi = "approval-attachment.pdf", tyyppi = "application/pdf", lisattypvm = LocalDateTime.now(),
             opintooikeus = opintooikeus, tyoskentelyjakso = tyoskentelyjakso, asiakirjaData = AsiakirjaData(data = PdfTestData.certificate()))
         em.persist(attachment)
@@ -188,7 +189,7 @@ open class AsyncArchiveItSupport : ResourceIntegrationTestBase() {
             val user = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(VASTUUHENKILO)).also(em::persist)
             val university = YliopistoHelper.createReferenceData(em, universityType)
             val traineeUser = KayttajaResourceWithMockUserIT.createEntity(authority = Authority(ERIKOISTUVA_LAAKARI)).also(em::persist)
-            val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user = traineeUser, yliopisto = university)
+            val erikoistuvaLaakari = ErikoistuvaLaakariHelper.createEntity(em, user = traineeUser, yliopisto = university, erikoisala = Testisuhteet.akuuttilaaketiede(em))
             val hyvaksyja = createVastuuhenkiloForKoejakso(erikoistuvaLaakari, user = user)
             val kouluttaja = KayttajaHelper.createEntity(em).also(em::persist)
             val supervisor = KayttajaHelper.createEntity(em).also(em::persist)

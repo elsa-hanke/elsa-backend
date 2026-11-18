@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.web.rest.helpers
 
+import fi.elsapalvelu.elsa.config.YEK_ERIKOISALA_ID
 import fi.elsapalvelu.elsa.domain.*
 import fi.elsapalvelu.elsa.domain.koejakso.*
 import fi.elsapalvelu.elsa.domain.tyoskentely.*
@@ -12,7 +13,6 @@ import fi.elsapalvelu.elsa.domain.kayttaja.*
 import fi.elsapalvelu.elsa.domain.perustiedot.*
 import fi.elsapalvelu.elsa.domain.kayttaja.OpintooikeudenTila
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 import java.time.LocalDate
 
@@ -37,14 +37,14 @@ object OpintooikeusHelper {
         viimeinenKatselupaiva: LocalDate? = null
     ): Opintooikeus {
 
-        val baseEntities = createBaseEntities(em)
+        val perustiedot = luoPerustiedot(em)
 
         val opintooikeus = createOpintooikeus(
             erikoistuvaLaakari,
-            baseEntities.yliopisto,
-            baseEntities.erikoisala,
-            baseEntities.opintoopas,
-            baseEntities.asetus,
+            perustiedot.yliopisto,
+            perustiedot.erikoisala,
+            perustiedot.opintoopas,
+            perustiedot.asetus,
             alkamispaiva,
             paattymispaiva,
             tila,
@@ -68,16 +68,15 @@ object OpintooikeusHelper {
         viimeinenKatselupaiva: LocalDate? = null
     ): Opintooikeus {
 
-        val baseEntities = createBaseEntities(em)
-
-        val erikoisala = ErikoisalaHelper.createEntityWithId(61L)
+        val erikoisala = requireNotNull(em.find(Erikoisala::class.java, YEK_ERIKOISALA_ID))
+        val perustiedot = luoPerustiedot(em, erikoisala)
 
         val opintooikeus = createOpintooikeus(
             erikoistuvaLaakari,
-            baseEntities.yliopisto,
+            perustiedot.yliopisto,
             erikoisala,
-            baseEntities.opintoopas,
-            baseEntities.asetus,
+            perustiedot.opintoopas,
+            perustiedot.asetus,
             alkamispaiva,
             paattymispaiva,
             tila,
@@ -107,34 +106,21 @@ object OpintooikeusHelper {
 
     // ----------------- helpers -----------------
 
-    private fun createBaseEntities(em: EntityManager): BaseEntities {
-        val yliopisto = Yliopisto(nimi = DEFAULT_YLIOPISTO)
-        em.persist(yliopisto)
-
-        val erikoisala = ErikoisalaHelper.createEntity()
-        em.persist(erikoisala)
+    private fun luoPerustiedot(
+        em: EntityManager,
+        erikoisala: Erikoisala = ErikoisalaHelper.createEntity().also(em::persist)
+    ): Perustiedot {
+        val yliopisto = Testisuhteet.yliopisto(em, DEFAULT_YLIOPISTO)
 
         val opintoopas =
             OpintoopasHelper.createEntity(em, erikoisala = erikoisala)
         em.persist(opintoopas)
 
-        val asetus = getOrCreateAsetus(em)
+        val asetus = Testisuhteet.asetus(em, DEFAULT_ASETUS)
 
         em.flush()
 
-        return BaseEntities(yliopisto, erikoisala, opintoopas, asetus)
-    }
-
-    private fun getOrCreateAsetus(em: EntityManager): Asetus {
-        val existing = em.findAll(Asetus::class)
-        return if (existing.isEmpty()) {
-            Asetus(nimi = DEFAULT_ASETUS).also {
-                em.persist(it)
-                em.flush()
-            }
-        } else {
-            existing.first()
-        }
+        return Perustiedot(yliopisto, erikoisala, opintoopas, asetus)
     }
 
     private fun createOpintooikeus(
@@ -164,7 +150,7 @@ object OpintooikeusHelper {
                 viimeinenKatselupaiva ?: paattymispaiva.plusMonths(6)
         )
 
-    private data class BaseEntities(
+    private data class Perustiedot(
         val yliopisto: Yliopisto,
         val erikoisala: Erikoisala,
         val opintoopas: Opintoopas,

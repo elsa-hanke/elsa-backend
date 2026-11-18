@@ -442,7 +442,8 @@ class KayttajaResourceIT {
         val erikoistuvaLaakari =
             ErikoistuvaLaakariHelper.createEntity(
                 em,
-                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5)
+                opintooikeudenPaattymispaiva = LocalDate.now().plusYears(5),
+                yliopisto = yliopisto1, erikoisala = erikoisala1
             )
         erikoistuvaLaakariRepository.save(erikoistuvaLaakari)
 

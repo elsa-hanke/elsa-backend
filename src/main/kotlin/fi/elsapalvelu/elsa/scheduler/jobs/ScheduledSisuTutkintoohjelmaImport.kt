@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.scheduler.jobs
 
+import java.time.Clock
 import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaImportService
 import fi.elsapalvelu.elsa.scheduler.AbstractTriggerableJob
 import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingService
@@ -13,7 +14,8 @@ import java.time.LocalDateTime
 @Component
 class ScheduledSisuTutkintoohjelmaImport(
     private val sisuTutkintoohjelmaFetchingService: SisuTutkintoohjelmaFetchingService,
-    private val sisuTutkintoohjelmaImportService: SisuTutkintoohjelmaImportService
+    private val sisuTutkintoohjelmaImportService: SisuTutkintoohjelmaImportService,
+    private val clock: Clock
 ) : AbstractTriggerableJob() {
 
     override val jobName = "sisuTutkintoohjelmaImport"
@@ -26,7 +28,7 @@ class ScheduledSisuTutkintoohjelmaImport(
 
     override fun runJob() {
         log.info("SisuTutkintoohjelmaImport käynnistetty")
-        val timestamp = LocalDateTime.now()
+        val aloitusaika = LocalDateTime.now(clock)
         runBlocking {
             try {
                 sisuTutkintoohjelmaFetchingService.fetch()?.let {
@@ -38,7 +40,7 @@ class ScheduledSisuTutkintoohjelmaImport(
         }
         log.info(
             "SisuTutkintoohjelmaImport valmis ${
-                Duration.between(timestamp, LocalDateTime.now()).toSeconds()
+                Duration.between(aloitusaika, LocalDateTime.now(clock)).toSeconds()
             } sekunnissa"
         )
     }

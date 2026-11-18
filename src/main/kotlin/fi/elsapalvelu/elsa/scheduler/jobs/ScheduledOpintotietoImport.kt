@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.scheduler.jobs
 
+import java.time.Clock
 import fi.elsapalvelu.elsa.required
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -42,7 +43,8 @@ class ScheduledOpintotietoImport(
     private val opintosuorituksetFetchingService: List<OpintosuorituksetFetchingService>,
     private val opintosuorituksetPersistenceService: OpintosuorituksetPersistenceService,
     private val opintooikeusRepository: OpintooikeusRepository,
-    private val applicationProperties: ApplicationProperties
+    private val applicationProperties: ApplicationProperties,
+    private val clock: Clock
 ) : AbstractTriggerableJob() {
 
     override val jobName = "opintotietoImport"
@@ -55,11 +57,11 @@ class ScheduledOpintotietoImport(
 
     override fun runJob() {
         log.info("OpintotietoImport käynnistetty")
-        val timestamp = LocalDateTime.now()
+        val aloitusaika = LocalDateTime.now(clock)
         importOpintotiedot()
         log.info(
             "OpintotietoImport valmis ${
-                Duration.between(timestamp, LocalDateTime.now()).toSeconds()
+                Duration.between(aloitusaika, LocalDateTime.now(clock)).toSeconds()
             } sekunnissa"
         )
     }

@@ -1,21 +1,15 @@
-package fi.elsapalvelu.elsa.web.rest.common
+package fi.elsapalvelu.elsa.service.tyoskentely
 
 import fi.elsapalvelu.elsa.required
 
-import java.time.LocalDate
 import java.security.Principal
 import fi.elsapalvelu.elsa.extensions.mapAsiakirja
 import fi.elsapalvelu.elsa.security.ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA
 import fi.elsapalvelu.elsa.service.dto.kayttaja.AsiakirjaDTO
-import fi.elsapalvelu.elsa.service.dto.kayttaja.UserDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
 import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
-import fi.elsapalvelu.elsa.service.kayttaja.ErikoistuvaLaakariService
 import fi.elsapalvelu.elsa.service.kayttaja.FileValidationService
 import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
-import fi.elsapalvelu.elsa.service.tyoskentely.OverlappingTyoskentelyjaksoValidationService
-import fi.elsapalvelu.elsa.service.tyoskentely.TyoskentelyjaksoService
-import fi.elsapalvelu.elsa.web.rest.TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME
 import fi.elsapalvelu.elsa.web.rest.errors.BadRequestAlertException
 import jakarta.validation.ValidationException
 import org.springframework.security.core.GrantedAuthority
@@ -28,43 +22,26 @@ private const val KESKEYTYSAIKA_ENTITY_NAME = "keskeytysaika"
 private const val TYOSKENTELYPAIKKA_ENTITY_NAME = "tyoskentelypaikka"
 
 @Component
-class TyoskentelyjaksoResourceSupport(
-    private val fileValidationService: FileValidationService,
-    private val overlappingTyoskentelyjaksoValidationService: OverlappingTyoskentelyjaksoValidationService,
-    private val tyoskentelyjaksoService: TyoskentelyjaksoService,
-    private val opintooikeusService: OpintooikeusService,
-    private val erikoistuvaLaakariService: ErikoistuvaLaakariService
+class TyoskentelyjaksonTarkistuspalvelu(
+    private val tiedostojenTarkistus: FileValidationService,
+    private val tyoskentelyajanTarkistus: OverlappingTyoskentelyjaksoValidationService,
+    private val tyoskentelyjaksot: TyoskentelyjaksoService,
+    private val opintooikeudet: OpintooikeusService
 ) {
 
-    fun getMappedFiles(
-        files: List<MultipartFile>?,
+    fun muodostaAsiakirjat(
+        liitteet: List<MultipartFile>?,
         opintooikeusId: Long
     ): MutableSet<AsiakirjaDTO>? {
-        files?.let {
-            fileValidationService.validate(it, opintooikeusId)
-            return it.map { file -> file.mapAsiakirja() }.toMutableSet()
+        liitteet?.let {
+            tiedostojenTarkistus.validate(it, opintooikeusId)
+            return it.map { liite -> liite.mapAsiakirja() }.toMutableSet()
         }
 
         return null
     }
 
-    fun validateLaillistamispaivaAndTodistus(
-        user: UserDTO,
-        laillistamispaiva: LocalDate?,
-        laillistamistodistus: MultipartFile?
-    ) {
-        if ((laillistamispaiva == null || laillistamistodistus == null) &&
-            !erikoistuvaLaakariService.laillistamispaivaAndTodistusExists(user.id.required())
-        ) {
-            throw BadRequestAlertException(
-                "Laillistamispaiva ja todistus vaaditaan",
-                TERVEYSKESKUSKOULUTUSJAKSO_ENTITY_NAME,
-                "dataillegal.laillistamispaiva-ja-todistus-vaaditaan"
-            )
-        }
-    }
-
-    fun validateNewTyoskentelyjaksoDTO(tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
+    fun tarkistaUusiTyoskentelyjakso(tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
         if (tyoskentelyjaksoDTO.id != null) {
             throw BadRequestAlertException(
                 "Uusi tyoskentelyjakso ei saa sisältää ID:tä",
@@ -81,13 +58,13 @@ class TyoskentelyjaksoResourceSupport(
         }
     }
 
-    fun validateTyoskentelyaika(opintooikeusId: Long, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
-        if (!overlappingTyoskentelyjaksoValidationService.validateTyoskentelyjakso(opintooikeusId, tyoskentelyjaksoDTO)) {
-            throwOverlappingTyoskentelyjaksotException()
+    fun tarkistaTyoskentelyaika(opintooikeusId: Long, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
+        if (!tyoskentelyajanTarkistus.validateTyoskentelyjakso(opintooikeusId, tyoskentelyjaksoDTO)) {
+            hylkaaPaallekkaisetTyoskentelyjaksot()
         }
     }
 
-    fun validateAlkamisJaPaattymispaiva(opintooikeusId: Long, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
+    fun tarkistaAlkamisJaPaattymispaiva(opintooikeusId: Long, tyoskentelyjaksoDTO: TyoskentelyjaksoDTO) {
         tyoskentelyjaksoDTO.paattymispaiva?.isBefore(tyoskentelyjaksoDTO.alkamispaiva)?.let {
             if (it) {
                 throw BadRequestAlertException(
@@ -98,7 +75,7 @@ class TyoskentelyjaksoResourceSupport(
             }
         }
 
-        if (!tyoskentelyjaksoService.validateAlkamisJaPaattymispaiva(tyoskentelyjaksoDTO, opintooikeusId)) {
+        if (!tyoskentelyjaksot.validateAlkamisJaPaattymispaiva(tyoskentelyjaksoDTO, opintooikeusId)) {
             throw BadRequestAlertException(
                 "Työskentelyjakson alkamis- tai päättymispäivä ei ole kelvollinen.",
                 TYOSKENTELYJAKSO_ENTITY_NAME,
@@ -107,7 +84,7 @@ class TyoskentelyjaksoResourceSupport(
         }
     }
 
-    fun validateKeskeytysaikaDTO(keskeytysaikaDTO: KeskeytysaikaDTO) {
+    fun tarkistaKeskeytysaika(keskeytysaikaDTO: KeskeytysaikaDTO) {
         if (keskeytysaikaDTO.alkamispaiva == null || keskeytysaikaDTO.paattymispaiva == null) {
             throw BadRequestAlertException(
                 "Keskeytysajan alkamis- ja päättymispäivä ovat pakollisia tietoja",
@@ -152,22 +129,22 @@ class TyoskentelyjaksoResourceSupport(
         }
     }
 
-    fun validateMuokkausoikeudet(principal: Principal?, userId: String, entity: String, userDescription: String) {
+    fun tarkistaMuokkausoikeudet(principal: Principal?, kayttajaId: String, kohde: String, kayttajanKuvaus: String) {
         if ((principal as Saml2Authentication).authorities.map(GrantedAuthority::getAuthority)
                 .contains(ERIKOISTUVA_LAAKARI_IMPERSONATED_VIRKAILIJA)
         ) {
-            val opintooikeus = opintooikeusService.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(userId)
+            val opintooikeus = opintooikeudet.findOneByKaytossaAndErikoistuvaLaakariKayttajaUserId(kayttajaId)
             if (!opintooikeus.muokkausoikeudetVirkailijoilla) {
                 throw BadRequestAlertException(
-                    "Ei oikeuksia muokata $userDescription tietoja",
-                    entity,
+                    "Ei oikeuksia muokata $kayttajanKuvaus tietoja",
+                    kohde,
                     "dataillegal.ei-oikeuksia-muokata-erikoistujan-tietoja"
                 )
             }
         }
     }
 
-    fun throwOverlappingTyoskentelyjaksotException() {
+    fun hylkaaPaallekkaisetTyoskentelyjaksot() {
         throw BadRequestAlertException(
             "Päällekkäisten työskentelyjaksojen yhteenlaskettu työaika ei voi ylittää 100%:a",
             TYOSKENTELYJAKSO_ENTITY_NAME,
@@ -175,9 +152,9 @@ class TyoskentelyjaksoResourceSupport(
         )
     }
 
-    fun liitettyTerveyskoulutusjaksoonException(e: ValidationException): BadRequestAlertException {
+    fun terveyskeskuskoulutusjaksonMuokkausvirhe(virhe: ValidationException): BadRequestAlertException {
         return BadRequestAlertException(
-            e.message ?: "Validaatiovirhe",
+            virhe.message ?: "Validaatiovirhe",
             TYOSKENTELYJAKSO_ENTITY_NAME,
             "dataillegal.terveyskeskuskoulutusjaksoon-liitettya-tyoskentelyjaksoa-ei-voi-paivittaa"
         )

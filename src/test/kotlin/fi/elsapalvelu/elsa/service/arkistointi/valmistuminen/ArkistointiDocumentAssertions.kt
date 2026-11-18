@@ -17,6 +17,7 @@ import org.assertj.core.api.Assertions.assertThat
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Clock
 import java.time.LocalDate
 import java.util.zip.ZipFile
 
@@ -27,7 +28,7 @@ internal fun assertZipContents(
     val configuration = ArkistointiConfigurationProvider(properties)
         .getConfiguration(job.university!!, CaseType.VALMISTUMINEN)
     val records = job.asiakirjat.map { RecordProperties(it.asiakirja!!, it.asiakirjatyyppi!!) }
-    val metadata = SahkeMetadataBuilder().build(
+    val metadata = SahkeMetadataBuilder(Clock.systemDefaultZone()).build(
         SahkeMetadataRequest(request.opintooikeus, records, request.id.toString(), null, null, null, LocalDate.now()),
         configuration
     )

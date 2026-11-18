@@ -16,10 +16,11 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.apache.commons.codec.digest.DigestUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.LocalDate
 
 class SahkeMetadataBuilderTest {
-    private val builder = SahkeMetadataBuilder()
+    private val builder = SahkeMetadataBuilder(Clock.systemDefaultZone())
 
     @Test
     fun `build includes only configured documents in metadata and package input`() {

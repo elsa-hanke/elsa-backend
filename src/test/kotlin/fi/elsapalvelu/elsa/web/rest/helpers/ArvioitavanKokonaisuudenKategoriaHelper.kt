@@ -2,7 +2,6 @@ package fi.elsapalvelu.elsa.web.rest.helpers
 
 import fi.elsapalvelu.elsa.domain.arviointi.ArvioitavanKokonaisuudenKategoria
 import fi.elsapalvelu.elsa.domain.perustiedot.Erikoisala
-import fi.elsapalvelu.elsa.web.rest.findAll
 import jakarta.persistence.EntityManager
 
 object ArvioitavanKokonaisuudenKategoriaHelper {
@@ -14,46 +13,26 @@ object ArvioitavanKokonaisuudenKategoriaHelper {
     @JvmStatic
     fun createEntity(
         em: EntityManager,
-        existingErikoisala: Erikoisala? = null
+        erikoisala: Erikoisala? = null
     ): ArvioitavanKokonaisuudenKategoria {
         val arvioitavanKokonaisuudenKategoria = ArvioitavanKokonaisuudenKategoria(
             nimi = DEFAULT_NIMI,
             jarjestysnumero = DEFAULT_JARJESTYSNUMERO
         )
 
-        // Lisätään pakollinen tieto
-        var erikoisala = existingErikoisala
-        if (erikoisala == null) {
-            if (em.findAll(Erikoisala::class).isEmpty()) {
-                erikoisala = ErikoisalaHelper.createEntity()
-                em.persist(erikoisala)
-                em.flush()
-            } else {
-                erikoisala = em.findAll(Erikoisala::class)[0]
-            }
-        }
-        arvioitavanKokonaisuudenKategoria.erikoisala = erikoisala
+        arvioitavanKokonaisuudenKategoria.erikoisala = erikoisala ?: ErikoisalaHelper.createEntity().also(em::persist)
 
         return arvioitavanKokonaisuudenKategoria
     }
 
     @JvmStatic
-    fun createUpdatedEntity(em: EntityManager): ArvioitavanKokonaisuudenKategoria {
+    fun createUpdatedEntity(em: EntityManager, erikoisala: Erikoisala? = null): ArvioitavanKokonaisuudenKategoria {
         val kategoria = ArvioitavanKokonaisuudenKategoria(
             nimi = UPDATED_NIMI,
             jarjestysnumero = UPDATED_JARJESTYSNUMERO
         )
 
-        // Lisätään pakollinen tieto
-        val erikoisala: Erikoisala
-        if (em.findAll(Erikoisala::class).isEmpty()) {
-            erikoisala = ErikoisalaHelper.createUpdatedEntity()
-            em.persist(erikoisala)
-            em.flush()
-        } else {
-            erikoisala = em.findAll(Erikoisala::class)[0]
-        }
-        kategoria.erikoisala = erikoisala
+        kategoria.erikoisala = erikoisala ?: ErikoisalaHelper.createUpdatedEntity().also(em::persist)
 
         return kategoria
     }

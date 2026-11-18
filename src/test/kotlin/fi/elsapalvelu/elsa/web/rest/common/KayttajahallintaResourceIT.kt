@@ -81,7 +81,10 @@ private fun containsExpectedKayttajaIds(rolePath: String, sameYliopistoId: Long?
         else listOf(sameYliopistoId)
     ).map { requireNotNull(it).toInt() }.toTypedArray())
 
-@SpringBootTest(classes = [ElsaBackendApp::class])
+private const val KAYTTAJAHALLINNAN_TESTITIETOKANTA =
+    "spring.datasource.url=jdbc:tc:postgresql:16.9:///kayttajahallinta?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true"
+
+@SpringBootTest(classes = [ElsaBackendApp::class], properties = [KAYTTAJAHALLINNAN_TESTITIETOKANTA])
 @Transactional
 class KayttajahallintaResourceIT : ResourceIntegrationTestBase() {
 
