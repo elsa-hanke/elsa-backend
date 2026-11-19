@@ -1,5 +1,9 @@
 package fi.elsapalvelu.elsa.service.arkistointi.job.processing
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -11,6 +15,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -18,12 +23,39 @@ import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.slf4j.LoggerFactory
 
 class ArkistointiJobObserverTest {
     private val registry = SimpleMeterRegistry()
     private val alerts = mock<AlertPublisherService>()
     private val metrics = ArkistointiMetricsService(registry)
     private val observer = ArkistointiJobObserver(metrics, alerts, ApplicationProperties())
+
+    @ParameterizedTest
+    @CsvSource(
+        "TURUN_YLIOPISTO, 1, Archive attempt failed",
+        "ITA_SUOMEN_YLIOPISTO, 3, Archive delivery delayed",
+        "TAMPEREEN_YLIOPISTO, 1, Archive attempt failed",
+        "HELSINGIN_YLIOPISTO, 3, Archive delivery delayed"
+    )
+    fun `retry failures log at error level`(university: YliopistoEnum, attempt: Int, messagePrefix: String) {
+        val logger = LoggerFactory.getLogger(ArkistointiJobObserver::class.java) as Logger
+        val events = ListAppender<ILoggingEvent>()
+        events.start()
+        logger.addAppender(events)
+        try {
+            val failure = event(attempt).copy(university = university)
+            observer.onCompleted(failure)
+
+            val logged = events.list.single()
+            assertThat(logged.level).isEqualTo(Level.ERROR)
+            assertThat(logged.formattedMessage).startsWith(messagePrefix).contains(failure.jobId.toString(), "outcome=RETRYABLE_FAILURE")
+            if (attempt == 3) verify(alerts).publishAlert(any(), any()) else verifyNoInteractions(alerts)
+        } finally {
+            logger.detachAppender(events)
+            events.stop()
+        }
+    }
 
     @ParameterizedTest
     @ValueSource(ints = [1, 2, 4, 9, 11, 19, 21, 24])

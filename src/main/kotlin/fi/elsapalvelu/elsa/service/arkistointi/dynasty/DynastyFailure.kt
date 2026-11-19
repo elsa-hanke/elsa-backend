@@ -22,5 +22,21 @@ internal enum class DynastyFailureCategory(
     STEP_IN_PROGRESS("DYNASTY_STEP_IN_PROGRESS", retryable = true, definitelyNotProcessed = false)
 }
 
+internal enum class DynastyDiagnosticReason {
+    INVALID_JSON,
+    INVALID_ACCESS_TOKEN,
+    INVALID_EXPIRY,
+    RESPONSE_TOO_LARGE,
+    INVALID_PHASE_ID,
+    PHASE_ID_MISMATCH,
+    CASE_CLASS_MISMATCH,
+    INVALID_TITLE_LIST,
+    DUPLICATE_TITLE,
+    TITLE_NOT_FOUND,
+}
+
 /** Safe diagnostics only: no original exception, response body or request data. */
-internal class DynastyFailure(val category: DynastyFailureCategory) : RuntimeException("Dynasty request failed [${category.code}]")
+internal class DynastyFailure(
+    val category: DynastyFailureCategory,
+    val diagnosticReason: DynastyDiagnosticReason? = null
+) : RuntimeException("Dynasty request failed [${category.code}]")

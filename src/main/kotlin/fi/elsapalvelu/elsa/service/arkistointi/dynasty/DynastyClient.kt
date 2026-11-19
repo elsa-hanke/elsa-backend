@@ -23,7 +23,7 @@ import java.time.Clock
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
-/** No redirects, HTTP logging, or transparent retries of non-idempotent POST requests. */
+/** No redirects, HTTP payload logging, or transparent retries of non-idempotent POST requests. */
 class DynastyClient internal constructor(
     private val settings: DynastyProperties,
     private val mapper: ObjectMapper,
@@ -79,10 +79,11 @@ class DynastyClient internal constructor(
         return received.tokenValue
     }
 
-    private fun fetchAccessToken(): AccessToken {
+    private fun fetchAccessToken(): AccessToken = diagnoseDynastyCall("oauth_token") {
         val request = tokenRequest()
         try {
-            return httpClient.newCall(request).execute().use { response ->
+            httpClient.newCall(request).execute().use { response ->
+                recordResponse(response)
                 if (!response.isSuccessful) {
                     val category = if (response.code >= 500 || response.code == 429) {
                         DynastyFailureCategory.AUTH_TEMPORARILY_REJECTED
@@ -95,7 +96,11 @@ class DynastyClient internal constructor(
             }
         } catch (exception: DynastyFailure) {
             throw exception
-        } catch (_: Exception) {
+        } catch (exception: JsonProcessingException) {
+            recordException(exception)
+            throw DynastyFailure(DynastyFailureCategory.AUTH_UNAVAILABLE, DynastyDiagnosticReason.INVALID_JSON)
+        } catch (exception: Exception) {
+            recordException(exception)
             throw DynastyFailure(DynastyFailureCategory.AUTH_UNAVAILABLE)
         }
     }
@@ -116,10 +121,12 @@ class DynastyClient internal constructor(
 
     private fun parseAccessToken(response: Response): AccessToken {
         val data = mapper.readTree(response.peekBody(MAX_TOKEN_RESPONSE_BYTES).string())
-        val tokenValue = data.path("access_token").takeIf { it.isTextual }?.textValue()?.takeIf { it.isNotBlank() } ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
-        val expiresInSeconds = data.path("expires_in").takeIf { it.isIntegralNumber }?.longValue() ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
+        val tokenValue = data.path("access_token").takeIf { it.isTextual }?.textValue()?.takeIf { it.isNotBlank() }
+            ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED, DynastyDiagnosticReason.INVALID_ACCESS_TOKEN)
+        val expiresInSeconds = data.path("expires_in").takeIf { it.isIntegralNumber }?.longValue()
+            ?: throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED, DynastyDiagnosticReason.INVALID_EXPIRY)
         if (expiresInSeconds <= TOKEN_REFRESH_MARGIN_SECONDS || expiresInSeconds > MAX_TOKEN_LIFETIME_SECONDS) {
-            throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
+            throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED, DynastyDiagnosticReason.INVALID_EXPIRY)
         }
         return AccessToken(tokenValue, Instant.now(clock).plusSeconds(expiresInSeconds))
     }
@@ -134,10 +141,10 @@ class DynastyClient internal constructor(
     }
 
     fun createCase(tosClass: String, metadata: DynastyCaseRequest): DynastyCaseId =
-        post(endpoint("api/v1/cases").addQueryParameter("tosClass", tosClass).build(), json(metadata), DynastyResponseKind.CaseId)
+        post("create_case", endpoint("api/v1/cases").addQueryParameter("tosClass", tosClass).build(), json(metadata), DynastyResponseKind.CaseId)
 
     fun createTask(caseId: DynastyCaseId, title: String): DynastyTaskId =
-        post(endpoint("api/v1/cases/$caseId/tasks").build(), json(DynastyTaskRequest(title)), DynastyResponseKind.TaskId)
+        post("create_task", endpoint("api/v1/cases/$caseId/tasks").build(), json(DynastyTaskRequest(title)), DynastyResponseKind.TaskId)
 
     fun createDocument(metadata: DynastyDocumentRequestMetadata, options: DynastyDocumentOptions, document: LoadedArkistointiAsiakirja): DynastyDocumentId {
         val (metadataPart, optionsPart, filePart) = when (options) {
@@ -149,28 +156,36 @@ class DynastyClient internal constructor(
             .addFormDataPart(optionsPart, mapper.writeValueAsString(options))
             .addFormDataPart(filePart, document.filename, document.sisalto.toRequestBody(document.contentType.toMediaType()))
             .build()
-        return post(endpoint("api/v1/documents").build(), body, DynastyResponseKind.DocumentId)
+        return post("create_document", endpoint("api/v1/documents").build(), body, DynastyResponseKind.DocumentId)
     }
 
-    fun archiveCase(caseId: DynastyCaseId) = post(endpoint("api/v1/cases/$caseId/state/Archived").build(), ByteArray(0).toRequestBody(), DynastyResponseKind.NoContent)
+    fun archiveCase(caseId: DynastyCaseId) = post(
+        "archive_case", endpoint("api/v1/cases/$caseId/state/Archived").build(),
+        ByteArray(0).toRequestBody(), DynastyResponseKind.NoContent
+    )
 
     private fun json(value: Any) = mapper.writeValueAsString(value).toRequestBody("application/json".toMediaType())
 
     private fun endpoint(path: String): HttpUrl.Builder = requireSetting(settings.baseUrl).trimEnd('/').toHttpUrl().newBuilder().addPathSegments(path)
 
-    internal fun readTos(path: String): JsonNode {
+    internal fun <T> readTos(path: String, operation: String, validate: (JsonNode) -> T): T {
         val url = endpoint(path).build()
         repeat(2) { attempt ->
             val request = authorizedRequest(url, "application/json").get().build()
-            try {
-                httpClient.newCall(request).execute().use { response ->
-                    if (retryAfterUnauthorized(response.code, attempt)) return@use
-                    return parseTosResponse(response, mapper)
+            diagnoseDynastyCall(operation) {
+                try {
+                    httpClient.newCall(request).execute().use { response ->
+                        recordResponse(response)
+                        if (retryAfterUnauthorized(response.code, attempt)) return@use
+                        return validate(parseTosResponse(response, mapper))
+                    }
+                } catch (exception: JsonProcessingException) {
+                    recordException(exception)
+                    throw DynastyFailure(DynastyFailureCategory.TOS_INVALID, DynastyDiagnosticReason.INVALID_JSON)
+                } catch (exception: IOException) {
+                    recordException(exception)
+                    throw DynastyFailure(DynastyFailureCategory.TOS_UNAVAILABLE)
                 }
-            } catch (_: JsonProcessingException) {
-                throw DynastyFailure(DynastyFailureCategory.TOS_INVALID)
-            } catch (_: IOException) {
-                throw DynastyFailure(DynastyFailureCategory.TOS_UNAVAILABLE)
             }
         }
         throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
@@ -182,25 +197,28 @@ class DynastyClient internal constructor(
             .header("Authorization", "Bearer ${accessToken()}")
             .header("Accept", accept)
 
-    private fun <T> post(url: HttpUrl, body: RequestBody, responseKind: DynastyResponseKind<T>): T {
+    private fun <T> post(operation: String, url: HttpUrl, body: RequestBody, responseKind: DynastyResponseKind<T>): T {
         repeat(2) { attempt ->
             val request = authorizedRequest(url, responseKind.accept).post(body).build()
             val progress = ArchiveHttpRequestProgress()
             val client = httpClient.newBuilder().eventListener(progress).build()
-            try {
-                client.newCall(request).execute().use { response ->
-                    if (retryAfterUnauthorized(response.code, attempt)) return@use
-                    validateMutationResponse(response)
-                    return responseKind.read(response)
+            diagnoseDynastyCall(operation) {
+                try {
+                    client.newCall(request).execute().use { response ->
+                        recordResponse(response)
+                        if (retryAfterUnauthorized(response.code, attempt)) return@use
+                        validateMutationResponse(response)
+                        return responseKind.read(response)
+                    }
+                } catch (e: DynastyFailure) {
+                    throw e
+                } catch (e: IOException) {
+                    recordException(e)
+                    throw networkFailure(progress, e)
+                } catch (e: Exception) {
+                    recordException(e)
+                    throw DynastyFailure(DynastyFailureCategory.DELIVERY_UNCONFIRMED)
                 }
-            } catch (e: DynastyFailure) {
-                throw e
-            }
-            catch (e: IOException) {
-                throw networkFailure(progress, e)
-            }
-            catch (_: Exception) {
-                throw DynastyFailure(DynastyFailureCategory.DELIVERY_UNCONFIRMED)
             }
         }
         throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
@@ -253,6 +271,8 @@ private fun parseTosResponse(response: Response, mapper: ObjectMapper): JsonNode
         throw DynastyFailure(category)
     }
     val body = response.peekBody(MAX_TOS_RESPONSE_BYTES + 1).bytes()
-    if (body.size > MAX_TOS_RESPONSE_BYTES) throw DynastyFailure(DynastyFailureCategory.TOS_INVALID)
+    if (body.size > MAX_TOS_RESPONSE_BYTES) {
+        throw DynastyFailure(DynastyFailureCategory.TOS_INVALID, DynastyDiagnosticReason.RESPONSE_TOO_LARGE)
+    }
     return mapper.readTree(body)
 }

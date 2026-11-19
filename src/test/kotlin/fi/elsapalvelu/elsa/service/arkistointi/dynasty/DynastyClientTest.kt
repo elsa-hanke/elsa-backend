@@ -1,5 +1,9 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -13,6 +17,8 @@ import org.junit.jupiter.params.provider.ValueSource
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import okhttp3.OkHttpClient
 import org.mockito.kotlin.*
+import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import java.time.Duration
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -39,6 +45,80 @@ class DynastyClientTest {
     private fun caseRequest() = DynastyCaseRequest(DynastyCaseModel("case-schema", "Test case", DynastyAdditionalData(fieldPrefix = "UTU")))
 
     private fun token() = MockResponse().setBody("""{"access_token":"test-token","expires_in":900}""")
+
+    @ParameterizedTest
+    @CsvSource(
+        "oauth_token, 403, auth_failed",
+        "create_case, 422, http_rejected",
+        "create_case, 401, auth_failed",
+        "tos_document_types, 200, title_not_found",
+        "tos_phases, 200, invalid_json"
+    )
+    fun `Dynasty failure exposes safe CloudWatch fields and preserves job context`(
+        operation: String, status: Int, reason: String
+    ) {
+        val logger = LoggerFactory.getLogger(DynastyCallDiagnostics::class.java) as Logger
+        val events = object : ListAppender<ILoggingEvent>() {
+            override fun append(event: ILoggingEvent) {
+                event.prepareForDeferredProcessing()
+                super.append(event)
+            }
+        }
+        val previous = MDC.getCopyOfContextMap()
+        events.start()
+        logger.addAppender(events)
+        try {
+            MDC.put("archiveJobId", "test-job")
+            MDC.put("userId", "test-approver")
+            MockWebServer().use { server ->
+                val requestId = UUID.randomUUID().toString()
+                val tosClass = "05.06.02.04"
+                val phaseId = UUID.randomUUID().toString()
+                if (operation != "oauth_token") server.enqueue(token())
+                if (status == 401) {
+                    server.enqueue(MockResponse().setResponseCode(401))
+                    server.enqueue(token())
+                }
+                if (operation == "tos_document_types") {
+                    server.enqueue(MockResponse().setBody(
+                        """{"fullCasegroupCode":"$tosClass","thsPhases":[{"title":"Hakeminen","taskRowId":"$phaseId"}]}"""
+                    ))
+                }
+                val body = when (operation) {
+                    "tos_document_types" -> """{"fullCasegroupCode":"$tosClass","taskRowId":"$phaseId","thsDocuments":[]}"""
+                    "tos_phases" -> "{"
+                    else -> "private response body"
+                }
+                server.enqueue(MockResponse().setResponseCode(status).setBody(body)
+                    .addHeader("X-Request-ID", "untrusted header")
+                    .addHeader("X-Correlation-ID", requestId))
+                val client = client(server)
+                assertThatThrownBy {
+                    if (operation.startsWith("tos_")) client.resolveTosPhase(tosClass, "Hakeminen", "Summary")
+                    else client.createCase(tosClass, caseRequest())
+                }.isInstanceOf(DynastyFailure::class.java)
+                val event = events.list.single()
+                assertThat(event.level).isEqualTo(Level.ERROR)
+                assertThat(event.formattedMessage)
+                    .isEqualTo("Dynasty call failed [operation=$operation, reason=$reason, httpStatus=$status]")
+                assertThat(event.throwableProxy).isNull()
+                assertThat(event.mdcPropertyMap)
+                    .containsEntry("archiveJobId", "test-job")
+                    .containsEntry("userId", "test-approver")
+                    .containsEntry("dynastyOperation", operation)
+                    .containsEntry("dynastyReason", reason)
+                    .containsEntry("httpStatus", status.toString())
+                    .containsEntry("dynastyRequestId", requestId)
+                if (reason == "invalid_json") assertThat(event.mdcPropertyMap["exceptionType"]).isNotBlank()
+                assertThat(MDC.getCopyOfContextMap())
+                    .doesNotContainKeys("httpStatus", "dynastyRequestId", "dynastyOperation", "dynastyReason", "exceptionType")
+            }
+        } finally {
+            logger.detachAppender(events)
+            events.stop()
+            if (previous == null) MDC.clear() else MDC.setContextMap(previous)
+        }
+    }
 
     @ParameterizedTest
     @CsvSource("403, false", "429, true", "503, true")
