@@ -10,8 +10,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDestination
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.UefDynastyArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.UefDynastyMetadataMapper
-import org.junit.jupiter.api.Assumptions.assumeTrue
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.boot.SpringBootConfiguration
@@ -24,13 +23,9 @@ import java.time.Clock
 
 @SpringBootTest(classes = [UefArkistointiExternalIntegrationTestApplication::class])
 @ActiveProfiles("external-integration")
+@Disabled("Enable explicitly when validating the UEF Dynasty test archive")
 class UefArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestSupport() {
     override val university = YliopistoEnum.ITA_SUOMEN_YLIOPISTO
-
-    @BeforeEach
-    fun requireTestArchiveOptIn() {
-        assumeTrue(System.getenv("APPLICATION_ARKISTOINTI_DYNASTY_UEF_EXTERNAL_TESTS") == "true", "UEF Dynasty test archive is opt-in")
-    }
 
     @ParameterizedTest(name = "UEF Dynasty valmistuminen {0}")
     @EnumSource(Programme::class)

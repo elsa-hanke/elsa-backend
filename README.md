@@ -857,8 +857,8 @@ for UEF. Supply the production organization, credentials and schema IDs.
 Configure the UEF integration account to select the archive material.
 Test material is `IB29`.
 
-Run the UEF external suite with `APPLICATION_ARKISTOINTI_DYNASTY_UEF_EXTERNAL_TESTS=true`
-and supply the test archive values for `APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION`,
+The UEF external suite is disabled with JUnit's `@Disabled` annotation.
+To run it, remove the annotation and supply the test archive values for `APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION`,
 `APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_ID` and `APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_SECRET`.
 The external test profile defaults to the UEF test schema IDs.
 
