@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.2...HEAD)
 
+- enable TurkuArkistointiExternalIntegrationTests [`#819`](https://github.com/elsa-hanke/elsa-backend/pull/819)(18 November 2026)
 - Release v2.5.X merge [`#831`](https://github.com/elsa-hanke/elsa-backend/pull/831)(18 November 2026)
 - Backendin ylläpidettävyyden parantaminen ja yhteisen toimintalogiikan yhtenäistäminen [`#826`](https://github.com/elsa-hanke/elsa-backend/pull/826)(17 November 2026)
 - ELSAINSI-58: Lisätty tarkistus avatartiedoston kokorajoituksista [`#814`](https://github.com/elsa-hanke/elsa-backend/pull/814)(16 November 2026)
