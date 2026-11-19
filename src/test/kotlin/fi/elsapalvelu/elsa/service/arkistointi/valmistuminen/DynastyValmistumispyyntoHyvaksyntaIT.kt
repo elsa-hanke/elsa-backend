@@ -44,11 +44,7 @@ import javax.imageio.ImageIO
     "application.arkistointi.uef.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
     "application.arkistointi.uef.metadata.cases.valmistuminen.documents.liite.retention-period=20",
     "application.arkistointi.uef.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=20",
-    "application.arkistointi.turku.kaytossa=true", "application.arkistointi.uef.kaytossa=true",
-    "application.arkistointi.turku.metadata.cases.valmistuminen.async-enabled=true",
-    "application.arkistointi.turku.metadata.cases.koejakso.async-enabled=true",
-    "application.arkistointi.uef.metadata.cases.koejakso.async-enabled=true",
-    "application.arkistointi.uef.metadata.cases.valmistuminen.async-enabled=true"
+    "application.arkistointi.turku.kaytossa=true", "application.arkistointi.uef.kaytossa=true"
 ])
 @Import(DynastyValmistumispyyntoHyvaksyntaIT.Adapters::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

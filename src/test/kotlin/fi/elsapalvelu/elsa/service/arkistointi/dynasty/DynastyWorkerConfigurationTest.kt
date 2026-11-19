@@ -43,7 +43,6 @@ class DynastyWorkerConfigurationTest {
             else listOf("arviointi")
         turku.metadata = ApplicationProperties.Arkistointi.Metadata().apply {
             cases = mapOf(caseType.value to ApplicationProperties.Arkistointi.Case().apply {
-                asyncEnabled = true
                 documents = types.associateWith {
                     ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "10" }
                 }
@@ -67,7 +66,6 @@ class DynastyWorkerConfigurationTest {
         configure()
         val metadata = turku.metadata!!
         metadata.cases = metadata.cases!! + (CaseType.SOPIMUS.value to ApplicationProperties.Arkistointi.Case().apply {
-            asyncEnabled = true
             documents = mapOf("sopimus" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "10" })
         })
         assertThatThrownBy { registry.validateWorkerConfiguration(provider) }

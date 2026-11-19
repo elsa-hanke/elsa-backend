@@ -418,12 +418,10 @@ application:
       metadata:
         cases:
           koejakso:
-            async-enabled: true
             documents:
               arviointi:
                 retention-period: "-1"
           valmistuminen:
-            async-enabled: true
             documents:
               yhteenveto:
                 retention-period: "20"
@@ -452,12 +450,10 @@ application:
       metadata:
         cases:
           koejakso:
-            async-enabled: true
             documents:
               arviointi:
                 retention-period: "-1"
           valmistuminen:
-            async-enabled: true
             documents:
               yhteenveto:
                 retention-period: "20"

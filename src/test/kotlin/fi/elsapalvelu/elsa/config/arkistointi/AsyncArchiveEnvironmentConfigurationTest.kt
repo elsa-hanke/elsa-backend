@@ -40,8 +40,12 @@ class AsyncArchiveEnvironmentConfigurationTest {
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
             flows.forEach { (university, caseTypes) ->
                 caseTypes.forEach { caseType ->
-                    assertThat(provider.getConfiguration(university, caseType).case.asyncEnabled)
+                    assertThat(provider.isAsyncEnabled(university, caseType))
                         .describedAs("$university / $caseType").isFalse()
+                    if (university in dynastyUniversities) {
+                        assertThat(provider.onKaytossa(university, caseType))
+                            .describedAs("$university / $caseType").isFalse()
+                    }
                 }
             }
         }
@@ -50,7 +54,8 @@ class AsyncArchiveEnvironmentConfigurationTest {
     @ParameterizedTest
     @MethodSource("universities")
     fun `shipped configuration routes supported flows to async adapters`(university: YliopistoEnum) {
-        runner().run { context ->
+        val prefix = environmentPrefixes.getValue(university)
+        runner(mapOf("APPLICATION_ARKISTOINTI_${prefix}_KAYTOSSA" to "true")).run { context ->
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
             if (university in dynastyUniversities) {
@@ -60,7 +65,7 @@ class AsyncArchiveEnvironmentConfigurationTest {
                     .containsExactly("arviointi")
             }
             flows.getValue(university).forEach { caseType ->
-                assertThat(provider.getConfiguration(university, caseType).case.asyncEnabled)
+                assertThat(provider.isAsyncEnabled(university, caseType))
                     .describedAs("$university / $caseType")
                     .isTrue()
             }
@@ -194,28 +199,25 @@ class AsyncArchiveEnvironmentConfigurationTest {
 
     @ParameterizedTest
     @MethodSource("universityFlows")
-    fun `shared test configuration disables async and allows explicit opt in`(
+    fun `shared test configuration supports opt in to asynchronous routing`(
         university: YliopistoEnum, caseType: CaseType
     ) {
         val testRunner = runner().withPropertyValues(
             "spring.config.location=file:src/main/resources/config/,classpath:/config/application-archive-test.yml"
         )
-        testRunner.run { context ->
-            assertThat(context).hasNotFailed()
-            val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
-            flows.forEach { (otherUniversity, caseTypes) ->
-                caseTypes.forEach { otherCase ->
-                    assertThat(provider.getConfiguration(otherUniversity, otherCase).case.asyncEnabled)
-                        .describedAs("$otherUniversity / $otherCase").isFalse()
-                }
-            }
-        }
         val key = environmentPrefixes.getValue(university).lowercase()
         val enabledRunner = testRunner.withPropertyValues("application.arkistointi.$key.kaytossa=true")
-        val asyncRunner = if (university in dynastyUniversities) enabledRunner else enabledRunner.withPropertyValues(
+        enabledRunner.run { context ->
+            assertThat(context).hasNotFailed()
+            val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
+            assertThat(provider.onKaytossa(university, caseType)).isTrue()
+            assertThat(provider.isAsyncEnabled(university, caseType)).isEqualTo(university in dynastyUniversities)
+        }
+        if (university in dynastyUniversities) return
+
+        enabledRunner.withPropertyValues(
             "application.arkistointi.$key.metadata.cases.${caseType.value}.async-enabled=true"
-        )
-        asyncRunner.run { context ->
+        ).run { context ->
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
             assertThat(provider.isAsyncEnabled(university, caseType)).isTrue()

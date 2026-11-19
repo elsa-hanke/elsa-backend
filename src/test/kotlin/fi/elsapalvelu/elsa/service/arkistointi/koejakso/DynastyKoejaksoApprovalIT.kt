@@ -41,10 +41,6 @@ import java.util.concurrent.ConcurrentHashMap
     "spring.datasource.url=jdbc:tc:postgresql:16.9:///dynastyKoejakso?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true",
     "application.arkistointi.turku.kaytossa=true",
     "application.arkistointi.uef.kaytossa=true",
-    "application.arkistointi.turku.metadata.cases.valmistuminen.async-enabled=true",
-    "application.arkistointi.uef.metadata.cases.valmistuminen.async-enabled=true",
-    "application.arkistointi.turku.metadata.cases.koejakso.async-enabled=true",
-    "application.arkistointi.uef.metadata.cases.koejakso.async-enabled=true",
     "application.arkistointi.turku.metadata.cases.koejakso.documents.arviointi.retention-period=20",
     "application.arkistointi.uef.metadata.cases.koejakso.documents.arviointi.retention-period=20"
 ])

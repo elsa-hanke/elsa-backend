@@ -19,16 +19,5 @@ application:
             async-enabled: false
     turku:
       kaytossa: false
-      metadata:
-        cases:
-          valmistuminen:
-            async-enabled: false
-          koejakso:
-            async-enabled: false
     uef:
-      metadata:
-        cases:
-          valmistuminen:
-            async-enabled: false
-          koejakso:
-            async-enabled: false
+      kaytossa: false
