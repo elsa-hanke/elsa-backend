@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.config
 
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiRetryProperties
 import fi.elsapalvelu.elsa.config.arkistointi.LouhiTransferProperties
+import fi.elsapalvelu.elsa.config.arkistointi.DynastyArchiveProperties
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
@@ -232,16 +233,16 @@ class ApplicationProperties {
             val transfer = LouhiTransferProperties()
         }
 
-        class Turku {
-            val dynasty = DynastyProperties()
+        class Turku : DynastyArchiveProperties {
+            override val dynasty = DynastyProperties()
             var kaytossa: Boolean = false
-            var metadata: Metadata? = null
+            override var metadata: Metadata? = null
         }
 
-        class Uef {
-            val dynasty = DynastyProperties()
+        class Uef : DynastyArchiveProperties {
+            override val dynasty = DynastyProperties()
             var kaytossa: Boolean = false
-            var metadata: Metadata? = null
+            override var metadata: Metadata? = null
         }
 
         class Metadata {

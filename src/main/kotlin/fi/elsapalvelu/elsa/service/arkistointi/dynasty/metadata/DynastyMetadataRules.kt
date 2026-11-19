@@ -1,7 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata
 
-import fi.elsapalvelu.elsa.config.ApplicationProperties.Arkistointi.Metadata
-import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
+import fi.elsapalvelu.elsa.config.arkistointi.DynastyArchiveProperties
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyFailure
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyFailureCategory
@@ -9,7 +8,9 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 
 /** Document rules shared by startup validation and delivery planning. */
-internal class DynastyMetadataRules(private val settings: DynastyProperties, private val metadata: () -> Metadata?) {
+internal class DynastyMetadataRules(private val archiveProperties: DynastyArchiveProperties) {
+    private val settings = archiveProperties.dynasty
+
     fun validateConfiguration(profile: DynastyCaseProfile, configuration: ArkistointiConfiguration) {
         val regulations = settings.tutkintoasetukset
         if (profile.documentTypes.keys.any {
@@ -36,7 +37,7 @@ internal class DynastyMetadataRules(private val settings: DynastyProperties, pri
     }
 
     fun retentionPeriod(caseType: CaseType, type: RecordType): Int {
-        val metadata = metadata()
+        val metadata = archiveProperties.metadata
         return metadata?.getDocumentMetadata(type, metadata.getCaseMetadata(caseType))?.retentionPeriod?.toIntOrNull()
             ?: throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
     }

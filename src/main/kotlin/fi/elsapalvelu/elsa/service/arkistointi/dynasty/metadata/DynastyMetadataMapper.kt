@@ -6,9 +6,8 @@ import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyCaseRequest
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyCaseModel
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyAdditionalData
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDocumentMetadata
-import fi.elsapalvelu.elsa.config.ApplicationProperties.Arkistointi.Metadata
-import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
-import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.config.arkistointi.DynastyArchiveProperties
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDestination
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiManifestValidator
@@ -21,9 +20,8 @@ import java.time.format.DateTimeFormatter
 
 /** Build and serialize the entire delivery before creating anything in Dynasty. */
 open class DynastyMetadataMapper internal constructor(
-    private val university: YliopistoEnum,
-    private val settings: DynastyProperties,
-    metadata: () -> Metadata?,
+    private val destination: DynastyDestination,
+    archiveProperties: DynastyArchiveProperties,
     private val mapper: ObjectMapper,
     private val reader: ArchivePayloadReader
 ) {
@@ -31,26 +29,22 @@ open class DynastyMetadataMapper internal constructor(
         val SUPPORTED_SPECIALTY_TYPES = setOf(ErikoisalaTyyppi.LAAKETIEDE, ErikoisalaTyyppi.HAMMASLAAKETIEDE)
     }
 
-    private val rules = DynastyMetadataRules(settings, metadata)
-    private val isUef = university == YliopistoEnum.ITA_SUOMEN_YLIOPISTO
+    private val settings = archiveProperties.dynasty
+    private val rules = DynastyMetadataRules(archiveProperties)
 
     data class Plan(val tosClass: String, val caseRequest: DynastyCaseRequest, val task: String, val documents: List<DynastyDocumentMetadata>) {
         override fun toString() = "DynastyPlan(documents=${documents.size})"
     }
 
     fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) =
-        rules.validateConfiguration(DynastyCaseProfile.from(university, caseType), configuration)
+        rules.validateConfiguration(destination.profile(caseType), configuration)
 
     fun plan(submission: ArkistointiSubmission): Plan {
         val payload = reader.read(submission.payload)
-        val profile = DynastyCaseProfile.from(university, submission.caseType)
-        val programme = koulutusohjelma(payload)
-        require(!isUef || submission.caseType != CaseType.KOEJAKSO || programme in setOf(Koulutusohjelma.EL, Koulutusohjelma.EHL)) {
-            "unsupported UEF koejakso programme"
-        }
+        val profile = destination.profile(submission.caseType)
         validateDocuments(submission, payload, profile)
         validatePerson(payload)
-        val context = MappingContext(payload, submission.caseType, profile, programme)
+        val context = MappingContext(payload, submission.caseType, profile, koulutusohjelma(payload))
         val publicity = rules.documentPublicity(context.profile)
         val plan = Plan(
             tosClass = context.profile.tosClass,
@@ -129,12 +123,12 @@ open class DynastyMetadataMapper internal constructor(
         licensingDate: String? = null
     ) = DynastyAdditionalData(
         firstName = context.payload.firstName, lastName = context.payload.lastName,
-        faculty = if (isUef) "Terveystieteiden tiedekunta" else "Lääketieteellinen tiedekunta",
+        faculty = destination.faculty,
         program = context.koulutusohjelma.title, specialty = context.payload.specialtyName,
         birthDate = birthDate, studyRightStartDate = studyRightStartDate,
         graduationDate = graduationDate, approvalDate = approvalDate,
         degreeRegulation = degreeRegulation, licensingDate = licensingDate,
-        fieldPrefix = if (isUef) "UEF" else "UTU"
+        fieldPrefix = destination.fieldPrefix
     )
 
     private fun documentMetadata(
@@ -159,7 +153,7 @@ open class DynastyMetadataMapper internal constructor(
 
     private fun documentAdditionalData(context: MappingContext, type: RecordType): DynastyAdditionalData {
         val payload = context.payload
-        val main = type in setOf(RecordType.YHTEENVETO, RecordType.ARVIOINTI)
+        val main = type == context.profile.mainDocumentType
         return additionalData(
             context,
             birthDate = if (main) payload.birthDate?.toString() else null,

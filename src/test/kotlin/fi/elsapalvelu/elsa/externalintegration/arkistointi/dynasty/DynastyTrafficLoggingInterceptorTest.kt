@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.externalintegration.arkistointi.turku
+package fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty
 
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import okhttp3.Interceptor

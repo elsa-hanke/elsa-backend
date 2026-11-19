@@ -18,6 +18,7 @@ class DynastyCaseModel(
 class DynastyTaskRequest(val title: String)
 
 class DynastyAdditionalData(
+    fieldPrefix: String,
     firstName: String? = null,
     lastName: String? = null,
     faculty: String? = null,
@@ -28,8 +29,7 @@ class DynastyAdditionalData(
     graduationDate: String? = null,
     approvalDate: String? = null,
     degreeRegulation: String? = null,
-    licensingDate: String? = null,
-    fieldPrefix: String = "UTU"
+    licensingDate: String? = null
 ) {
     @get:JsonAnyGetter
     val fields = buildMap {

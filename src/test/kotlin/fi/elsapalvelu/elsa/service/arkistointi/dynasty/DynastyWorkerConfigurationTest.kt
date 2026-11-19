@@ -23,7 +23,7 @@ class DynastyWorkerConfigurationTest {
     private val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
         DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
         TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
-        DynastyStepExecutor(mock<DynastyStepLedger>(), properties)
+        DynastyStepExecutor(mock<DynastyStepLedger>()), properties
     )))
     private val provider = ArkistointiConfigurationProvider(properties)
 
@@ -84,6 +84,7 @@ class DynastyWorkerConfigurationTest {
     @Test
     fun `invalid transport settings fail startup without disclosing values`() {
         val invalidSettings: List<(DynastyProperties) -> Unit> = listOf(
+            { it.baseUrl = null }, { it.tokenUrl = null },
             { it.baseUrl = "http://dynasty.example" }, { it.tokenUrl = "https://user:private-secret@auth.example" },
             { it.clientId = "" }, { it.clientSecret = "" }, { it.organization = "" }, { it.scope = "" },
             { it.caseSchemaId = "" }, { it.documentSchemaId = "" }

@@ -323,11 +323,8 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         return fixture.second
     }
 
-    private fun dynastySettings(university: YliopistoEnum) = when (university) {
-        YliopistoEnum.TURUN_YLIOPISTO -> properties.getArkistointi().getTurku().dynasty
-        YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> properties.getArkistointi().getUef().dynasty
-        else -> error("Unsupported Dynasty test university")
-    }
+    private fun dynastySettings(university: YliopistoEnum) =
+        DynastyDestination.from(university).archiveProperties(properties.getArkistointi()).dynasty
 
     private fun startAttempt() = schedulerControl.startAttempt()
 

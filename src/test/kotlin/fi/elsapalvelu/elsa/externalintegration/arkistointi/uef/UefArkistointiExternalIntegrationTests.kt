@@ -1,25 +1,20 @@
 package fi.elsapalvelu.elsa.externalintegration.arkistointi.uef
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import fi.elsapalvelu.elsa.config.Aikakonfiguraatio
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.DynastyArkistointiExternalTestSupport
+import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.DynastyExternalTestConfiguration
+import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.externalDynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyStepExecutor
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyStepLedger
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDestination
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.UefDynastyArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.UefDynastyMetadataMapper
-import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.mockito.kotlin.mock
 import org.springframework.boot.SpringBootConfiguration
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
@@ -42,28 +37,17 @@ class UefArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestSup
     fun shouldArchiveGraduationWithParallelDocuments(programme: Programme) = archiveGraduation(programme)
 
     @ParameterizedTest(name = "UEF Dynasty koejakso {0}")
-    @EnumSource(value = Programme::class, names = ["EL", "EHL"])
+    @EnumSource(Programme::class)
     fun shouldArchiveKoejaksoWithSecrecyMetadata(programme: Programme) = archiveKoejakso(programme)
 }
 
 @SpringBootConfiguration
 @Profile("external-integration")
-@EnableConfigurationProperties(ApplicationProperties::class)
-@Import(
-    Aikakonfiguraatio::class,
-    UefDynastyArkistointiAdapter::class,
-    UefDynastyMetadataMapper::class,
-    ArchivePayloadReader::class,
-    DynastyStepExecutor::class
-)
+@Import(DynastyExternalTestConfiguration::class, UefDynastyArkistointiAdapter::class, UefDynastyMetadataMapper::class)
 class UefArkistointiExternalIntegrationTestApplication {
     @Bean
-    fun uefDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper, clock: Clock): DynastyClient =
-        DynastyClient(properties.getArkistointi().getUef().dynasty, mapper, clock)
-
-    @Bean
-    fun objectMapper(): ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
-
-    @Bean
-    fun dynastyStepLedger(): DynastyStepLedger = mock()
+    fun uefDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper, clock: Clock): DynastyClient {
+        val settings = DynastyDestination.UEF.archiveProperties(properties.getArkistointi()).dynasty
+        return externalDynastyClient(settings, mapper, clock)
+    }
 }

@@ -1,7 +1,5 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
-import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -15,6 +13,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import okhttp3.OkHttpClient
 import org.mockito.kotlin.*
+import java.time.Duration
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.time.Clock
@@ -22,6 +21,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class DynastyClientTest {
+    private val grace = Duration.ofMinutes(5)
     private fun client(server: MockWebServer, transport: OkHttpClient? = null, configure: DynastyProperties.() -> Unit = {}): DynastyClient {
         val settings = DynastyProperties().apply {
             baseUrl = server.url("/").newBuilder().host("127.0.0.1").build().toString().trimEnd('/')
@@ -36,7 +36,7 @@ class DynastyClientTest {
         }
         return DynastyClient(settings,jacksonObjectMapper(),transport, Clock.systemDefaultZone())
     }
-    private fun caseRequest() = DynastyCaseRequest(DynastyCaseModel("case-schema", "Test case", DynastyAdditionalData()))
+    private fun caseRequest() = DynastyCaseRequest(DynastyCaseModel("case-schema", "Test case", DynastyAdditionalData(fieldPrefix = "UTU")))
 
     private fun token() = MockResponse().setBody("""{"access_token":"test-token","expires_in":900}""")
 
@@ -53,7 +53,7 @@ class DynastyClientTest {
             val c = client(server)
 
             assertThatThrownBy {
-                DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, YliopistoEnum.TURUN_YLIOPISTO, DynastyStepKey.Case) {
+                DynastyStepExecutor(ledger).execute(execution, grace, DynastyStepKey.Case) {
                     c.createCase("05.06.02.04", caseRequest())
                 }
             }.isInstanceOfSatisfying(DynastyFailure::class.java) {
@@ -107,7 +107,7 @@ class DynastyClientTest {
                 .thenReturn(DynastyStepLedger.Decision.Proceed)
             val c = client(server, transport)
             assertThatThrownBy {
-                DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, YliopistoEnum.TURUN_YLIOPISTO, DynastyStepKey.Case) {
+                DynastyStepExecutor(ledger).execute(execution, grace, DynastyStepKey.Case) {
                     c.createCase("05.06.02.04", caseRequest())
                 }
             }.isInstanceOfSatisfying(DynastyFailure::class.java) {
@@ -164,7 +164,7 @@ class DynastyClientTest {
                 whenever(ledger.begin(eq(execution), eq(DynastyStepKey.Case), any()))
                     .thenReturn(DynastyStepLedger.Decision.Proceed)
                 assertThatThrownBy {
-                    DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, YliopistoEnum.TURUN_YLIOPISTO, DynastyStepKey.Case) {
+                    DynastyStepExecutor(ledger).execute(execution, grace, DynastyStepKey.Case) {
                         c.createCase("05.06.02.04", caseRequest())
                     }
                 }.isInstanceOfSatisfying(DynastyFailure::class.java) {

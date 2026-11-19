@@ -77,7 +77,7 @@ class DynastyValmistuminenFaultMatrixIT {
             val adapter = TurkuDynastyArkistointiAdapter(
                 DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
                 TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
-                DynastyStepExecutor(ledger, properties)
+                DynastyStepExecutor(ledger), properties
             )
             var execution = stepFixture.execution(jobStatus = ArkistointiJobStatus.KASITTELYSSA, picked = true)
             (0..2).forEach { jdbc.update("insert into arkistointi_job_asiakirja values (?,?)", execution.jobId, it) }

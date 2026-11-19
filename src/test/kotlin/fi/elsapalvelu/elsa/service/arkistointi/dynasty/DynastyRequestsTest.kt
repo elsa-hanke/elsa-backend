@@ -10,7 +10,7 @@ class DynastyRequestsTest {
 
     @Test
     fun `case DTO keeps vendor field casing and omits absent additional data`() {
-        val request = DynastyCaseRequest(DynastyCaseModel("schema", "Test title", DynastyAdditionalData(firstName = "Test")))
+        val request = DynastyCaseRequest(DynastyCaseModel("schema", "Test title", DynastyAdditionalData(fieldPrefix = "UTU", firstName = "Test")))
         assertThat(mapper.readTree(mapper.writeValueAsString(request))).isEqualTo(mapper.readTree("""{
             "caseModel": {"schemaid":"schema", "title":"Test title", "publicityClassId":"J",
                 "publicityClassName":"Julkinen", "manner":"M", "AD":{"UTUetunimi":"Test"}}
@@ -32,7 +32,7 @@ class DynastyRequestsTest {
 
     @Test
     fun `document DTO flattens only configured secrecy fields`() {
-        val metadata = DynastyDocumentMetadata("Test title", "schema", "Assessment", -1, DynastyAdditionalData(),
+        val metadata = DynastyDocumentMetadata("Test title", "schema", "Assessment", -1, DynastyAdditionalData(fieldPrefix = "UTU"),
             "secret", "Osittain salassapidettävä", "Asiakirjan päivämäärä", secrecyFields = mapOf("reason" to "law", "duration" to "100", "start" to "approval"))
         assertThat(mapper.readTree(mapper.writeValueAsString(metadata))).isEqualTo(mapper.readTree("""{
             "title":"Test title", "schemaId":"schema", "documentType":"Assessment", "retentionPeriodLength":-1, "AD":{},

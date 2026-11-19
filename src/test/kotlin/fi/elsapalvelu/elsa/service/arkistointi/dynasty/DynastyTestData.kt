@@ -24,13 +24,8 @@ const val DYNASTY_TEST_TOKEN_RESPONSE = """{"access_token":"test","expires_in":9
 fun dynastyTestProperties(
     baseUrl: String, university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO
 ): ApplicationProperties = ApplicationProperties().apply {
-    val archive = getArkistointi()
-    val settings = when (university) {
-        YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> archive.getUef().dynasty
-        YliopistoEnum.TURUN_YLIOPISTO -> archive.getTurku().dynasty
-        else -> error("Unsupported Dynasty test university")
-    }
-    settings.apply {
+    val archive = DynastyDestination.from(university).archiveProperties(getArkistointi())
+    archive.dynasty.apply {
         this.baseUrl = baseUrl.trimEnd('/')
         tokenUrl = "${this.baseUrl}/token"
         clientId = "client"
@@ -43,7 +38,7 @@ fun dynastyTestProperties(
         koejaksoPublicityClassId = "test-secret"
         koejaksoSecrecyFields = mapOf("reason" to "test-law", "duration" to "100", "start" to "approval")
     }
-    val metadata = ApplicationProperties.Arkistointi.Metadata().apply {
+    archive.metadata = ApplicationProperties.Arkistointi.Metadata().apply {
         cases = mapOf(
             "valmistuminen" to ApplicationProperties.Arkistointi.Case().apply {
                 documents = listOf("yhteenveto", "liite", "laillistamistodistus").associateWith { type ->
@@ -54,10 +49,6 @@ fun dynastyTestProperties(
                 documents = mapOf("arviointi" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "-1" })
             }
         )
-    }
-    when (university) {
-        YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> archive.getUef().metadata = metadata
-        YliopistoEnum.TURUN_YLIOPISTO -> archive.getTurku().metadata = metadata
     }
 }
 

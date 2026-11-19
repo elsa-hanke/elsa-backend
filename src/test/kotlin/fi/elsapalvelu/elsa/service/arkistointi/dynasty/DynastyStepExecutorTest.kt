@@ -1,12 +1,12 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
-import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import fi.elsapalvelu.elsa.config.arkistointi.ARKISTOINTI_JOB_TASK
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
+import java.time.Duration
 import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -23,8 +23,9 @@ import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
 
 class DynastyStepExecutorTest {
+    private val grace = Duration.ofMinutes(5)
     private val ledger = mock<DynastyStepLedger>()
-    private val executor = DynastyStepExecutor(ledger, dynastyTestProperties("http://127.0.0.1"))
+    private val executor = DynastyStepExecutor(ledger)
     private val jobId = UUID.randomUUID()
     private val execution = ArkistointiJobExecution(ARKISTOINTI_JOB_TASK.taskName, jobId.toString(), 1L)
     private val logger = LoggerFactory.getLogger(DynastyStepExecutor::class.java) as Logger
@@ -47,7 +48,7 @@ class DynastyStepExecutorTest {
         whenever(ledger.begin(eq(execution), any(), any())).thenReturn(DynastyStepLedger.Decision.Proceed)
         whenever(ledger.complete(any(), any(), any(), anyOrNull())).thenReturn(true)
 
-        executor.execute(execution, YliopistoEnum.TURUN_YLIOPISTO, DynastyStepKey.Case) { DynastyCaseId("415") }
+        executor.execute(execution, grace, DynastyStepKey.Case) { DynastyCaseId("415") }
 
         val event = appender.list.single()
         assertThat(event.level).isEqualTo(Level.INFO)
@@ -59,7 +60,7 @@ class DynastyStepExecutorTest {
         whenever(ledger.begin(eq(execution), any(), any())).thenReturn(DynastyStepLedger.Decision.Done("415"))
         var sent = false
 
-        executor.execute(execution, YliopistoEnum.TURUN_YLIOPISTO, DynastyStepKey.Case) { sent = true; DynastyCaseId("999") }
+        executor.execute(execution, grace, DynastyStepKey.Case) { sent = true; DynastyCaseId("999") }
 
         assertThat(sent).isFalse()
         assertThat(appender.list.single().formattedMessage)
@@ -70,7 +71,7 @@ class DynastyStepExecutorTest {
     fun `step in progress is logged as a warning with its category`() {
         whenever(ledger.begin(eq(execution), any(), any())).thenReturn(DynastyStepLedger.Decision.InProgress)
 
-        assertThrows<DynastyFailure> { executor.execute(execution, YliopistoEnum.TURUN_YLIOPISTO, DynastyStepKey.Document(2)) { DynastyDocumentId("1") } }
+        assertThrows<DynastyFailure> { executor.execute(execution, grace, DynastyStepKey.Document(2)) { DynastyDocumentId("1") } }
 
         val event = appender.list.single()
         assertThat(event.level).isEqualTo(Level.ERROR)
@@ -83,7 +84,7 @@ class DynastyStepExecutorTest {
         whenever(ledger.begin(eq(execution), any(), any())).thenReturn(DynastyStepLedger.Decision.Proceed)
         val failure = DynastyFailure(DynastyFailureCategory.CONNECTION_FAILED)
 
-        val thrown = assertThrows<DynastyFailure> { executor.execute(execution, YliopistoEnum.TURUN_YLIOPISTO, DynastyStepKey.Task) { throw failure } }
+        val thrown = assertThrows<DynastyFailure> { executor.execute(execution, grace, DynastyStepKey.Task) { throw failure } }
 
         assertThat(thrown).isSameAs(failure)
         verify(ledger).abandon(any(), any(), any())

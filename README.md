@@ -240,8 +240,9 @@ Opintotietointegraatioiden testihenkilöt annetaan `EXTERNAL_INTEGRATION_<PALVEL
 
 Arkistoinnin ulkoiset testit luovat oikeita testiaineistoja Helsingin Siiloon ja Tampereen Louheen. Tapaus- ja tiedostonimet sisältävät `CODEBUILD_BUILD_ID`:stä muodostetun korrelaatiotunnisteen, jotta lähetykset voidaan jäljittää.
 
-Turun Dynasty-testit lähettävät EL-, EHL- ja YEK-valmistumisen yhteenvedon,
-liitteet ja laillistamistodistuksen oikeina PDF-tiedostoina. Testi käyttää oikeaa
+Turun ja UEF:n Dynasty-testit lähettävät EL-, EHL- ja YEK-valmistumisen yhteenvedon,
+liitteet, laillistamistodistuksen ja koejakson arvion. YEK-valmistumisen
+laillistamistodistus lähetetään PNG-tiedostona. Testi käyttää oikeaa
 OAuth-asiakasta ja arkistointiadapteria: asia ja tehtävä luodaan, asiakirjat
 lähetetään ja asia siirretään Archived-tilaan. Vain tietokannan askelkirjanpito
 on mockattu. Testiaineiston nimissä on sama korrelaatiotunniste kuin muissa
@@ -252,7 +253,7 @@ ja sisältötyypin sekä virhevastauksen rungon (enintään 16 KiB).
 Verkkovirheistä tulostetaan poikkeuksen tyyppi, viesti ja syyketju myös silloin,
 kun OAuth-palvelimelta ei saada HTTP-vastausta. Tunnukset ja bearer-tokenit
 peitetään; pyyntöjen runkoja ja onnistuneita OAuth-vastausten runkoja ei lokiteta.
-Tämä diagnostiikka on käytössä vain Turun ulkoisissa integraatiotesteissä.
+Sama diagnostiikka on käytössä myös UEF:n ulkoisissa Dynasty-testeissä.
 Turun ulkoisten testien HTTP-asiakas käyttää vain HTTP/1.1:tä, jotta CodeBuildissa
 havaitun OAuth-palvelimen HTTP/2 `INTERNAL_ERROR` -virheen yhteys protokollaan
 voidaan tarkistaa. Vastauksen protokolla näkyy INFO-lokissa. Tuotantoasiakkaan
@@ -262,11 +263,9 @@ Tunnukset annetaan ympäristömuuttujilla `APPLICATION_ARKISTOINTI_DYNASTY_TURKU
 `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_SECRET`. CodeBuild lukee ne SSM Parameter Storesta
 poluista `/dev/application/dynasty/turku/clientid` ja
 `/dev/application/dynasty/turku/clientsecret`, kuten dev-ympäristön ECS-palvelu.
-Osoitteet, organisaatio ja skeemat käyttävät
-`application.yml`:n kanssa samoja oletusarvoja ja `DYNASTY_TURKU_*`-muuttujia.
-Koejaksoa ei lähetetä, koska sen Dynasty-salassapitoasetukset odottavat vahvistusta.
-Testiaineistossa ei ole tutkintoasetusta, joten vahvistamatonta asetusmäppäystä
-ei tarvita. Pelkät Turun Dynasty-testit voi suorittaa komennolla:
+Ulkoiset testit, dev ja staging käyttävät samoja testiosoitteita oletuksena.
+Testiaineisto käyttää tutkintoasetusta `56/2015`.
+Pelkät Turun Dynasty-testit voi suorittaa komennolla:
 
 ```
 ./gradlew externalIntegrationTests --tests '*TurkuArkistointiExternalIntegrationTests'
@@ -839,12 +838,15 @@ Confirm the class ID and the three `koejakso-secrecy-fields` entries (reason,
 100-year duration and date calculation basis) with the vendor.
 Metadata validation completes before the first external create.
 
-UEF archive and token URLs default to the Dynasty test host `dynasty-testi.uef.fi`.
-The paths follow Turku's API configuration and need confirmation in the UEF archive.
-For production, explicitly set `APPLICATION_ARKISTOINTI_DYNASTY_UEF_BASE_URL`,
-`APPLICATION_ARKISTOINTI_DYNASTY_UEF_TOKEN_URL` and the production organization,
-credentials and schema IDs. Configure the UEF integration account to select the
-archive material. Test material is `IB29`.
+The shared application configuration defaults to the Dynasty test URLs so dev and
+staging can inherit them. All ECS environments use the `prod` Spring profile.
+The UEF paths follow Turku's API configuration and need confirmation in the UEF
+archive. In the production ECS deployment, explicitly set `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_BASE_URL`
+and `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_TOKEN_URL` for Turku, or
+`APPLICATION_ARKISTOINTI_DYNASTY_UEF_BASE_URL` and `APPLICATION_ARKISTOINTI_DYNASTY_UEF_TOKEN_URL`
+for UEF. Supply the production organization, credentials and schema IDs.
+Configure the UEF integration account to select the archive material.
+Test material is `IB29`.
 
 Run the UEF external suite with `APPLICATION_ARKISTOINTI_DYNASTY_UEF_EXTERNAL_TESTS=true`
 and supply the test archive values for `APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION`,

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDestination
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyStepExecutor
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.TurkuDynastyArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
@@ -17,6 +18,7 @@ import java.time.Clock
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -65,26 +67,31 @@ class AsyncArchiveEnvironmentConfigurationTest {
         }
     }
 
-    @Test
-    fun `UEF Dynasty defaults to the test archive URLs`() {
-        runner().run { context ->
+    @ParameterizedTest
+    @CsvSource("TURKU,asta-test.utu.fi", "UEF,dynasty-testi.uef.fi")
+    fun `ECS deployments inherit Dynasty test URLs when no explicit URLs are supplied`(destination: String, host: String) {
+        // The dev, staging and production ECS task definitions all select the prod Spring profile.
+        runner().withPropertyValues("spring.profiles.active=prod").run { context ->
             assertThat(context).hasNotFailed()
-            val dynasty = context.getBean(ApplicationProperties::class.java).getArkistointi().getUef().dynasty
-            assertThat(dynasty.baseUrl).isEqualTo("https://dynasty-testi.uef.fi/dynasty.externalinterface.archive.oauth")
-            assertThat(dynasty.tokenUrl).isEqualTo("https://dynasty-testi.uef.fi/dynasty.identityserver/connect/token")
+            val archive = context.getBean(ApplicationProperties::class.java).getArkistointi()
+            val dynasty = DynastyDestination.valueOf(destination).archiveProperties(archive).dynasty
+            assertThat(dynasty.baseUrl).isEqualTo("https://$host/dynasty.externalinterface.archive.oauth")
+            assertThat(dynasty.tokenUrl).isEqualTo("https://$host/dynasty.identityserver/connect/token")
         }
     }
 
-    @Test
-    fun `UEF Dynasty URLs can be set explicitly by the environment`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["TURKU", "UEF"])
+    fun `explicit ECS environment URLs override the Dynasty test defaults`(destination: String) {
         val baseUrl = "https://archive.example/api"
         val tokenUrl = "https://identity.example/connect/token"
         runner(mapOf(
-            "APPLICATION_ARKISTOINTI_DYNASTY_UEF_BASE_URL" to baseUrl,
-            "APPLICATION_ARKISTOINTI_DYNASTY_UEF_TOKEN_URL" to tokenUrl
-        )).run { context ->
+            "APPLICATION_ARKISTOINTI_DYNASTY_${destination}_BASE_URL" to baseUrl,
+            "APPLICATION_ARKISTOINTI_DYNASTY_${destination}_TOKEN_URL" to tokenUrl
+        )).withPropertyValues("spring.profiles.active=prod").run { context ->
             assertThat(context).hasNotFailed()
-            val dynasty = context.getBean(ApplicationProperties::class.java).getArkistointi().getUef().dynasty
+            val archive = context.getBean(ApplicationProperties::class.java).getArkistointi()
+            val dynasty = DynastyDestination.valueOf(destination).archiveProperties(archive).dynasty
             assertThat(dynasty.baseUrl).isEqualTo(baseUrl)
             assertThat(dynasty.tokenUrl).isEqualTo(tokenUrl)
         }
@@ -121,14 +128,14 @@ class AsyncArchiveEnvironmentConfigurationTest {
             "APPLICATION_ARKISTOINTI_TURKU_KAYTOSSA" to "true",
             "APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_ID" to "client",
             "APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_SECRET" to "secret"
-        )).run { context ->
+        )).withPropertyValues("spring.profiles.active=prod").run { context ->
             assertThat(context).hasNotFailed()
             val properties = context.getBean(ApplicationProperties::class.java)
             val mapper = jacksonObjectMapper()
             val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
                 DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
                 TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
-                DynastyStepExecutor(mock(), properties)
+                DynastyStepExecutor(mock()), properties
             )))
 
             assertThat(properties.getArkistointi().getTurku().dynasty.tutkintoasetukset.keys)

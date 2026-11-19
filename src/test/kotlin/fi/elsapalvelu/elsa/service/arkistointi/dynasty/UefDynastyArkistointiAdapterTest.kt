@@ -15,7 +15,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.mock
@@ -71,14 +70,13 @@ class UefDynastyArkistointiAdapterTest {
     }
 
     @ParameterizedTest
-    @EnumSource(ErikoisalaTyyppi::class)
-    fun `koejakso maps both specialty types to a partially secret permanent assessment`(type: ErikoisalaTyyppi) {
+    @CsvSource("EL,LAAKETIEDE", "EHL,HAMMASLAAKETIEDE", "YEK,LAAKETIEDE")
+    fun `koejakso maps each programme to a partially secret permanent assessment`(prefix: String, type: ErikoisalaTyyppi) {
         val properties = dynastyTestProperties("https://dynasty.example", university)
-        val submission = dynastySubmission(mapper, CaseType.KOEJAKSO, type, university = university)
+        val submission = dynastySubmission(mapper, CaseType.KOEJAKSO, type, yek = prefix == "YEK", university = university)
         val plan = UefDynastyMetadataMapper(properties, mapper, reader).plan(submission)
         val case = mapper.valueToTree<JsonNode>(plan.caseRequest)["caseModel"]
         val document = mapper.valueToTree<JsonNode>(plan.documents.single())
-        val prefix = if (type == ErikoisalaTyyppi.LAAKETIEDE) "EL" else "EHL"
         assertThat(case["title"].asText()).isEqualTo("$prefix Koejakson vastuuhenkilön arvio Maija Meikäläinen 31.10.2026")
         assertThat(case["publicityClassId"].asText()).isEqualTo("J")
         assertThat(plan.tosClass).isEqualTo("03.11")
@@ -101,7 +99,7 @@ class UefDynastyArkistointiAdapterTest {
         val ledger = mock<DynastyStepLedger>()
         val client = DynastyClient(settings, mapper, Clock.systemUTC())
         val adapter = UefDynastyArkistointiAdapter(
-            client, UefDynastyMetadataMapper(properties, mapper, reader), DynastyStepExecutor(ledger, properties)
+            client, UefDynastyMetadataMapper(properties, mapper, reader), DynastyStepExecutor(ledger), properties
         )
 
         val result = adapter.arkistoi(dynastySubmission(mapper, CaseType.KOEJAKSO, university = university))
@@ -124,7 +122,7 @@ class UefDynastyArkistointiAdapterTest {
             val adapter = UefDynastyArkistointiAdapter(
                 DynastyClient(settings, mapper, Clock.systemUTC()),
                 UefDynastyMetadataMapper(properties, mapper, reader),
-                DynastyStepExecutor(ledger, properties)
+                DynastyStepExecutor(ledger), properties
             )
             val submission = dynastySubmission(mapper, university = university)
             val phaseId = UUID.randomUUID()

@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
+import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
@@ -11,14 +12,16 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExec
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 
 open class DynastyArkistointiAdapter internal constructor(
-    final override val university: YliopistoEnum,
+    private val destination: DynastyDestination,
     private val client: DynastyClient,
     private val metadata: DynastyMetadataMapper,
     private val steps: DynastyStepExecutor,
-    private val parallelDocuments: Boolean
+    properties: ApplicationProperties
 ) : ArkistointiAdapter {
+    private val settings = destination.archiveProperties(properties.getArkistointi()).dynasty
+    final override val university: YliopistoEnum = destination.university
     override val canResumeAfterSuccessPersistenceFailure = true
-    override val supportedCaseTypes = setOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO)
+    override val supportedCaseTypes = destination.supportedCaseTypes
 
     override fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {
         client.validateConfiguration()
@@ -51,15 +54,15 @@ open class DynastyArkistointiAdapter internal constructor(
 
     private fun deliver(submission: ArkistointiSubmission, plan: DynastyMetadataMapper.Plan): DynastyCaseId {
         val execution = submission.execution
-        val caseId = steps.execute(execution, university, DynastyStepKey.Case) {
+        val caseId = steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Case) {
             client.createCase(plan.tosClass, plan.caseRequest)
         }
-        val taskId = steps.execute(execution, university, DynastyStepKey.Task) {
+        val taskId = steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Task) {
             client.createTask(caseId, plan.task)
         }
         deliverDocuments(submission, plan, caseId, taskId)
         // Conservatively park an ambiguous state change too, until vendor confirms replay semantics.
-        steps.execute(execution, university, DynastyStepKey.ArchiveCase) { client.archiveCase(caseId) }
+        steps.execute(execution, settings.inProgressGrace, DynastyStepKey.ArchiveCase) { client.archiveCase(caseId) }
         return caseId
     }
 
@@ -73,7 +76,10 @@ open class DynastyArkistointiAdapter internal constructor(
         val (mainDocument, mainMetadata) = documents.first()
         val phaseOptions = DynastyMainDocumentOptions(caseId, taskId)
         val mainId = deliverDocument(submission.execution, mainDocument, mainMetadata, phaseOptions)
-        val remainingOptions = if (parallelDocuments) phaseOptions else DynastyAttachmentOptions(caseId, mainId)
+        val remainingOptions = when (destination.documentLinking) {
+            DynastyDestination.DocumentLinking.SAME_PHASE -> phaseOptions
+            DynastyDestination.DocumentLinking.ATTACH_TO_MAIN -> DynastyAttachmentOptions(caseId, mainId)
+        }
         documents.drop(1).forEach { (document, metadata) ->
             deliverDocument(submission.execution, document, metadata, remainingOptions)
         }
@@ -82,7 +88,7 @@ open class DynastyArkistointiAdapter internal constructor(
     private fun deliverDocument(
         execution: ArkistointiJobExecution, document: LoadedArkistointiAsiakirja,
         metadata: DynastyDocumentMetadata, options: DynastyDocumentOptions
-    ): DynastyDocumentId = steps.execute(execution, university, DynastyStepKey.Document(document.jarjestysnumero)) {
+    ): DynastyDocumentId = steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Document(document.jarjestysnumero)) {
         client.createDocument(metadata, options, document)
     }
 
