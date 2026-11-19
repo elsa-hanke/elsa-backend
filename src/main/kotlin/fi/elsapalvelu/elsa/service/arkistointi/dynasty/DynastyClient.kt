@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpFailure
@@ -164,19 +165,9 @@ class DynastyClient internal constructor(
             try {
                 httpClient.newCall(request).execute().use { response ->
                     if (retryAfterUnauthorized(response.code, attempt)) return@use
-                    if (!response.isSuccessful) {
-                        val category = if (response.code >= 500 || response.code in setOf(408, 429)) {
-                            DynastyFailureCategory.TOS_UNAVAILABLE
-                        } else {
-                            DynastyFailureCategory.TOS_INVALID
-                        }
-                        throw DynastyFailure(category)
-                    }
-                    val body = response.peekBody(MAX_TOS_RESPONSE_BYTES + 1).bytes()
-                    if (body.size > MAX_TOS_RESPONSE_BYTES) throw DynastyFailure(DynastyFailureCategory.TOS_INVALID)
-                    return mapper.readTree(body)
+                    return parseTosResponse(response, mapper)
                 }
-            } catch (_: com.fasterxml.jackson.core.JsonProcessingException) {
+            } catch (_: JsonProcessingException) {
                 throw DynastyFailure(DynastyFailureCategory.TOS_INVALID)
             } catch (_: IOException) {
                 throw DynastyFailure(DynastyFailureCategory.TOS_UNAVAILABLE)
@@ -246,7 +237,22 @@ class DynastyClient internal constructor(
         const val TOKEN_REFRESH_MARGIN_SECONDS = 60L
         const val MAX_TOKEN_LIFETIME_SECONDS = 86400L
         const val MAX_TOKEN_RESPONSE_BYTES = 16384L
-        const val MAX_TOS_RESPONSE_BYTES = 1_048_576L
     }
 
+}
+
+private const val MAX_TOS_RESPONSE_BYTES = 1_048_576L
+
+private fun parseTosResponse(response: Response, mapper: ObjectMapper): JsonNode {
+    if (!response.isSuccessful) {
+        val category = if (response.code >= 500 || response.code in setOf(408, 429)) {
+            DynastyFailureCategory.TOS_UNAVAILABLE
+        } else {
+            DynastyFailureCategory.TOS_INVALID
+        }
+        throw DynastyFailure(category)
+    }
+    val body = response.peekBody(MAX_TOS_RESPONSE_BYTES + 1).bytes()
+    if (body.size > MAX_TOS_RESPONSE_BYTES) throw DynastyFailure(DynastyFailureCategory.TOS_INVALID)
+    return mapper.readTree(body)
 }
