@@ -1,6 +1,10 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import com.fasterxml.jackson.databind.JsonNode
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+private val log: Logger = LoggerFactory.getLogger(DynastyClient::class.java)
 
 internal fun DynastyClient.resolveTosPhase(tosClass: String, phaseTitle: String, documentTitle: String): DynastyTaskId {
     val path = "api/v1/cases/phases/$tosClass"
@@ -14,13 +18,17 @@ internal fun DynastyClient.resolveTosPhase(tosClass: String, phaseTitle: String,
         }
     }
 
-    return readTos("$path/$phaseId/documenttypes", "tos_document_types") { documentTypes ->
+    readTos("$path/$phaseId/documenttypes", "tos_document_types") { documentTypes ->
         validateTosClass(documentTypes, tosClass)
         val responseId = documentTypes.path("taskRowId").textValue()
         if (!phaseId.toString().equals(responseId, ignoreCase = true)) invalidTos(DynastyDiagnosticReason.PHASE_ID_MISMATCH)
         findTosTitle(documentTypes.path("thsDocuments"), documentTitle)
-        phaseId
     }
+    log.info(
+        "Dynasty TOS resolved [tosClass={}, phase={}, taskRowId={}, documentType={}]",
+        tosClass, phaseTitle, phaseId, documentTitle
+    )
+    return phaseId
 }
 
 private fun validateTosClass(response: JsonNode, tosClass: String) {
