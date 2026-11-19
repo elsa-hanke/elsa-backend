@@ -16,7 +16,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -117,30 +116,17 @@ class ArkistointiAdapterConfigurationTest {
     }
 
     @ParameterizedTest
-    @CsvSource(
-        "turku, TURUN_YLIOPISTO, valmistuminen, true",
-        "turku, TURUN_YLIOPISTO, valmistuminen, false",
-        "turku, TURUN_YLIOPISTO, koejakso, true",
-        "turku, TURUN_YLIOPISTO, koejakso, false",
-        "uef, ITA_SUOMEN_YLIOPISTO, valmistuminen, true",
-        "uef, ITA_SUOMEN_YLIOPISTO, valmistuminen, false",
-        "uef, ITA_SUOMEN_YLIOPISTO, koejakso, true",
-        "uef, ITA_SUOMEN_YLIOPISTO, koejakso, false"
-    )
-    fun `missing synchronous adapter prevents startup regardless of worker`(
-        key: String, university: String, caseType: String, workerEnabled: Boolean
-    ) {
+    @ValueSource(booleans = [true, false])
+    fun `missing synchronous adapter prevents startup regardless of worker`(workerEnabled: Boolean) {
         runner().withPropertyValues(
             "db-scheduler.enabled=$workerEnabled",
             "application.arkistointi.hki.kaytossa=false",
-            "application.arkistointi.$key.kaytossa=true",
-            "application.arkistointi.$key.metadata.cases.valmistuminen.async-enabled=true",
-            "application.arkistointi.$key.metadata.cases.koejakso.async-enabled=true",
-            "application.arkistointi.$key.metadata.cases.$caseType.async-enabled=false"
+            "application.arkistointi.tre.kaytossa=true",
+            "application.arkistointi.tre.metadata.cases.valmistuminen.async-enabled=false"
         ).run { context ->
             assertThat(context).hasFailed()
             assertThat(context.startupFailure).hasRootCauseMessage(
-                "Synchronous archiving is enabled for $university / $caseType, " +
+                "Synchronous archiving is enabled for TAMPEREEN_YLIOPISTO / valmistuminen, " +
                     "but no synchronous SynchronousArkistointiAdapter is registered; enable async archiving or register an adapter"
             )
             verify(worker, never()).start()
@@ -150,13 +136,13 @@ class ArkistointiAdapterConfigurationTest {
 
     @ParameterizedTest
     @ValueSource(strings = ["turku", "uef"])
-    fun `producer may enqueue every enabled case without a local delivery adapter`(university: String) {
+    fun `Dynasty producer stays asynchronous without a local delivery adapter`(university: String) {
         runner().withPropertyValues(
             "db-scheduler.enabled=false",
             "application.arkistointi.hki.kaytossa=false",
             "application.arkistointi.$university.kaytossa=true",
-            "application.arkistointi.$university.metadata.cases.valmistuminen.async-enabled=true",
-            "application.arkistointi.$university.metadata.cases.koejakso.async-enabled=true"
+            "application.arkistointi.$university.metadata.cases.valmistuminen.async-enabled=false",
+            "application.arkistointi.$university.metadata.cases.koejakso.async-enabled=false"
         ).run { context ->
             assertThat(context).hasNotFailed()
             verify(worker, never()).start()

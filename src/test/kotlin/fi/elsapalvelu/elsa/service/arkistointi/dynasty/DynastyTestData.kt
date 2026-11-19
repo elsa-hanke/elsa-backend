@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
@@ -20,33 +21,43 @@ import java.util.UUID
 
 const val DYNASTY_TEST_TOKEN_RESPONSE = """{"access_token":"test","expires_in":900}"""
 
-fun dynastyTestProperties(baseUrl: String): ApplicationProperties = ApplicationProperties().apply {
-    getArkistointi().getTurku().apply {
-        dynasty.apply {
-            this.baseUrl = baseUrl.trimEnd('/')
-            tokenUrl = "${this.baseUrl}/token"
-            clientId = "client"
-            clientSecret = "secret"
-            organization = "0"
-            caseSchemaId = "case-schema"
-            documentSchemaId = "document-schema"
-            allowLoopbackHttpForTests = true
-            tutkintoasetukset = mapOf("56/2015" to "Confirmed regulation")
-            koejaksoPublicityClassId = "test-secret"
-            koejaksoSecrecyFields = mapOf("reason" to "test-law", "duration" to "100", "start" to "approval")
-        }
-        metadata = ApplicationProperties.Arkistointi.Metadata().apply {
-            cases = mapOf(
-                "valmistuminen" to ApplicationProperties.Arkistointi.Case().apply {
-                    documents = listOf("yhteenveto", "liite", "laillistamistodistus").associateWith { type ->
-                        ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = if (type == "yhteenveto") "20" else "10" }
-                    }
-                },
-                "koejakso" to ApplicationProperties.Arkistointi.Case().apply {
-                    documents = mapOf("arviointi" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "-1" })
+fun dynastyTestProperties(
+    baseUrl: String, university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO
+): ApplicationProperties = ApplicationProperties().apply {
+    val archive = getArkistointi()
+    val settings = when (university) {
+        YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> archive.getUef().dynasty
+        YliopistoEnum.TURUN_YLIOPISTO -> archive.getTurku().dynasty
+        else -> error("Unsupported Dynasty test university")
+    }
+    settings.apply {
+        this.baseUrl = baseUrl.trimEnd('/')
+        tokenUrl = "${this.baseUrl}/token"
+        clientId = "client"
+        clientSecret = "secret"
+        organization = "0"
+        caseSchemaId = "case-schema"
+        documentSchemaId = "document-schema"
+        allowLoopbackHttpForTests = true
+        tutkintoasetukset = mapOf("56/2015" to "Confirmed regulation")
+        koejaksoPublicityClassId = "test-secret"
+        koejaksoSecrecyFields = mapOf("reason" to "test-law", "duration" to "100", "start" to "approval")
+    }
+    val metadata = ApplicationProperties.Arkistointi.Metadata().apply {
+        cases = mapOf(
+            "valmistuminen" to ApplicationProperties.Arkistointi.Case().apply {
+                documents = listOf("yhteenveto", "liite", "laillistamistodistus").associateWith { type ->
+                    ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = if (type == "yhteenveto") "20" else "10" }
                 }
-            )
-        }
+            },
+            "koejakso" to ApplicationProperties.Arkistointi.Case().apply {
+                documents = mapOf("arviointi" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "-1" })
+            }
+        )
+    }
+    when (university) {
+        YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> archive.getUef().metadata = metadata
+        YliopistoEnum.TURUN_YLIOPISTO -> archive.getTurku().metadata = metadata
     }
 }
 
@@ -57,7 +68,8 @@ fun dynastySubmission(
     specialtyType: ErikoisalaTyyppi = ErikoisalaTyyppi.LAAKETIEDE,
     yek: Boolean = false,
     jobId: UUID = UUID.randomUUID(),
-    version: Long = 1
+    version: Long = 1,
+    university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO
 ): ArkistointiSubmission {
     require(caseType in setOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO))
     val types = if (caseType == CaseType.VALMISTUMINEN) listOf(RecordType.YHTEENVETO, RecordType.LIITE, RecordType.LAILLISTAMISTODISTUS)
@@ -71,7 +83,7 @@ fun dynastySubmission(
         )
     }
     val studyRight = ArchiveStudyRightPayload(
-        opintooikeusId = 2, university = YliopistoEnum.TURUN_YLIOPISTO, yek = yek,
+        opintooikeusId = 2, university = university, yek = yek,
         traineeName = "Maija Meikäläinen", firstName = "Maija", lastName = "Meikäläinen",
         birthDate = LocalDate.of(1980, 1, 1), specialtyId = 1, specialtyName = "Akuuttilääketiede", studentNumber = null,
         specialtyType = specialtyType, studyRightStartDate = LocalDate.of(2020, 1, 1), degreeRegulation = "56/2015"
@@ -91,3 +103,8 @@ fun MockWebServer.enqueueDynastySuccess(documentIds: List<Long>, caseId: Long = 
     documentIds.forEach { enqueue(MockResponse().setBody(it.toString())) }
     enqueue(MockResponse().setBody(""))
 }
+
+fun ObjectMapper.dynastyMultipartJson(body: String, part: String): JsonNode = readTree(
+    Regex("name=\"$part\"\\r\\n(?:[A-Za-z-]+: [^\\r\\n]*\\r\\n)*\\r\\n(.*?)\\r\\n--", RegexOption.DOT_MATCHES_ALL)
+        .find(body)!!.groupValues[1]
+)

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -99,7 +100,7 @@ class TurkuDynastyMetadataMapperTest {
     private fun plan(
         kind: String, koejakso: Boolean,
         changePayload: (com.fasterxml.jackson.databind.node.ObjectNode) -> Unit = {}
-    ): TurkuDynastyMetadataMapper.Plan {
+    ): DynastyMetadataMapper.Plan {
         val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
         val properties = dynastyTestProperties("https://dynasty.example")
         val submission = dynastySubmission(

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
@@ -46,11 +47,11 @@ class AsyncArchiveEnvironmentConfigurationTest {
 
     @ParameterizedTest
     @MethodSource("universities")
-    fun `shipped configuration enables supported async flows except UEF`(university: YliopistoEnum) {
+    fun `shipped configuration routes supported flows to async adapters`(university: YliopistoEnum) {
         runner().run { context ->
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
-            if (university == YliopistoEnum.TURUN_YLIOPISTO || university == YliopistoEnum.ITA_SUOMEN_YLIOPISTO) {
+            if (university in dynastyUniversities) {
                 val settings = provider.getConfiguration(university, CaseType.VALMISTUMINEN)
                 assertThat(settings.case.documents?.keys).containsExactlyInAnyOrder("yhteenveto", "liite", "laillistamistodistus")
                 assertThat(provider.getConfiguration(university, CaseType.KOEJAKSO).case.documents?.keys)
@@ -59,8 +60,58 @@ class AsyncArchiveEnvironmentConfigurationTest {
             flows.getValue(university).forEach { caseType ->
                 assertThat(provider.getConfiguration(university, caseType).case.asyncEnabled)
                     .describedAs("$university / $caseType")
-                    .isEqualTo(university != YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
+                    .isTrue()
             }
+        }
+    }
+
+    @Test
+    fun `UEF Dynasty defaults to the test archive URLs`() {
+        runner().run { context ->
+            assertThat(context).hasNotFailed()
+            val dynasty = context.getBean(ApplicationProperties::class.java).getArkistointi().getUef().dynasty
+            assertThat(dynasty.baseUrl).isEqualTo("https://dynasty-testi.uef.fi/dynasty.externalinterface.archive.oauth")
+            assertThat(dynasty.tokenUrl).isEqualTo("https://dynasty-testi.uef.fi/dynasty.identityserver/connect/token")
+        }
+    }
+
+    @Test
+    fun `UEF Dynasty URLs can be set explicitly by the environment`() {
+        val baseUrl = "https://archive.example/api"
+        val tokenUrl = "https://identity.example/connect/token"
+        runner(mapOf(
+            "APPLICATION_ARKISTOINTI_DYNASTY_UEF_BASE_URL" to baseUrl,
+            "APPLICATION_ARKISTOINTI_DYNASTY_UEF_TOKEN_URL" to tokenUrl
+        )).run { context ->
+            assertThat(context).hasNotFailed()
+            val dynasty = context.getBean(ApplicationProperties::class.java).getArkistointi().getUef().dynasty
+            assertThat(dynasty.baseUrl).isEqualTo(baseUrl)
+            assertThat(dynasty.tokenUrl).isEqualTo(tokenUrl)
+        }
+    }
+
+    @Test
+    fun `Dynasty koejakso defaults to publicity class S for both universities`() {
+        runner().run { context ->
+            assertThat(context).hasNotFailed()
+            val archive = context.getBean(ApplicationProperties::class.java).getArkistointi()
+            assertThat(archive.getTurku().dynasty.koejaksoPublicityClassId).isEqualTo("S")
+            assertThat(archive.getUef().dynasty.koejaksoPublicityClassId).isEqualTo("S")
+        }
+    }
+
+    @Test
+    fun `external tests can override Dynasty koejakso publicity class separately for each university`() {
+        runner(mapOf(
+            "APPLICATION_ARKISTOINTI_DYNASTY_TURKU_KOEJAKSO_PUBLICITY_CLASS_ID" to "turku-secret",
+            "APPLICATION_ARKISTOINTI_DYNASTY_UEF_KOEJAKSO_PUBLICITY_CLASS_ID" to "uef-secret"
+        )).withPropertyValues(
+            "spring.config.additional-location=classpath:/config/application-external-integration.yml"
+        ).run { context ->
+            assertThat(context).hasNotFailed()
+            val archive = context.getBean(ApplicationProperties::class.java).getArkistointi()
+            assertThat(archive.getTurku().dynasty.koejaksoPublicityClassId).isEqualTo("turku-secret")
+            assertThat(archive.getUef().dynasty.koejaksoPublicityClassId).isEqualTo("uef-secret")
         }
     }
 
@@ -88,19 +139,18 @@ class AsyncArchiveEnvironmentConfigurationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("universityFlows")
+    @MethodSource("switchableUniversityFlows")
     fun `ECS environment variable overrides only the selected university and flow`(
         university: YliopistoEnum, caseType: CaseType
     ) {
         val prefix = environmentPrefixes.getValue(university)
-        val enabled = university == YliopistoEnum.ITA_SUOMEN_YLIOPISTO
         runner(mapOf(
             // Enable all universities so isolation is not hidden by kaytossa=false.
             "APPLICATION_ARKISTOINTI_TRE_KAYTOSSA" to "true",
             "APPLICATION_ARKISTOINTI_TURKU_KAYTOSSA" to "true",
             "APPLICATION_ARKISTOINTI_UEF_KAYTOSSA" to "true",
             "APPLICATION_ARKISTOINTI_HKI_KAYTOSSA" to "true",
-            "APPLICATION_ARKISTOINTI_${prefix}_METADATA_CASES_${caseType.name}_ASYNCENABLED" to enabled.toString()
+            "APPLICATION_ARKISTOINTI_${prefix}_METADATA_CASES_${caseType.name}_ASYNCENABLED" to "false"
         )).run { context ->
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
@@ -108,11 +158,28 @@ class AsyncArchiveEnvironmentConfigurationTest {
                 caseTypes.forEach { otherCase ->
                     assertThat(provider.isAsyncEnabled(otherUniversity, otherCase))
                         .describedAs("$otherUniversity / $otherCase")
-                        .isEqualTo(if (otherUniversity == university && otherCase == caseType) {
-                            enabled
-                        } else {
-                            otherUniversity != YliopistoEnum.ITA_SUOMEN_YLIOPISTO
-                        })
+                        .isEqualTo(otherUniversity != university || otherCase != caseType)
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["TURKU", "UEF"])
+    fun `KAYTOSSA enables both Dynasty flows despite legacy async environment overrides`(prefix: String) {
+        val university = environmentPrefixes.entries.single { it.value == prefix }.key
+        runner(mapOf(
+            "APPLICATION_ARKISTOINTI_${prefix}_KAYTOSSA" to "true",
+            "APPLICATION_ARKISTOINTI_${prefix}_METADATA_CASES_KOEJAKSO_ASYNCENABLED" to "false",
+            "APPLICATION_ARKISTOINTI_${prefix}_METADATA_CASES_VALMISTUMINEN_ASYNCENABLED" to "false"
+        )).run { context ->
+            assertThat(context).hasNotFailed()
+            val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
+            flows.filterKeys { it in dynastyUniversities }.forEach { (otherUniversity, caseTypes) ->
+                caseTypes.forEach { caseType ->
+                    assertThat(provider.isAsyncEnabled(otherUniversity, caseType))
+                        .describedAs("$otherUniversity / $caseType")
+                        .isEqualTo(otherUniversity == university)
                 }
             }
         }
@@ -137,10 +204,11 @@ class AsyncArchiveEnvironmentConfigurationTest {
             }
         }
         val key = environmentPrefixes.getValue(university).lowercase()
-        testRunner.withPropertyValues(
-            "application.arkistointi.$key.kaytossa=true",
-            "application.arkistointi.$key.metadata.cases.${caseType.name.lowercase()}.async-enabled=true"
-        ).run { context ->
+        val enabledRunner = testRunner.withPropertyValues("application.arkistointi.$key.kaytossa=true")
+        val asyncRunner = if (university in dynastyUniversities) enabledRunner else enabledRunner.withPropertyValues(
+            "application.arkistointi.$key.metadata.cases.${caseType.value}.async-enabled=true"
+        )
+        asyncRunner.run { context ->
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
             assertThat(provider.isAsyncEnabled(university, caseType)).isTrue()
@@ -165,6 +233,7 @@ class AsyncArchiveEnvironmentConfigurationTest {
     class BindingConfiguration
 
     companion object {
+        private val dynastyUniversities = setOf(YliopistoEnum.TURUN_YLIOPISTO, YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
         private val flows = mapOf(
             YliopistoEnum.TURUN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO),
             YliopistoEnum.ITA_SUOMEN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO),
@@ -180,8 +249,13 @@ class AsyncArchiveEnvironmentConfigurationTest {
         fun universities(): Stream<Arguments> = flows.keys.stream().map { Arguments.of(it) }
 
         @JvmStatic
-        fun universityFlows(): Stream<Arguments> = flows.flatMap { (university, caseTypes) ->
-            caseTypes.map { Arguments.of(university, it) }
+        fun switchableUniversityFlows(): Stream<Arguments> = flowArguments(flows.keys - dynastyUniversities)
+
+        @JvmStatic
+        fun universityFlows(): Stream<Arguments> = flowArguments(flows.keys)
+
+        private fun flowArguments(universities: Set<YliopistoEnum>): Stream<Arguments> = universities.flatMap { university ->
+            flows.getValue(university).map { Arguments.of(university, it) }
         }.stream()
     }
 }

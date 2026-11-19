@@ -13,4 +13,8 @@ class DynastyClientConfiguration {
     @Bean
     fun turkuDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper, clock: Clock): DynastyClient =
         DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, clock)
+
+    @Bean
+    fun uefDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper, clock: Clock): DynastyClient =
+        DynastyClient(properties.getArkistointi().getUef().dynasty, mapper, clock)
 }

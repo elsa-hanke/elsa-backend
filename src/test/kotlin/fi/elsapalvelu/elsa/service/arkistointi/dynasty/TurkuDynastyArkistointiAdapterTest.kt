@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -23,7 +24,7 @@ class TurkuDynastyArkistointiAdapterTest {
     private val execution = ArkistointiJobExecution("archive",UUID.randomUUID().toString(),1)
     private val document = LoadedArkistointiAsiakirja(1, RecordType.ARVIOINTI, 0, "approval.pdf", "application/pdf", "checksum", byteArrayOf(1))
     private val submission = ArkistointiSubmission(execution.jobId,YliopistoEnum.TURUN_YLIOPISTO,CaseType.KOEJAKSO,"{}",listOf(document),execution)
-    private val plan = TurkuDynastyMetadataMapper.Plan(
+    private val plan = DynastyMetadataMapper.Plan(
         "x", DynastyCaseRequest(DynastyCaseModel("schema", "Test", DynastyAdditionalData())), "Arviointi",
         listOf(DynastyDocumentMetadata("Test", "document-schema", "Arviointi", -1, DynastyAdditionalData()))
     )

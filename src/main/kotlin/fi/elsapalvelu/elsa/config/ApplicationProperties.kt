@@ -239,6 +239,7 @@ class ApplicationProperties {
         }
 
         class Uef {
+            val dynasty = DynastyProperties()
             var kaytossa: Boolean = false
             var metadata: Metadata? = null
         }

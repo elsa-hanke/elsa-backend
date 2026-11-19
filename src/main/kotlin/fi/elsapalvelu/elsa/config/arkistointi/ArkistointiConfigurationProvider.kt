@@ -37,8 +37,15 @@ class ArkistointiConfigurationProvider(
 
     fun getTampereHost(): String? = applicationProperties.getArkistointi().getTre().host
 
-    fun isAsyncEnabled(yliopisto: YliopistoEnum, caseType: CaseType): Boolean =
-        onKaytossa(yliopisto, caseType) && getConfiguration(yliopisto, caseType).case.asyncEnabled
+    fun isAsyncEnabled(yliopisto: YliopistoEnum, caseType: CaseType): Boolean {
+        if (!isEnabled(yliopisto)) return false
+        val case = getMetadata(yliopisto)?.getCaseMetadata(caseType) ?: return false
+        return when (yliopisto) {
+            // Dynasty has only an async adapter, so its route is fixed.
+            YliopistoEnum.TURUN_YLIOPISTO, YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> true
+            else -> case.asyncEnabled
+        }
+    }
 
     private fun getMetadata(yliopisto: YliopistoEnum): ApplicationProperties.Arkistointi.Metadata? {
         val arkistointi = applicationProperties.getArkistointi()

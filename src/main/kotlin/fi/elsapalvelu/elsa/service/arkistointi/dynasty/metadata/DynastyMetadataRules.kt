@@ -1,37 +1,34 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata
 
-import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.config.ApplicationProperties.Arkistointi.Metadata
+import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyFailure
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyFailureCategory
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 
-/** Turku-specific document and configuration rules, shared by startup validation and delivery planning. */
-internal class TurkuDynastyMetadataRules(private val turku: ApplicationProperties.Arkistointi.Turku) {
-    fun expectedDocumentTypes(caseType: CaseType): List<RecordType> =
-        TurkuDynastyCaseProfile.from(caseType).documentTypes.keys.toList()
-
-    fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {
-        val regulations = turku.dynasty.tutkintoasetukset
-        if (expectedDocumentTypes(caseType).any {
+/** Document rules shared by startup validation and delivery planning. */
+internal class DynastyMetadataRules(private val settings: DynastyProperties, private val metadata: () -> Metadata?) {
+    fun validateConfiguration(profile: DynastyCaseProfile, configuration: ArkistointiConfiguration) {
+        val regulations = settings.tutkintoasetukset
+        if (profile.documentTypes.keys.any {
                 configuration.metadata.getDocumentMetadata(it, configuration.case)?.retentionPeriod?.toIntOrNull() == null
             } || regulations.isEmpty() || regulations.any { (key, value) -> key.isBlank() || value.isBlank() }) {
             throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
         }
-        if (TurkuDynastyCaseProfile.from(caseType).requiresSecrecy) validateSecrecyConfiguration()
+        if (profile.requiresSecrecy) validateSecrecyConfiguration()
     }
 
     data class DocumentPublicity(val id: String, val secrecyFields: Map<String, String>)
 
-    fun documentPublicity(profile: TurkuDynastyCaseProfile): DocumentPublicity {
+    fun documentPublicity(profile: DynastyCaseProfile): DocumentPublicity {
         if (!profile.requiresSecrecy) return DocumentPublicity("J", emptyMap())
         validateSecrecyConfiguration()
-        return DocumentPublicity(requireNotNull(turku.dynasty.koejaksoPublicityClassId), turku.dynasty.koejaksoSecrecyFields.toMap())
+        return DocumentPublicity(requireNotNull(settings.koejaksoPublicityClassId), settings.koejaksoSecrecyFields.toMap())
     }
 
-    fun validateSecrecyConfiguration() {
-        val settings = turku.dynasty
+    private fun validateSecrecyConfiguration() {
         if (settings.koejaksoPublicityClassId.isNullOrBlank() || settings.koejaksoSecrecyFields.size != 3 ||
             settings.koejaksoSecrecyFields.any { (key, value) -> key.isBlank() || value.isBlank() || key in documentFields }) {
             throw DynastyFailure(DynastyFailureCategory.SECRECY_UNCONFIGURED)
@@ -39,12 +36,12 @@ internal class TurkuDynastyMetadataRules(private val turku: ApplicationPropertie
     }
 
     fun retentionPeriod(caseType: CaseType, type: RecordType): Int {
-        val metadata = turku.metadata
+        val metadata = metadata()
         return metadata?.getDocumentMetadata(type, metadata.getCaseMetadata(caseType))?.retentionPeriod?.toIntOrNull()
             ?: throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
     }
 
-    fun degreeRegulation(regulation: String): String = turku.dynasty.tutkintoasetukset[regulation]
+    fun degreeRegulation(regulation: String): String = settings.tutkintoasetukset[regulation]
         ?: throw DynastyFailure(DynastyFailureCategory.REGULATION_UNCONFIGURED)
 
     private val documentFields = setOf(

@@ -13,7 +13,6 @@ import fi.elsapalvelu.elsa.service.arkistointi.support.AsyncArchiveItSupport
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.pdf.PdfTestData
-import com.fasterxml.jackson.databind.JsonNode
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.time.Duration
@@ -33,7 +32,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
@@ -70,14 +71,35 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
  "application.arkistointi.turku.dynasty.koejakso-publicity-class-id=test-secret",
  "application.arkistointi.turku.dynasty.koejakso-secrecy-fields[reason]=test-law",
  "application.arkistointi.turku.dynasty.koejakso-secrecy-fields[duration]=100",
- "application.arkistointi.turku.dynasty.koejakso-secrecy-fields[start]=approval"
+ "application.arkistointi.turku.dynasty.koejakso-secrecy-fields[start]=approval",
+ "application.arkistointi.uef.kaytossa=true",
+ "application.arkistointi.uef.metadata.cases.koejakso.async-enabled=true",
+ "application.arkistointi.uef.metadata.cases.koejakso.documents.arviointi.retention-period=-1",
+ "application.arkistointi.uef.metadata.cases.valmistuminen.async-enabled=true",
+ "application.arkistointi.uef.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
+ "application.arkistointi.uef.metadata.cases.valmistuminen.documents.liite.retention-period=10",
+ "application.arkistointi.uef.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=10",
+ "application.arkistointi.uef.dynasty.client-id=test",
+ "application.arkistointi.uef.dynasty.client-secret=test",
+ "application.arkistointi.uef.dynasty.organization=0",
+ "application.arkistointi.uef.dynasty.case-schema-id=uef-case",
+ "application.arkistointi.uef.dynasty.document-schema-id=uef-document",
+ "application.arkistointi.uef.dynasty.allow-loopback-http-for-tests=true",
+ "application.arkistointi.uef.dynasty.tutkintoasetukset[test]=Test regulation",
+ "application.arkistointi.uef.dynasty.koejakso-publicity-class-id=test-secret",
+ "application.arkistointi.uef.dynasty.koejakso-secrecy-fields[secrecyReason]=test-law",
+ "application.arkistointi.uef.dynasty.koejakso-secrecy-fields[secrecyPeriodLength]=100",
+ "application.arkistointi.uef.dynasty.koejakso-secrecy-fields[secrecyPeriodRule]=Asiakirjan päivämäärä"
 ])
 @Import(DynastyDeliveryIT.CacheConfig::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DynastyDeliveryIT : AsyncArchiveItSupport() {
 
  @Autowired private lateinit var properties: fi.elsapalvelu.elsa.config.ApplicationProperties
- @Autowired private lateinit var client: DynastyClient
+ @Autowired @Qualifier("turkuDynastyClient")
+ private lateinit var turkuClient: DynastyClient
+ @Autowired @Qualifier("uefDynastyClient")
+ private lateinit var uefClient: DynastyClient
  @Autowired private lateinit var task: com.github.kagkarlsson.scheduler.task.helper.OneTimeTask<Unit>
  @Autowired private lateinit var dataSource: javax.sql.DataSource
  @MockitoSpyBean private lateinit var processor: ArkistointiJobProcessorImpl
@@ -87,7 +109,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
 
     @BeforeEach
     fun resetReceiver() {
-        ReflectionTestUtils.setField(client, "token", null)
+        listOf(turkuClient, uefClient).forEach { ReflectionTestUtils.setField(it, "token", null) }
         schedulerControl = ArchiveSchedulerTestControl(scheduler, processor)
         pollAndAwait()
 
@@ -108,13 +130,15 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     }
 
 
-    private fun job(): fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob {
-        val id = approveKoejakso(CaseType.KOEJAKSO)
-        return jobs.findByKey("koejakso-arvio:TURUN_YLIOPISTO:$id")!!
+    private fun job(university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO): fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob {
+        val id = approveKoejakso(university)
+        return jobs.findByKey("koejakso-arvio:$university:$id")!!
     }
     private fun enqueue(vararg bodies: String) = bodies.forEach { server.enqueue(MockResponse().setBody(it)) }
-    @Test fun `scheduler delivers through real adapter and commits every ledger step`() {
-        val job = job()
+    @ParameterizedTest
+    @EnumSource(value = YliopistoEnum::class, names = ["TURUN_YLIOPISTO", "ITA_SUOMEN_YLIOPISTO"])
+    fun `scheduler delivers through real adapter and commits every ledger step`(university: YliopistoEnum) {
+        val job = job(university)
         server.enqueueDynastySuccess(documentIds = listOf(1078))
         startAttempt()
         awaitDelivered(job.id!!)
@@ -232,14 +256,17 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
             recovery.stop()
         }
     }
-    @ParameterizedTest(name = "{0} certificate as {1}")
-    @CsvSource("EL,pdf", "EHL,pdf", "YEK,pdf", "YEK,png")
-    fun `approved valmistuminen reaches Dynasty as case task and three documents in order`(kind: String, format: String) {
+    @ParameterizedTest(name = "{0}: {1} certificate as {2}")
+    @CsvSource(
+        "TURUN_YLIOPISTO,EL,pdf", "TURUN_YLIOPISTO,EHL,pdf", "TURUN_YLIOPISTO,YEK,pdf", "TURUN_YLIOPISTO,YEK,png",
+        "ITA_SUOMEN_YLIOPISTO,EL,pdf", "ITA_SUOMEN_YLIOPISTO,YEK,png"
+    )
+    fun `approved valmistuminen reaches Dynasty as case task and three documents in order`(university: YliopistoEnum, kind: String, format: String) {
         val image = format == "png"
-        val fixture = createValmistumispyyntoFixture(kind, YliopistoEnum.TURUN_YLIOPISTO, true)
+        val fixture = createValmistumispyyntoFixture(kind, university, true)
         transactions.executeWithoutResult { _ ->
             val opintooikeus = em.find(Valmistumispyynto::class.java, fixture.first).opintooikeus!!
-            properties.getArkistointi().getTurku().dynasty.tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
+            dynastySettings(university).tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
             opintooikeus.erikoistuvaLaakari!!.apply {
                 laillistamistodistus = AsiakirjaData(data = if (image) certificateImage else certificate)
                 laillistamispaivanLiitetiedostonNimi = "certificate.$format"
@@ -248,7 +275,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         }
         setSecurityContext(fixture.second, VASTUUHENKILO)
         approveValmistumispyynto(fixture.first).andExpect(status().isOk)
-        val job = jobs.findByKey("valmistuminen:TURUN_YLIOPISTO:${fixture.first}")!!
+        val job = jobs.findByKey("valmistuminen:$university:${fixture.first}")!!
         val taskId = UUID.randomUUID()
         server.enqueueDynastySuccess(documentIds = listOf(1078, 1079, 1080), taskId = taskId)
         val requestsBefore = server.requestCount
@@ -266,13 +293,17 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         val bodies = requests.map { it.body.readUtf8() }
         // The program comes from the real approval payload; the full metadata mapping is covered by the golden tests.
         assertThat(objectMapper.readTree(bodies[1]).at("/caseModel/title").asText()).startsWith("$kind ")
-        val main = multipartJson(bodies[3], "CaseAttachmentOptions")
+        val main = objectMapper.dynastyMultipartJson(bodies[3], "CaseAttachmentOptions")
         assertThat(main.at("/CaseSelector/Id").asText()).isEqualTo("415")
         assertThat(main.at("/PhaseSelector/Id").asText()).isEqualTo(taskId.toString())
         listOf(bodies[4], bodies[5]).forEach { body ->
-            val options = multipartJson(body, "CaseAttachmentOptions")
-            assertThat(options.at("/caseSelector/id").asLong()).isEqualTo(415)
-            assertThat(options.at("/parentDocumentSelector/id").asLong()).isEqualTo(1078)
+            val options = objectMapper.dynastyMultipartJson(body, "CaseAttachmentOptions")
+            if (university == YliopistoEnum.ITA_SUOMEN_YLIOPISTO) {
+                assertThat(options).isEqualTo(main)
+            } else {
+                assertThat(options.at("/caseSelector/id").asLong()).isEqualTo(415)
+                assertThat(options.at("/parentDocumentSelector/id").asLong()).isEqualTo(1078)
+            }
         }
         assertThat(bodies[5]).contains("filename=\"certificate.$format\"", "Content-Type: ${if (image) "image/png" else "application/pdf"}")
         assertThat(jobs.findById(job.id!!).orElseThrow().externalId).isEqualTo("415")
@@ -282,20 +313,20 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         assertThat((0..2).map { stepFixture.step(job.id!!, "DOCUMENT:$it")?.remoteId }).containsExactly("1078", "1079", "1080")
     }
 
-    private fun multipartJson(body: String, part: String): JsonNode = objectMapper.readTree(
-        Regex("name=\"$part\"\\r\\n(?:[A-Za-z-]+: [^\\r\\n]*\\r\\n)*\\r\\n(.*?)\\r\\n--", RegexOption.DOT_MATCHES_ALL)
-            .find(body)!!.groupValues[1]
-    )
-
-    private fun approveKoejakso(type: CaseType): Long {
-        val fixture = koejaksoFixture(YliopistoEnum.TURUN_YLIOPISTO, type)
+    private fun approveKoejakso(university: YliopistoEnum): Long {
+        val fixture = koejaksoFixture(university, CaseType.KOEJAKSO)
         transactions.executeWithoutResult {
             val opintooikeus = vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().opintooikeus!!
-            properties.getArkistointi().getTurku().dynasty.tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
+            dynastySettings(university).tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
         }
-        val result = if (type == CaseType.SOPIMUS) approveKoejaksonKoulutussopimus(fixture) else approveKoejaksonVastuuhenkilonArvio(fixture)
-        result.andExpect(status().isOk)
-        return if (type == CaseType.SOPIMUS) fixture.first else fixture.second
+        approveKoejaksonVastuuhenkilonArvio(fixture).andExpect(status().isOk)
+        return fixture.second
+    }
+
+    private fun dynastySettings(university: YliopistoEnum) = when (university) {
+        YliopistoEnum.TURUN_YLIOPISTO -> properties.getArkistointi().getTurku().dynasty
+        YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> properties.getArkistointi().getUef().dynasty
+        else -> error("Unsupported Dynasty test university")
     }
 
     private fun startAttempt() = schedulerControl.startAttempt()
@@ -318,8 +349,14 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         }
         @JvmStatic @DynamicPropertySource
         fun transport(registry: DynamicPropertyRegistry) {
-            registry.add("application.arkistointi.turku.dynasty.base-url") { server.url("/").newBuilder().host("127.0.0.1").build().toString().trimEnd('/') }
-            registry.add("application.arkistointi.turku.dynasty.token-url") { server.url("/token").newBuilder().host("127.0.0.1").build().toString() }
+            listOf("turku", "uef").forEach { destination ->
+                registry.add("application.arkistointi.$destination.dynasty.base-url") {
+                    server.url("/").newBuilder().host("127.0.0.1").build().toString().trimEnd('/')
+                }
+                registry.add("application.arkistointi.$destination.dynasty.token-url") {
+                    server.url("/token").newBuilder().host("127.0.0.1").build().toString()
+                }
+            }
         }
         @JvmStatic @AfterAll fun stopServer() = server.shutdown()
     }

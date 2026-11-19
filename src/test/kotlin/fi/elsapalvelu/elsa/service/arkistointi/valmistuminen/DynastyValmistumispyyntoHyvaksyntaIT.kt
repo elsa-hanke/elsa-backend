@@ -57,6 +57,8 @@ class DynastyValmistumispyyntoHyvaksyntaIT : AsyncArchiveItSupport() {
 
     @TestBean(name = "turkuDynastyArkistointiAdapter", methodName = "createTurkuAdapter", enforceOverride = true)
     private lateinit var turkuAdapter: ArkistointiAdapter
+    @TestBean(name = "uefDynastyArkistointiAdapter", methodName = "createUefAdapter", enforceOverride = true)
+    private lateinit var uefAdapter: ArkistointiAdapter
     @Autowired private lateinit var registry: ArkistointiAdapterRegistry
     @Autowired private lateinit var adapters: List<ArkistointiAdapter>
 
@@ -207,6 +209,9 @@ class DynastyValmistumispyyntoHyvaksyntaIT : AsyncArchiveItSupport() {
         @JvmStatic
         fun createTurkuAdapter(): ArkistointiAdapter = adapter(YliopistoEnum.TURUN_YLIOPISTO)
 
+        @JvmStatic
+        fun createUefAdapter(): ArkistointiAdapter = adapter(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
+
         private fun adapter(value: YliopistoEnum) = object : ArkistointiAdapter {
             override val university = value
             override val supportedCaseTypes = setOf(CaseType.KOEJAKSO, CaseType.VALMISTUMINEN)
@@ -225,9 +230,11 @@ class DynastyValmistumispyyntoHyvaksyntaIT : AsyncArchiveItSupport() {
     }
 
     @Test
-    fun `Turku test bean replaces the production adapter in the registry`() {
+    fun `test beans replace both Dynasty adapters in the registry`() {
         assertThat(adapters.filter { it.university == YliopistoEnum.TURUN_YLIOPISTO }).containsExactly(turkuAdapter)
         assertThat(registry.find(YliopistoEnum.TURUN_YLIOPISTO)).isSameAs(turkuAdapter)
+        assertThat(adapters.filter { it.university == YliopistoEnum.ITA_SUOMEN_YLIOPISTO }).containsExactly(uefAdapter)
+        assertThat(registry.find(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)).isSameAs(uefAdapter)
     }
 
     @TestConfiguration(proxyBeanMethods = false)
@@ -236,6 +243,5 @@ class DynastyValmistumispyyntoHyvaksyntaIT : AsyncArchiveItSupport() {
         fun isolatedCache(customizer: org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer): javax.cache.CacheManager =
             AsyncArchiveItSupport.isolatedArchiveCache("urn:elsa:dynasty-graduation-it", javaClass.classLoader, customizer)
 
-        @Bean fun uef(): ArkistointiAdapter = adapter(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
     }
 }

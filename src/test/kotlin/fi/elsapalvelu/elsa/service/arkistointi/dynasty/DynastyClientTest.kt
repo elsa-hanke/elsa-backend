@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -52,7 +53,7 @@ class DynastyClientTest {
             val c = client(server)
 
             assertThatThrownBy {
-                DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, DynastyStepKey.Case) {
+                DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, YliopistoEnum.TURUN_YLIOPISTO, DynastyStepKey.Case) {
                     c.createCase("05.06.02.04", caseRequest())
                 }
             }.isInstanceOfSatisfying(DynastyFailure::class.java) {
@@ -106,7 +107,7 @@ class DynastyClientTest {
                 .thenReturn(DynastyStepLedger.Decision.Proceed)
             val c = client(server, transport)
             assertThatThrownBy {
-                DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, DynastyStepKey.Case) {
+                DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, YliopistoEnum.TURUN_YLIOPISTO, DynastyStepKey.Case) {
                     c.createCase("05.06.02.04", caseRequest())
                 }
             }.isInstanceOfSatisfying(DynastyFailure::class.java) {
@@ -163,7 +164,7 @@ class DynastyClientTest {
                 whenever(ledger.begin(eq(execution), eq(DynastyStepKey.Case), any()))
                     .thenReturn(DynastyStepLedger.Decision.Proceed)
                 assertThatThrownBy {
-                    DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, DynastyStepKey.Case) {
+                    DynastyStepExecutor(ledger, ApplicationProperties()).execute(execution, YliopistoEnum.TURUN_YLIOPISTO, DynastyStepKey.Case) {
                         c.createCase("05.06.02.04", caseRequest())
                     }
                 }.isInstanceOfSatisfying(DynastyFailure::class.java) {

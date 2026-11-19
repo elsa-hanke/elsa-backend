@@ -704,11 +704,8 @@ näkyvää kopiota. Todistuksen `sourceDocumentId` ja `snapshotDocumentId` ovat 
 snapshotin Asiakirja-tunniste, eivät AsiakirjaData-tunnisteita. Puuttuva tai tyhjä todistus tai
 puutteelliset tiedostometatiedot peruuttavat async-hyväksymistransaktion.
 
-Molemmat integraatiot ja async ovat oletuksena pois käytöstä. Tyhjät
-retention-period-arvot ovat sitoutumisen mahdollistavia paikkamerkkejä,
-eivät sovittuja säilytysaikoja. Dynasty-kohtaiset metatiedot, asiakas ja adapterit
-sekä vastaanottajan tiedostorajat toteutetaan integraatiotehtävissä.
-Koulutussopimuksen arkistointipäätöstä ei muuteta tässä tehtävässä.
+Turun ja Itä-Suomen Dynasty-lähetys otetaan käyttöön yliopistokohtaisella
+`kaytossa`-asetuksella. Molemmat ovat oletuksena pois käytöstä.
 
 ### Turun ja Itä-Suomen koejakson arvio
 
@@ -720,8 +717,8 @@ PDF tallennetaan samaan transaktioon jobin ja ajastuksen kanssa.
 
 `DynastyKoejaksoApprovalIT` tarkistaa HTTP-käsittelyn, snapshotin, tallennetun
 päätöksen ja oikean db-schedulerin suorituksen testiadapteriin asti sekä rollbackin.
-Tämä ei vielä sisällä Dynasty-lähetystä: oikeat adapterit ja arkiston metatiedot
-toteutetaan integraatiotehtävissä. Koulutussopimuksen asetuksia ei muuteta.
+`DynastyDeliveryIT` tarkistaa molempien yliopistojen toimituksen työntekijältä
+Dynasty-rajapintaan asti paikallista HTTP-palvelinta vasten.
 
 ### Archive payload validation
 
@@ -821,22 +818,42 @@ kirjoitetaan kontekstin ulkopuolella, joten niissä ei ole `userId`- eikä `arch
 hae ne `jobId`:llä viestin tekstistä. Ennen tätä muutosta luoduilla jobeilla ja ilman
 pyyntökontekstia luoduilla jobeilla `requested_by_user_id` on tyhjä.
 
-### Turku Dynasty REST delivery
+### Turku and UEF Dynasty REST delivery
 
-Turku uses independent REST calls (case, task, main document, attachments, archive state),
-not the Helsinki/Tampere ZIP transport. It remains disabled by default. UEF has no
-production adapter until its university-specific mapping is supplied; SOPIMUS is unsupported.
+Both destinations support `VALMISTUMINEN` and `KOEJAKSO`. Each delivery creates a case
+and a phase, transfers the documents, and archives the case. UEF sends the
+graduation documents as separate records under the same phase.
 
 Configure `application.arkistointi.turku.dynasty` (URLs, client credentials, Organization,
-case/document schema UUIDs) before enabling the university and individual async case types.
+case/document schema UUIDs) before enabling the university. For Dynasty, both case
+types use the asynchronous route whenever the university is enabled with
+`APPLICATION_ARKISTOINTI_TURKU_KAYTOSSA` or `APPLICATION_ARKISTOINTI_UEF_KAYTOSSA`.
 Credentials must come from secrets/environment. Test case/document schemas:
 `30e1cd27-54f9-44c1-9853-401cbdc871de` / `b11af6ae-afc6-42e8-b09b-6b37d3f29397`;
 production: `80cdec85-07fa-455b-9d7d-6c08ac1e2863` / `f9352666-327a-4262-b888-9c4c847590b6`.
 The configured `tutkintoasetukset` map must contain the customer-approved text for each
-regulation encountered. KOEJAKSO additionally requires vendor-confirmed
-`koejakso-publicity-class-id` and three `koejakso-secrecy-fields` entries (reason,
-100-year duration and date calculation basis). Do not enable it with guessed field names.
+regulation encountered. For KOEJAKSO, both universities use publicity class
+`S`. In the external test profile, override it with `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_KOEJAKSO_PUBLICITY_CLASS_ID`
+or `APPLICATION_ARKISTOINTI_DYNASTY_UEF_KOEJAKSO_PUBLICITY_CLASS_ID`.
+Confirm the class ID and the three `koejakso-secrecy-fields` entries (reason,
+100-year duration and date calculation basis) with the vendor.
 Metadata validation completes before the first external create.
+
+UEF archive and token URLs default to the Dynasty test host `dynasty-testi.uef.fi`.
+The paths follow Turku's API configuration and need confirmation in the UEF archive.
+For production, explicitly set `APPLICATION_ARKISTOINTI_DYNASTY_UEF_BASE_URL`,
+`APPLICATION_ARKISTOINTI_DYNASTY_UEF_TOKEN_URL` and the production organization,
+credentials and schema IDs. Configure the UEF integration account to select the
+archive material. Test material is `IB29`.
+
+Run the UEF external suite with `APPLICATION_ARKISTOINTI_DYNASTY_UEF_EXTERNAL_TESTS=true`
+and supply the test archive values for `APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION`,
+`APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_ID` and `APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_SECRET`.
+The external test profile defaults to the UEF test schema IDs.
+
+```
+./gradlew externalIntegrationTests --tests '*UefArkistointiExternalIntegrationTests'
+```
 
 Every mutation is preceded by a committed intent in `arkistointi_dynasty_step`.
 Completed steps are skipped on retry; external case ID becomes the job external ID.

@@ -52,14 +52,14 @@ class DynastyWorkerConfigurationTest {
     }
 
     @Test
-    fun `disabled university and synchronous cases do not require Dynasty settings`() {
+    fun `worker requires Dynasty settings only when university is enabled`() {
         configure()
         settings.clientSecret = null
         turku.kaytossa = false
         assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
         turku.kaytossa = true
-        turku.metadata!!.getCaseMetadata(CaseType.VALMISTUMINEN)!!.asyncEnabled = false
-        assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
+        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }
+            .hasMessageContaining("DYNASTY_CONFIGURATION_INVALID")
     }
 
     @Test
