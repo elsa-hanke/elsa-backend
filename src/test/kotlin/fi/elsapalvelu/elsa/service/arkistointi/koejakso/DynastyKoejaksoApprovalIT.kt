@@ -41,10 +41,6 @@ import java.util.concurrent.ConcurrentHashMap
     "spring.datasource.url=jdbc:tc:postgresql:16.9:///dynastyKoejakso?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true",
     "application.arkistointi.turku.kaytossa=true",
     "application.arkistointi.uef.kaytossa=true",
-    "application.arkistointi.turku.metadata.cases.valmistuminen.async-enabled=true",
-    "application.arkistointi.uef.metadata.cases.valmistuminen.async-enabled=true",
-    "application.arkistointi.turku.metadata.cases.koejakso.async-enabled=true",
-    "application.arkistointi.uef.metadata.cases.koejakso.async-enabled=true",
     "application.arkistointi.turku.metadata.cases.koejakso.documents.arviointi.retention-period=20",
     "application.arkistointi.uef.metadata.cases.koejakso.documents.arviointi.retention-period=20"
 ])
@@ -57,6 +53,8 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
     @Autowired private lateinit var adapters: List<ArkistointiAdapter>
     @TestBean(name = "turkuDynastyArkistointiAdapter", methodName = "createTurkuAdapter", enforceOverride = true)
     private lateinit var turkuAdapter: ArkistointiAdapter
+    @TestBean(name = "uefDynastyArkistointiAdapter", methodName = "createUefAdapter", enforceOverride = true)
+    private lateinit var uefAdapter: ArkistointiAdapter
     @MockitoSpyBean private lateinit var jobScheduler: ArkistointiJobScheduler
     @MockitoBean lateinit var mail: MailService
 
@@ -146,9 +144,11 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
     private fun count(table: String) = jdbc.queryForObject("select count(*) from $table", Long::class.java)
 
     @Test
-    fun `Turku test bean replaces the production adapter in the registry`() {
+    fun `test beans replace both Dynasty adapters in the registry`() {
         assertThat(adapters.filter { it.university == YliopistoEnum.TURUN_YLIOPISTO }).containsExactly(turkuAdapter)
         assertThat(registry.find(YliopistoEnum.TURUN_YLIOPISTO)).isSameAs(turkuAdapter)
+        assertThat(adapters.filter { it.university == YliopistoEnum.ITA_SUOMEN_YLIOPISTO }).containsExactly(uefAdapter)
+        assertThat(registry.find(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)).isSameAs(uefAdapter)
     }
 
     class TestAdapter(override val university: YliopistoEnum) : ArkistointiAdapter {
@@ -163,12 +163,13 @@ class DynastyKoejaksoApprovalIT : AsyncArchiveItSupport() {
     companion object {
         @JvmStatic
         fun createTurkuAdapter(): ArkistointiAdapter = TestAdapter(YliopistoEnum.TURUN_YLIOPISTO)
+
+        @JvmStatic
+        fun createUefAdapter(): ArkistointiAdapter = TestAdapter(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
     }
 
     @TestConfiguration(proxyBeanMethods = false)
     class Adapters {
-        @Bean fun uef(): ArkistointiAdapter = TestAdapter(YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
-
         @Bean
         fun isolatedCache(customizer: org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer): javax.cache.CacheManager =
             AsyncArchiveItSupport.isolatedArchiveCache("urn:elsa:dynasty-koejakso-it", javaClass.classLoader, customizer)

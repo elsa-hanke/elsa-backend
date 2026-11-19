@@ -3,6 +3,7 @@ package fi.elsapalvelu.elsa.config
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.helsinki.HelsinkiArkistointiExternalIntegrationTestApplication
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.tampere.TampereArkistointiExternalIntegrationTestApplication
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.turku.TurkuArkistointiExternalIntegrationTestApplication
+import fi.elsapalvelu.elsa.externalintegration.arkistointi.uef.UefArkistointiExternalIntegrationTestApplication
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.sahke.SahkeMetadataBuilder
 import java.time.Clock
@@ -16,7 +17,8 @@ class ArkistoinninUlkoistenTestienKontekstiTest {
     enum class Arkistointikonteksti(val asetukset: Class<*>, val kellonKayttaja: Class<*>) {
         HELSINKI(HelsinkiArkistointiExternalIntegrationTestApplication::class.java, SahkeMetadataBuilder::class.java),
         TAMPERE(TampereArkistointiExternalIntegrationTestApplication::class.java, SahkeMetadataBuilder::class.java),
-        TURKU(TurkuArkistointiExternalIntegrationTestApplication::class.java, DynastyClient::class.java)
+        TURKU(TurkuArkistointiExternalIntegrationTestApplication::class.java, DynastyClient::class.java),
+        UEF(UefArkistointiExternalIntegrationTestApplication::class.java, DynastyClient::class.java)
     }
 
     @ParameterizedTest

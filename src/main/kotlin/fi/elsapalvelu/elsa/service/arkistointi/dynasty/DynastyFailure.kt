@@ -16,6 +16,8 @@ internal enum class DynastyFailureCategory(
     TLS_FAILED("DYNASTY_UNAVAILABLE", retryable = false, definitelyNotProcessed = true),
     HTTP_REJECTED("DYNASTY_HTTP_REJECTED", retryable = false, definitelyNotProcessed = true),
     DELIVERY_UNCONFIRMED("DYNASTY_DELIVERY_UNCONFIRMED", retryable = false, definitelyNotProcessed = false),
+    TOS_UNAVAILABLE("DYNASTY_TOS_UNAVAILABLE", retryable = true, definitelyNotProcessed = true),
+    TOS_INVALID("DYNASTY_TOS_INVALID", retryable = false, definitelyNotProcessed = true),
     RESPONSE_INVALID("DYNASTY_RESPONSE_INVALID", retryable = false, definitelyNotProcessed = false),
     STEP_IN_PROGRESS("DYNASTY_STEP_IN_PROGRESS", retryable = true, definitelyNotProcessed = false)
 }

@@ -41,7 +41,7 @@ class DynastyTokeninKelloTest {
                 } else MockResponse().setBody("1")
             }
             val asiakas = DynastyClient(asetukset, jacksonObjectMapper(), kello)
-            val pyynto = DynastyCaseRequest(DynastyCaseModel("schema", "Asia", DynastyAdditionalData()))
+            val pyynto = DynastyCaseRequest(DynastyCaseModel("schema", "Asia", DynastyAdditionalData(fieldPrefix = "UTU")))
             asiakas.createCase("luokka", pyynto)
             whenever(kello.instant()).thenReturn(aika.aikaleima().plusSeconds(59))
             asiakas.createCase("luokka", pyynto)

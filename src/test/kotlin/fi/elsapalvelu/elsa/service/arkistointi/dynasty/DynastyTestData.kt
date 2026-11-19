@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
@@ -20,33 +21,33 @@ import java.util.UUID
 
 const val DYNASTY_TEST_TOKEN_RESPONSE = """{"access_token":"test","expires_in":900}"""
 
-fun dynastyTestProperties(baseUrl: String): ApplicationProperties = ApplicationProperties().apply {
-    getArkistointi().getTurku().apply {
-        dynasty.apply {
-            this.baseUrl = baseUrl.trimEnd('/')
-            tokenUrl = "${this.baseUrl}/token"
-            clientId = "client"
-            clientSecret = "secret"
-            organization = "0"
-            caseSchemaId = "case-schema"
-            documentSchemaId = "document-schema"
-            allowLoopbackHttpForTests = true
-            tutkintoasetukset = mapOf("56/2015" to "Confirmed regulation")
-            koejaksoPublicityClassId = "test-secret"
-            koejaksoSecrecyFields = mapOf("reason" to "test-law", "duration" to "100", "start" to "approval")
-        }
-        metadata = ApplicationProperties.Arkistointi.Metadata().apply {
-            cases = mapOf(
-                "valmistuminen" to ApplicationProperties.Arkistointi.Case().apply {
-                    documents = listOf("yhteenveto", "liite", "laillistamistodistus").associateWith { type ->
-                        ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = if (type == "yhteenveto") "20" else "10" }
-                    }
-                },
-                "koejakso" to ApplicationProperties.Arkistointi.Case().apply {
-                    documents = mapOf("arviointi" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "-1" })
+fun dynastyTestProperties(
+    baseUrl: String, university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO
+): ApplicationProperties = ApplicationProperties().apply {
+    val archive = DynastyDestination.from(university).archiveProperties(getArkistointi())
+    archive.dynasty.apply {
+        this.baseUrl = baseUrl.trimEnd('/')
+        tokenUrl = "${this.baseUrl}/token"
+        clientId = "client"
+        clientSecret = "secret"
+        organization = "0"
+        caseSchemaId = "case-schema"
+        documentSchemaId = "document-schema"
+        allowLoopbackHttpForTests = true
+        tutkintoasetukset = mapOf("56/2015" to "Confirmed regulation")
+        koejaksoPublicityClassId = "test-secret"
+    }
+    archive.metadata = ApplicationProperties.Arkistointi.Metadata().apply {
+        cases = mapOf(
+            "valmistuminen" to ApplicationProperties.Arkistointi.Case().apply {
+                documents = listOf("yhteenveto", "liite", "laillistamistodistus").associateWith { type ->
+                    ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = if (type == "yhteenveto") "20" else "10" }
                 }
-            )
-        }
+            },
+            "koejakso" to ApplicationProperties.Arkistointi.Case().apply {
+                documents = mapOf("arviointi" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "-1" })
+            }
+        )
     }
 }
 
@@ -57,7 +58,8 @@ fun dynastySubmission(
     specialtyType: ErikoisalaTyyppi = ErikoisalaTyyppi.LAAKETIEDE,
     yek: Boolean = false,
     jobId: UUID = UUID.randomUUID(),
-    version: Long = 1
+    version: Long = 1,
+    university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO
 ): ArkistointiSubmission {
     require(caseType in setOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO))
     val types = if (caseType == CaseType.VALMISTUMINEN) listOf(RecordType.YHTEENVETO, RecordType.LIITE, RecordType.LAILLISTAMISTODISTUS)
@@ -71,7 +73,7 @@ fun dynastySubmission(
         )
     }
     val studyRight = ArchiveStudyRightPayload(
-        opintooikeusId = 2, university = YliopistoEnum.TURUN_YLIOPISTO, yek = yek,
+        opintooikeusId = 2, university = university, yek = yek,
         traineeName = "Maija Meikäläinen", firstName = "Maija", lastName = "Meikäläinen",
         birthDate = LocalDate.of(1980, 1, 1), specialtyId = 1, specialtyName = "Akuuttilääketiede", studentNumber = null,
         specialtyType = specialtyType, studyRightStartDate = LocalDate.of(2020, 1, 1), degreeRegulation = "56/2015"
@@ -91,3 +93,40 @@ fun MockWebServer.enqueueDynastySuccess(documentIds: List<Long>, caseId: Long = 
     documentIds.forEach { enqueue(MockResponse().setBody(it.toString())) }
     enqueue(MockResponse().setBody(""))
 }
+
+internal enum class TurkuTosFixture(val tosClass: String, val phase: String, val documentTitle: String) {
+    GRADUATION("05.06.02.04", "Hakeminen", "Valmistumisen yhteenveto,  EL, EHL tai YEK"),
+    ASSESSMENT("05.06.02.00", "Arviointi", "Koejakson vastuuhenkilön arvio");
+
+    val path get() = "/api/v1/cases/phases/$tosClass"
+
+    fun response(requestPath: String, phaseId: UUID = PHASE_ID): MockResponse? = when (requestPath) {
+        path -> MockResponse().setBody(
+            """{"fullCasegroupCode":"$tosClass","thsPhases":[{"title":"$phase","taskRowId":"$phaseId"}]}"""
+        )
+        "$path/$phaseId/documenttypes" -> MockResponse().setBody(
+            """{"fullCasegroupCode":"$tosClass","taskRowId":"$phaseId","thsDocuments":[{"title":"$documentTitle","childs":[]}]}"""
+        )
+        else -> null
+    }
+
+    fun MockWebServer.enqueueLookup(phaseId: UUID = PHASE_ID) {
+        enqueue(requireNotNull(response(path, phaseId)))
+        enqueue(requireNotNull(response("$path/$phaseId/documenttypes", phaseId)))
+    }
+
+    fun enqueueSuccess(server: MockWebServer, documentIds: List<Long>, phaseId: UUID = PHASE_ID) = with(server) {
+        enqueue(MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE))
+        enqueueLookup(phaseId)
+        (listOf("415") + documentIds.map(Long::toString) + "").forEach { enqueue(MockResponse().setBody(it)) }
+    }
+
+    companion object {
+        val PHASE_ID: UUID = UUID.fromString("68630ae0-34d8-43a5-93de-0a7219eecc60")
+    }
+}
+
+fun ObjectMapper.dynastyMultipartJson(body: String, part: String): JsonNode = readTree(
+    Regex("name=\"$part\"\\r\\n(?:[A-Za-z-]+: [^\\r\\n]*\\r\\n)*\\r\\n(.*?)\\r\\n--", RegexOption.DOT_MATCHES_ALL)
+        .find(body)!!.groupValues[1]
+)

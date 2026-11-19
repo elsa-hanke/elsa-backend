@@ -240,8 +240,9 @@ Opintotietointegraatioiden testihenkilöt annetaan `EXTERNAL_INTEGRATION_<PALVEL
 
 Arkistoinnin ulkoiset testit luovat oikeita testiaineistoja Helsingin Siiloon ja Tampereen Louheen. Tapaus- ja tiedostonimet sisältävät `CODEBUILD_BUILD_ID`:stä muodostetun korrelaatiotunnisteen, jotta lähetykset voidaan jäljittää.
 
-Turun Dynasty-testit lähettävät EL-, EHL- ja YEK-valmistumisen yhteenvedon,
-liitteet ja laillistamistodistuksen oikeina PDF-tiedostoina. Testi käyttää oikeaa
+Turun ja UEF:n Dynasty-testit lähettävät EL-, EHL- ja YEK-valmistumisen yhteenvedon,
+liitteet, laillistamistodistuksen ja koejakson arvion. YEK-valmistumisen
+laillistamistodistus lähetetään PNG-tiedostona. Testi käyttää oikeaa
 OAuth-asiakasta ja arkistointiadapteria: asia ja tehtävä luodaan, asiakirjat
 lähetetään ja asia siirretään Archived-tilaan. Vain tietokannan askelkirjanpito
 on mockattu. Testiaineiston nimissä on sama korrelaatiotunniste kuin muissa
@@ -252,7 +253,7 @@ ja sisältötyypin sekä virhevastauksen rungon (enintään 16 KiB).
 Verkkovirheistä tulostetaan poikkeuksen tyyppi, viesti ja syyketju myös silloin,
 kun OAuth-palvelimelta ei saada HTTP-vastausta. Tunnukset ja bearer-tokenit
 peitetään; pyyntöjen runkoja ja onnistuneita OAuth-vastausten runkoja ei lokiteta.
-Tämä diagnostiikka on käytössä vain Turun ulkoisissa integraatiotesteissä.
+Sama diagnostiikka on käytössä myös UEF:n ulkoisissa Dynasty-testeissä.
 Turun ulkoisten testien HTTP-asiakas käyttää vain HTTP/1.1:tä, jotta CodeBuildissa
 havaitun OAuth-palvelimen HTTP/2 `INTERNAL_ERROR` -virheen yhteys protokollaan
 voidaan tarkistaa. Vastauksen protokolla näkyy INFO-lokissa. Tuotantoasiakkaan
@@ -262,11 +263,9 @@ Tunnukset annetaan ympäristömuuttujilla `APPLICATION_ARKISTOINTI_DYNASTY_TURKU
 `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CLIENT_SECRET`. CodeBuild lukee ne SSM Parameter Storesta
 poluista `/dev/application/dynasty/turku/clientid` ja
 `/dev/application/dynasty/turku/clientsecret`, kuten dev-ympäristön ECS-palvelu.
-Osoitteet, organisaatio ja skeemat käyttävät
-`application.yml`:n kanssa samoja oletusarvoja ja `DYNASTY_TURKU_*`-muuttujia.
-Koejaksoa ei lähetetä, koska sen Dynasty-salassapitoasetukset odottavat vahvistusta.
-Testiaineistossa ei ole tutkintoasetusta, joten vahvistamatonta asetusmäppäystä
-ei tarvita. Pelkät Turun Dynasty-testit voi suorittaa komennolla:
+Ulkoiset testit, dev ja staging käyttävät samoja testiosoitteita oletuksena.
+Testiaineisto käyttää tutkintoasetusta `56/2015`.
+Pelkät Turun Dynasty-testit voi suorittaa komennolla:
 
 ```
 ./gradlew externalIntegrationTests --tests '*TurkuArkistointiExternalIntegrationTests'
@@ -704,11 +703,8 @@ näkyvää kopiota. Todistuksen `sourceDocumentId` ja `snapshotDocumentId` ovat 
 snapshotin Asiakirja-tunniste, eivät AsiakirjaData-tunnisteita. Puuttuva tai tyhjä todistus tai
 puutteelliset tiedostometatiedot peruuttavat async-hyväksymistransaktion.
 
-Molemmat integraatiot ja async ovat oletuksena pois käytöstä. Tyhjät
-retention-period-arvot ovat sitoutumisen mahdollistavia paikkamerkkejä,
-eivät sovittuja säilytysaikoja. Dynasty-kohtaiset metatiedot, asiakas ja adapterit
-sekä vastaanottajan tiedostorajat toteutetaan integraatiotehtävissä.
-Koulutussopimuksen arkistointipäätöstä ei muuteta tässä tehtävässä.
+Turun ja Itä-Suomen Dynasty-lähetys otetaan käyttöön yliopistokohtaisella
+`kaytossa`-asetuksella. Molemmat ovat oletuksena pois käytöstä.
 
 ### Turun ja Itä-Suomen koejakson arvio
 
@@ -720,8 +716,8 @@ PDF tallennetaan samaan transaktioon jobin ja ajastuksen kanssa.
 
 `DynastyKoejaksoApprovalIT` tarkistaa HTTP-käsittelyn, snapshotin, tallennetun
 päätöksen ja oikean db-schedulerin suorituksen testiadapteriin asti sekä rollbackin.
-Tämä ei vielä sisällä Dynasty-lähetystä: oikeat adapterit ja arkiston metatiedot
-toteutetaan integraatiotehtävissä. Koulutussopimuksen asetuksia ei muuteta.
+`DynastyDeliveryIT` tarkistaa molempien yliopistojen toimituksen työntekijältä
+Dynasty-rajapintaan asti paikallista HTTP-palvelinta vasten.
 
 ### Archive payload validation
 
@@ -821,25 +817,62 @@ kirjoitetaan kontekstin ulkopuolella, joten niissä ei ole `userId`- eikä `arch
 hae ne `jobId`:llä viestin tekstistä. Ennen tätä muutosta luoduilla jobeilla ja ilman
 pyyntökontekstia luoduilla jobeilla `requested_by_user_id` on tyhjä.
 
-### Turku Dynasty REST delivery
+### Turku and UEF Dynasty REST delivery
 
-Turku uses independent REST calls (case, task, main document, attachments, archive state),
-not the Helsinki/Tampere ZIP transport. It remains disabled by default. UEF has no
-production adapter until its university-specific mapping is supplied; SOPIMUS is unsupported.
+Both destinations support `VALMISTUMINEN` and `KOEJAKSO`. Turku reads the phase and
+document type from the active TOS before creating a case or sending a new main document.
+Dynasty creates the phase and supplies the main document's archive metadata (publicity,
+retention, document type) from TOS
+using `PhaseSelector.smartAttachOptions.pathSelector` and the exact `TOSTitle`.
+The graduation title has two spaces before `EL`. Graduation attachments are
+sent as `Liite` under the main document with a ten-year retention period, `DeliveryType` `M`
+and the identifying `AD` fields (the licensing date only on the certificate). The graduation
+main document also carries `ExtElsaTunniste` (the Elsa case id) and `UTUhyvaksymispaiva`;
+confirm both values with Turku.
+UEF creates its phase explicitly and sends its graduation documents as separate
+records under that phase. Both deliveries finish by archiving the case.
 
 Configure `application.arkistointi.turku.dynasty` (URLs, client credentials, Organization,
-case/document schema UUIDs) before enabling the university and individual async case types.
+case/document schema UUIDs) before enabling the university. For Dynasty, both case
+types use the asynchronous route whenever the university is enabled with
+`APPLICATION_ARKISTOINTI_TURKU_KAYTOSSA` or `APPLICATION_ARKISTOINTI_UEF_KAYTOSSA`.
 Credentials must come from secrets/environment. Test case/document schemas:
 `30e1cd27-54f9-44c1-9853-401cbdc871de` / `b11af6ae-afc6-42e8-b09b-6b37d3f29397`;
 production: `80cdec85-07fa-455b-9d7d-6c08ac1e2863` / `f9352666-327a-4262-b888-9c4c847590b6`.
 The configured `tutkintoasetukset` map must contain the customer-approved text for each
-regulation encountered. KOEJAKSO additionally requires vendor-confirmed
-`koejakso-publicity-class-id` and three `koejakso-secrecy-fields` entries (reason,
-100-year duration and date calculation basis). Do not enable it with guessed field names.
+regulation encountered. For Turku KOEJAKSO, TOS supplies the publicity class and
+the request contains `SecrecyPeriod.Start` at midnight on the delivery date and
+`SecrecyPeriod.End` 100 years later. UEF uses publicity class `S` and sends the same
+`SecrecyPeriod` structure. Its external test profile supports
+`APPLICATION_ARKISTOINTI_DYNASTY_UEF_KOEJAKSO_PUBLICITY_CLASS_ID`.
 Metadata validation completes before the first external create.
 
+The shared application configuration defaults to the Dynasty test URLs so dev and
+staging can inherit them. All ECS environments use the `prod` Spring profile.
+The UEF paths follow Turku's API configuration and need confirmation in the UEF
+archive. In the production ECS deployment, explicitly set `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_BASE_URL`
+and `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_TOKEN_URL` for Turku, or
+`APPLICATION_ARKISTOINTI_DYNASTY_UEF_BASE_URL` and `APPLICATION_ARKISTOINTI_DYNASTY_UEF_TOKEN_URL`
+for UEF. Supply the production organization, credentials and schema IDs.
+Configure the UEF integration account to select the archive material.
+Test material is `IB29`.
+
+The UEF external suite is disabled with JUnit's `@Disabled` annotation.
+To run it, remove the annotation and supply the test archive values for `APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION`,
+`APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_ID` and `APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_SECRET`.
+The external test profile defaults to the UEF test schema IDs.
+
+```
+./gradlew externalIntegrationTests --tests '*UefArkistointiExternalIntegrationTests'
+```
+
 Every mutation is preceded by a committed intent in `arkistointi_dynasty_step`.
-Completed steps are skipped on retry; external case ID becomes the job external ID.
+Completed steps are reused on retry. The external case ID becomes the job external ID.
+Turku skips the TOS lookup when the main document is already recorded. An unconfirmed
+legacy Turku `TASK` still needs reconciliation. If a legacy task completed before the
+main document, the resumed upload uses the active TOS and the old phase stays in the case.
+`DYNASTY_TOS_INVALID` indicates a rejected lookup, invalid response or mismatched TOS entry.
+Transient TOS lookup failures use `DYNASTY_TOS_UNAVAILABLE` and can retry without a create intent.
 A stale scheduler execution cannot begin another step. A late successful response can
 complete only its original intent. An incomplete intent is never automatically replayed:
 recent intents wait; old or ambiguous outcomes require operator intervention.

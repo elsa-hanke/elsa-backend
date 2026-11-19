@@ -22,8 +22,6 @@
     {
       "title": "EL Valmistumisen yhteenveto Maija Meikäläinen 31.10.2026",
       "schemaId": "document-schema",
-      "documentType": "Valmistumisen yhteenveto, EL, EHL tai YEK",
-      "retentionPeriodLength": 20,
       "AD": {
         "UTUetunimi": "Maija",
         "UTUsukunimi": "Meikäläinen",
@@ -34,37 +32,42 @@
         "UTUalkamispaiva": "2020-01-01",
         "UTUvalmistumispaiva": "2026-10-31",
         "UTUtutkintoasetus": "Confirmed regulation",
-        "UTUlaillistamispaiva": "2019-01-01"
+        "UTUlaillistamispaiva": "2019-01-01",
+        "UTUhyvaksymispaiva": "2026-10-31",
+        "ExtElsaTunniste": "1"
       },
-      "publicityClassId": "J",
-      "publicityClassName": "Julkinen",
-      "retentionPeriodRule": "Asian lopullinen ratkaisu",
-      "personalData": "Sisältää henkilötietoja",
-      "state": 3
+      "state": 3,
+      "DeliveryType": "M"
     },
     {
       "title": "Valmistumisen yhteenvedon liitteet Maija Meikäläinen 31.10.2026",
       "schemaId": "document-schema",
-      "documentType": "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK",
+      "documentType": "Liite",
       "retentionPeriodLength": 10,
+      "publicityClassId": "J",
+      "publicityClassName": "Julkinen",
+      "retentionPeriodRule": "Asian lopullinen ratkaisu",
+      "personalData": "Sisältää henkilötietoja",
+      "state": 3,
+      "DeliveryType": "M",
       "AD": {
         "UTUetunimi": "Maija",
         "UTUsukunimi": "Meikäläinen",
         "UTUtiedekunta": "Lääketieteellinen tiedekunta",
         "UTUkoulutusohjelma": "Erikoislääkärikoulutus",
         "UTUpaaaine": "Akuuttilääketiede"
-      },
-      "publicityClassId": "J",
-      "publicityClassName": "Julkinen",
-      "retentionPeriodRule": "Asian lopullinen ratkaisu",
-      "personalData": "Sisältää henkilötietoja",
-      "state": 3
+      }
     },
     {
       "title": "Laillistustodistus Maija Meikäläinen",
       "schemaId": "document-schema",
-      "documentType": "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK",
+      "documentType": "Liite",
       "retentionPeriodLength": 10,
+      "publicityClassId": "J",
+      "publicityClassName": "Julkinen",
+      "retentionPeriodRule": "Asian lopullinen ratkaisu",
+      "personalData": "Sisältää henkilötietoja",
+      "state": 3,
       "AD": {
         "UTUetunimi": "Maija",
         "UTUsukunimi": "Meikäläinen",
@@ -73,11 +76,7 @@
         "UTUpaaaine": "Akuuttilääketiede",
         "UTUlaillistamispaiva": "2019-01-01"
       },
-      "publicityClassId": "J",
-      "publicityClassName": "Julkinen",
-      "retentionPeriodRule": "Asian lopullinen ratkaisu",
-      "personalData": "Sisältää henkilötietoja",
-      "state": 3
+      "DeliveryType": "M"
     }
   ]
 }

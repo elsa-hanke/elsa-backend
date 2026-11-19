@@ -22,8 +22,8 @@ class DynastyWorkerConfigurationTest {
     private val mapper = jacksonObjectMapper()
     private val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
         DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
-        TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
-        DynastyStepExecutor(mock<DynastyStepLedger>(), properties)
+        TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
+        DynastyStepExecutor(mock<DynastyStepLedger>()), properties
     )))
     private val provider = ArkistointiConfigurationProvider(properties)
 
@@ -43,7 +43,6 @@ class DynastyWorkerConfigurationTest {
             else listOf("arviointi")
         turku.metadata = ApplicationProperties.Arkistointi.Metadata().apply {
             cases = mapOf(caseType.value to ApplicationProperties.Arkistointi.Case().apply {
-                asyncEnabled = true
                 documents = types.associateWith {
                     ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "10" }
                 }
@@ -52,14 +51,14 @@ class DynastyWorkerConfigurationTest {
     }
 
     @Test
-    fun `disabled university and synchronous cases do not require Dynasty settings`() {
+    fun `worker requires Dynasty settings only when university is enabled`() {
         configure()
         settings.clientSecret = null
         turku.kaytossa = false
         assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
         turku.kaytossa = true
-        turku.metadata!!.getCaseMetadata(CaseType.VALMISTUMINEN)!!.asyncEnabled = false
-        assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
+        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }
+            .hasMessageContaining("DYNASTY_CONFIGURATION_INVALID")
     }
 
     @Test
@@ -67,7 +66,6 @@ class DynastyWorkerConfigurationTest {
         configure()
         val metadata = turku.metadata!!
         metadata.cases = metadata.cases!! + (CaseType.SOPIMUS.value to ApplicationProperties.Arkistointi.Case().apply {
-            asyncEnabled = true
             documents = mapOf("sopimus" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "10" })
         })
         assertThatThrownBy { registry.validateWorkerConfiguration(provider) }
@@ -84,6 +82,7 @@ class DynastyWorkerConfigurationTest {
     @Test
     fun `invalid transport settings fail startup without disclosing values`() {
         val invalidSettings: List<(DynastyProperties) -> Unit> = listOf(
+            { it.baseUrl = null }, { it.tokenUrl = null },
             { it.baseUrl = "http://dynasty.example" }, { it.tokenUrl = "https://user:private-secret@auth.example" },
             { it.clientId = "" }, { it.clientSecret = "" }, { it.organization = "" }, { it.scope = "" },
             { it.caseSchemaId = "" }, { it.documentSchemaId = "" }
@@ -126,13 +125,9 @@ class DynastyWorkerConfigurationTest {
     }
 
     @Test
-    fun `koejakso requires nonblank nonconflicting secrecy fields`() {
+    fun `Turku koejakso gets document publicity and retention from TOS`() {
         configure(CaseType.KOEJAKSO)
-        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }.hasMessageContaining("DYNASTY_SECRECY_UNCONFIGURED")
-        settings.koejaksoPublicityClassId = "vendor-confirmed-class"
-        settings.koejaksoSecrecyFields = mapOf("reason" to "law", "duration" to "50", "start" to "approval")
+        turku.metadata!!.getCaseMetadata(CaseType.KOEJAKSO)!!.documents!!.getValue("arviointi").retentionPeriod = null
         assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
-        settings.koejaksoSecrecyFields = settings.koejaksoSecrecyFields - "reason" + ("AD" to "override")
-        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }.hasMessageContaining("DYNASTY_SECRECY_UNCONFIGURED")
     }
 }

@@ -13,7 +13,6 @@ import fi.elsapalvelu.elsa.service.arkistointi.support.AsyncArchiveItSupport
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import fi.elsapalvelu.elsa.service.pdf.PdfTestData
-import com.fasterxml.jackson.databind.JsonNode
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.time.Duration
@@ -33,7 +32,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
@@ -54,9 +55,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
  "spring.datasource.url=jdbc:tc:postgresql:16.9:///dynastyDelivery?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true",
  "application.arkistointi.turku.kaytossa=true",
  "db-scheduler.heartbeat-interval=1h",
- "application.arkistointi.turku.metadata.cases.koejakso.async-enabled=true",
  "application.arkistointi.turku.metadata.cases.koejakso.documents.arviointi.retention-period=-1",
- "application.arkistointi.turku.metadata.cases.valmistuminen.async-enabled=true",
  "application.arkistointi.turku.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
  "application.arkistointi.turku.metadata.cases.valmistuminen.documents.liite.retention-period=20",
  "application.arkistointi.turku.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=20",
@@ -67,17 +66,29 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
  "application.arkistointi.turku.dynasty.document-schema-id=document",
  "application.arkistointi.turku.dynasty.allow-loopback-http-for-tests=true",
  "application.arkistointi.turku.dynasty.tutkintoasetukset[test]=Test regulation",
- "application.arkistointi.turku.dynasty.koejakso-publicity-class-id=test-secret",
- "application.arkistointi.turku.dynasty.koejakso-secrecy-fields[reason]=test-law",
- "application.arkistointi.turku.dynasty.koejakso-secrecy-fields[duration]=100",
- "application.arkistointi.turku.dynasty.koejakso-secrecy-fields[start]=approval"
+ "application.arkistointi.uef.kaytossa=true",
+ "application.arkistointi.uef.metadata.cases.koejakso.documents.arviointi.retention-period=-1",
+ "application.arkistointi.uef.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
+ "application.arkistointi.uef.metadata.cases.valmistuminen.documents.liite.retention-period=10",
+ "application.arkistointi.uef.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=10",
+ "application.arkistointi.uef.dynasty.client-id=test",
+ "application.arkistointi.uef.dynasty.client-secret=test",
+ "application.arkistointi.uef.dynasty.organization=0",
+ "application.arkistointi.uef.dynasty.case-schema-id=uef-case",
+ "application.arkistointi.uef.dynasty.document-schema-id=uef-document",
+ "application.arkistointi.uef.dynasty.allow-loopback-http-for-tests=true",
+ "application.arkistointi.uef.dynasty.tutkintoasetukset[test]=Test regulation",
+ "application.arkistointi.uef.dynasty.koejakso-publicity-class-id=test-secret"
 ])
 @Import(DynastyDeliveryIT.CacheConfig::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DynastyDeliveryIT : AsyncArchiveItSupport() {
 
  @Autowired private lateinit var properties: fi.elsapalvelu.elsa.config.ApplicationProperties
- @Autowired private lateinit var client: DynastyClient
+ @Autowired @Qualifier("turkuDynastyClient")
+ private lateinit var turkuClient: DynastyClient
+ @Autowired @Qualifier("uefDynastyClient")
+ private lateinit var uefClient: DynastyClient
  @Autowired private lateinit var task: com.github.kagkarlsson.scheduler.task.helper.OneTimeTask<Unit>
  @Autowired private lateinit var dataSource: javax.sql.DataSource
  @MockitoSpyBean private lateinit var processor: ArkistointiJobProcessorImpl
@@ -87,7 +98,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
 
     @BeforeEach
     fun resetReceiver() {
-        ReflectionTestUtils.setField(client, "token", null)
+        listOf(turkuClient, uefClient).forEach { ReflectionTestUtils.setField(it, "token", null) }
         schedulerControl = ArchiveSchedulerTestControl(scheduler, processor)
         pollAndAwait()
 
@@ -108,24 +119,29 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     }
 
 
-    private fun job(): fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob {
-        val id = approveKoejakso(CaseType.KOEJAKSO)
-        return jobs.findByKey("koejakso-arvio:TURUN_YLIOPISTO:$id")!!
+    private fun job(university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO): fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob {
+        val id = approveKoejakso(university)
+        return jobs.findByKey("koejakso-arvio:$university:$id")!!
     }
     private fun enqueue(vararg bodies: String) = bodies.forEach { server.enqueue(MockResponse().setBody(it)) }
-    @Test fun `scheduler delivers through real adapter and commits every ledger step`() {
-        val job = job()
-        server.enqueueDynastySuccess(documentIds = listOf(1078))
+    @ParameterizedTest
+    @EnumSource(value = YliopistoEnum::class, names = ["TURUN_YLIOPISTO", "ITA_SUOMEN_YLIOPISTO"])
+    fun `scheduler delivers through real adapter and commits every ledger step`(university: YliopistoEnum) {
+        val job = job(university)
+        val tosDriven = university == YliopistoEnum.TURUN_YLIOPISTO
+        if (tosDriven) TurkuTosFixture.ASSESSMENT.enqueueSuccess(server, listOf(1078))
+        else server.enqueueDynastySuccess(documentIds = listOf(1078))
         startAttempt()
         awaitDelivered(job.id!!)
         assertThat(jobs.findById(job.id!!).orElseThrow().externalId).isEqualTo("415")
-        assertThat(stepFixture.steps(job.id!!).map { it.status })
-            .containsExactlyInAnyOrder(DynastyStepStatus.VALMIS, DynastyStepStatus.VALMIS, DynastyStepStatus.VALMIS, DynastyStepStatus.VALMIS)
+        val stepKeys = listOf("CASE", "DOCUMENT:0", "ARCHIVE_CASE") + if (tosDriven) emptyList() else listOf("TASK")
+        assertThat(stepFixture.steps(job.id!!).associate { it.key to it.status })
+            .isEqualTo(stepKeys.associateWith { DynastyStepStatus.VALMIS })
     }
     @Test fun `success commit failure resumes completed ledger without another HTTP request`() {
         val job = job()
         withSuccessCommitFailure {
-            server.enqueueDynastySuccess(documentIds = listOf(1078))
+            TurkuTosFixture.ASSESSMENT.enqueueSuccess(server, listOf(1078))
             startAttempt()
             await().atMost(Duration.ofSeconds(30)).untilAsserted {
                 assertThat(scheduler.currentlyExecuting).isEmpty()
@@ -144,15 +160,18 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         assertThat(server.requestCount).isEqualTo(requests)
     }
 
-    @Test fun `manual retry skips completed case and task after definite document rejection`() {
+    @Test fun `manual retry skips completed case after definite document rejection`() {
         val job = job()
-        enqueue(DYNASTY_TEST_TOKEN_RESPONSE, "415", "\"${UUID.randomUUID()}\"")
+        enqueue(DYNASTY_TEST_TOKEN_RESPONSE)
+        with(TurkuTosFixture.ASSESSMENT) { server.enqueueLookup() }
+        enqueue("415")
         server.enqueue(MockResponse().setResponseCode(403))
         startAttempt()
         awaitParked(job.id!!)
         assertThat(stepFixture.steps(job.id!!).filter { it.status == DynastyStepStatus.VALMIS }.map { it.key })
-            .containsExactlyInAnyOrder("CASE","TASK")
+            .containsExactly("CASE")
         retryParkedJob(job.id!!)
+        with(TurkuTosFixture.ASSESSMENT) { server.enqueueLookup() }
         enqueue("1078", "")
         startAttempt()
         await().atMost(Duration.ofSeconds(30)).untilAsserted {
@@ -161,13 +180,14 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
                 .describedAs("error=%s steps=%s",result.errorCode,stepFixture.steps(job.id!!))
                 .isEqualTo(ArkistointiJobStatus.LAHETETTY)
         }
-        val requests = (1..6).map { server.takeRequest(5, TimeUnit.SECONDS)!! }
+        val requests = (1..9).map { server.takeRequest(5, TimeUnit.SECONDS)!! }
         assertThat(requests.count { it.path!!.startsWith("/api/v1/cases?") }).isEqualTo(1)
-        assertThat(requests.count { it.path!!.contains("/tasks") }).isEqualTo(1)
+        assertThat(requests.count { it.path!!.contains("/tasks") }).isZero()
     }
     @Test fun `lost case response parks job and retry never creates another case`() {
         val job = job()
         enqueue(DYNASTY_TEST_TOKEN_RESPONSE)
+        with(TurkuTosFixture.ASSESSMENT) { server.enqueueLookup() }
         server.enqueue(MockResponse().setSocketPolicy(okhttp3.mockwebserver.SocketPolicy.DISCONNECT_AFTER_REQUEST))
         startAttempt()
         awaitParked(job.id!!)
@@ -191,6 +211,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         server.dispatcher = object : okhttp3.mockwebserver.Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 if (request.path == "/token") return MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE)
+                TurkuTosFixture.ASSESSMENT.response(request.path.orEmpty())?.let { return it }
                 entered.countDown()
                 check(release.await(30, TimeUnit.SECONDS))
                 return MockResponse().setBody("415")
@@ -225,21 +246,24 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
                 assertThat(step.remoteId).isEqualTo("415")
                 assertThat(scheduler.currentlyExecuting).isEmpty()
             }
-            assertThat(server.requestCount).isEqualTo(requestsBefore + 2)
+            assertThat(server.requestCount).isEqualTo(requestsBefore + 4)
             assertThat(stepFixture.steps(job.id!!).count { it.key == "TASK" }).isZero()
         } finally {
             release.countDown()
             recovery.stop()
         }
     }
-    @ParameterizedTest(name = "{0} certificate as {1}")
-    @CsvSource("EL,pdf", "EHL,pdf", "YEK,pdf", "YEK,png")
-    fun `approved valmistuminen reaches Dynasty as case task and three documents in order`(kind: String, format: String) {
+    @ParameterizedTest(name = "{0}: {1} certificate as {2}")
+    @CsvSource(
+        "TURUN_YLIOPISTO,EL,pdf", "TURUN_YLIOPISTO,EHL,pdf", "TURUN_YLIOPISTO,YEK,pdf", "TURUN_YLIOPISTO,YEK,png",
+        "ITA_SUOMEN_YLIOPISTO,EL,pdf", "ITA_SUOMEN_YLIOPISTO,YEK,png"
+    )
+    fun `approved valmistuminen reaches Dynasty as case task and three documents in order`(university: YliopistoEnum, kind: String, format: String) {
         val image = format == "png"
-        val fixture = createValmistumispyyntoFixture(kind, YliopistoEnum.TURUN_YLIOPISTO, true)
+        val fixture = createValmistumispyyntoFixture(kind, university, true)
         transactions.executeWithoutResult { _ ->
             val opintooikeus = em.find(Valmistumispyynto::class.java, fixture.first).opintooikeus!!
-            properties.getArkistointi().getTurku().dynasty.tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
+            dynastySettings(university).tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
             opintooikeus.erikoistuvaLaakari!!.apply {
                 laillistamistodistus = AsiakirjaData(data = if (image) certificateImage else certificate)
                 laillistamispaivanLiitetiedostonNimi = "certificate.$format"
@@ -248,55 +272,78 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         }
         setSecurityContext(fixture.second, VASTUUHENKILO)
         approveValmistumispyynto(fixture.first).andExpect(status().isOk)
-        val job = jobs.findByKey("valmistuminen:TURUN_YLIOPISTO:${fixture.first}")!!
+        val job = jobs.findByKey("valmistuminen:$university:${fixture.first}")!!
         val taskId = UUID.randomUUID()
-        server.enqueueDynastySuccess(documentIds = listOf(1078, 1079, 1080), taskId = taskId)
+        val tosDriven = university == YliopistoEnum.TURUN_YLIOPISTO
+        val documentIds = listOf(1078L, 1079L, 1080L)
+        if (tosDriven) TurkuTosFixture.GRADUATION.enqueueSuccess(server, documentIds, taskId)
+        else server.enqueueDynastySuccess(documentIds, taskId = taskId)
         val requestsBefore = server.requestCount
 
         startAttempt()
         awaitDelivered(job.id!!)
 
-        assertThat(server.requestCount - requestsBefore).describedAs("token, case, task, three documents, archive and nothing else").isEqualTo(7)
-        val requests = (1..7).map { server.takeRequest(5, TimeUnit.SECONDS)!! }
-        assertThat(requests.map { it.method + " " + it.path!!.substringBefore('?') }).containsExactly(
-            "POST /token", "POST /api/v1/cases", "POST /api/v1/cases/415/tasks",
-            "POST /api/v1/documents", "POST /api/v1/documents", "POST /api/v1/documents",
-            "POST /api/v1/cases/415/state/Archived"
-        )
-        val bodies = requests.map { it.body.readUtf8() }
-        // The program comes from the real approval payload; the full metadata mapping is covered by the golden tests.
-        assertThat(objectMapper.readTree(bodies[1]).at("/caseModel/title").asText()).startsWith("$kind ")
-        val main = multipartJson(bodies[3], "CaseAttachmentOptions")
-        assertThat(main.at("/CaseSelector/Id").asText()).isEqualTo("415")
-        assertThat(main.at("/PhaseSelector/Id").asText()).isEqualTo(taskId.toString())
-        listOf(bodies[4], bodies[5]).forEach { body ->
-            val options = multipartJson(body, "CaseAttachmentOptions")
-            assertThat(options.at("/caseSelector/id").asLong()).isEqualTo(415)
-            assertThat(options.at("/parentDocumentSelector/id").asLong()).isEqualTo(1078)
-        }
-        assertThat(bodies[5]).contains("filename=\"certificate.$format\"", "Content-Type: ${if (image) "image/png" else "application/pdf"}")
+        val expectedRequests = expectedGraduationRequests(tosDriven, taskId)
+        assertThat(server.requestCount - requestsBefore).isEqualTo(expectedRequests.size)
+        val requests = List(expectedRequests.size) { requireNotNull(server.takeRequest(5, TimeUnit.SECONDS)) }
+        assertThat(requests.map { it.method + " " + it.path!!.substringBefore('?') }).containsExactlyElementsOf(expectedRequests)
+        val caseBody = requests.single { it.path!!.startsWith("/api/v1/cases?") }.body.readUtf8()
+        assertThat(objectMapper.readTree(caseBody).at("/caseModel/title").asText()).startsWith("$kind ")
+
+        val documents = requests.filter { it.path == "/api/v1/documents" }.map { it.body.readUtf8() }
+        assertGraduationSelectors(documents, tosDriven, taskId)
+        assertThat(documents.last()).contains("filename=\"certificate.$format\"", "Content-Type: ${if (image) "image/png" else "application/pdf"}")
         assertThat(jobs.findById(job.id!!).orElseThrow().externalId).isEqualTo("415")
-        assertThat(stepFixture.steps(job.id!!).associate { it.key to it.status }).isEqualTo(
-            listOf("CASE", "TASK", "DOCUMENT:0", "DOCUMENT:1", "DOCUMENT:2", "ARCHIVE_CASE").associateWith { DynastyStepStatus.VALMIS }
-        )
+        val stepKeys = listOf("CASE", "DOCUMENT:0", "DOCUMENT:1", "DOCUMENT:2", "ARCHIVE_CASE") + if (tosDriven) emptyList() else listOf("TASK")
+        assertThat(stepFixture.steps(job.id!!).associate { it.key to it.status })
+            .isEqualTo(stepKeys.associateWith { DynastyStepStatus.VALMIS })
         assertThat((0..2).map { stepFixture.step(job.id!!, "DOCUMENT:$it")?.remoteId }).containsExactly("1078", "1079", "1080")
     }
 
-    private fun multipartJson(body: String, part: String): JsonNode = objectMapper.readTree(
-        Regex("name=\"$part\"\\r\\n(?:[A-Za-z-]+: [^\\r\\n]*\\r\\n)*\\r\\n(.*?)\\r\\n--", RegexOption.DOT_MATCHES_ALL)
-            .find(body)!!.groupValues[1]
-    )
+    private fun expectedGraduationRequests(tosDriven: Boolean, phaseId: UUID): List<String> = buildList {
+        add("POST /token")
+        val tosPath = TurkuTosFixture.GRADUATION.path
+        if (tosDriven) {
+            add("GET $tosPath")
+            add("GET $tosPath/$phaseId/documenttypes")
+        }
+        add("POST /api/v1/cases")
+        if (!tosDriven) add("POST /api/v1/cases/415/tasks")
+        repeat(3) { add("POST /api/v1/documents") }
+        add("POST /api/v1/cases/415/state/Archived")
+    }
 
-    private fun approveKoejakso(type: CaseType): Long {
-        val fixture = koejaksoFixture(YliopistoEnum.TURUN_YLIOPISTO, type)
+    private fun assertGraduationSelectors(documents: List<String>, tosDriven: Boolean, phaseId: UUID) {
+        val optionsPart = if (tosDriven) "caseAttachmentOptions" else "CaseAttachmentOptions"
+        val (main, attachment, certificate) = documents.map { objectMapper.dynastyMultipartJson(it, optionsPart) }
+        if (tosDriven) {
+            assertThat(main.at("/CaseSelector/Id").longValue()).isEqualTo(415)
+            assertThat(main.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(phaseId.toString())
+            assertThat(main.at("/TOSTitle").asText()).isEqualTo(TurkuTosFixture.GRADUATION.documentTitle)
+            listOf(attachment, certificate).forEach {
+                assertThat(it.at("/caseSelector/id").asLong()).isEqualTo(415)
+                assertThat(it.at("/parentDocumentSelector/id").asLong()).isEqualTo(1078)
+            }
+        } else {
+            assertThat(main.at("/CaseSelector/Id").asText()).isEqualTo("415")
+            assertThat(main.at("/PhaseSelector/Id").asText()).isEqualTo(phaseId.toString())
+            assertThat(attachment).isEqualTo(main)
+            assertThat(certificate).isEqualTo(main)
+        }
+    }
+
+    private fun approveKoejakso(university: YliopistoEnum): Long {
+        val fixture = koejaksoFixture(university, CaseType.KOEJAKSO)
         transactions.executeWithoutResult {
             val opintooikeus = vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().opintooikeus!!
-            properties.getArkistointi().getTurku().dynasty.tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
+            dynastySettings(university).tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
         }
-        val result = if (type == CaseType.SOPIMUS) approveKoejaksonKoulutussopimus(fixture) else approveKoejaksonVastuuhenkilonArvio(fixture)
-        result.andExpect(status().isOk)
-        return if (type == CaseType.SOPIMUS) fixture.first else fixture.second
+        approveKoejaksonVastuuhenkilonArvio(fixture).andExpect(status().isOk)
+        return fixture.second
     }
+
+    private fun dynastySettings(university: YliopistoEnum) =
+        DynastyDestination.from(university).archiveProperties(properties.getArkistointi()).dynasty
 
     private fun startAttempt() = schedulerControl.startAttempt()
 
@@ -318,8 +365,14 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         }
         @JvmStatic @DynamicPropertySource
         fun transport(registry: DynamicPropertyRegistry) {
-            registry.add("application.arkistointi.turku.dynasty.base-url") { server.url("/").newBuilder().host("127.0.0.1").build().toString().trimEnd('/') }
-            registry.add("application.arkistointi.turku.dynasty.token-url") { server.url("/token").newBuilder().host("127.0.0.1").build().toString() }
+            listOf("turku", "uef").forEach { destination ->
+                registry.add("application.arkistointi.$destination.dynasty.base-url") {
+                    server.url("/").newBuilder().host("127.0.0.1").build().toString().trimEnd('/')
+                }
+                registry.add("application.arkistointi.$destination.dynasty.token-url") {
+                    server.url("/token").newBuilder().host("127.0.0.1").build().toString()
+                }
+            }
         }
         @JvmStatic @AfterAll fun stopServer() = server.shutdown()
     }

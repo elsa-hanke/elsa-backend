@@ -27,6 +27,14 @@ class DynastyStepLedger(
     }
 
     fun begin(execution: ArkistointiJobExecution, key: DynastyStepKey<*>, inProgressGrace: Duration): Decision {
+        existing(execution, key, inProgressGrace)?.let { return it }
+        jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) values (?,?,?,?,clock_timestamp())",
+            execution.jobId, key.databaseKey, DynastyStepStatus.ALOITETTU.name, execution.version)
+        return Decision.Proceed
+    }
+
+    /** Inspect a step under the same fence as begin, without creating an intent. */
+    fun existing(execution: ArkistointiJobExecution, key: DynastyStepKey<*>, inProgressGrace: Duration): Decision? {
         executionLock.lock(execution)
         val jobStatus = jdbc.query("select status from arkistointi_job where id=? for update", jobStatusMapper, execution.jobId).singleOrNull()
         if (jobStatus != ArkistointiJobStatus.KASITTELYSSA) throw StaleArkistointiExecutionException()
@@ -41,9 +49,7 @@ class DynastyStepLedger(
             if (row.status == DynastyStepStatus.VALMIS) return Decision.Done(row.remoteId)
             return if (row.inProgress) Decision.InProgress else Decision.Unconfirmed
         }
-        jdbc.update("insert into arkistointi_dynasty_step(job_id,step_key,status,execution_version,started_at) values (?,?,?,?,clock_timestamp())",
-            execution.jobId, key.databaseKey, DynastyStepStatus.ALOITETTU.name, execution.version)
-        return Decision.Proceed
+        return null
     }
 
     /** A late response still records a fact, but only for the attempt which started this step. */

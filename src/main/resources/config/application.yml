@@ -400,15 +400,21 @@ application:
         call-timeout: 2m
         in-progress-grace: 5m
         allow-loopback-http-for-tests: false
+        # Keys are asetus.nimi values. The text for 56/2015 is the customer's example (mappäystaulukko);
+        # PLACEHOLDER: the other texts must be confirmed by Turku before production use.
+        tutkintoasetukset:
+          "[678/1998]": "Asetus 678/1998"
+          "[1343/2002]": "Asetus 1343/2002"
+          "[401/2007]": "Asetus 401/2007"
+          "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
+          "[55/2020]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
       metadata:
         cases:
           koejakso:
-            async-enabled: ${APPLICATION_ARKISTOINTI_TURKU_METADATA_CASES_KOEJAKSO_ASYNCENABLED:true}
             documents:
               arviointi:
                 retention-period: "-1"
           valmistuminen:
-            async-enabled: ${APPLICATION_ARKISTOINTI_TURKU_METADATA_CASES_VALMISTUMINEN_ASYNCENABLED:true}
             documents:
               yhteenveto:
                 retention-period: "20"
@@ -417,25 +423,32 @@ application:
               laillistamistodistus:
                 retention-period: "10"
     uef:
-      kaytossa: false
+      kaytossa: ${APPLICATION_ARKISTOINTI_UEF_KAYTOSSA:false}
+      dynasty:
+        base-url: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_BASE_URL:https://dynasty-testi.uef.fi/dynasty.externalinterface.archive.oauth}
+        token-url: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_TOKEN_URL:https://dynasty-testi.uef.fi/dynasty.identityserver/connect/token}
+        client-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_ID:}
+        client-secret: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_SECRET:}
+        organization: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION:}
+        case-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_CASE_SCHEMA_ID:}
+        document-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_DOCUMENT_SCHEMA_ID:}
+        tutkintoasetukset:
+          "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
+        koejakso-publicity-class-id: "S"
       metadata:
         cases:
           koejakso:
-            async-enabled: false
-            # Dynasty-specific metadata will be configured with its adapter.
             documents:
               arviointi:
-                retention-period: ""
+                retention-period: "-1"
           valmistuminen:
-            async-enabled: false
-            # Document selection only; Dynasty-specific metadata will be configured with its adapter.
             documents:
               yhteenveto:
-                retention-period: ""
+                retention-period: "20"
               liite:
-                retention-period: ""
+                retention-period: "10"
               laillistamistodistus:
-                retention-period: ""
+                retention-period: "10"
 
 db-scheduler:
   delay-startup-until-context-ready: true

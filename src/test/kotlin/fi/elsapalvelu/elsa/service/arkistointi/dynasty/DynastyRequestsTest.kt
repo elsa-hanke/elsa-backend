@@ -10,7 +10,7 @@ class DynastyRequestsTest {
 
     @Test
     fun `case DTO keeps vendor field casing and omits absent additional data`() {
-        val request = DynastyCaseRequest(DynastyCaseModel("schema", "Test title", DynastyAdditionalData(firstName = "Test")))
+        val request = DynastyCaseRequest(DynastyCaseModel("schema", "Test title", DynastyAdditionalData(fieldPrefix = "UTU", firstName = "Test")))
         assertThat(mapper.readTree(mapper.writeValueAsString(request))).isEqualTo(mapper.readTree("""{
             "caseModel": {"schemaid":"schema", "title":"Test title", "publicityClassId":"J",
                 "publicityClassName":"Julkinen", "manner":"M", "AD":{"UTUetunimi":"Test"}}
@@ -31,13 +31,15 @@ class DynastyRequestsTest {
     }
 
     @Test
-    fun `document DTO flattens only configured secrecy fields`() {
-        val metadata = DynastyDocumentMetadata("Test title", "schema", "Assessment", -1, DynastyAdditionalData(),
-            "secret", "Osittain salassapidettävä", "Asiakirjan päivämäärä", secrecyFields = mapOf("reason" to "law", "duration" to "100", "start" to "approval"))
+    fun `document DTO serializes the secrecy period`() {
+        val metadata = DynastyDocumentMetadata("Test title", "schema", "Assessment", -1, DynastyAdditionalData(fieldPrefix = "UTU"),
+            "secret", "Osittain salassapidettävä", "Asiakirjan päivämäärä",
+            secrecyPeriod = DynastySecrecyPeriod(java.time.LocalDate.of(2026, 11, 19), java.time.LocalDate.of(2126, 11, 19)))
         assertThat(mapper.readTree(mapper.writeValueAsString(metadata))).isEqualTo(mapper.readTree("""{
             "title":"Test title", "schemaId":"schema", "documentType":"Assessment", "retentionPeriodLength":-1, "AD":{},
             "publicityClassId":"secret", "publicityClassName":"Osittain salassapidettävä", "retentionPeriodRule":"Asiakirjan päivämäärä",
-            "personalData":"Sisältää henkilötietoja", "state":3, "reason":"law", "duration":"100", "start":"approval"
+            "personalData":"Sisältää henkilötietoja", "state":3,
+            "SecrecyPeriod":{"Start":"2026-11-19T00:00:00","End":"2126-11-19T00:00:00"}
         }"""))
     }
 }

@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -19,13 +20,13 @@ class TurkuDynastyArkistointiAdapterTest {
     private val client = mock<DynastyClient>()
     private val metadata = mock<TurkuDynastyMetadataMapper>()
     private val ledger = mock<DynastyStepLedger>()
-    private val adapter = TurkuDynastyArkistointiAdapter(client,metadata,DynastyStepExecutor(ledger, ApplicationProperties()))
+    private val adapter = TurkuDynastyArkistointiAdapter(client,metadata,DynastyStepExecutor(ledger), ApplicationProperties())
     private val execution = ArkistointiJobExecution("archive",UUID.randomUUID().toString(),1)
     private val document = LoadedArkistointiAsiakirja(1, RecordType.ARVIOINTI, 0, "approval.pdf", "application/pdf", "checksum", byteArrayOf(1))
     private val submission = ArkistointiSubmission(execution.jobId,YliopistoEnum.TURUN_YLIOPISTO,CaseType.KOEJAKSO,"{}",listOf(document),execution)
-    private val plan = TurkuDynastyMetadataMapper.Plan(
-        "x", DynastyCaseRequest(DynastyCaseModel("schema", "Test", DynastyAdditionalData())), "Arviointi",
-        listOf(DynastyDocumentMetadata("Test", "document-schema", "Arviointi", -1, DynastyAdditionalData()))
+    private val plan = DynastyMetadataMapper.Plan(
+        "x", DynastyCaseRequest(DynastyCaseModel("schema", "Test", DynastyAdditionalData(fieldPrefix = "UTU"))), "Arviointi",
+        listOf(DynastyDocumentMetadata("Test", "document-schema", "Arviointi", -1, DynastyAdditionalData(fieldPrefix = "UTU")))
     )
 
     @Test
@@ -40,9 +41,9 @@ class TurkuDynastyArkistointiAdapterTest {
     @Test
     fun `completed steps resume without repeating remote mutations`() {
         whenever(metadata.plan(submission)).thenReturn(plan)
-        whenever(ledger.begin(execution,DynastyStepKey.Case,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done("415"))
-        whenever(ledger.begin(execution,DynastyStepKey.Task,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(UUID.randomUUID().toString()))
-        whenever(ledger.begin(execution,DynastyStepKey.Document(0),java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done("1078"))
+        whenever(ledger.existing(execution,DynastyStepKey.Case,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done("415"))
+        whenever(ledger.existing(execution,DynastyStepKey.Task,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(UUID.randomUUID().toString()))
+        whenever(ledger.existing(execution,DynastyStepKey.Document(0),java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done("1078"))
         whenever(ledger.begin(execution,DynastyStepKey.ArchiveCase,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(null))
         assertThat(adapter.arkistoi(submission)).isEqualTo(ArkistointiResult.Success("415"))
         verify(client).validateConfiguration()
@@ -53,10 +54,22 @@ class TurkuDynastyArkistointiAdapterTest {
     @Test
     fun `unknown old intent parks delivery without issuing another request`() {
         whenever(metadata.plan(submission)).thenReturn(plan)
-        whenever(ledger.begin(execution,DynastyStepKey.Case,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Unconfirmed)
+        whenever(ledger.existing(execution,DynastyStepKey.Case,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Unconfirmed)
         assertThat(adapter.arkistoi(submission)).isInstanceOf(ArkistointiResult.PermanentFailure::class.java)
         verify(client).validateConfiguration()
         verifyNoMoreInteractions(client)
+    }
+
+    @Test
+    fun `unconfirmed legacy task blocks the TOS lookup and delivery`() {
+        whenever(metadata.plan(submission)).thenReturn(plan)
+        whenever(ledger.existing(execution, DynastyStepKey.Task, java.time.Duration.ofMinutes(5)))
+            .thenReturn(DynastyStepLedger.Decision.Unconfirmed)
+        val result = adapter.arkistoi(submission) as ArkistointiResult.PermanentFailure
+        assertThat(result.error.code).isEqualTo("DYNASTY_DELIVERY_UNCONFIRMED")
+        verify(client).validateConfiguration()
+        verifyNoMoreInteractions(client)
+        verify(ledger, never()).begin(any(), any(), any())
     }
 
     @Test
