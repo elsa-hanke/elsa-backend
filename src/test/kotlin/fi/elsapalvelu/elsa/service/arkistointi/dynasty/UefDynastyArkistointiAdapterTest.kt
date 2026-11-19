@@ -42,7 +42,7 @@ class UefDynastyArkistointiAdapterTest {
         val submission = dynastySubmission(
             mapper, specialtyType = specialtyType(prefix), yek = prefix == "YEK", university = university
         )
-        val plan = UefDynastyMetadataMapper(properties, mapper, reader).plan(submission)
+        val plan = UefDynastyMetadataMapper(properties, mapper, reader, Clock.systemUTC()).plan(submission)
         val case = mapper.valueToTree<JsonNode>(plan.caseRequest)["caseModel"]
         val (summary, attachments, license) = plan.documents.map { mapper.valueToTree<JsonNode>(it) }
 
@@ -74,7 +74,7 @@ class UefDynastyArkistointiAdapterTest {
     fun `koejakso maps each programme to a partially secret permanent assessment`(prefix: String, type: ErikoisalaTyyppi) {
         val properties = dynastyTestProperties("https://dynasty.example", university)
         val submission = dynastySubmission(mapper, CaseType.KOEJAKSO, type, yek = prefix == "YEK", university = university)
-        val plan = UefDynastyMetadataMapper(properties, mapper, reader).plan(submission)
+        val plan = UefDynastyMetadataMapper(properties, mapper, reader, Clock.systemUTC()).plan(submission)
         val case = mapper.valueToTree<JsonNode>(plan.caseRequest)["caseModel"]
         val document = mapper.valueToTree<JsonNode>(plan.documents.single())
         assertThat(case["title"].asText()).isEqualTo("$prefix Koejakson vastuuhenkilön arvio Maija Meikäläinen 31.10.2026")
@@ -87,7 +87,8 @@ class UefDynastyArkistointiAdapterTest {
         assertThat(document["publicityClassName"].asText()).isEqualTo("Osittain salassa pidettävä")
         assertThat(document["retentionPeriodLength"].asInt()).isEqualTo(-1)
         assertThat(document["retentionPeriodRule"].asText()).isEqualTo("Asiakirjan päivämäärä (luontipvm)")
-        assertThat(document["duration"].asText()).isEqualTo("100")
+        val start = java.time.LocalDateTime.parse(document["SecrecyPeriod"]["Start"].asText())
+        assertThat(java.time.LocalDateTime.parse(document["SecrecyPeriod"]["End"].asText())).isEqualTo(start.plusYears(100))
         assertThat(document["AD"]["UEFhyvaksymispaiva"].asText()).isEqualTo("2026-10-31")
         assertThat(document["AD"].has("UEFvalmistumispaiva")).isFalse()
     }
@@ -99,7 +100,7 @@ class UefDynastyArkistointiAdapterTest {
         val ledger = mock<DynastyStepLedger>()
         val client = DynastyClient(settings, mapper, Clock.systemUTC())
         val adapter = UefDynastyArkistointiAdapter(
-            client, UefDynastyMetadataMapper(properties, mapper, reader), DynastyStepExecutor(ledger), properties
+            client, UefDynastyMetadataMapper(properties, mapper, reader, Clock.systemUTC()), DynastyStepExecutor(ledger), properties
         )
 
         val result = adapter.arkistoi(dynastySubmission(mapper, CaseType.KOEJAKSO, university = university))
@@ -121,7 +122,7 @@ class UefDynastyArkistointiAdapterTest {
             whenever(ledger.complete(any(), any(), any(), anyOrNull())).thenReturn(true)
             val adapter = UefDynastyArkistointiAdapter(
                 DynastyClient(settings, mapper, Clock.systemUTC()),
-                UefDynastyMetadataMapper(properties, mapper, reader),
+                UefDynastyMetadataMapper(properties, mapper, reader, Clock.systemUTC()),
                 DynastyStepExecutor(ledger), properties
             )
             val submission = dynastySubmission(mapper, university = university)

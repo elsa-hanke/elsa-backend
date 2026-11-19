@@ -31,13 +31,15 @@ class DynastyRequestsTest {
     }
 
     @Test
-    fun `document DTO flattens only configured secrecy fields`() {
+    fun `document DTO serializes the secrecy period`() {
         val metadata = DynastyDocumentMetadata("Test title", "schema", "Assessment", -1, DynastyAdditionalData(fieldPrefix = "UTU"),
-            "secret", "Osittain salassapidettävä", "Asiakirjan päivämäärä", secrecyFields = mapOf("reason" to "law", "duration" to "100", "start" to "approval"))
+            "secret", "Osittain salassapidettävä", "Asiakirjan päivämäärä",
+            secrecyPeriod = DynastySecrecyPeriod(java.time.LocalDate.of(2026, 11, 19), java.time.LocalDate.of(2126, 11, 19)))
         assertThat(mapper.readTree(mapper.writeValueAsString(metadata))).isEqualTo(mapper.readTree("""{
             "title":"Test title", "schemaId":"schema", "documentType":"Assessment", "retentionPeriodLength":-1, "AD":{},
             "publicityClassId":"secret", "publicityClassName":"Osittain salassapidettävä", "retentionPeriodRule":"Asiakirjan päivämäärä",
-            "personalData":"Sisältää henkilötietoja", "state":3, "reason":"law", "duration":"100", "start":"approval"
+            "personalData":"Sisältää henkilötietoja", "state":3,
+            "SecrecyPeriod":{"Start":"2026-11-19T00:00:00","End":"2126-11-19T00:00:00"}
         }"""))
     }
 }

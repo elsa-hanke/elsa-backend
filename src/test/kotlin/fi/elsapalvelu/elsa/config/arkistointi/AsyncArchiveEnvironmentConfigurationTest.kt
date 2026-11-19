@@ -103,26 +103,23 @@ class AsyncArchiveEnvironmentConfigurationTest {
     }
 
     @Test
-    fun `Dynasty koejakso defaults to publicity class S for both universities`() {
+    fun `UEF koejakso defaults to publicity class S`() {
         runner().run { context ->
             assertThat(context).hasNotFailed()
             val archive = context.getBean(ApplicationProperties::class.java).getArkistointi()
-            assertThat(archive.getTurku().dynasty.koejaksoPublicityClassId).isEqualTo("S")
             assertThat(archive.getUef().dynasty.koejaksoPublicityClassId).isEqualTo("S")
         }
     }
 
     @Test
-    fun `external tests can override Dynasty koejakso publicity class separately for each university`() {
+    fun `external tests can override UEF koejakso publicity class`() {
         runner(mapOf(
-            "APPLICATION_ARKISTOINTI_DYNASTY_TURKU_KOEJAKSO_PUBLICITY_CLASS_ID" to "turku-secret",
             "APPLICATION_ARKISTOINTI_DYNASTY_UEF_KOEJAKSO_PUBLICITY_CLASS_ID" to "uef-secret"
         )).withPropertyValues(
             "spring.config.additional-location=classpath:/config/application-external-integration.yml"
         ).run { context ->
             assertThat(context).hasNotFailed()
             val archive = context.getBean(ApplicationProperties::class.java).getArkistointi()
-            assertThat(archive.getTurku().dynasty.koejaksoPublicityClassId).isEqualTo("turku-secret")
             assertThat(archive.getUef().dynasty.koejaksoPublicityClassId).isEqualTo("uef-secret")
         }
     }
@@ -139,7 +136,7 @@ class AsyncArchiveEnvironmentConfigurationTest {
             val mapper = jacksonObjectMapper()
             val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
                 DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
-                TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
+                TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
                 DynastyStepExecutor(mock()), properties
             )))
 

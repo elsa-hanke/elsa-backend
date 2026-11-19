@@ -6,6 +6,9 @@ import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyCaseRequest
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyCaseModel
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyAdditionalData
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDocumentMetadata
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDocumentRequestMetadata
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastySecrecyPeriod
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyTosDocumentMetadata
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyArchiveProperties
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDestination
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
@@ -16,6 +19,9 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import okhttp3.MediaType.Companion.toMediaType
+import java.time.Clock
+import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /** Build and serialize the entire delivery before creating anything in Dynasty. */
@@ -23,16 +29,19 @@ open class DynastyMetadataMapper internal constructor(
     private val destination: DynastyDestination,
     archiveProperties: DynastyArchiveProperties,
     private val mapper: ObjectMapper,
-    private val reader: ArchivePayloadReader
+    private val reader: ArchivePayloadReader,
+    private val clock: Clock
 ) {
     private companion object {
         val SUPPORTED_SPECIALTY_TYPES = setOf(ErikoisalaTyyppi.LAAKETIEDE, ErikoisalaTyyppi.HAMMASLAAKETIEDE)
+        val ARCHIVE_ZONE: ZoneId = ZoneId.of("Europe/Helsinki")
     }
 
     private val settings = archiveProperties.dynasty
-    private val rules = DynastyMetadataRules(archiveProperties)
+    private val tosDriven = destination.documentLinking == DynastyDestination.DocumentLinking.TOS_PHASE
+    private val rules = DynastyMetadataRules(archiveProperties, tosDriven)
 
-    data class Plan(val tosClass: String, val caseRequest: DynastyCaseRequest, val task: String, val documents: List<DynastyDocumentMetadata>) {
+    data class Plan(val tosClass: String, val caseRequest: DynastyCaseRequest, val task: String, val documents: List<DynastyDocumentRequestMetadata>) {
         override fun toString() = "DynastyPlan(documents=${documents.size})"
     }
 
@@ -45,12 +54,11 @@ open class DynastyMetadataMapper internal constructor(
         validateDocuments(submission, payload, profile)
         validatePerson(payload)
         val context = MappingContext(payload, submission.caseType, profile, koulutusohjelma(payload))
-        val publicity = rules.documentPublicity(context.profile)
         val plan = Plan(
             tosClass = context.profile.tosClass,
             caseRequest = caseRequest(context),
             task = context.profile.task,
-            documents = submission.asiakirjat.map { documentMetadata(context, publicity, it.asiakirjatyyppi) }
+            documents = submission.asiakirjat.map { documentMetadata(context, it.asiakirjatyyppi) }
         )
         validateSerialization(plan)
         return plan
@@ -120,22 +128,21 @@ open class DynastyMetadataMapper internal constructor(
         graduationDate: String? = null,
         approvalDate: String? = null,
         degreeRegulation: String? = null,
-        licensingDate: String? = null
+        licensingDate: String? = null,
+        extElsaId: String? = null
     ) = DynastyAdditionalData(
         firstName = context.payload.firstName, lastName = context.payload.lastName,
         faculty = destination.faculty,
         program = context.koulutusohjelma.title, specialty = context.payload.specialtyName,
         birthDate = birthDate, studyRightStartDate = studyRightStartDate,
         graduationDate = graduationDate, approvalDate = approvalDate,
-        degreeRegulation = degreeRegulation, licensingDate = licensingDate,
+        degreeRegulation = degreeRegulation, licensingDate = licensingDate, extElsaId = extElsaId,
         fieldPrefix = destination.fieldPrefix
     )
 
-    private fun documentMetadata(
-        context: MappingContext,
-        publicity: DynastyMetadataRules.DocumentPublicity,
-        type: RecordType
-    ): DynastyDocumentMetadata {
+    private fun documentMetadata(context: MappingContext, type: RecordType): DynastyDocumentRequestMetadata {
+        if (tosDriven) return tosDocumentMetadata(context, type)
+        val publicityClassId = rules.publicityClassId(context.profile)
         val additionalData = documentAdditionalData(context, type)
         val retention = rules.retentionPeriod(context.caseType, type)
         return DynastyDocumentMetadata(
@@ -144,10 +151,35 @@ open class DynastyMetadataMapper internal constructor(
             documentType = context.profile.documentTypes.getValue(type),
             retentionPeriodLength = retention,
             additionalData = additionalData,
-            publicityClassId = publicity.id,
+            publicityClassId = publicityClassId,
             publicityClassName = context.profile.publicityClassName,
             retentionPeriodRule = context.profile.retentionRule,
-            secrecyFields = publicity.secrecyFields
+            secrecyPeriod = if (context.profile.requiresSecrecy) secrecyPeriod() else null
+        )
+    }
+
+    private fun secrecyPeriod(): DynastySecrecyPeriod {
+        val received = LocalDate.now(clock.withZone(ARCHIVE_ZONE))
+        return DynastySecrecyPeriod(received, received.plusYears(100))
+    }
+
+    private fun tosDocumentMetadata(context: MappingContext, type: RecordType): DynastyDocumentRequestMetadata {
+        if (type == context.profile.mainDocumentType) {
+            val secrecyPeriod = if (context.profile.requiresSecrecy) secrecyPeriod() else null
+            return DynastyTosDocumentMetadata(context.title, settings.documentSchemaId, documentAdditionalData(context, type), secrecyPeriod)
+        }
+        // Attachments carry the identifying fields; the date and regulation fields stay on the main document.
+        val attachmentData = additionalData(
+            context,
+            licensingDate = if (type == RecordType.LAILLISTAMISTODISTUS) context.payload.licensingDate?.toString() else null
+        )
+        return DynastyDocumentMetadata(
+            title = documentTitle(context, type),
+            schemaId = settings.documentSchemaId,
+            documentType = "Liite",
+            retentionPeriodLength = rules.retentionPeriod(context.caseType, type),
+            additionalData = attachmentData,
+            deliveryType = "M"
         )
     }
 
@@ -159,11 +191,12 @@ open class DynastyMetadataMapper internal constructor(
             birthDate = if (main) payload.birthDate?.toString() else null,
             studyRightStartDate = if (main) payload.studyRightStartDate?.toString() else null,
             graduationDate = if (main && context.isValmistuminen) payload.approvalDate.toString() else null,
-            approvalDate = if (main && !context.isValmistuminen) payload.approvalDate.toString() else null,
+            approvalDate = if (main && (tosDriven || !context.isValmistuminen)) payload.approvalDate.toString() else null,
             degreeRegulation = if (main) payload.degreeRegulation?.let { regulation ->
                 rules.degreeRegulation(regulation)
             } else null,
-            licensingDate = if (context.isValmistuminen && type != RecordType.LIITE) payload.licensingDate?.toString() else null
+            licensingDate = if (context.isValmistuminen && type != RecordType.LIITE) payload.licensingDate?.toString() else null,
+            extElsaId = if (main && tosDriven && context.isValmistuminen) payload.caseId.toString() else null
         )
     }
 

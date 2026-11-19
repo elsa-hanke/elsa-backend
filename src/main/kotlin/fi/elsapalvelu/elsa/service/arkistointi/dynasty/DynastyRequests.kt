@@ -1,7 +1,10 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 // Metadata DTOs deliberately keep Object.toString(): diagnostics must not contain personal data.
 class DynastyCaseRequest(val caseModel: DynastyCaseModel)
@@ -29,7 +32,8 @@ class DynastyAdditionalData(
     graduationDate: String? = null,
     approvalDate: String? = null,
     degreeRegulation: String? = null,
-    licensingDate: String? = null
+    licensingDate: String? = null,
+    extElsaId: String? = null
 ) {
     @get:JsonAnyGetter
     val fields = buildMap {
@@ -44,22 +48,45 @@ class DynastyAdditionalData(
         approvalDate?.let { put("${fieldPrefix}hyvaksymispaiva", it) }
         degreeRegulation?.let { put("${fieldPrefix}tutkintoasetus", it) }
         licensingDate?.let { put("${fieldPrefix}laillistamispaiva", it) }
+        extElsaId?.let { put("ExtElsaTunniste", it) }
     }
 }
+
+sealed interface DynastyDocumentRequestMetadata
 
 class DynastyDocumentMetadata(
     val title: String,
     val schemaId: String?,
     val documentType: String,
     val retentionPeriodLength: Int,
-    @get:JsonProperty("AD") val additionalData: DynastyAdditionalData,
+    @get:JsonProperty("AD") @get:JsonInclude(JsonInclude.Include.NON_NULL) val additionalData: DynastyAdditionalData?,
     val publicityClassId: String = "J",
     val publicityClassName: String = "Julkinen",
     val retentionPeriodRule: String = "Asian lopullinen ratkaisu",
     val personalData: String = "Sisältää henkilötietoja",
     val state: Int = 3,
-    @get:JsonAnyGetter val secrecyFields: Map<String, String> = emptyMap()
-)
+    @get:JsonProperty("SecrecyPeriod") @get:JsonInclude(JsonInclude.Include.NON_NULL) val secrecyPeriod: DynastySecrecyPeriod? = null,
+    @get:JsonProperty("DeliveryType") @get:JsonInclude(JsonInclude.Include.NON_NULL) val deliveryType: String? = null
+) : DynastyDocumentRequestMetadata
+
+class DynastyTosDocumentMetadata(
+    val title: String,
+    val schemaId: String?,
+    @get:JsonProperty("AD") val additionalData: DynastyAdditionalData,
+    @get:JsonProperty("SecrecyPeriod") @get:JsonInclude(JsonInclude.Include.NON_NULL) val secrecyPeriod: DynastySecrecyPeriod?
+) : DynastyDocumentRequestMetadata {
+    @get:JsonProperty("DeliveryType")
+    val deliveryType = "M"
+    val state = 3
+}
+
+class DynastySecrecyPeriod(start: LocalDate, end: LocalDate) {
+    @get:JsonProperty("Start")
+    val start: String = start.atStartOfDay().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+    @get:JsonProperty("End")
+    val end: String = end.atStartOfDay().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+}
 
 sealed interface DynastyDocumentOptions
 
@@ -67,6 +94,21 @@ class DynastyMainDocumentOptions(caseId: DynastyCaseId, taskId: DynastyTaskId) :
     @get:JsonProperty("CaseSelector") val caseSelector = DynastyTextSelector(caseId.toString())
     @get:JsonProperty("PhaseSelector") val phaseSelector = DynastyTextSelector(taskId.toString())
 }
+
+class DynastyTosDocumentOptions(caseId: DynastyCaseId, phaseId: DynastyTaskId, tosTitle: String) : DynastyDocumentOptions {
+    @get:JsonProperty("CaseSelector")
+    val caseSelector = DynastyTosCaseSelector(caseId.numericValue)
+
+    @get:JsonProperty("PhaseSelector")
+    val phaseSelector = DynastyTosPhaseSelector(DynastySmartAttachOptions(listOf(DynastyTextSelector(phaseId.toString()))))
+
+    @get:JsonProperty("TOSTitle")
+    val tosTitle = tosTitle
+}
+
+class DynastyTosCaseSelector(@get:JsonProperty("Id") val id: Long)
+class DynastyTosPhaseSelector(val smartAttachOptions: DynastySmartAttachOptions)
+class DynastySmartAttachOptions(val pathSelector: List<DynastyTextSelector>)
 
 class DynastyAttachmentOptions(caseId: DynastyCaseId, parentId: DynastyDocumentId) : DynastyDocumentOptions {
     val caseSelector = DynastyNumericSelector(caseId.numericValue)

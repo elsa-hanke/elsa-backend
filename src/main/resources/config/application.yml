@@ -408,13 +408,6 @@ application:
           "[401/2007]": "Asetus 401/2007"
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
           "[55/2020]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
-        # PLACEHOLDER: the documentation lists "S" for both secret classes; confirm the partially secret id with Turku.
-        koejakso-publicity-class-id: "S"
-        # Values are from the customer's mappäystaulukko; PLACEHOLDER: the JSON field names must be confirmed with the vendor.
-        koejakso-secrecy-fields:
-          secrecyReason: "JulkL24.1§30, oppilashuolto, opetuksesta vapauttaminen, koesuoritukset, sanallinen arviointi"
-          secrecyPeriodLength: "100"
-          secrecyPeriodRule: "Asiakirjan päivämäärä"
       metadata:
         cases:
           koejakso:
@@ -442,11 +435,6 @@ application:
         tutkintoasetukset:
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
         koejakso-publicity-class-id: "S"
-        # The API property names follow the Turku request and need vendor confirmation.
-        koejakso-secrecy-fields:
-          "[secrecyReason]": "JulkL 24.1 § 30 kohta (henk. koht. omin, oppilashuolto)"
-          "[secrecyPeriodLength]": "100"
-          "[secrecyPeriodRule]": "Asiakirjan päivämäärä"
       metadata:
         cases:
           koejakso:

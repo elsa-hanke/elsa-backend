@@ -22,13 +22,6 @@ application:
         # The 56/2015 text is the customer's example from the mapping spreadsheet.
         tutkintoasetukset:
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
-        # PLACEHOLDER: the docx lists "S" for both secret classes and the vendor has not provided the secrecy field names.
-        # Values come from the customer's mapping spreadsheet. The koejakso external test checks whether Dynasty accepts them.
-        koejakso-publicity-class-id: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_KOEJAKSO_PUBLICITY_CLASS_ID:S}
-        koejakso-secrecy-fields:
-          secrecyReason: "JulkL24.1§30, oppilashuolto, opetuksesta vapauttaminen, koesuoritukset, sanallinen arviointi"
-          secrecyPeriodLength: "100"
-          secrecyPeriodRule: "Asiakirjan päivämäärä"
       metadata:
         cases:
           koejakso:
@@ -55,10 +48,6 @@ application:
         koejakso-publicity-class-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_KOEJAKSO_PUBLICITY_CLASS_ID:S}
         tutkintoasetukset:
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
-        koejakso-secrecy-fields:
-          "[secrecyReason]": "JulkL 24.1 § 30 kohta (henk. koht. omin, oppilashuolto)"
-          "[secrecyPeriodLength]": "100"
-          "[secrecyPeriodRule]": "Asiakirjan päivämäärä"
       metadata:
         cases:
           koejakso:

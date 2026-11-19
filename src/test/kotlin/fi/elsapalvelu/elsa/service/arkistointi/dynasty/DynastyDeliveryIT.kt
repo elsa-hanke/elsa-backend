@@ -66,10 +66,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
  "application.arkistointi.turku.dynasty.document-schema-id=document",
  "application.arkistointi.turku.dynasty.allow-loopback-http-for-tests=true",
  "application.arkistointi.turku.dynasty.tutkintoasetukset[test]=Test regulation",
- "application.arkistointi.turku.dynasty.koejakso-publicity-class-id=test-secret",
- "application.arkistointi.turku.dynasty.koejakso-secrecy-fields[reason]=test-law",
- "application.arkistointi.turku.dynasty.koejakso-secrecy-fields[duration]=100",
- "application.arkistointi.turku.dynasty.koejakso-secrecy-fields[start]=approval",
  "application.arkistointi.uef.kaytossa=true",
  "application.arkistointi.uef.metadata.cases.koejakso.documents.arviointi.retention-period=-1",
  "application.arkistointi.uef.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
@@ -82,10 +78,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
  "application.arkistointi.uef.dynasty.document-schema-id=uef-document",
  "application.arkistointi.uef.dynasty.allow-loopback-http-for-tests=true",
  "application.arkistointi.uef.dynasty.tutkintoasetukset[test]=Test regulation",
- "application.arkistointi.uef.dynasty.koejakso-publicity-class-id=test-secret",
- "application.arkistointi.uef.dynasty.koejakso-secrecy-fields[secrecyReason]=test-law",
- "application.arkistointi.uef.dynasty.koejakso-secrecy-fields[secrecyPeriodLength]=100",
- "application.arkistointi.uef.dynasty.koejakso-secrecy-fields[secrecyPeriodRule]=Asiakirjan päivämäärä"
+ "application.arkistointi.uef.dynasty.koejakso-publicity-class-id=test-secret"
 ])
 @Import(DynastyDeliveryIT.CacheConfig::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -135,17 +128,20 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     @EnumSource(value = YliopistoEnum::class, names = ["TURUN_YLIOPISTO", "ITA_SUOMEN_YLIOPISTO"])
     fun `scheduler delivers through real adapter and commits every ledger step`(university: YliopistoEnum) {
         val job = job(university)
-        server.enqueueDynastySuccess(documentIds = listOf(1078))
+        val tosDriven = university == YliopistoEnum.TURUN_YLIOPISTO
+        if (tosDriven) TurkuTosFixture.ASSESSMENT.enqueueSuccess(server, listOf(1078))
+        else server.enqueueDynastySuccess(documentIds = listOf(1078))
         startAttempt()
         awaitDelivered(job.id!!)
         assertThat(jobs.findById(job.id!!).orElseThrow().externalId).isEqualTo("415")
-        assertThat(stepFixture.steps(job.id!!).map { it.status })
-            .containsExactlyInAnyOrder(DynastyStepStatus.VALMIS, DynastyStepStatus.VALMIS, DynastyStepStatus.VALMIS, DynastyStepStatus.VALMIS)
+        val stepKeys = listOf("CASE", "DOCUMENT:0", "ARCHIVE_CASE") + if (tosDriven) emptyList() else listOf("TASK")
+        assertThat(stepFixture.steps(job.id!!).associate { it.key to it.status })
+            .isEqualTo(stepKeys.associateWith { DynastyStepStatus.VALMIS })
     }
     @Test fun `success commit failure resumes completed ledger without another HTTP request`() {
         val job = job()
         withSuccessCommitFailure {
-            server.enqueueDynastySuccess(documentIds = listOf(1078))
+            TurkuTosFixture.ASSESSMENT.enqueueSuccess(server, listOf(1078))
             startAttempt()
             await().atMost(Duration.ofSeconds(30)).untilAsserted {
                 assertThat(scheduler.currentlyExecuting).isEmpty()
@@ -164,15 +160,18 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         assertThat(server.requestCount).isEqualTo(requests)
     }
 
-    @Test fun `manual retry skips completed case and task after definite document rejection`() {
+    @Test fun `manual retry skips completed case after definite document rejection`() {
         val job = job()
-        enqueue(DYNASTY_TEST_TOKEN_RESPONSE, "415", "\"${UUID.randomUUID()}\"")
+        enqueue(DYNASTY_TEST_TOKEN_RESPONSE)
+        with(TurkuTosFixture.ASSESSMENT) { server.enqueueLookup() }
+        enqueue("415")
         server.enqueue(MockResponse().setResponseCode(403))
         startAttempt()
         awaitParked(job.id!!)
         assertThat(stepFixture.steps(job.id!!).filter { it.status == DynastyStepStatus.VALMIS }.map { it.key })
-            .containsExactlyInAnyOrder("CASE","TASK")
+            .containsExactly("CASE")
         retryParkedJob(job.id!!)
+        with(TurkuTosFixture.ASSESSMENT) { server.enqueueLookup() }
         enqueue("1078", "")
         startAttempt()
         await().atMost(Duration.ofSeconds(30)).untilAsserted {
@@ -181,13 +180,14 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
                 .describedAs("error=%s steps=%s",result.errorCode,stepFixture.steps(job.id!!))
                 .isEqualTo(ArkistointiJobStatus.LAHETETTY)
         }
-        val requests = (1..6).map { server.takeRequest(5, TimeUnit.SECONDS)!! }
+        val requests = (1..9).map { server.takeRequest(5, TimeUnit.SECONDS)!! }
         assertThat(requests.count { it.path!!.startsWith("/api/v1/cases?") }).isEqualTo(1)
-        assertThat(requests.count { it.path!!.contains("/tasks") }).isEqualTo(1)
+        assertThat(requests.count { it.path!!.contains("/tasks") }).isZero()
     }
     @Test fun `lost case response parks job and retry never creates another case`() {
         val job = job()
         enqueue(DYNASTY_TEST_TOKEN_RESPONSE)
+        with(TurkuTosFixture.ASSESSMENT) { server.enqueueLookup() }
         server.enqueue(MockResponse().setSocketPolicy(okhttp3.mockwebserver.SocketPolicy.DISCONNECT_AFTER_REQUEST))
         startAttempt()
         awaitParked(job.id!!)
@@ -211,6 +211,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         server.dispatcher = object : okhttp3.mockwebserver.Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 if (request.path == "/token") return MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE)
+                TurkuTosFixture.ASSESSMENT.response(request.path.orEmpty())?.let { return it }
                 entered.countDown()
                 check(release.await(30, TimeUnit.SECONDS))
                 return MockResponse().setBody("415")
@@ -245,7 +246,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
                 assertThat(step.remoteId).isEqualTo("415")
                 assertThat(scheduler.currentlyExecuting).isEmpty()
             }
-            assertThat(server.requestCount).isEqualTo(requestsBefore + 2)
+            assertThat(server.requestCount).isEqualTo(requestsBefore + 4)
             assertThat(stepFixture.steps(job.id!!).count { it.key == "TASK" }).isZero()
         } finally {
             release.countDown()
@@ -273,40 +274,62 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         approveValmistumispyynto(fixture.first).andExpect(status().isOk)
         val job = jobs.findByKey("valmistuminen:$university:${fixture.first}")!!
         val taskId = UUID.randomUUID()
-        server.enqueueDynastySuccess(documentIds = listOf(1078, 1079, 1080), taskId = taskId)
+        val tosDriven = university == YliopistoEnum.TURUN_YLIOPISTO
+        val documentIds = listOf(1078L, 1079L, 1080L)
+        if (tosDriven) TurkuTosFixture.GRADUATION.enqueueSuccess(server, documentIds, taskId)
+        else server.enqueueDynastySuccess(documentIds, taskId = taskId)
         val requestsBefore = server.requestCount
 
         startAttempt()
         awaitDelivered(job.id!!)
 
-        assertThat(server.requestCount - requestsBefore).describedAs("token, case, task, three documents, archive and nothing else").isEqualTo(7)
-        val requests = (1..7).map { server.takeRequest(5, TimeUnit.SECONDS)!! }
-        assertThat(requests.map { it.method + " " + it.path!!.substringBefore('?') }).containsExactly(
-            "POST /token", "POST /api/v1/cases", "POST /api/v1/cases/415/tasks",
-            "POST /api/v1/documents", "POST /api/v1/documents", "POST /api/v1/documents",
-            "POST /api/v1/cases/415/state/Archived"
-        )
-        val bodies = requests.map { it.body.readUtf8() }
-        // The program comes from the real approval payload; the full metadata mapping is covered by the golden tests.
-        assertThat(objectMapper.readTree(bodies[1]).at("/caseModel/title").asText()).startsWith("$kind ")
-        val main = objectMapper.dynastyMultipartJson(bodies[3], "CaseAttachmentOptions")
-        assertThat(main.at("/CaseSelector/Id").asText()).isEqualTo("415")
-        assertThat(main.at("/PhaseSelector/Id").asText()).isEqualTo(taskId.toString())
-        listOf(bodies[4], bodies[5]).forEach { body ->
-            val options = objectMapper.dynastyMultipartJson(body, "CaseAttachmentOptions")
-            if (university == YliopistoEnum.ITA_SUOMEN_YLIOPISTO) {
-                assertThat(options).isEqualTo(main)
-            } else {
-                assertThat(options.at("/caseSelector/id").asLong()).isEqualTo(415)
-                assertThat(options.at("/parentDocumentSelector/id").asLong()).isEqualTo(1078)
-            }
-        }
-        assertThat(bodies[5]).contains("filename=\"certificate.$format\"", "Content-Type: ${if (image) "image/png" else "application/pdf"}")
+        val expectedRequests = expectedGraduationRequests(tosDriven, taskId)
+        assertThat(server.requestCount - requestsBefore).isEqualTo(expectedRequests.size)
+        val requests = List(expectedRequests.size) { requireNotNull(server.takeRequest(5, TimeUnit.SECONDS)) }
+        assertThat(requests.map { it.method + " " + it.path!!.substringBefore('?') }).containsExactlyElementsOf(expectedRequests)
+        val caseBody = requests.single { it.path!!.startsWith("/api/v1/cases?") }.body.readUtf8()
+        assertThat(objectMapper.readTree(caseBody).at("/caseModel/title").asText()).startsWith("$kind ")
+
+        val documents = requests.filter { it.path == "/api/v1/documents" }.map { it.body.readUtf8() }
+        assertGraduationSelectors(documents, tosDriven, taskId)
+        assertThat(documents.last()).contains("filename=\"certificate.$format\"", "Content-Type: ${if (image) "image/png" else "application/pdf"}")
         assertThat(jobs.findById(job.id!!).orElseThrow().externalId).isEqualTo("415")
-        assertThat(stepFixture.steps(job.id!!).associate { it.key to it.status }).isEqualTo(
-            listOf("CASE", "TASK", "DOCUMENT:0", "DOCUMENT:1", "DOCUMENT:2", "ARCHIVE_CASE").associateWith { DynastyStepStatus.VALMIS }
-        )
+        val stepKeys = listOf("CASE", "DOCUMENT:0", "DOCUMENT:1", "DOCUMENT:2", "ARCHIVE_CASE") + if (tosDriven) emptyList() else listOf("TASK")
+        assertThat(stepFixture.steps(job.id!!).associate { it.key to it.status })
+            .isEqualTo(stepKeys.associateWith { DynastyStepStatus.VALMIS })
         assertThat((0..2).map { stepFixture.step(job.id!!, "DOCUMENT:$it")?.remoteId }).containsExactly("1078", "1079", "1080")
+    }
+
+    private fun expectedGraduationRequests(tosDriven: Boolean, phaseId: UUID): List<String> = buildList {
+        add("POST /token")
+        val tosPath = TurkuTosFixture.GRADUATION.path
+        if (tosDriven) {
+            add("GET $tosPath")
+            add("GET $tosPath/$phaseId/documenttypes")
+        }
+        add("POST /api/v1/cases")
+        if (!tosDriven) add("POST /api/v1/cases/415/tasks")
+        repeat(3) { add("POST /api/v1/documents") }
+        add("POST /api/v1/cases/415/state/Archived")
+    }
+
+    private fun assertGraduationSelectors(documents: List<String>, tosDriven: Boolean, phaseId: UUID) {
+        val optionsPart = if (tosDriven) "caseAttachmentOptions" else "CaseAttachmentOptions"
+        val (main, attachment, certificate) = documents.map { objectMapper.dynastyMultipartJson(it, optionsPart) }
+        if (tosDriven) {
+            assertThat(main.at("/CaseSelector/Id").longValue()).isEqualTo(415)
+            assertThat(main.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(phaseId.toString())
+            assertThat(main.at("/TOSTitle").asText()).isEqualTo(TurkuTosFixture.GRADUATION.documentTitle)
+            listOf(attachment, certificate).forEach {
+                assertThat(it.at("/caseSelector/id").asLong()).isEqualTo(415)
+                assertThat(it.at("/parentDocumentSelector/id").asLong()).isEqualTo(1078)
+            }
+        } else {
+            assertThat(main.at("/CaseSelector/Id").asText()).isEqualTo("415")
+            assertThat(main.at("/PhaseSelector/Id").asText()).isEqualTo(phaseId.toString())
+            assertThat(attachment).isEqualTo(main)
+            assertThat(certificate).isEqualTo(main)
+        }
     }
 
     private fun approveKoejakso(university: YliopistoEnum): Long {

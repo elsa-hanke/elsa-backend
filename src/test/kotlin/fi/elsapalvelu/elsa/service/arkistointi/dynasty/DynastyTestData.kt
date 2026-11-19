@@ -36,7 +36,6 @@ fun dynastyTestProperties(
         allowLoopbackHttpForTests = true
         tutkintoasetukset = mapOf("56/2015" to "Confirmed regulation")
         koejaksoPublicityClassId = "test-secret"
-        koejaksoSecrecyFields = mapOf("reason" to "test-law", "duration" to "100", "start" to "approval")
     }
     archive.metadata = ApplicationProperties.Arkistointi.Metadata().apply {
         cases = mapOf(
@@ -93,6 +92,38 @@ fun MockWebServer.enqueueDynastySuccess(documentIds: List<Long>, caseId: Long = 
     listOf(DYNASTY_TEST_TOKEN_RESPONSE, caseId.toString(), "\"$taskId\"").forEach { enqueue(MockResponse().setBody(it)) }
     documentIds.forEach { enqueue(MockResponse().setBody(it.toString())) }
     enqueue(MockResponse().setBody(""))
+}
+
+internal enum class TurkuTosFixture(val tosClass: String, val phase: String, val documentTitle: String) {
+    GRADUATION("05.06.02.04", "Hakeminen", "Valmistumisen yhteenveto,  EL, EHL tai YEK"),
+    ASSESSMENT("05.06.02.00", "Arviointi", "Koejakson vastuuhenkilön arvio");
+
+    val path get() = "/api/v1/cases/phases/$tosClass"
+
+    fun response(requestPath: String, phaseId: UUID = PHASE_ID): MockResponse? = when (requestPath) {
+        path -> MockResponse().setBody(
+            """{"fullCasegroupCode":"$tosClass","thsPhases":[{"title":"$phase","taskRowId":"$phaseId"}]}"""
+        )
+        "$path/$phaseId/documenttypes" -> MockResponse().setBody(
+            """{"fullCasegroupCode":"$tosClass","taskRowId":"$phaseId","thsDocuments":[{"title":"$documentTitle","childs":[]}]}"""
+        )
+        else -> null
+    }
+
+    fun MockWebServer.enqueueLookup(phaseId: UUID = PHASE_ID) {
+        enqueue(requireNotNull(response(path, phaseId)))
+        enqueue(requireNotNull(response("$path/$phaseId/documenttypes", phaseId)))
+    }
+
+    fun enqueueSuccess(server: MockWebServer, documentIds: List<Long>, phaseId: UUID = PHASE_ID) = with(server) {
+        enqueue(MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE))
+        enqueueLookup(phaseId)
+        (listOf("415") + documentIds.map(Long::toString) + "").forEach { enqueue(MockResponse().setBody(it)) }
+    }
+
+    companion object {
+        val PHASE_ID: UUID = UUID.fromString("68630ae0-34d8-43a5-93de-0a7219eecc60")
+    }
 }
 
 fun ObjectMapper.dynastyMultipartJson(body: String, part: String): JsonNode = readTree(

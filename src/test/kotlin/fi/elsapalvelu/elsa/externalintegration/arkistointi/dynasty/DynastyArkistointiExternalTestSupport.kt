@@ -25,6 +25,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.kotlin.any
+import org.mockito.kotlin.never
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isNull
@@ -74,7 +75,11 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         val caseId = (result as ArkistointiResult.Success).externalId
         assertThat(caseId).isNotBlank()
         verify(ledger).complete(eq(submission.jobId), eq(DynastyStepKey.Case), eq(submission.execution.version), eq(caseId))
-        verify(ledger).complete(eq(submission.jobId), eq(DynastyStepKey.Task), eq(submission.execution.version), any())
+        if (university == YliopistoEnum.TURUN_YLIOPISTO) {
+            verify(ledger, never()).begin(eq(submission.execution), eq(DynastyStepKey.Task), any())
+        } else {
+            verify(ledger).complete(eq(submission.jobId), eq(DynastyStepKey.Task), eq(submission.execution.version), any())
+        }
         submission.asiakirjat.forEach { document ->
             verify(ledger).complete(
                 eq(submission.jobId), eq(DynastyStepKey.Document(document.jarjestysnumero)), eq(submission.execution.version), any()

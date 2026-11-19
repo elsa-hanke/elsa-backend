@@ -16,8 +16,6 @@ class DynastyProperties {
     var inProgressGrace: Duration = Duration.ofMinutes(5)
     var allowLoopbackHttpForTests: Boolean = false
     var tutkintoasetukset: Map<String, String> = emptyMap()
-    // Must be confirmed with the vendor before KOEJAKSO can be delivered.
     var koejaksoPublicityClassId: String? = null
-    var koejaksoSecrecyFields: Map<String, String> = emptyMap()
     override fun toString() = "DynastyProperties()"
 }

@@ -76,7 +76,7 @@ class DynastyValmistuminenFaultMatrixIT {
             val properties = dynastyTestProperties(server.url("/").newBuilder().host("127.0.0.1").build().toString())
             val adapter = TurkuDynastyArkistointiAdapter(
                 DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
-                TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
+                TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
                 DynastyStepExecutor(ledger), properties
             )
             var execution = stepFixture.execution(jobStatus = ArkistointiJobStatus.KASITTELYSSA, picked = true)
@@ -127,7 +127,8 @@ class DynastyValmistuminenFaultMatrixIT {
             assertThat(dynasty.created).describedAs("every mutation exactly once, in order").containsExactlyElementsOf(STEPS)
             assertThat(completedSteps(jobId)).containsExactlyElementsOf(STEPS)
             assertThat(dynasty.attachmentRequests).describedAs("attachments reference the main document").isNotEmpty().allMatch { "1078" in it }
-            assertThat(dynasty.mainDocumentRequests).describedAs("main document references the task").isNotEmpty().allMatch { TASK_ID in it }
+            assertThat(dynasty.mainDocumentRequests).describedAs("main document references the TOS phase").isNotEmpty()
+                .allMatch { TurkuTosFixture.PHASE_ID.toString() in it }
         } finally {
             server.shutdown()
         }
@@ -200,6 +201,7 @@ class DynastyValmistuminenFaultMatrixIT {
         @Synchronized override fun dispatch(request: RecordedRequest): MockResponse {
             val path = request.path!!
             if (path == "/token") return MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE)
+            TurkuTosFixture.GRADUATION.response(path)?.let { return it }
             val body = request.body.clone().readUtf8()
             val step = resolveStep(path, body) ?: return MockResponse().setResponseCode(404)
             recordRequest(step, body)
@@ -211,12 +213,11 @@ class DynastyValmistuminenFaultMatrixIT {
             created += step
             remoteIds[step] = id
             if (injected == Fault.UNCONFIRMED_CREATED) return MockResponse().setResponseCode(503)
-            return successResponse(step, id)
+            return MockResponse().setBody(id)
         }
 
         private fun resolveStep(path: String, body: String): String? = when {
             path.startsWith("/api/v1/cases?") -> "CASE"
-            path == "/api/v1/cases/415/tasks" -> "TASK"
             path == "/api/v1/documents" -> "DOCUMENT:" + DOCUMENT_FILE.find(body)!!.groupValues[1]
             path == "/api/v1/cases/415/state/Archived" -> "ARCHIVE_CASE"
             else -> null
@@ -244,19 +245,15 @@ class DynastyValmistuminenFaultMatrixIT {
 
         private fun generateId(step: String): String = when (step) {
             "CASE" -> "415"
-            "TASK" -> TASK_ID
             "ARCHIVE_CASE" -> ""
             else -> (nextDocumentId++).toString()
         }
 
-        private fun successResponse(step: String, id: String): MockResponse =
-            MockResponse().setBody(if (step == "TASK") "\"$id\"" else id)
     }
 
     companion object {
-        const val TASK_ID = "123e4567-e89b-12d3-a456-426614174000"
         val DOCUMENT_FILE = Regex("filename=\"file(\\d+)\\.pdf\"")
-        val STEPS = listOf("CASE", "TASK", "DOCUMENT:0", "DOCUMENT:1", "DOCUMENT:2", "ARCHIVE_CASE")
+        val STEPS = listOf("CASE", "DOCUMENT:0", "DOCUMENT:1", "DOCUMENT:2", "ARCHIVE_CASE")
         val ops = DynastyOpsDatabase().start()
 
         @JvmStatic

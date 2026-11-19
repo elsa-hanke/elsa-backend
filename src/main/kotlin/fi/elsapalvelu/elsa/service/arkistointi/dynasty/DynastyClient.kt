@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpFailure
 import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpEndpointPolicy
@@ -137,10 +138,16 @@ class DynastyClient internal constructor(
     fun createTask(caseId: DynastyCaseId, title: String): DynastyTaskId =
         post(endpoint("api/v1/cases/$caseId/tasks").build(), json(DynastyTaskRequest(title)), DynastyResponseKind.TaskId)
 
-    fun createDocument(metadata: DynastyDocumentMetadata, options: DynastyDocumentOptions, document: LoadedArkistointiAsiakirja): DynastyDocumentId {
+    fun createDocument(metadata: DynastyDocumentRequestMetadata, options: DynastyDocumentOptions, document: LoadedArkistointiAsiakirja): DynastyDocumentId {
+        val (metadataPart, optionsPart, filePart) = when (options) {
+            is DynastyMainDocumentOptions -> Triple("MetaData", "CaseAttachmentOptions", "File")
+            is DynastyTosDocumentOptions, is DynastyAttachmentOptions -> Triple("metaData", "caseAttachmentOptions", "file")
+        }
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
-            .addFormDataPart("MetaData", mapper.writeValueAsString(metadata)).addFormDataPart("CaseAttachmentOptions", mapper.writeValueAsString(options))
-            .addFormDataPart("File", document.filename, document.sisalto.toRequestBody(document.contentType.toMediaType())).build()
+            .addFormDataPart(metadataPart, mapper.writeValueAsString(metadata))
+            .addFormDataPart(optionsPart, mapper.writeValueAsString(options))
+            .addFormDataPart(filePart, document.filename, document.sisalto.toRequestBody(document.contentType.toMediaType()))
+            .build()
         return post(endpoint("api/v1/documents").build(), body, DynastyResponseKind.DocumentId)
     }
 
@@ -150,12 +157,43 @@ class DynastyClient internal constructor(
 
     private fun endpoint(path: String): HttpUrl.Builder = requireSetting(settings.baseUrl).trimEnd('/').toHttpUrl().newBuilder().addPathSegments(path)
 
+    internal fun readTos(path: String): JsonNode {
+        val url = endpoint(path).build()
+        repeat(2) { attempt ->
+            val request = authorizedRequest(url, "application/json").get().build()
+            try {
+                httpClient.newCall(request).execute().use { response ->
+                    if (retryAfterUnauthorized(response.code, attempt)) return@use
+                    if (!response.isSuccessful) {
+                        val category = if (response.code >= 500 || response.code in setOf(408, 429)) {
+                            DynastyFailureCategory.TOS_UNAVAILABLE
+                        } else {
+                            DynastyFailureCategory.TOS_INVALID
+                        }
+                        throw DynastyFailure(category)
+                    }
+                    val body = response.peekBody(MAX_TOS_RESPONSE_BYTES + 1).bytes()
+                    if (body.size > MAX_TOS_RESPONSE_BYTES) throw DynastyFailure(DynastyFailureCategory.TOS_INVALID)
+                    return mapper.readTree(body)
+                }
+            } catch (_: com.fasterxml.jackson.core.JsonProcessingException) {
+                throw DynastyFailure(DynastyFailureCategory.TOS_INVALID)
+            } catch (_: IOException) {
+                throw DynastyFailure(DynastyFailureCategory.TOS_UNAVAILABLE)
+            }
+        }
+        throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
+    }
+
+    private fun authorizedRequest(url: HttpUrl, accept: String): Request.Builder =
+        Request.Builder().url(url)
+            .header("Organization", requireSetting(settings.organization))
+            .header("Authorization", "Bearer ${accessToken()}")
+            .header("Accept", accept)
+
     private fun <T> post(url: HttpUrl, body: RequestBody, responseKind: DynastyResponseKind<T>): T {
         repeat(2) { attempt ->
-            val bearer = accessToken() // Token failure cannot have created the requested object.
-            val request = Request.Builder().url(url)
-                .header("Organization", requireSetting(settings.organization)).header("Authorization", "Bearer $bearer")
-                .header("Accept", responseKind.accept).post(body).build()
+            val request = authorizedRequest(url, responseKind.accept).post(body).build()
             val progress = ArchiveHttpRequestProgress()
             val client = httpClient.newBuilder().eventListener(progress).build()
             try {
@@ -208,6 +246,7 @@ class DynastyClient internal constructor(
         const val TOKEN_REFRESH_MARGIN_SECONDS = 60L
         const val MAX_TOKEN_LIFETIME_SECONDS = 86400L
         const val MAX_TOKEN_RESPONSE_BYTES = 16384L
+        const val MAX_TOS_RESPONSE_BYTES = 1_048_576L
     }
 
 }

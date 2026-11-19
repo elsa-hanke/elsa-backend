@@ -8,32 +8,28 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 
 /** Document rules shared by startup validation and delivery planning. */
-internal class DynastyMetadataRules(private val archiveProperties: DynastyArchiveProperties) {
+internal class DynastyMetadataRules(private val archiveProperties: DynastyArchiveProperties, private val tosDriven: Boolean) {
     private val settings = archiveProperties.dynasty
 
     fun validateConfiguration(profile: DynastyCaseProfile, configuration: ArkistointiConfiguration) {
         val regulations = settings.tutkintoasetukset
-        if (profile.documentTypes.keys.any {
+        val explicitRetentionTypes = if (tosDriven) profile.documentTypes.keys - profile.mainDocumentType else profile.documentTypes.keys
+        if (explicitRetentionTypes.any {
                 configuration.metadata.getDocumentMetadata(it, configuration.case)?.retentionPeriod?.toIntOrNull() == null
             } || regulations.isEmpty() || regulations.any { (key, value) -> key.isBlank() || value.isBlank() }) {
             throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
         }
-        if (profile.requiresSecrecy) validateSecrecyConfiguration()
+        if (!tosDriven && profile.requiresSecrecy) validateSecrecyConfiguration()
     }
 
-    data class DocumentPublicity(val id: String, val secrecyFields: Map<String, String>)
-
-    fun documentPublicity(profile: DynastyCaseProfile): DocumentPublicity {
-        if (!profile.requiresSecrecy) return DocumentPublicity("J", emptyMap())
+    fun publicityClassId(profile: DynastyCaseProfile): String {
+        if (!profile.requiresSecrecy) return "J"
         validateSecrecyConfiguration()
-        return DocumentPublicity(requireNotNull(settings.koejaksoPublicityClassId), settings.koejaksoSecrecyFields.toMap())
+        return requireNotNull(settings.koejaksoPublicityClassId)
     }
 
     private fun validateSecrecyConfiguration() {
-        if (settings.koejaksoPublicityClassId.isNullOrBlank() || settings.koejaksoSecrecyFields.size != 3 ||
-            settings.koejaksoSecrecyFields.any { (key, value) -> key.isBlank() || value.isBlank() || key in documentFields }) {
-            throw DynastyFailure(DynastyFailureCategory.SECRECY_UNCONFIGURED)
-        }
+        if (settings.koejaksoPublicityClassId.isNullOrBlank()) throw DynastyFailure(DynastyFailureCategory.SECRECY_UNCONFIGURED)
     }
 
     fun retentionPeriod(caseType: CaseType, type: RecordType): Int {
@@ -44,9 +40,4 @@ internal class DynastyMetadataRules(private val archiveProperties: DynastyArchiv
 
     fun degreeRegulation(regulation: String): String = settings.tutkintoasetukset[regulation]
         ?: throw DynastyFailure(DynastyFailureCategory.REGULATION_UNCONFIGURED)
-
-    private val documentFields = setOf(
-        "title", "schemaId", "publicityClassId", "publicityClassName", "personalData",
-        "documentType", "state", "retentionPeriodRule", "retentionPeriodLength", "AD"
-    )
 }

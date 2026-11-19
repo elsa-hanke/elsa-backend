@@ -22,7 +22,7 @@ class DynastyWorkerConfigurationTest {
     private val mapper = jacksonObjectMapper()
     private val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
         DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
-        TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper)),
+        TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
         DynastyStepExecutor(mock<DynastyStepLedger>()), properties
     )))
     private val provider = ArkistointiConfigurationProvider(properties)
@@ -125,13 +125,9 @@ class DynastyWorkerConfigurationTest {
     }
 
     @Test
-    fun `koejakso requires nonblank nonconflicting secrecy fields`() {
+    fun `Turku koejakso gets document publicity and retention from TOS`() {
         configure(CaseType.KOEJAKSO)
-        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }.hasMessageContaining("DYNASTY_SECRECY_UNCONFIGURED")
-        settings.koejaksoPublicityClassId = "vendor-confirmed-class"
-        settings.koejaksoSecrecyFields = mapOf("reason" to "law", "duration" to "50", "start" to "approval")
+        turku.metadata!!.getCaseMetadata(CaseType.KOEJAKSO)!!.documents!!.getValue("arviointi").retentionPeriod = null
         assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
-        settings.koejaksoSecrecyFields = settings.koejaksoSecrecyFields - "reason" + ("AD" to "override")
-        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }.hasMessageContaining("DYNASTY_SECRECY_UNCONFIGURED")
     }
 }

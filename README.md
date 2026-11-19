@@ -819,9 +819,18 @@ pyyntökontekstia luoduilla jobeilla `requested_by_user_id` on tyhjä.
 
 ### Turku and UEF Dynasty REST delivery
 
-Both destinations support `VALMISTUMINEN` and `KOEJAKSO`. Each delivery creates a case
-and a phase, transfers the documents, and archives the case. UEF sends the
-graduation documents as separate records under the same phase.
+Both destinations support `VALMISTUMINEN` and `KOEJAKSO`. Turku reads the phase and
+document type from the active TOS before creating a case or sending a new main document.
+Dynasty creates the phase and supplies the main document's archive metadata (publicity,
+retention, document type) from TOS
+using `PhaseSelector.smartAttachOptions.pathSelector` and the exact `TOSTitle`.
+The graduation title has two spaces before `EL`. Graduation attachments are
+sent as `Liite` under the main document with a ten-year retention period, `DeliveryType` `M`
+and the identifying `AD` fields (the licensing date only on the certificate). The graduation
+main document also carries `ExtElsaTunniste` (the Elsa case id) and `UTUhyvaksymispaiva`;
+confirm both values with Turku.
+UEF creates its phase explicitly and sends its graduation documents as separate
+records under that phase. Both deliveries finish by archiving the case.
 
 Configure `application.arkistointi.turku.dynasty` (URLs, client credentials, Organization,
 case/document schema UUIDs) before enabling the university. For Dynasty, both case
@@ -831,11 +840,11 @@ Credentials must come from secrets/environment. Test case/document schemas:
 `30e1cd27-54f9-44c1-9853-401cbdc871de` / `b11af6ae-afc6-42e8-b09b-6b37d3f29397`;
 production: `80cdec85-07fa-455b-9d7d-6c08ac1e2863` / `f9352666-327a-4262-b888-9c4c847590b6`.
 The configured `tutkintoasetukset` map must contain the customer-approved text for each
-regulation encountered. For KOEJAKSO, both universities use publicity class
-`S`. In the external test profile, override it with `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_KOEJAKSO_PUBLICITY_CLASS_ID`
-or `APPLICATION_ARKISTOINTI_DYNASTY_UEF_KOEJAKSO_PUBLICITY_CLASS_ID`.
-Confirm the class ID and the three `koejakso-secrecy-fields` entries (reason,
-100-year duration and date calculation basis) with the vendor.
+regulation encountered. For Turku KOEJAKSO, TOS supplies the publicity class and
+the request contains `SecrecyPeriod.Start` at midnight on the delivery date and
+`SecrecyPeriod.End` 100 years later. UEF uses publicity class `S` and sends the same
+`SecrecyPeriod` structure. Its external test profile supports
+`APPLICATION_ARKISTOINTI_DYNASTY_UEF_KOEJAKSO_PUBLICITY_CLASS_ID`.
 Metadata validation completes before the first external create.
 
 The shared application configuration defaults to the Dynasty test URLs so dev and
@@ -858,7 +867,12 @@ The external test profile defaults to the UEF test schema IDs.
 ```
 
 Every mutation is preceded by a committed intent in `arkistointi_dynasty_step`.
-Completed steps are skipped on retry; external case ID becomes the job external ID.
+Completed steps are reused on retry. The external case ID becomes the job external ID.
+Turku skips the TOS lookup when the main document is already recorded. An unconfirmed
+legacy Turku `TASK` still needs reconciliation. If a legacy task completed before the
+main document, the resumed upload uses the active TOS and the old phase stays in the case.
+`DYNASTY_TOS_INVALID` indicates a rejected lookup, invalid response or mismatched TOS entry.
+Transient TOS lookup failures use `DYNASTY_TOS_UNAVAILABLE` and can retry without a create intent.
 A stale scheduler execution cannot begin another step. A late successful response can
 complete only its original intent. An incomplete intent is never automatically replayed:
 recent intents wait; old or ambiguous outcomes require operator intervention.

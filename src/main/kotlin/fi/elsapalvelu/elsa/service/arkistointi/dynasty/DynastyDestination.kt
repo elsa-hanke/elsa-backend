@@ -18,11 +18,11 @@ internal enum class DynastyDestination(
         university = YliopistoEnum.TURUN_YLIOPISTO,
         fieldPrefix = "UTU",
         faculty = "Lääketieteellinen tiedekunta",
-        documentLinking = DocumentLinking.ATTACH_TO_MAIN,
+        documentLinking = DocumentLinking.TOS_PHASE,
         archiveProperties = Arkistointi::getTurku,
         profiles = mapOf(
             CaseType.VALMISTUMINEN to DynastyCaseProfile.valmistuminen(
-                "05.06.02.04", "Hakeminen", "Valmistumisen yhteenveto, EL, EHL tai YEK"
+                "05.06.02.04", "Hakeminen", "Valmistumisen yhteenveto,  EL, EHL tai YEK"
             ),
             CaseType.KOEJAKSO to DynastyCaseProfile.koejakso(
                 "05.06.02.00", "Arviointi", "Osittain salassapidettävä", "Asiakirjan päivämäärä"
@@ -50,7 +50,7 @@ internal enum class DynastyDestination(
     fun profile(caseType: CaseType): DynastyCaseProfile =
         requireNotNull(profiles[caseType]) { "Unsupported Dynasty case type" }
 
-    enum class DocumentLinking { ATTACH_TO_MAIN, SAME_PHASE }
+    enum class DocumentLinking { TOS_PHASE, SAME_PHASE }
 
     companion object {
         fun from(university: YliopistoEnum): DynastyDestination =
