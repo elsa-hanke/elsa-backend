@@ -8,6 +8,7 @@ import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.SocketPolicy
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -48,13 +49,19 @@ class DynastyClientTest {
 
     @ParameterizedTest
     @CsvSource(
+        "oauth_token, 400, auth_failed",
         "oauth_token, 403, auth_failed",
+        "oauth_token, 503, auth_temporarily_rejected",
+        "create_case, 400, http_rejected",
         "create_case, 422, http_rejected",
+        "create_case, 503, delivery_unconfirmed",
         "create_case, 401, auth_failed",
         "tos_document_types, 200, title_not_found",
+        "tos_document_types, 429, tos_unavailable",
+        "tos_phases, 400, tos_invalid",
         "tos_phases, 200, invalid_json"
     )
-    fun `Dynasty failure exposes safe CloudWatch fields and preserves job context`(
+    fun `Dynasty failure logs HTTP error bodies and preserves job context`(
         operation: String, status: Int, reason: String
     ) {
         val logger = LoggerFactory.getLogger(DynastyCallDiagnostics::class.java) as Logger
@@ -76,7 +83,7 @@ class DynastyClientTest {
                 val phaseId = UUID.randomUUID().toString()
                 if (operation != "oauth_token") server.enqueue(token())
                 if (status == 401) {
-                    server.enqueue(MockResponse().setResponseCode(401))
+                    server.enqueue(MockResponse().setResponseCode(401).setBody("Expired token"))
                     server.enqueue(token())
                 }
                 if (operation == "tos_document_types") {
@@ -87,7 +94,7 @@ class DynastyClientTest {
                 val body = when (operation) {
                     "tos_document_types" -> """{"fullCasegroupCode":"$tosClass","taskRowId":"$phaseId","thsDocuments":[]}"""
                     "tos_phases" -> "{"
-                    else -> "private response body"
+                    else -> "{\n  \"errors\": {\"schemaId\": [\"Invalid schema ä\"]}\n}"
                 }
                 server.enqueue(MockResponse().setResponseCode(status).setBody(body)
                     .addHeader("X-Request-ID", "untrusted header")
@@ -97,10 +104,11 @@ class DynastyClientTest {
                     if (operation.startsWith("tos_")) client.resolveTosPhase(tosClass, "Hakeminen", "Summary")
                     else client.createCase(tosClass, caseRequest())
                 }.isInstanceOf(DynastyFailure::class.java)
-                val event = events.list.single()
+                val event = terminalFailureEvent(events.list, operation, status)
+                val expectedBody = if (status !in 200..299) " responseBody=$body" else ""
                 assertThat(event.level).isEqualTo(Level.ERROR)
                 assertThat(event.formattedMessage)
-                    .isEqualTo("Dynasty call failed [operation=$operation, reason=$reason, httpStatus=$status]")
+                    .isEqualTo("Dynasty call failed [operation=$operation, reason=$reason, httpStatus=$status]$expectedBody")
                 assertThat(event.throwableProxy).isNull()
                 assertThat(event.mdcPropertyMap)
                     .containsEntry("archiveJobId", "test-job")
@@ -117,6 +125,35 @@ class DynastyClientTest {
             logger.detachAppender(events)
             events.stop()
             if (previous == null) MDC.clear() else MDC.setContextMap(previous)
+        }
+    }
+
+    private fun terminalFailureEvent(events: List<ILoggingEvent>, operation: String, status: Int): ILoggingEvent {
+        assertThat(events).hasSize(if (status == 401) 2 else 1)
+        if (status == 401) {
+            val firstFailure = events.first()
+            assertThat(firstFailure.level).isEqualTo(Level.ERROR)
+            assertThat(firstFailure.formattedMessage).isEqualTo(
+                "Dynasty call failed [operation=$operation, reason=unauthorized_token_refresh, httpStatus=401] responseBody=Expired token"
+            )
+        }
+        return events.last()
+    }
+
+    @Test
+    fun `unreadable bad request body preserves the definite rejection`() {
+        MockWebServer().use { server ->
+            server.enqueue(token())
+            server.enqueue(
+                MockResponse().setResponseCode(400).setBody("response body interrupted")
+                    .setSocketPolicy(SocketPolicy.DISCONNECT_DURING_RESPONSE_BODY)
+            )
+
+            assertThatThrownBy {
+                client(server).createCase("05.06.02.04", caseRequest())
+            }.isInstanceOfSatisfying(DynastyFailure::class.java) {
+                assertThat(it.category).isEqualTo(DynastyFailureCategory.HTTP_REJECTED)
+            }
         }
     }
 

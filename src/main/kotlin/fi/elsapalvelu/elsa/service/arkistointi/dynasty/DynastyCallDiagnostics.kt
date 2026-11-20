@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import java.io.IOException
 import okhttp3.Response
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -19,21 +20,33 @@ internal class DynastyCallDiagnostics(private val operation: String) {
     private var httpStatus: Int? = null
     private var requestId: String? = null
     private var exceptionType: String? = null
+    private var errorResponseBody: String? = null
 
     fun recordResponse(response: Response) {
         httpStatus = response.code
         requestId = sequenceOf("X-Request-ID", "X-Correlation-ID")
             .mapNotNull { response.header(it) }
             .firstOrNull(requestIdFormat::matches)
+        if (!response.isSuccessful) {
+            try {
+                errorResponseBody = response.body?.string()
+            } catch (exception: IOException) {
+                recordException(exception)
+            }
+        }
     }
 
     fun recordException(exception: Exception) {
         exceptionType = exception.javaClass.simpleName
     }
 
-    fun logFailure(failure: DynastyFailure) {
+    fun logUnauthorizedRetry() = logFailure("unauthorized_token_refresh")
+
+    fun logFailure(failure: DynastyFailure) =
+        logFailure((failure.diagnosticReason?.name ?: failure.category.name).lowercase())
+
+    private fun logFailure(reason: String) {
         // The production log appenders already expose MDC as JSON fields.
-        val reason = (failure.diagnosticReason?.name ?: failure.category.name).lowercase()
         val previous = MDC.getCopyOfContextMap()
         try {
             MDC.put("dynastyOperation", operation)
@@ -41,7 +54,8 @@ internal class DynastyCallDiagnostics(private val operation: String) {
             httpStatus?.let { MDC.put("httpStatus", it.toString()) }
             requestId?.let { MDC.put("dynastyRequestId", it) }
             exceptionType?.let { MDC.put("exceptionType", it) }
-            log.error("Dynasty call failed [operation={}, reason={}, httpStatus={}]", operation, reason, httpStatus)
+            val responseDetails = errorResponseBody?.let { " responseBody=$it" }.orEmpty()
+            log.error("Dynasty call failed [operation={}, reason={}, httpStatus={}]{}", operation, reason, httpStatus, responseDetails)
         } finally {
             if (previous == null) MDC.clear() else MDC.setContextMap(previous)
         }

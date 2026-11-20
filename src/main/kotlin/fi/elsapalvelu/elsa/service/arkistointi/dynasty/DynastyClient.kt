@@ -224,10 +224,11 @@ class DynastyClient internal constructor(
         throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
     }
 
-    private fun retryAfterUnauthorized(statusCode: Int, attempt: Int): Boolean {
+    private fun DynastyCallDiagnostics.retryAfterUnauthorized(statusCode: Int, attempt: Int): Boolean {
         if (statusCode != 401) return false
         invalidate()
         if (attempt != 0) throw DynastyFailure(DynastyFailureCategory.AUTH_FAILED)
+        logUnauthorizedRetry()
         return true
     }
 
