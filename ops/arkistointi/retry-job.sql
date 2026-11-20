@@ -2,7 +2,8 @@
 -- For ARCHIVE_EXECUTION_LOST, stop/drain the old sender and reconcile remote receipt before retrying.
 -- Only parked tasks are eligible. Never recreate a missing scheduler row here.
 -- error_code/last_error retain the last failure until success or a later failure replaces it.
-\set ON_ERROR_STOP on
+-- \set ON_ERROR_STOP on
+-- \set job_id '07815114-d5a6-413d-bf43-30b4761cfcf2'
 BEGIN;
 CREATE TEMP TABLE archive_retry_input ON COMMIT DROP AS
 SELECT :'job_id'::uuid AS job_id;

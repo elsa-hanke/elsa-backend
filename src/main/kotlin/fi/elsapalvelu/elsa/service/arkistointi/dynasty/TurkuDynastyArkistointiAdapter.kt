@@ -13,4 +13,4 @@ class TurkuDynastyArkistointiAdapter(
     metadata: TurkuDynastyMetadataMapper,
     steps: DynastyStepExecutor,
     properties: ApplicationProperties
-) : DynastyArkistointiAdapter(DynastyDestination.TURKU, client, metadata, steps, properties)
+) : DynastyArkistointiAdapter(DynastyArchiveProfile.TURKU, client, metadata, steps, properties)

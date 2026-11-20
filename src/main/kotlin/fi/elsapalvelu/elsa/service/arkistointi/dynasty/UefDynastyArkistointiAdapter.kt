@@ -13,4 +13,4 @@ class UefDynastyArkistointiAdapter(
     metadata: UefDynastyMetadataMapper,
     steps: DynastyStepExecutor,
     properties: ApplicationProperties
-) : DynastyArkistointiAdapter(DynastyDestination.UEF, client, metadata, steps, properties)
+) : DynastyArkistointiAdapter(DynastyArchiveProfile.UEF, client, metadata, steps, properties)

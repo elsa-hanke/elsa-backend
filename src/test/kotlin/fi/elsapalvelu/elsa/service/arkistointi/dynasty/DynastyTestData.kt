@@ -24,7 +24,7 @@ const val DYNASTY_TEST_TOKEN_RESPONSE = """{"access_token":"test","expires_in":9
 fun dynastyTestProperties(
     baseUrl: String, university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO
 ): ApplicationProperties = ApplicationProperties().apply {
-    val archive = DynastyDestination.from(university).archiveProperties(getArkistointi())
+    val archive = DynastyArchiveProfile.from(university).archiveProperties(getArkistointi())
     archive.dynasty.apply {
         this.baseUrl = baseUrl.trimEnd('/')
         tokenUrl = "${this.baseUrl}/token"

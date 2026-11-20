@@ -12,16 +12,16 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExec
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 
 open class DynastyArkistointiAdapter internal constructor(
-    private val destination: DynastyDestination,
+    private val archiveProfile: DynastyArchiveProfile,
     private val client: DynastyClient,
     private val metadata: DynastyMetadataMapper,
     private val steps: DynastyStepExecutor,
     properties: ApplicationProperties
 ) : ArkistointiAdapter {
-    private val settings = destination.archiveProperties(properties.getArkistointi()).dynasty
-    final override val university: YliopistoEnum = destination.university
+    private val settings = archiveProfile.archiveProperties(properties.getArkistointi()).dynasty
+    final override val university: YliopistoEnum = archiveProfile.university
     override val canResumeAfterSuccessPersistenceFailure = true
-    override val supportedCaseTypes = destination.supportedCaseTypes
+    override val supportedCaseTypes = archiveProfile.supportedCaseTypes
 
     override fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {
         client.validateConfiguration()
@@ -57,8 +57,8 @@ open class DynastyArkistointiAdapter internal constructor(
         val documents = submission.asiakirjat.zip(plan.documents)
         val execution = submission.execution
         val main = documents.first()
-        val tosDriven = destination.documentLinking == DynastyDestination.DocumentLinking.TOS_PHASE
-        val mainType = destination.profile(submission.caseType).documentTypes.getValue(main.first.asiakirjatyyppi)
+        val tosDriven = archiveProfile.documentLinking == DynastyArchiveProfile.DocumentLinking.TOS_PHASE
+        val mainType = archiveProfile.caseProfile(submission.caseType).documentTypes.getValue(main.first.asiakirjatyyppi)
         val savedCase = if (tosDriven) steps.existing(execution, settings.inProgressGrace, DynastyStepKey.Case) else null
         val savedMain = if (tosDriven) existingTosDocument(execution, main.first.jarjestysnumero) else null
         val tosPhase = if (tosDriven && savedMain == null) client.resolveTosPhase(plan.tosClass, plan.task, mainType) else null

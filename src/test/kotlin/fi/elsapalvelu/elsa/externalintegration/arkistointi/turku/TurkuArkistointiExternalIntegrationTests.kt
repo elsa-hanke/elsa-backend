@@ -7,7 +7,7 @@ import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.DynastyArkist
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.DynastyExternalTestConfiguration
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.externalDynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDestination
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArchiveProfile
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.TurkuDynastyArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 import org.junit.jupiter.params.ParameterizedTest
@@ -40,7 +40,7 @@ class TurkuArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestS
 class TurkuArkistointiExternalIntegrationTestApplication {
     @Bean
     fun turkuDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper, clock: Clock): DynastyClient {
-        val settings = DynastyDestination.TURKU.archiveProperties(properties.getArkistointi()).dynasty
+        val settings = DynastyArchiveProfile.TURKU.archiveProperties(properties.getArkistointi()).dynasty
         return externalDynastyClient(settings, mapper, clock, forceHttp11 = true)
     }
 }
