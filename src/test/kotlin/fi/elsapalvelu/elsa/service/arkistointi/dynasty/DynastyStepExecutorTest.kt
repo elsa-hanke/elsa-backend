@@ -89,7 +89,8 @@ class DynastyStepExecutorTest {
         assertThat(thrown).isSameAs(failure)
         verify(ledger).abandon(any(), any(), any())
         verify(ledger, never()).complete(any(), any(), any(), anyOrNull())
-        assertThat(appender.list.single().formattedMessage)
-            .isEqualTo("Dynasty step failed [jobId=$jobId, step=TASK, category=CONNECTION_FAILED]")
+        val event = appender.list.single()
+        assertThat(event.level).isEqualTo(Level.ERROR)
+        assertThat(event.formattedMessage).isEqualTo("Dynasty step failed [jobId=$jobId, step=TASK, category=CONNECTION_FAILED]")
     }
 }

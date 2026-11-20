@@ -43,13 +43,14 @@ class ArkistointiJobObserver(
                 log.error("Archive job requires intervention [{}]", details)
                 publish(event, code, terminal = true)
             }
-            RETRYABLE_FAILURE ->
+            RETRYABLE_FAILURE -> {
                 if (event.attempt in alertAttempts) {
-                    log.warn("Archive delivery delayed [{}]", details)
+                    log.error("Archive delivery delayed [{}]", details)
                     publish(event, code, terminal = false)
                 } else {
-                    log.info("Archive attempt committed [{}]", details)
+                    log.error("Archive attempt failed [{}]", details)
                 }
+            }
         }
     }
 
