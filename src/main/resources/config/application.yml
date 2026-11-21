@@ -429,7 +429,7 @@ application:
         token-url: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_TOKEN_URL:https://dynasty-testi.uef.fi/dynasty.identityserver/connect/token}
         client-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_ID:}
         client-secret: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_SECRET:}
-        organization: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION:}
+        organization: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION:0}
         case-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_CASE_SCHEMA_ID:}
         document-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_DOCUMENT_SCHEMA_ID:}
         tutkintoasetukset:

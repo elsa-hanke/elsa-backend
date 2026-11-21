@@ -343,7 +343,7 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     }
 
     private fun dynastySettings(university: YliopistoEnum) =
-        DynastyDestination.from(university).archiveProperties(properties.getArkistointi()).dynasty
+        DynastyArchiveProfile.from(university).archiveProperties(properties.getArkistointi()).dynasty
 
     private fun startAttempt() = schedulerControl.startAttempt()
 

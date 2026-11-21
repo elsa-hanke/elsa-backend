@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDestination
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArchiveProfile
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyStepExecutor
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.TurkuDynastyArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
@@ -79,7 +79,7 @@ class AsyncArchiveEnvironmentConfigurationTest {
         runner().withPropertyValues("spring.profiles.active=prod").run { context ->
             assertThat(context).hasNotFailed()
             val archive = context.getBean(ApplicationProperties::class.java).getArkistointi()
-            val dynasty = DynastyDestination.valueOf(destination).archiveProperties(archive).dynasty
+            val dynasty = DynastyArchiveProfile.valueOf(destination).archiveProperties(archive).dynasty
             assertThat(dynasty.baseUrl).isEqualTo("https://$host/dynasty.externalinterface.archive.oauth")
             assertThat(dynasty.tokenUrl).isEqualTo("https://$host/dynasty.identityserver/connect/token")
         }
@@ -96,7 +96,7 @@ class AsyncArchiveEnvironmentConfigurationTest {
         )).withPropertyValues("spring.profiles.active=prod").run { context ->
             assertThat(context).hasNotFailed()
             val archive = context.getBean(ApplicationProperties::class.java).getArkistointi()
-            val dynasty = DynastyDestination.valueOf(destination).archiveProperties(archive).dynasty
+            val dynasty = DynastyArchiveProfile.valueOf(destination).archiveProperties(archive).dynasty
             assertThat(dynasty.baseUrl).isEqualTo(baseUrl)
             assertThat(dynasty.tokenUrl).isEqualTo(tokenUrl)
         }

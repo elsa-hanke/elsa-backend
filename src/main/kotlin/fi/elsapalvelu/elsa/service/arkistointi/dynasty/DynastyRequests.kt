@@ -15,8 +15,16 @@ class DynastyCaseModel(
     @get:JsonProperty("AD") val additionalData: DynastyAdditionalData,
     val publicityClassId: String = "J",
     val publicityClassName: String = "Julkinen",
-    val manner: String = "M"
+    val manner: String = "M",
+    @get:JsonInclude(JsonInclude.Include.NON_NULL) val retentionPeriodLength: Int? = null,
+    @get:JsonProperty("RetentionPeriod")
+    @get:JsonInclude(JsonInclude.Include.NON_NULL) val retentionPeriod: DynastyCaseRetentionPeriod? = null
 )
+
+class DynastyCaseRetentionPeriod(end: LocalDate) {
+    @get:JsonProperty("End")
+    val end: String = end.atStartOfDay().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+}
 
 class DynastyTaskRequest(val title: String)
 
@@ -66,7 +74,10 @@ class DynastyDocumentMetadata(
     val personalData: String = "Sisältää henkilötietoja",
     val state: Int = 3,
     @get:JsonProperty("SecrecyPeriod") @get:JsonInclude(JsonInclude.Include.NON_NULL) val secrecyPeriod: DynastySecrecyPeriod? = null,
-    @get:JsonProperty("DeliveryType") @get:JsonInclude(JsonInclude.Include.NON_NULL) val deliveryType: String? = null
+    @get:JsonProperty("DeliveryType") @get:JsonInclude(JsonInclude.Include.NON_NULL) val deliveryType: String? = null,
+    @get:JsonInclude(JsonInclude.Include.NON_NULL) val secrecyPeriodRule: String? = null,
+    @get:JsonInclude(JsonInclude.Include.NON_NULL) val secrecyPeriodLength: Int? = null,
+    @get:JsonInclude(JsonInclude.Include.NON_NULL) val secrecyReason: List<String>? = null
 ) : DynastyDocumentRequestMetadata
 
 class DynastyTosDocumentMetadata(

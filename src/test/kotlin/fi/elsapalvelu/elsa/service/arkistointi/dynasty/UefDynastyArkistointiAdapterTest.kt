@@ -54,7 +54,8 @@ class UefDynastyArkistointiAdapterTest {
         )
         assertThat(case["AD"]["UEFkoulutusohjelma"].asText()).isEqualTo(programme)
         assertThat(case["AD"]["UEFtiedekunta"].asText()).isEqualTo("Terveystieteiden tiedekunta")
-        assertThat(case.has("retentionPeriodLength")).isFalse()
+        assertThat(case["retentionPeriodLength"].asInt()).isEqualTo(-1)
+        assertThat(case["RetentionPeriod"]["End"].asText()).isEqualTo("9999-12-31T00:00:00")
 
         assertThat(summary["title"]).isEqualTo(case["title"])
         assertThat(summary["AD"]["UEFalkamispaiva"].asText()).isEqualTo("2020-01-01")
@@ -82,11 +83,14 @@ class UefDynastyArkistointiAdapterTest {
         assertThat(plan.tosClass).isEqualTo("03.11")
         assertThat(plan.task).isEqualTo("ELSA Koejaksojen yhteenvedot")
         assertThat(document["title"]).isEqualTo(case["title"])
-        assertThat(document["documentType"].asText()).isEqualTo("Koejakson vastuuhenkilön arvio")
+        assertThat(document["documentType"].asText()).isEqualTo("Lausunto")
         assertThat(document["publicityClassId"].asText()).isEqualTo("test-secret")
         assertThat(document["publicityClassName"].asText()).isEqualTo("Osittain salassa pidettävä")
         assertThat(document["retentionPeriodLength"].asInt()).isEqualTo(-1)
         assertThat(document["retentionPeriodRule"].asText()).isEqualTo("Asiakirjan päivämäärä (luontipvm)")
+        assertThat(document["secrecyPeriodLength"].asInt()).isEqualTo(100)
+        assertThat(document["secrecyPeriodRule"].asText()).isEqualTo("Asiakirjan päivämäärä")
+        assertThat(document["secrecyReason"].single().asText()).isEqualTo("JulkL 24.1 § 30 kohta (henk. koht. omin, oppilashuolto)")
         val start = java.time.LocalDateTime.parse(document["SecrecyPeriod"]["Start"].asText())
         assertThat(java.time.LocalDateTime.parse(document["SecrecyPeriod"]["End"].asText())).isEqualTo(start.plusYears(100))
         assertThat(document["AD"]["UEFhyvaksymispaiva"].asText()).isEqualTo("2026-10-31")
@@ -151,13 +155,12 @@ class UefDynastyArkistointiAdapterTest {
             mapper.dynastyMultipartJson(body, "MetaData")
         }
         assertThat(documents.map { it["documentType"].asText() }).containsExactly(
-            "Valmistumisen yhteenveto, EL, EHL tai YEK (valmistumispyyntö)",
-            "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK",
-            "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK"
+            "Yhteenveto", "Liite", "Liite"
         )
         assertThat(documents.map { it["retentionPeriodLength"].asInt() }).containsExactly(20, 10, 10)
         assertThat(documents).allSatisfy {
             assertThat(it["state"].asInt()).isEqualTo(3)
+            assertThat(it["DeliveryType"].asText()).isEqualTo("M")
             assertThat(it["schemaId"].asText()).isEqualTo("document-schema")
             assertThat(it["retentionPeriodRule"].asText()).isEqualTo("Asian lopullinen ratkaisu")
         }
