@@ -57,7 +57,7 @@ class SamlMigrationTest {
             addHeader("X-Forwarded-Host", "elsapalvelu.fi")
             addHeader("X-Forwarded-Port", "443")
         }
-        ForwardedHeaderFilter().doFilter(request, MockHttpServletResponse()) { forwarded, _ ->
+        ForwardedHeaderFilter(false).doFilter(request, MockHttpServletResponse()) { forwarded, _ ->
             val externalRequest = forwarded as HttpServletRequest
             RequestContextHolder.setRequestAttributes(ServletRequestAttributes(externalRequest))
             val authnRequest = requireNotNull(resolver.resolve<AbstractSaml2AuthenticationRequest>(externalRequest))
