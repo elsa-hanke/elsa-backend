@@ -6,11 +6,12 @@ import org.springframework.http.ProblemDetail
 import org.springframework.http.converter.HttpMessageConverter
 import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
+import org.springframework.http.server.ServletServerHttpRequest
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice
 import java.net.URI
 
-/** Preserves the explicit problem type in the REST contract after Spring 7 made it optional. */
+/** Preserves the default problem type and request path in the REST error contract. */
 @ControllerAdvice
 class ProblemDetailResponseAdvice : ResponseBodyAdvice<Any> {
 
@@ -24,8 +25,13 @@ class ProblemDetailResponseAdvice : ResponseBodyAdvice<Any> {
         request: ServerHttpRequest,
         response: ServerHttpResponse
     ): Any? {
-        if (body is ProblemDetail && body.type == null) {
-            body.type = URI.create("about:blank")
+        if (body is ProblemDetail) {
+            if (body.type == null) {
+                body.type = URI.create("about:blank")
+            }
+            if (body.instance == null && request is ServletServerHttpRequest) {
+                body.instance = URI.create(request.servletRequest.requestURI)
+            }
         }
         return body
     }
