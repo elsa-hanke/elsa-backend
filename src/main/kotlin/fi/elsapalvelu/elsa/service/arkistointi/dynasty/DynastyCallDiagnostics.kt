@@ -29,7 +29,7 @@ internal class DynastyCallDiagnostics(private val operation: String) {
             .firstOrNull(requestIdFormat::matches)
         if (!response.isSuccessful) {
             try {
-                errorResponseBody = response.body?.string()
+                errorResponseBody = response.body.string()
             } catch (exception: IOException) {
                 recordException(exception)
             }

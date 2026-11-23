@@ -34,9 +34,9 @@ class TurkuDynastyResponseLoggingInterceptorTest {
             server.enqueue(MockResponse().setBody(tokenBody))
             server.enqueue(MockResponse().setResponseCode(401).setBody(caseBody))
 
-            assertThat(client.newCall(tokenRequest).execute().use { it.body?.string() }).isEqualTo(errorBody)
-            assertThat(client.newCall(tokenRequest).execute().use { it.body?.string() }).isEqualTo(tokenBody)
-            assertThat(client.newCall(caseRequest).execute().use { it.body?.string() }).isEqualTo(caseBody)
+            assertThat(client.newCall(tokenRequest).execute().use { it.body.string() }).isEqualTo(errorBody)
+            assertThat(client.newCall(tokenRequest).execute().use { it.body.string() }).isEqualTo(tokenBody)
+            assertThat(client.newCall(caseRequest).execute().use { it.body.string() }).isEqualTo(caseBody)
 
             assertThat(output).hasSize(3)
             assertThat(output[0]).contains("POST $tokenUrl -> HTTP 400", "invalid_client", "Rejected <redacted> with <redacted>")

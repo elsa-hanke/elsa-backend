@@ -57,7 +57,7 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
 
     private fun handleResponse(response: Response, endpointUrl: String): OpintosuorituksetPersistenceDTO? {
         if (!response.isSuccessful) {
-            log.error("$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} ${response.body?.string()}")
+            log.error("$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} ${response.body.string()}")
             if (response.code in HTTP_SERVER_ERROR_RANGE) {
                 recordInternalServerErrorFailure(endpointUrl, response.code)
             } else {
@@ -72,7 +72,7 @@ class SisuTreOpintosuorituksetFetchingServiceImpl(
             IntegrationAlertKey.SISU_TRE_INTERNAL_SERVER_ERROR,
             endpointUrl
         )
-        return response.body?.string().let { body ->
+        return response.body.string().let { body ->
             objectMapper.readValue(body, AttainmentsResponse::class.java)
                 ?.let { attainmentsResponse -> toOpintosuorituksetPersistenceDTO(attainmentsResponse) }
         }

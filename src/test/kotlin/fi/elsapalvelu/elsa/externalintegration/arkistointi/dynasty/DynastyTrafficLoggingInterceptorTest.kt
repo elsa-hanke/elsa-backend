@@ -31,7 +31,7 @@ class DynastyTrafficLoggingInterceptorTest {
                 .post("client_id=test-client-id&client_secret=test-client-secret".toRequestBody()).build()
 
             client.newCall(request).execute().use { response ->
-                assertThat(response.body?.string()).isEqualTo(body)
+                assertThat(response.body.string()).isEqualTo(body)
             }
 
             assertThat(logs).hasSize(3)
@@ -53,7 +53,7 @@ class DynastyTrafficLoggingInterceptorTest {
             val request = Request.Builder().url(server.url("/token")).build()
 
             loggingClient(logs).newCall(request).execute().use { response ->
-                assertThat(response.body?.string()).isEqualTo(body)
+                assertThat(response.body.string()).isEqualTo(body)
             }
 
             assertThat(logs.last()).startsWith("Dynasty error response body: Remote error ").endsWith(" [truncated]")
@@ -72,7 +72,7 @@ class DynastyTrafficLoggingInterceptorTest {
                 .post("private document payload".toRequestBody()).build()
 
             loggingClient(logs).newCall(request).execute().use { response ->
-                assertThat(response.body?.string()).isEqualTo(body)
+                assertThat(response.body.string()).isEqualTo(body)
             }
 
             assertThat(logs).hasSize(2)

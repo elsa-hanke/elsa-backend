@@ -69,7 +69,7 @@ class SisuTreAuthenticationTokenServiceImpl(
         try {
             return sisuTreAuthTokenClientBuilder.okHttpClient().newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    val responseBody = response.body?.string()
+                    val responseBody = response.body.string()
                     log.error("$JSON_FETCHING_ERROR: $endpointUrl $responseBody")
                     publishAuthenticationFailureAlert(
                         response.code,
@@ -78,7 +78,7 @@ class SisuTreAuthenticationTokenServiceImpl(
                     )
                     return null
                 }
-                response.body?.string().let { body ->
+                response.body.string().let { body ->
                     val tokenResponse = objectMapper.readValue(body, TokenResponse::class.java)
                     val accessToken = tokenResponse?.accessToken
                     val expiresIn = tokenResponse?.expiresIn
