@@ -31,6 +31,8 @@ import fi.elsapalvelu.elsa.service.kayttaja.*
 import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.constants.VASTUUHENKILO_NOT_FOUND_ERROR
 import fi.elsapalvelu.elsa.service.criteria.NimiErikoisalaAndAvoinCriteria
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.KeskeytysaikaDTO
+import fi.elsapalvelu.elsa.service.dto.tyoskentely.TyoskentelyjaksoDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.TerveyskeskuskoulutusjaksoSimpleDTO
 import fi.elsapalvelu.elsa.service.dto.valmistuminen.TerveyskeskuskoulutusjaksonHyvaksyntaDTO
 import fi.elsapalvelu.elsa.service.dto.enumeration.TerveyskeskuskoulutusjaksoTila
@@ -211,7 +213,7 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
                 laillistamispaivanLiitteenTyyppi = it.erikoistuvaLaakari?.laillistamispaivanLiitetiedostonTyyppi,
                 asetus = it.asetus?.nimi,
                 terveyskeskuskoulutusjaksonKesto = suoritettuPituus,
-                tyoskentelyjaksot = tyoskentelyjaksot.map(tyoskentelyjaksoMapper::toDto),
+                tyoskentelyjaksot = mapAndSortTyoskentelyjaksot(tyoskentelyjaksot),
                 yleislaaketieteenVastuuhenkilonNimi = vastuuhenkilo.nimi,
                 yleislaaketieteenVastuuhenkilonNimike = vastuuhenkilo.nimike
             )
@@ -443,12 +445,31 @@ class TerveyskeskuskoulutusjaksonHyvaksyntaServiceImpl(
         result.terveyskeskuskoulutusjaksonKesto = suoritettuPituus
         result.yleislaaketieteenVastuuhenkilonNimi = vastuuhenkilo.nimi
         result.yleislaaketieteenVastuuhenkilonNimike = vastuuhenkilo.nimike
-        result.tyoskentelyjaksot = tyoskentelyjaksot.map(tyoskentelyjaksoMapper::toDto)
+        result.tyoskentelyjaksot = mapAndSortTyoskentelyjaksot(tyoskentelyjaksot)
         result.tila = TerveyskeskuskoulutusjaksoTila.fromHyvaksynta(hyvaksynta)
         result.opintooikeusId = hyvaksynta.opintooikeus?.id
         result.erikoisalaId = hyvaksynta.opintooikeus?.erikoisala?.id
 
         return result
+    }
+
+    private fun mapAndSortTyoskentelyjaksot(tyoskentelyjaksot: List<Tyoskentelyjakso>): List<TyoskentelyjaksoDTO> {
+        val jaksoComparator = compareBy<TyoskentelyjaksoDTO, LocalDate?>(nullsLast()) { it.alkamispaiva }
+            .thenBy(nullsLast()) { it.paattymispaiva }
+            .thenBy(nullsLast()) { it.id }
+
+        val poissaoloComparator = compareBy<KeskeytysaikaDTO, LocalDate?>(nullsLast()) { it.alkamispaiva }
+            .thenBy(nullsLast()) { it.paattymispaiva }
+            .thenBy(nullsLast()) { it.id }
+
+        return tyoskentelyjaksot
+            .map(tyoskentelyjaksoMapper::toDto)
+            .map { jakso ->
+                jakso.apply {
+                    poissaolot = poissaolot?.sortedWith(poissaoloComparator)
+                }
+            }
+            .sortedWith(jaksoComparator)
     }
 
     private fun getKokonaispituus(tyoskentelyjaksot: List<Tyoskentelyjakso>): Double {
