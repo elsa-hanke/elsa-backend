@@ -58,7 +58,7 @@ class SamlFilterChainIT {
 
     private val mockMvc: MockMvc by lazy {
         MockMvcBuilders.webAppContextSetup(context)
-            .addFilters<DefaultMockMvcBuilder>(ForwardedHeaderFilter(), securityFilterChain)
+            .addFilters<DefaultMockMvcBuilder>(ForwardedHeaderFilter(false), securityFilterChain)
             .build()
     }
 

@@ -43,11 +43,11 @@ class PeppiCommonOpintotietodataFetchingServiceImpl(
                 if (!response.isSuccessful) {
                     log.error(
                         "$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} " +
-                            response.body?.string()
+                            response.body.string()
                     )
                     return null
                 }
-                response.body?.string().let { body ->
+                response.body.string().let { body ->
                     objectMapper.readValue(body, Student::class.java)?.let { student ->
                         val acceptedEntitlements = student.entitlements?.filter { entitlement ->
                             entitlement.koulutusKoodi == ERIKOISTUVA_LAAKARI_PEPPI_KOULUTUS ||

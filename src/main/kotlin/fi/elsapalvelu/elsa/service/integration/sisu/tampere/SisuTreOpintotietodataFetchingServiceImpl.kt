@@ -57,7 +57,7 @@ class SisuTreOpintotietodataFetchingServiceImpl(
 
     private fun handleResponse(response: Response, endpointUrl: String): OpintotietodataDTO? {
         if (!response.isSuccessful) {
-            log.error("$JSON_FETCHING_ERROR: $endpointUrl ${response.body?.string()}")
+            log.error("$JSON_FETCHING_ERROR: $endpointUrl ${response.body.string()}")
             if (response.code in HTTP_SERVER_ERROR_RANGE) {
                 recordInternalServerErrorFailure(endpointUrl, response.code)
             } else {
@@ -72,7 +72,7 @@ class SisuTreOpintotietodataFetchingServiceImpl(
             IntegrationAlertKey.SISU_TRE_INTERNAL_SERVER_ERROR,
             endpointUrl
         )
-        return response.body?.string().let { body ->
+        return response.body.string().let { body ->
             objectMapper.readValue(body, StudyRightsResponse::class.java)?.let { studyRightResponse ->
                 toOpintotietodataDTO(studyRightResponse)
             }

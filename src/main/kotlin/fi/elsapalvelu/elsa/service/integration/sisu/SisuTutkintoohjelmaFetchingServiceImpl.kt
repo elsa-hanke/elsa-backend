@@ -34,14 +34,14 @@ class SisuTutkintoohjelmaFetchingServiceImpl(
             log.info("Haetaan erikoisalojen Sisu tutkinto-ohjelma id:t rajapinnasta $endpointUrl")
             return sisuHyClientBuilder.okHttpClient().newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    log.error("$JSON_FETCHING_ERROR $endpointUrl ${response.body?.string()}")
+                    log.error("$JSON_FETCHING_ERROR $endpointUrl ${response.body.string()}")
                     if (response.code in HTTP_CLIENT_ERROR_RANGE && response.code != HTTP_UNAUTHORIZED) {
                         publishFetchingFailureAlert(endpointUrl, "HTTP status: ${response.code}.")
                     }
                     return null
                 }
                 integrationAlertService.markSuccessful(IntegrationAlertKey.SISU_HY_AUTHENTICATION)
-                response.body?.string().let {
+                response.body.string().let {
                     objectMapper.readValue(it, Qualifications::class.java).also {
                         integrationAlertService.markSuccessful(
                             IntegrationAlertKey.SISU_HY_QUALIFICATION_EXPORT

@@ -44,7 +44,7 @@ class PeppiCommonOpintosuorituksetFetchingServiceImpl(
 
         try {
             return client.newCall(request).execute().use { response ->
-                val body = response.body?.string()
+                val body = response.body.string()
                 if (!response.isSuccessful) {
                     log.error(
                         "$JSON_FETCHING_ERROR: $endpointUrl${currentUserIdLogField()} " +
