@@ -71,6 +71,8 @@ ext {
 dependencyManagement {
     imports {
         mavenBom "io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}"
+        // Keep the OkHttp client, TLS helper and test server on the same release.
+        mavenBom "com.squareup.okhttp3:okhttp-bom:${okhttpVersion}"
     }
     dependencies {
         // Keep the crypto modules used by SAML and iText on the same release.
@@ -191,7 +193,7 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
     testImplementation "org.springframework.boot:spring-boot-starter-security-test"
     testImplementation "org.springframework.boot:spring-boot-starter-data-jpa-test"
-    testImplementation "com.squareup.okhttp3:mockwebserver:${okhttpVersion}"
+    testImplementation "com.squareup.okhttp3:mockwebserver"
     testImplementation "org.testcontainers:testcontainers-jdbc"
     testImplementation "org.testcontainers:testcontainers-postgresql"
     testImplementation "com.tngtech.archunit:archunit:${archunitVersion}"
@@ -208,7 +210,8 @@ dependencies {
     implementation "org.fluentd:fluent-logger:0.3.4"
     implementation "com.sndyuk:logback-more-appenders:1.8.6"
     implementation "com.apollographql.apollo:apollo-runtime:${apolloVersion}"
-    implementation "com.squareup.okhttp3:okhttp-tls:${okhttpVersion}"
+    implementation "com.squareup.okhttp3:okhttp"
+    implementation "com.squareup.okhttp3:okhttp-tls"
     implementation "net.javacrumbs.shedlock:shedlock-spring:4.33.0"
     implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.33.0"
     implementation "com.itextpdf:kernel:${itextVersion}"

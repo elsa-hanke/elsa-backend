@@ -16,6 +16,7 @@ import fi.elsapalvelu.elsa.service.integration.sisu.SisuTutkintoohjelmaFetchingS
 import fi.elsapalvelu.elsa.service.kayttaja.AlertPublisherService
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -45,6 +46,9 @@ import org.springframework.test.context.ActiveProfiles
 class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() {
 
     @Autowired
+    private lateinit var applicationProperties: ApplicationProperties
+
+    @Autowired
     private lateinit var sisuHyOpintotietodataFetchingServiceImpl: SisuHyOpintotietodataFetchingServiceImpl
 
     @Autowired
@@ -62,6 +66,14 @@ class SisuHyExternalIntegrationTests : FetchingServiceExternalIntegrationBase() 
 
     @Autowired
     private lateinit var sisuTutkintoohjelmaFetchingService: SisuTutkintoohjelmaFetchingService
+
+    @BeforeEach
+    fun logGraphqlEndpoint() {
+        log.info(
+            "Configured Sisu HY GraphQL endpoint: {}",
+            applicationProperties.getSecurity().getSisuHy().graphqlEndpointUrl
+        )
+    }
 
     @Test
     fun shouldFetchTutkintoohjelmatWithoutErrors() {

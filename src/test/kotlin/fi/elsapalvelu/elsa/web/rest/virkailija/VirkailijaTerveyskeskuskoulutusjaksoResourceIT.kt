@@ -22,6 +22,7 @@ import fi.elsapalvelu.elsa.web.rest.common.KayttajaResourceWithMockUserIT
 import fi.elsapalvelu.elsa.web.rest.findAll
 import fi.elsapalvelu.elsa.web.rest.helpers.ErikoistuvaLaakariHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KayttajaHelper
+import fi.elsapalvelu.elsa.web.rest.helpers.KeskeytysaikaHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.KoejaksonVaiheetHelper
 import fi.elsapalvelu.elsa.web.rest.helpers.TyoskentelyjaksoHelper
 import jakarta.persistence.EntityManager
@@ -197,6 +198,70 @@ class VirkailijaTerveyskeskuskoulutusjaksoResourceIT {
             .andExpect(jsonPath("$.yleislaaketieteenVastuuhenkilonNimike").value(vastuuhenkilo.nimike))
             .andExpect(jsonPath("$.tila").value(TerveyskeskuskoulutusjaksoTila.ODOTTAA_VIRKAILIJAN_TARKISTUSTA.toString()))
             .andExpect(jsonPath("$.korjausehdotus").doesNotExist())
+    }
+
+    @Test
+    @Transactional
+    fun getTerveyskeskuskoulutusjaksoOrdersTyoskentelyjaksotAndPoissaolotChronologically() {
+        initTest()
+
+        val id = terveyskeskuskoulutusjaksonHyvaksynta.id
+        assertNotNull(id)
+
+        val erikoistuvaUser = terveyskeskuskoulutusjaksonHyvaksynta.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user
+
+        // Create later working period (persisted first)
+        val tyoskentelyjaksoLater = TyoskentelyjaksoHelper.createEntity(
+            em,
+            alkamispaiva = LocalDate.of(2023, 1, 1),
+            paattymispaiva = LocalDate.of(2023, 12, 31),
+            user = erikoistuvaUser,
+            kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
+        )
+        em.persist(tyoskentelyjaksoLater)
+
+        // Create earlier working period (persisted second)
+        val tyoskentelyjaksoEarlier = TyoskentelyjaksoHelper.createEntity(
+            em,
+            alkamispaiva = LocalDate.of(2021, 1, 1),
+            paattymispaiva = LocalDate.of(2021, 12, 31),
+            user = erikoistuvaUser,
+            kaytannonKoulutus = KaytannonKoulutusTyyppi.TERVEYSKESKUSTYO
+        )
+        em.persist(tyoskentelyjaksoEarlier)
+
+        // Add keskeytykset in non-chronological order: later one first, earlier second
+        val keskeytysLater = KeskeytysaikaHelper.createEntity(em, tyoskentelyjaksoEarlier).apply {
+            alkamispaiva = LocalDate.of(2021, 8, 1)
+            paattymispaiva = LocalDate.of(2021, 8, 15)
+        }
+        em.persist(keskeytysLater)
+
+        val keskeytysEarlier = KeskeytysaikaHelper.createEntity(em, tyoskentelyjaksoEarlier).apply {
+            alkamispaiva = LocalDate.of(2021, 3, 1)
+            paattymispaiva = LocalDate.of(2021, 3, 15)
+        }
+        em.persist(keskeytysEarlier)
+
+        tyoskentelyjaksoEarlier.keskeytykset.add(keskeytysLater)
+        tyoskentelyjaksoEarlier.keskeytykset.add(keskeytysEarlier)
+        em.merge(tyoskentelyjaksoEarlier)
+
+        restKoejaksoMockMvc.perform(
+            get(
+                "/api/virkailija/terveyskeskuskoulutusjakso/{id}", id
+            )
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.tyoskentelyjaksot").value(Matchers.hasSize<Any>(3)))
+            // Chronological order: 1970-01-01 (from initTest), 2021-01-01, 2023-01-01
+            .andExpect(jsonPath("$.tyoskentelyjaksot[0].alkamispaiva").value(LocalDate.ofEpochDay(0L).toString()))
+            .andExpect(jsonPath("$.tyoskentelyjaksot[1].alkamispaiva").value("2021-01-01"))
+            .andExpect(jsonPath("$.tyoskentelyjaksot[1].poissaolot").value(Matchers.hasSize<Any>(2)))
+            .andExpect(jsonPath("$.tyoskentelyjaksot[1].poissaolot[0].alkamispaiva").value("2021-03-01"))
+            .andExpect(jsonPath("$.tyoskentelyjaksot[1].poissaolot[1].alkamispaiva").value("2021-08-01"))
+            .andExpect(jsonPath("$.tyoskentelyjaksot[2].alkamispaiva").value("2023-01-01"))
     }
 
     @Test

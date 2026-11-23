@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.arkistointi.siilo
 
 import fi.elsapalvelu.elsa.service.arkistointi.logging.archiveLogException
 import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpEndpointPolicy
+import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpFailure
 import fi.elsapalvelu.elsa.service.arkistointi.http.ArchiveHttpRequestProgress
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -68,8 +69,9 @@ class HelsinkiSiiloService(
             // No receiver deduplication is assumed for replaying the ZIP.
             val failure = progress.failure(exception)
             val code = if (failure.definitelyNotSent) "SIILO_CONNECTION_FAILED" else "SIILO_DELIVERY_UNCONFIRMED"
-            log.error("Siilo transfer failed [errorCode={}, category={}]", code, siiloIoCategory(exception), archiveLogException(exception))
-            throw SiiloTransferException(code, failure.retryable, category = siiloIoCategory(exception))
+            val category = if (failure == ArchiveHttpFailure.TLS_FAILED) "TLS" else siiloIoCategory(exception)
+            log.error("Siilo transfer failed [errorCode={}, category={}]", code, category, archiveLogException(exception))
+            throw SiiloTransferException(code, failure.retryable, category = category)
         }
     }
 
@@ -120,11 +122,11 @@ class HelsinkiSiiloService(
 
     private fun sendSync(request: Request, url: String) {
         okHttpClient.newCall(request).execute().use { response ->
-            val responseBody = response.body?.string()
+            val responseBody = response.body.string()
             if (!response.isSuccessful) {
                 throw RuntimeException(
                     "HY arkistointi epäonnistui: HTTP ${response.code} ${response.message}, " +
-                        "URL: $url. Palvelimen vastaus: ${responseBody?.take(500) ?: "(tyhjä)"}"
+                        "URL: $url. Palvelimen vastaus: ${responseBody.take(500).ifEmpty { "(tyhjä)" }}"
                 )
             }
             log.info("HY arkistointivastaus: ${response.code} $responseBody")

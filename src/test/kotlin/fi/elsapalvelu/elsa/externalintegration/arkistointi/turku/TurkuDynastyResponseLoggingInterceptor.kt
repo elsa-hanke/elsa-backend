@@ -45,7 +45,7 @@ internal class TurkuDynastyResponseLoggingInterceptor(
         if (body.isEmpty()) return "<empty>"
         if (body.size > MAX_BODY_BYTES) return "<over $MAX_BODY_BYTES bytes>"
 
-        val text = body.toString(response.body?.contentType()?.charset(Charsets.UTF_8) ?: Charsets.UTF_8)
+        val text = body.toString(response.body.contentType()?.charset(Charsets.UTF_8) ?: Charsets.UTF_8)
         val details = if (tokenResponse) oauthErrorDetails(text) else text
         val bearer = request.header("Authorization")?.removePrefix("Bearer ")
         return (credentials + listOfNotNull(bearer)).filter { it.isNotEmpty() }.sortedByDescending { it.length }

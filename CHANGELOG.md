@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.2...HEAD)
 
+- improved diagnostics, error handling, and logging for Dynasty API calls [`#833`](https://github.com/elsa-hanke/elsa-backend/pull/833)(20 November 2026)
+- Uef dynasty [`#832`](https://github.com/elsa-hanke/elsa-backend/pull/832)(19 November 2026)
 - enable TurkuArkistointiExternalIntegrationTests [`#819`](https://github.com/elsa-hanke/elsa-backend/pull/819)(18 November 2026)
 - Release v2.5.X merge [`#831`](https://github.com/elsa-hanke/elsa-backend/pull/831)(18 November 2026)
 - Backendin ylläpidettävyyden parantaminen ja yhteisen toimintalogiikan yhtenäistäminen [`#826`](https://github.com/elsa-hanke/elsa-backend/pull/826)(17 November 2026)

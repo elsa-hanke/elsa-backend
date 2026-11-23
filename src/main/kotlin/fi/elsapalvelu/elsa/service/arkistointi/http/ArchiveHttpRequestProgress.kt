@@ -16,7 +16,8 @@ internal class ArchiveHttpRequestProgress : EventListener() {
 
     fun failure(exception: IOException): ArchiveHttpFailure = when {
         started.get() -> ArchiveHttpFailure.DELIVERY_UNCONFIRMED
-        exception is SSLException -> ArchiveHttpFailure.TLS_FAILED
+        // OkHttp may suppress the TLS failure under a failed connection to another address.
+        exception is SSLException || exception.suppressed.any { it is SSLException } -> ArchiveHttpFailure.TLS_FAILED
         else -> ArchiveHttpFailure.CONNECTION_FAILED
     }
 }

@@ -22,12 +22,11 @@ class ApolloResponseExtensionsTest {
         val response = responseWithErrors(
             Error.Builder("404: Not Found")
                 .path(listOf("private_person_by_personal_identity_code"))
-                .putExtension(
-                    "response",
+                .extensions(
                     mapOf(
-                        "status" to 404,
-                        "body" to mapOf(
-                            "message" to "Person not found with personal identity code"
+                        "response" to mapOf(
+                            "status" to 404,
+                            "body" to mapOf("message" to "Person not found with personal identity code")
                         )
                     )
                 )
@@ -48,12 +47,11 @@ class ApolloResponseExtensionsTest {
         val response = responseWithErrors(
             Error.Builder("404: Not Found")
                 .path(listOf("another_field"))
-                .putExtension(
-                    "response",
+                .extensions(
                     mapOf(
-                        "status" to 404,
-                        "body" to mapOf(
-                            "message" to "Person not found with personal identity code"
+                        "response" to mapOf(
+                            "status" to 404,
+                            "body" to mapOf("message" to "Person not found with personal identity code")
                         )
                     )
                 )
