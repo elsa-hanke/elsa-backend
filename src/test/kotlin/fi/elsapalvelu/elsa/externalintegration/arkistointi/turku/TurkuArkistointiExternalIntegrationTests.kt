@@ -49,7 +49,7 @@ class TurkuArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestS
     @EnumSource(Programme::class)
     fun shouldArchiveKoejaksoWithSecrecyMetadata(programme: Programme) =
         archiveKoejakso(programme) { caseId, documentIds, deliveryDates ->
-            val secrecy = DynastyDocumentReadback.KoejaksoSecrecy(deliveryDates, publicityClassName = "Osittain salassapidettävä")
+            val secrecy = DynastyDocumentReadback.KoejaksoSecrecy(deliveryDates, publicityClassName = "Osittain salassa pidettävä")
             readback.verify(caseId, documentIds, listOf(null), expectedSecrecy = secrecy)
         }
 }

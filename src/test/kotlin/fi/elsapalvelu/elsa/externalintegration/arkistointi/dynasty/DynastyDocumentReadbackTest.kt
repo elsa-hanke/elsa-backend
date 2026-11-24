@@ -25,7 +25,7 @@ class DynastyDocumentReadbackTest {
     private val assessmentIds = listOf("1078")
     private val deliveryDate = LocalDate.of(2026, 11, 19)
     private val expectedSecrecy = DynastyDocumentReadback.KoejaksoSecrecy(
-        deliveryDate..deliveryDate, publicityClassId = "S", publicityClassName = "Osittain salassapidettävä"
+        deliveryDate..deliveryDate, publicityClassId = "S", publicityClassName = "Osittain salassa pidettävä"
     )
 
     @Test
@@ -109,7 +109,7 @@ class DynastyDocumentReadbackTest {
     private fun assessment(): ObjectNode = mapper.readTree(
         """{
             "id":1078,"state":"Archived","schemaID":"$schemaId","documentType":"Lausunto",
-            "publicityClassID":"S","publicityClassName":"Osittain salassapidettävä",
+            "publicityClassID":"S","publicityClassName":"Osittain salassa pidettävä",
             "secrecyPeriod":{"start":"2026-11-18T22:00:00Z","end":"2126-11-19T00:00:00"}
         }"""
     ) as ObjectNode
