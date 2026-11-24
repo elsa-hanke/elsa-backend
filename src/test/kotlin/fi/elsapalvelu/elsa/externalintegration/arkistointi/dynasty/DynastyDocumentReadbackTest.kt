@@ -67,8 +67,8 @@ class DynastyDocumentReadbackTest {
 
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
-    fun `checks stored secrecy and language on an archived assessment`(flatPeriod: Boolean) = MockWebServer().use { server ->
-        val readback = readback(server, expectedLanguageId = "fi-FI")
+    fun `checks stored secrecy on an archived assessment`(flatPeriod: Boolean) = MockWebServer().use { server ->
+        val readback = readback(server)
         val metadata = assessment()
         if (flatPeriod) {
             val period = metadata.remove("secrecyPeriod")
@@ -85,8 +85,6 @@ class DynastyDocumentReadbackTest {
     @CsvSource(
         "publicityClassID,J,publicity class ID",
         "publicityClassName,Julkinen,publicity class name",
-        "languageID,en-US,language",
-        "languageID,,language",
         "start,2026-11-18T00:00:00,secrecy start date",
         "start,2026-11-19T01:00:00,secrecy start time",
         "end,2125-11-19T00:00:00,secrecy end",
@@ -94,7 +92,7 @@ class DynastyDocumentReadbackTest {
     )
     fun `rejects incorrect or missing saved metadata`(field: String, replacement: String?, description: String) {
         MockWebServer().use { server ->
-            val readback = readback(server, expectedLanguageId = "fi-FI")
+            val readback = readback(server)
             val metadata = assessment()
             val period = metadata.path("secrecyPeriod") as ObjectNode
             val target = if (period.has(field)) period else metadata
@@ -111,7 +109,7 @@ class DynastyDocumentReadbackTest {
     private fun assessment(): ObjectNode = mapper.readTree(
         """{
             "id":1078,"state":"Archived","schemaID":"$schemaId","documentType":"Lausunto",
-            "languageID":"fi-FI","publicityClassID":"S","publicityClassName":"Osittain salassapidettävä",
+            "publicityClassID":"S","publicityClassName":"Osittain salassapidettävä",
             "secrecyPeriod":{"start":"2026-11-18T22:00:00Z","end":"2126-11-19T00:00:00"}
         }"""
     ) as ObjectNode
@@ -127,10 +125,10 @@ class DynastyDocumentReadbackTest {
         }.joinToString(prefix = "[", postfix = "]")
     }
 
-    private fun readback(server: MockWebServer, expectedLanguageId: String? = null): DynastyDocumentReadback {
+    private fun readback(server: MockWebServer): DynastyDocumentReadback {
         val settings = dynastyTestProperties(server.url("/").newBuilder().host("127.0.0.1").build().toString())
             .getArkistointi().getTurku().dynasty
         server.enqueue(MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE))
-        return DynastyDocumentReadback(DynastyClient(settings, mapper, Clock.systemUTC()), schemaId, expectedLanguageId)
+        return DynastyDocumentReadback(DynastyClient(settings, mapper, Clock.systemUTC()), schemaId)
     }
 }

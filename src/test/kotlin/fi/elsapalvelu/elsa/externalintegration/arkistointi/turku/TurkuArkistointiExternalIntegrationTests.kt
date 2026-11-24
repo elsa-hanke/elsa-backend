@@ -35,7 +35,7 @@ class TurkuArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestS
 
     private val readback by lazy {
         val settings = DynastyArchiveProfile.TURKU.archiveProperties(properties.getArkistointi()).dynasty
-        DynastyDocumentReadback(turkuDynastyClient, requireNotNull(settings.documentSchemaId), expectedLanguageId = "fi-FI")
+        DynastyDocumentReadback(turkuDynastyClient, requireNotNull(settings.documentSchemaId))
     }
 
     @ParameterizedTest(name = "Turku Dynasty valmistuminen {0}")

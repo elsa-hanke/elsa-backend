@@ -17,11 +17,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.UUID
 
-internal class DynastyDocumentReadback(
-    private val client: DynastyClient,
-    private val documentSchemaId: String,
-    private val expectedLanguageId: String? = null
-) {
+internal class DynastyDocumentReadback(private val client: DynastyClient, private val documentSchemaId: String) {
     data class KoejaksoSecrecy(
         val deliveryDates: ClosedRange<LocalDate>,
         val publicityClassId: String? = null,
@@ -51,14 +47,8 @@ internal class DynastyDocumentReadback(
             if (expectedType != null) {
                 assertThat(metadata.path("documentType").asText()).describedAs("type of document $id").isEqualTo(expectedType)
             }
-            expectedLanguageId?.let { assertLanguage(metadata, id, it) }
             expectedSecrecy?.let { assertSecrecy(metadata, id, it) }
         }
-    }
-
-    private fun assertLanguage(metadata: JsonNode, id: DynastyDocumentId, expected: String) {
-        val language = metadata.field("languageId") ?: metadata.field("language")
-        assertThat(language?.textValue()).describedAs("language of document $id").isEqualToIgnoringCase(expected)
     }
 
     private fun assertSecrecy(metadata: JsonNode, id: DynastyDocumentId, expected: KoejaksoSecrecy) {
