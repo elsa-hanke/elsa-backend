@@ -99,14 +99,14 @@ class DynastySecrecyPeriod(start: LocalDate, end: LocalDate) {
     val end: String = end.atStartOfDay().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
 }
 
-sealed interface DynastyDocumentOptions
+sealed interface DynastyCaseAttachmentOptions
 
-class DynastyMainDocumentOptions(caseId: DynastyCaseId, taskId: DynastyTaskId) : DynastyDocumentOptions {
+class DynastyExplicitPhaseOptions(caseId: DynastyCaseId, phaseId: DynastyTaskId) : DynastyCaseAttachmentOptions {
     @get:JsonProperty("CaseSelector") val caseSelector = DynastyTextSelector(caseId.toString())
-    @get:JsonProperty("PhaseSelector") val phaseSelector = DynastyTextSelector(taskId.toString())
+    @get:JsonProperty("PhaseSelector") val phaseSelector = DynastyTextSelector(phaseId.toString())
 }
 
-class DynastyTosDocumentOptions(caseId: DynastyCaseId, phaseId: DynastyTaskId, tosTitle: String) : DynastyDocumentOptions {
+class DynastyTosPhaseOptions(caseId: DynastyCaseId, phaseId: DynastyTaskId, tosTitle: String) : DynastyCaseAttachmentOptions {
     @get:JsonProperty("CaseSelector")
     val caseSelector = DynastyTosCaseSelector(caseId.numericValue)
 
@@ -121,10 +121,4 @@ class DynastyTosCaseSelector(@get:JsonProperty("Id") val id: Long)
 class DynastyTosPhaseSelector(val smartAttachOptions: DynastySmartAttachOptions)
 class DynastySmartAttachOptions(val pathSelector: List<DynastyTextSelector>)
 
-class DynastyAttachmentOptions(caseId: DynastyCaseId, parentId: DynastyDocumentId) : DynastyDocumentOptions {
-    val caseSelector = DynastyNumericSelector(caseId.numericValue)
-    val parentDocumentSelector = DynastyNumericSelector(parentId.numericValue)
-}
-
 class DynastyTextSelector(@get:JsonProperty("Id") val id: String)
-class DynastyNumericSelector(val id: Long)

@@ -18,7 +18,7 @@ import java.time.Clock
 
 class DynastyDeliveryTest {
     @Test
-    fun `retry resumes rejected attachment and never recreates case or main document`() {
+    fun `retry sends rejected attachment to the TOS phase without recreating case or summary`() {
         MockWebServer().use { server ->
             server.start()
             val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
@@ -30,14 +30,16 @@ class DynastyDeliveryTest {
             listOf("415", "1078").forEach { server.enqueue(MockResponse().setBody(it)) }
             server.enqueue(MockResponse().setResponseCode(403))
             assertThat(adapter.arkistoi(submission)).isInstanceOf(ArkistointiResult.PermanentFailure::class.java)
+            with(TurkuTosFixture.GRADUATION) { server.enqueueLookup() }
             listOf("1079","1080","").forEach { server.enqueue(MockResponse().setBody(it)) }
             assertThat(adapter.arkistoi(submission)).isEqualTo(ArkistointiResult.Success("415"))
-            assertResumedDeliveryRequests(server)
+            assertResumedDeliveryRequests(server, mapper)
         }
     }
 
-    @Test
-    fun `a TOS document title with one space prevents all archive mutations`() {
+    @ParameterizedTest(name = "attachment title only under summary = {0}")
+    @ValueSource(booleans = [false, true])
+    fun `required TOS document titles must match exactly at the top level`(nestedAttachment: Boolean) {
         MockWebServer().use { server ->
             val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
             val ledger = mock<DynastyStepLedger>()
@@ -46,9 +48,14 @@ class DynastyDeliveryTest {
             val phaseId = TurkuTosFixture.PHASE_ID
             server.enqueue(MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE))
             server.enqueue(requireNotNull(fixture.response(fixture.path)))
+            val attachment = """{"title":"${TurkuTosFixture.ATTACHMENT_TITLE}"}"""
+            val documents = if (nestedAttachment) {
+                """{"title":"${fixture.documentTitle}","childs":[$attachment]}"""
+            } else {
+                """{"title":"Valmistumisen yhteenveto, EL, EHL tai YEK"},$attachment"""
+            }
             server.enqueue(MockResponse().setBody(
-                """{"fullCasegroupCode":"${fixture.tosClass}","taskRowId":"$phaseId","thsDocuments":[
-                    {"title":"Valmistumisen yhteenveto, EL, EHL tai YEK"}]}"""
+                """{"fullCasegroupCode":"${fixture.tosClass}","taskRowId":"$phaseId","thsDocuments":[$documents]}"""
             ))
 
             val result = adapter.arkistoi(dynastySubmission(mapper)) as ArkistointiResult.PermanentFailure
@@ -106,22 +113,32 @@ class DynastyDeliveryTest {
         return ledger
     }
 
-    private fun assertResumedDeliveryRequests(server: MockWebServer) {
-        val requests = (1..9).map { server.takeRequest() }
+    private fun assertResumedDeliveryRequests(server: MockWebServer, mapper: ObjectMapper) {
+        assertThat(server.requestCount).isEqualTo(11)
+        val requests = List(server.requestCount) { server.takeRequest() }
         assertThat(requests.count { it.path!!.startsWith("/api/v1/cases?") }).isEqualTo(1)
         val lookups = requests.filter { it.method == "GET" }
-        assertThat(lookups.map { it.path }).containsExactly(
-            TurkuTosFixture.GRADUATION.path, "${TurkuTosFixture.GRADUATION.path}/${TurkuTosFixture.PHASE_ID}/documenttypes"
-        )
+        val phasePath = TurkuTosFixture.GRADUATION.path
+        val typesPath = "$phasePath/${TurkuTosFixture.PHASE_ID}/documenttypes"
+        assertThat(lookups.map { it.path }).containsExactly(phasePath, typesPath, phasePath, typesPath)
         assertThat(lookups.map { it.getHeader("Authorization") }).containsOnly("Bearer test")
         assertThat(lookups.map { it.getHeader("Organization") }).containsOnly("0")
         assertThat(requests.map { it.path }).noneMatch { it?.endsWith("/tasks") == true }
-        val main = requests[4].body.readUtf8()
-        assertThat(main).contains(
-            "name=\"metaData\"", "name=\"caseAttachmentOptions\"", "name=\"file\"",
-            "PhaseSelector", "UTUvalmistumispaiva", "Confirmed regulation"
-        )
-        assertThat(requests[6].body.readUtf8()).contains("name=\"caseAttachmentOptions\"", "parentDocumentSelector", "1078")
+        val bodies = requests.filter { it.path == "/api/v1/documents" }.map { it.body.readUtf8() }
+        assertThat(bodies).hasSize(4)
+        assertThat(bodies[0]).contains("filename=\"file0.pdf\"", "UTUvalmistumispaiva", "Confirmed regulation")
+        val summaryMetadata = mapper.dynastyMultipartJson(bodies[0], "metaData")
+        bodies.drop(1).forEach { body ->
+            val options = mapper.dynastyMultipartJson(body, "caseAttachmentOptions")
+            val metadata = mapper.dynastyMultipartJson(body, "metaData")
+            assertThat(options.fieldNames().asSequence().toList()).containsExactlyInAnyOrder("CaseSelector", "PhaseSelector", "TOSTitle")
+            assertThat(options.at("/CaseSelector/Id").longValue()).isEqualTo(415)
+            assertThat(options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(TurkuTosFixture.PHASE_ID.toString())
+            assertThat(options.path("TOSTitle").asText()).isEqualTo(TurkuTosFixture.ATTACHMENT_TITLE)
+            assertThat(metadata.path("documentType").asText()).isEqualTo("Liite")
+            assertThat(metadata.path("retentionPeriodLength").asInt()).isEqualTo(10)
+            assertThat(metadata.path("schemaId")).isEqualTo(summaryMetadata.path("schemaId"))
+        }
         assertThat(requests.last().path).isEqualTo("/api/v1/cases/415/state/Archived")
     }
 

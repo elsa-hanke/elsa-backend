@@ -10,7 +10,7 @@ internal enum class DynastyArchiveProfile(
     val university: YliopistoEnum,
     val fieldPrefix: String,
     val faculty: String,
-    val documentLinking: DocumentLinking,
+    val phaseSelection: PhaseSelection,
     val archiveProperties: (Arkistointi) -> DynastyArchiveProperties,
     private val caseProfiles: Map<CaseType, DynastyCaseProfile>
 ) {
@@ -18,7 +18,7 @@ internal enum class DynastyArchiveProfile(
         university = YliopistoEnum.TURUN_YLIOPISTO,
         fieldPrefix = "UTU",
         faculty = "Lääketieteellinen tiedekunta",
-        documentLinking = DocumentLinking.TOS_PHASE,
+        phaseSelection = PhaseSelection.TOS,
         archiveProperties = Arkistointi::getTurku,
         caseProfiles = mapOf(
             CaseType.VALMISTUMINEN to DynastyCaseProfile.valmistuminen(
@@ -33,7 +33,7 @@ internal enum class DynastyArchiveProfile(
         university = YliopistoEnum.ITA_SUOMEN_YLIOPISTO,
         fieldPrefix = "UEF",
         faculty = "Terveystieteiden tiedekunta",
-        documentLinking = DocumentLinking.SAME_PHASE,
+        phaseSelection = PhaseSelection.EXPLICIT,
         archiveProperties = Arkistointi::getUef,
         caseProfiles = mapOf(
             CaseType.VALMISTUMINEN to DynastyCaseProfile.valmistuminen(
@@ -51,7 +51,7 @@ internal enum class DynastyArchiveProfile(
     fun caseProfile(caseType: CaseType): DynastyCaseProfile =
         requireNotNull(caseProfiles[caseType]) { "Unsupported Dynasty case type" }
 
-    enum class DocumentLinking { TOS_PHASE, SAME_PHASE }
+    enum class PhaseSelection { TOS, EXPLICIT }
 
     companion object {
         fun from(university: YliopistoEnum): DynastyArchiveProfile =

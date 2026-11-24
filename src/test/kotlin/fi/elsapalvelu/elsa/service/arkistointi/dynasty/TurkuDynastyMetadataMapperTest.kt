@@ -32,6 +32,7 @@ class TurkuDynastyMetadataMapperTest {
         assertThat(summary.fieldNames().asSequence().toList()).containsExactlyInAnyOrder("title", "schemaId", "state", "DeliveryType", "AD")
         assertThat(summary.path("DeliveryType").asText()).isEqualTo("M")
         listOf(attachment, certificate).forEach { document ->
+            assertThat(document.path("schemaId").asText()).isEqualTo(summary.path("schemaId").asText())
             assertThat(document.path("documentType").asText()).isEqualTo("Liite")
             assertThat(document.path("publicityClassId").asText()).isEqualTo("J")
             assertThat(document.path("retentionPeriodRule").asText()).isEqualTo("Asian lopullinen ratkaisu")
@@ -48,7 +49,7 @@ class TurkuDynastyMetadataMapperTest {
         assertThat(documents[0].path("AD").path("UTUalkamispaiva").asText()).isEqualTo("2020-01-01")
         assertThat(documents[0].path("AD").path("UTUvalmistumispaiva").asText()).isEqualTo("2026-10-31")
         assertThat(documents[0].path("AD").path("UTUlaillistamispaiva").asText()).isEqualTo("2019-01-01")
-        assertThat(summary.path("AD").path("UTUhyvaksymispaiva").asText()).isEqualTo("2026-10-31")
+        assertThat(summary.path("AD").has("UTUhyvaksymispaiva")).isFalse()
         assertThat(summary.path("AD").path("ExtElsaTunniste").asText()).isNotBlank()
         val identity = """"UTUetunimi":"Maija","UTUsukunimi":"Meikäläinen","UTUtiedekunta":"Lääketieteellinen tiedekunta",
             "UTUkoulutusohjelma":"${documents[0].path("AD").path("UTUkoulutusohjelma").asText()}","UTUpaaaine":"Akuuttilääketiede""""

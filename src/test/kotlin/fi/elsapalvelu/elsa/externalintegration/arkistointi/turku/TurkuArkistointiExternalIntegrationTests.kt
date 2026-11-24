@@ -12,6 +12,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.dynasty.TurkuDynastyArkistointiAd
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
@@ -25,9 +26,19 @@ import java.time.Clock
 class TurkuArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestSupport() {
     override val university = YliopistoEnum.TURUN_YLIOPISTO
 
+    @Autowired
+    private lateinit var turkuDynastyClient: DynastyClient
+
+    @Autowired
+    private lateinit var properties: ApplicationProperties
+
     @ParameterizedTest(name = "Turku Dynasty valmistuminen {0}")
     @EnumSource(Programme::class)
-    fun shouldArchiveGraduationWithAttachments(programme: Programme) = archiveGraduation(programme)
+    fun shouldArchiveGraduationWithAttachments(programme: Programme) {
+        val settings = DynastyArchiveProfile.TURKU.archiveProperties(properties.getArkistointi()).dynasty
+        val readback = TurkuDynastyGraduationReadback(turkuDynastyClient, requireNotNull(settings.documentSchemaId))
+        archiveGraduation(programme, readback::verify)
+    }
 
     @ParameterizedTest(name = "Turku Dynasty koejakso {0}")
     @EnumSource(Programme::class)

@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.mockito.kotlin.any
 import org.mockito.kotlin.never
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isNull
 import org.mockito.kotlin.reset
@@ -58,21 +59,22 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         whenever(ledger.complete(any(), any(), any(), anyOrNull())).thenReturn(true)
     }
 
-    protected fun archiveGraduation(programme: Programme) {
-        assertDeliverySucceeds(createGraduationSubmission(programme), "valmistuminen $programme")
+    protected fun archiveGraduation(programme: Programme, verifySavedCase: (String, List<String>) -> Unit = { _, _ -> }) {
+        val (caseId, documentIds) = assertDeliverySucceeds(createGraduationSubmission(programme), "valmistuminen $programme")
+        verifySavedCase(caseId, documentIds)
     }
 
     protected fun archiveKoejakso(programme: Programme) {
         assertDeliverySucceeds(createKoejaksoSubmission(programme), "koejakso $programme")
     }
 
-    private fun assertDeliverySucceeds(submission: ArkistointiSubmission, description: String) {
+    private fun assertDeliverySucceeds(submission: ArkistointiSubmission, description: String): Pair<String, List<String>> {
         log.info("Sending Dynasty archive test for {}: scenario={}, jobId={}", university, description, submission.jobId)
         val result = adapter.arkistoi(submission)
 
         assertThat(result).describedAs("Dynasty delivery must succeed for $description")
             .isInstanceOf(ArkistointiResult.Success::class.java)
-        val caseId = (result as ArkistointiResult.Success).externalId
+        val caseId = requireNotNull((result as ArkistointiResult.Success).externalId) { "Unknown Dynasty case ID" }
         assertThat(caseId).isNotBlank()
         verify(ledger).complete(eq(submission.jobId), eq(DynastyStepKey.Case), eq(submission.execution.version), eq(caseId))
         if (university == YliopistoEnum.TURUN_YLIOPISTO) {
@@ -80,13 +82,16 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         } else {
             verify(ledger).complete(eq(submission.jobId), eq(DynastyStepKey.Task), eq(submission.execution.version), any())
         }
-        submission.asiakirjat.forEach { document ->
+        val documentIds = submission.asiakirjat.map { document ->
+            val documentId = argumentCaptor<String>()
             verify(ledger).complete(
-                eq(submission.jobId), eq(DynastyStepKey.Document(document.jarjestysnumero)), eq(submission.execution.version), any()
+                eq(submission.jobId), eq(DynastyStepKey.Document(document.jarjestysnumero)), eq(submission.execution.version), documentId.capture()
             )
+            documentId.singleValue
         }
         verify(ledger).complete(eq(submission.jobId), eq(DynastyStepKey.ArchiveCase), eq(submission.execution.version), isNull())
         log.info("Dynasty archive test succeeded for {}: jobId={}, caseId={}", university, submission.jobId, caseId)
+        return caseId to documentIds
     }
 
     private fun createKoejaksoSubmission(programme: Programme): ArkistointiSubmission {
@@ -99,11 +104,12 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         )
         val input = ArkistointiTestData.createInput(scenario)
         val documents = loadDocuments(input.asiakirjat, pngCertificate = false)
+        val today = LocalDate.now()
         val payload = KoejaksoArkistointiPayload(
             caseId = requireNotNull(input.opintooikeus.id),
             studyRight = studyRightPayload(input.opintooikeus, scenario, programme),
-            reviewer = "ELSA integraatiotesti", reviewDate = LocalDate.now().minusDays(2),
-            approver = "ELSA integraatiotesti", approvalDate = LocalDate.now().minusDays(1),
+            reviewer = "ELSA integraatiotesti", reviewDate = today.minusDays(2),
+            approver = "ELSA integraatiotesti", approvalDate = today.minusDays(1),
             koejaksoHyvaksytty = true,
             documents = documents.map {
                 ArkistointiDocumentIdentity(it.asiakirjaId, it.asiakirjaId, it.asiakirjatyyppi, it.jarjestysnumero)
@@ -112,12 +118,16 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         return arkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, scenario.caseType, mapper.writeValueAsString(payload), documents)
     }
 
-    private fun studyRightPayload(opintooikeus: Opintooikeus, scenario: ArkistointiTestScenario, programme: Programme) =
-        ArchiveStudyRightPayload.create(opintooikeus, scenario.yliopisto).copy(
+    private fun studyRightPayload(
+        opintooikeus: Opintooikeus, scenario: ArkistointiTestScenario, programme: Programme
+    ): ArchiveStudyRightPayload {
+        val testStudyRight = opintooikeus.copy(opintooikeudenMyontamispaiva = LocalDate.of(2020, 8, 1))
+        return ArchiveStudyRightPayload.create(testStudyRight, scenario.yliopisto).copy(
             yek = scenario.yek,
             specialtyType = programme.specialtyType,
             degreeRegulation = "56/2015"
         )
+    }
 
     // YEK certificates are uploaded as PNG images, so they are sent as image/png to real Dynasty.
     private fun loadDocuments(records: List<RecordProperties>, pngCertificate: Boolean) =
@@ -147,10 +157,11 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         val input = ArkistointiTestData.createInput(scenario)
         val documents = loadDocuments(input.asiakirjat, pngCertificate = programme == Programme.YEK)
         val studyRight = studyRightPayload(input.opintooikeus, scenario, programme)
+        val today = LocalDate.now()
         val payload = ValmistuminenArkistointiPayload(
             caseId = requireNotNull(input.opintooikeus.id), studyRight = studyRight,
-            reviewer = "ELSA integraatiotesti", reviewDate = LocalDate.now().minusDays(2),
-            approver = "ELSA integraatiotesti", approvalDate = LocalDate.now().minusDays(1),
+            reviewer = "ELSA integraatiotesti", reviewDate = today.minusDays(2),
+            approver = "ELSA integraatiotesti", approvalDate = today.minusDays(1),
             documents = documents.map {
                 ArkistointiDocumentIdentity(it.asiakirjaId, it.asiakirjaId, it.asiakirjatyyppi, it.jarjestysnumero)
             },

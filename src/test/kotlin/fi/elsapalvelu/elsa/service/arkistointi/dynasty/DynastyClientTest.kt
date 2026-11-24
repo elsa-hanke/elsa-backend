@@ -101,7 +101,7 @@ class DynastyClientTest {
                     .addHeader("X-Correlation-ID", requestId))
                 val client = client(server)
                 assertThatThrownBy {
-                    if (operation.startsWith("tos_")) client.resolveTosPhase(tosClass, "Hakeminen", "Summary")
+                    if (operation.startsWith("tos_")) client.resolveTosPhase(tosClass, "Hakeminen", setOf("Summary"))
                     else client.createCase(tosClass, caseRequest())
                 }.isInstanceOf(DynastyFailure::class.java)
                 val event = terminalFailureEvent(events.list, operation, status)

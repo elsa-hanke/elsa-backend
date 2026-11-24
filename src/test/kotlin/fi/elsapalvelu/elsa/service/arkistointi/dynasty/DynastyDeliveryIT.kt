@@ -57,8 +57,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
  "db-scheduler.heartbeat-interval=1h",
  "application.arkistointi.turku.metadata.cases.koejakso.documents.arviointi.retention-period=-1",
  "application.arkistointi.turku.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
- "application.arkistointi.turku.metadata.cases.valmistuminen.documents.liite.retention-period=20",
- "application.arkistointi.turku.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=20",
+ "application.arkistointi.turku.metadata.cases.valmistuminen.documents.liite.retention-period=10",
+ "application.arkistointi.turku.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=10",
  "application.arkistointi.turku.dynasty.client-id=test",
  "application.arkistointi.turku.dynasty.client-secret=test",
  "application.arkistointi.turku.dynasty.organization=0",
@@ -317,13 +317,14 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         val optionsPart = if (tosDriven) "caseAttachmentOptions" else "CaseAttachmentOptions"
         val (main, attachment, certificate) = documents.map { objectMapper.dynastyMultipartJson(it, optionsPart) }
         if (tosDriven) {
-            assertThat(main.at("/CaseSelector/Id").longValue()).isEqualTo(415)
-            assertThat(main.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(phaseId.toString())
-            assertThat(main.at("/TOSTitle").asText()).isEqualTo(TurkuTosFixture.GRADUATION.documentTitle)
-            listOf(attachment, certificate).forEach {
-                assertThat(it.at("/caseSelector/id").asLong()).isEqualTo(415)
-                assertThat(it.at("/parentDocumentSelector/id").asLong()).isEqualTo(1078)
+            listOf(main, attachment, certificate).forEach {
+                assertThat(it.at("/CaseSelector/Id").longValue()).isEqualTo(415)
+                assertThat(it.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(phaseId.toString())
+                assertThat(it.has("parentDocumentSelector")).isFalse()
             }
+            assertThat(main.path("TOSTitle").asText()).isEqualTo(TurkuTosFixture.GRADUATION.documentTitle)
+            assertThat(attachment.path("TOSTitle").asText()).isEqualTo(TurkuTosFixture.ATTACHMENT_TITLE)
+            assertThat(certificate).isEqualTo(attachment)
         } else {
             assertThat(main.at("/CaseSelector/Id").asText()).isEqualTo("415")
             assertThat(main.at("/PhaseSelector/Id").asText()).isEqualTo(phaseId.toString())

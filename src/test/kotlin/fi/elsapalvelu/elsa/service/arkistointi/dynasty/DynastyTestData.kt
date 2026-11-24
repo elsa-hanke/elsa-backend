@@ -78,11 +78,12 @@ fun dynastySubmission(
         birthDate = LocalDate.of(1980, 1, 1), specialtyId = 1, specialtyName = "Akuuttilääketiede", studentNumber = null,
         specialtyType = specialtyType, studyRightStartDate = LocalDate.of(2020, 1, 1), degreeRegulation = "56/2015"
     )
+    val reviewDate = LocalDate.of(2026, 10, 28)
     val approvalDate = LocalDate.of(2026, 10, 31)
     val payload = if (caseType == CaseType.VALMISTUMINEN) {
-        ValmistuminenArkistointiPayload(1, studyRight, null, null, null, approvalDate, identities, LocalDate.of(2019, 1, 1))
+        ValmistuminenArkistointiPayload(1, studyRight, null, reviewDate, null, approvalDate, identities, LocalDate.of(2019, 1, 1))
     } else {
-        KoejaksoArkistointiPayload(1, studyRight, null, null, null, approvalDate, null, identities)
+        KoejaksoArkistointiPayload(1, studyRight, null, reviewDate, null, approvalDate, null, identities)
     }
     return arkistointiSubmission(jobId, studyRight.university, caseType, mapper.writeValueAsString(payload), documents, version)
 }
@@ -99,13 +100,19 @@ internal enum class TurkuTosFixture(val tosClass: String, val phase: String, val
     ASSESSMENT("05.06.02.00", "Arviointi", "Koejakson vastuuhenkilön arvio");
 
     val path get() = "/api/v1/cases/phases/$tosClass"
+    private val documentTypes: String
+        get() = if (this == GRADUATION) {
+            """{"title":"$documentTitle","childs":[]},{"title":"$ATTACHMENT_TITLE","childs":[]}"""
+        } else {
+            """{"title":"$documentTitle","childs":[]}"""
+        }
 
     fun response(requestPath: String, phaseId: UUID = PHASE_ID): MockResponse? = when (requestPath) {
         path -> MockResponse().setBody(
             """{"fullCasegroupCode":"$tosClass","thsPhases":[{"title":"$phase","taskRowId":"$phaseId"}]}"""
         )
         "$path/$phaseId/documenttypes" -> MockResponse().setBody(
-            """{"fullCasegroupCode":"$tosClass","taskRowId":"$phaseId","thsDocuments":[{"title":"$documentTitle","childs":[]}]}"""
+            """{"fullCasegroupCode":"$tosClass","taskRowId":"$phaseId","thsDocuments":[$documentTypes]}"""
         )
         else -> null
     }
@@ -122,6 +129,7 @@ internal enum class TurkuTosFixture(val tosClass: String, val phase: String, val
     }
 
     companion object {
+        const val ATTACHMENT_TITLE = "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK"
         val PHASE_ID: UUID = UUID.fromString("68630ae0-34d8-43a5-93de-0a7219eecc60")
     }
 }

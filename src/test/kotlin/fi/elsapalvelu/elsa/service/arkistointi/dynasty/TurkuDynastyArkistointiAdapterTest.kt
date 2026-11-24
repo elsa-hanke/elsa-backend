@@ -42,7 +42,6 @@ class TurkuDynastyArkistointiAdapterTest {
     fun `completed steps resume without repeating remote mutations`() {
         whenever(metadata.plan(submission)).thenReturn(plan)
         whenever(ledger.existing(execution,DynastyStepKey.Case,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done("415"))
-        whenever(ledger.existing(execution,DynastyStepKey.Task,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(UUID.randomUUID().toString()))
         whenever(ledger.existing(execution,DynastyStepKey.Document(0),java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done("1078"))
         whenever(ledger.begin(execution,DynastyStepKey.ArchiveCase,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Done(null))
         assertThat(adapter.arkistoi(submission)).isEqualTo(ArkistointiResult.Success("415"))
@@ -52,24 +51,12 @@ class TurkuDynastyArkistointiAdapterTest {
     }
 
     @Test
-    fun `unknown old intent parks delivery without issuing another request`() {
+    fun `unconfirmed case creation parks delivery without issuing another request`() {
         whenever(metadata.plan(submission)).thenReturn(plan)
         whenever(ledger.existing(execution,DynastyStepKey.Case,java.time.Duration.ofMinutes(5))).thenReturn(DynastyStepLedger.Decision.Unconfirmed)
         assertThat(adapter.arkistoi(submission)).isInstanceOf(ArkistointiResult.PermanentFailure::class.java)
         verify(client).validateConfiguration()
         verifyNoMoreInteractions(client)
-    }
-
-    @Test
-    fun `unconfirmed legacy task blocks the TOS lookup and delivery`() {
-        whenever(metadata.plan(submission)).thenReturn(plan)
-        whenever(ledger.existing(execution, DynastyStepKey.Task, java.time.Duration.ofMinutes(5)))
-            .thenReturn(DynastyStepLedger.Decision.Unconfirmed)
-        val result = adapter.arkistoi(submission) as ArkistointiResult.PermanentFailure
-        assertThat(result.error.code).isEqualTo("DYNASTY_DELIVERY_UNCONFIRMED")
-        verify(client).validateConfiguration()
-        verifyNoMoreInteractions(client)
-        verify(ledger, never()).begin(any(), any(), any())
     }
 
     @Test

@@ -42,7 +42,7 @@ open class DynastyMetadataMapper internal constructor(
     }
 
     private val settings = archiveProperties.dynasty
-    private val tosDriven = archiveProfile.documentLinking == DynastyArchiveProfile.DocumentLinking.TOS_PHASE
+    private val tosDriven = archiveProfile.phaseSelection == DynastyArchiveProfile.PhaseSelection.TOS
     private val rules = DynastyMetadataRules(archiveProperties, tosDriven)
 
     data class Plan(val tosClass: String, val caseRequest: DynastyCaseRequest, val task: String, val documents: List<DynastyDocumentRequestMetadata>) {
@@ -74,7 +74,7 @@ open class DynastyMetadataMapper internal constructor(
         require(payload.university == submission.university.name) { "university mismatch" }
         val documents = submission.asiakirjat
         ArkistointiManifestValidator.validate(payload.documents, documents)
-        // Dynasty attaches documents in this order; SÄHKE sorts records during package creation.
+        // Dynasty creates documents in manifest order; SÄHKE sorts records during package creation.
         val order = documents.map { it.jarjestysnumero }
         require(order == order.sorted()) { "document order" }
         documents.forEach { document ->
@@ -147,7 +147,10 @@ open class DynastyMetadataMapper internal constructor(
     )
 
     private fun documentMetadata(context: MappingContext, type: RecordType): DynastyDocumentRequestMetadata {
-        if (tosDriven) return tosDocumentMetadata(context, type)
+        if (tosDriven && type == context.profile.mainDocumentType) {
+            val secrecyPeriod = if (context.profile.requiresSecrecy) secrecyPeriod() else null
+            return DynastyTosDocumentMetadata(context.title, settings.documentSchemaId, documentAdditionalData(context, type), secrecyPeriod)
+        }
         val publicityClassId = rules.publicityClassId(context.profile)
         val additionalData = documentAdditionalData(context, type)
         val retention = rules.retentionPeriod(context.caseType, type)
@@ -155,7 +158,7 @@ open class DynastyMetadataMapper internal constructor(
         return DynastyDocumentMetadata(
             title = documentTitle(context, type),
             schemaId = settings.documentSchemaId,
-            documentType = context.profile.documentTypes.getValue(type),
+            documentType = if (tosDriven) "Liite" else context.profile.documentTypes.getValue(type),
             retentionPeriodLength = retention,
             additionalData = additionalData,
             publicityClassId = publicityClassId,
@@ -174,26 +177,6 @@ open class DynastyMetadataMapper internal constructor(
         return DynastySecrecyPeriod(received, received.plusYears(KOEJAKSO_SECRECY_YEARS.toLong()))
     }
 
-    private fun tosDocumentMetadata(context: MappingContext, type: RecordType): DynastyDocumentRequestMetadata {
-        if (type == context.profile.mainDocumentType) {
-            val secrecyPeriod = if (context.profile.requiresSecrecy) secrecyPeriod() else null
-            return DynastyTosDocumentMetadata(context.title, settings.documentSchemaId, documentAdditionalData(context, type), secrecyPeriod)
-        }
-        // Attachments carry the identifying fields; the date and regulation fields stay on the main document.
-        val attachmentData = additionalData(
-            context,
-            licensingDate = if (type == RecordType.LAILLISTAMISTODISTUS) context.payload.licensingDate?.toString() else null
-        )
-        return DynastyDocumentMetadata(
-            title = documentTitle(context, type),
-            schemaId = settings.documentSchemaId,
-            documentType = "Liite",
-            retentionPeriodLength = rules.retentionPeriod(context.caseType, type),
-            additionalData = attachmentData,
-            deliveryType = "M"
-        )
-    }
-
     private fun documentAdditionalData(context: MappingContext, type: RecordType): DynastyAdditionalData {
         val payload = context.payload
         val main = type == context.profile.mainDocumentType
@@ -202,7 +185,7 @@ open class DynastyMetadataMapper internal constructor(
             birthDate = if (main) payload.birthDate?.toString() else null,
             studyRightStartDate = if (main) payload.studyRightStartDate?.toString() else null,
             graduationDate = if (main && context.isValmistuminen) payload.approvalDate.toString() else null,
-            approvalDate = if (main && (tosDriven || !context.isValmistuminen)) payload.approvalDate.toString() else null,
+            approvalDate = if (main && !context.isValmistuminen) payload.approvalDate.toString() else null,
             degreeRegulation = if (main) payload.degreeRegulation?.let { regulation ->
                 rules.degreeRegulation(regulation)
             } else null,
