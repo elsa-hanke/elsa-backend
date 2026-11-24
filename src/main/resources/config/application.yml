@@ -429,9 +429,9 @@ application:
         token-url: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_TOKEN_URL:https://dynasty-testi.uef.fi/dynasty.identityserver/connect/token}
         client-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_ID:}
         client-secret: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_SECRET:}
-        organization: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION:}
-        case-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_CASE_SCHEMA_ID:}
-        document-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_DOCUMENT_SCHEMA_ID:}
+        organization: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION:0}
+        case-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_CASE_SCHEMA_ID:a31e955d-b12b-4eec-960c-15e26e75bac2}
+        document-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_DOCUMENT_SCHEMA_ID:cc64ac32-083e-4a80-ab98-a1763be20658}
         tutkintoasetukset:
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
         koejakso-publicity-class-id: "S"
