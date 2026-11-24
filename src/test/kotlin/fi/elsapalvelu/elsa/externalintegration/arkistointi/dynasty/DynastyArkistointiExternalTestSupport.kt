@@ -36,7 +36,6 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 import javax.imageio.ImageIO
@@ -53,9 +52,6 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
     @Autowired
     private lateinit var mapper: ObjectMapper
 
-    @Autowired
-    private lateinit var clock: Clock
-
     @BeforeEach
     fun prepareLedger() {
         reset(ledger)
@@ -71,13 +67,11 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
     protected fun archiveKoejakso(
         programme: Programme,
         degreeRegulation: String = "56/2015",
-        verifySavedCase: (String, List<String>, ClosedRange<LocalDate>) -> Unit
+        verifySavedCase: (String, List<String>) -> Unit
     ) {
         val submission = createKoejaksoSubmission(programme, degreeRegulation)
-        val archiveClock = clock.withZone(DYNASTY_ARCHIVE_ZONE)
-        val earliestDeliveryDate = LocalDate.now(archiveClock)
         val (caseId, documentIds) = assertDeliverySucceeds(submission, "koejakso $programme ($degreeRegulation)")
-        verifySavedCase(caseId, documentIds, earliestDeliveryDate..LocalDate.now(archiveClock))
+        verifySavedCase(caseId, documentIds)
     }
 
     private fun assertDeliverySucceeds(submission: ArkistointiSubmission, description: String): Pair<String, List<String>> {

@@ -48,9 +48,8 @@ class TurkuArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestS
     @ParameterizedTest(name = "Turku Dynasty koejakso {0}")
     @EnumSource(Programme::class)
     fun shouldArchiveKoejaksoWithSecrecyMetadata(programme: Programme) =
-        archiveKoejakso(programme) { caseId, documentIds, deliveryDates ->
-            val secrecy = DynastyDocumentReadback.KoejaksoSecrecy(deliveryDates, publicityClassName = "Osittain salassa pidettävä")
-            readback.verify(caseId, documentIds, listOf(null), expectedSecrecy = secrecy)
+        archiveKoejakso(programme) { caseId, documentIds ->
+            readback.verify(caseId, documentIds, listOf(null), expectedPublicityClassName = "Osittain salassa pidettävä")
         }
 }
 

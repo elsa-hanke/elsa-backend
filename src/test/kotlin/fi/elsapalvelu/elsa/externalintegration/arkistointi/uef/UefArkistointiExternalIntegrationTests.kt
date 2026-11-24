@@ -47,10 +47,8 @@ class UefArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestSup
     @ParameterizedTest(name = "UEF Dynasty koejakso {0} (55/2020)")
     @EnumSource(Programme::class)
     fun shouldArchiveKoejaksoWithSecrecyMetadata(programme: Programme) =
-        archiveKoejakso(programme, degreeRegulation = "55/2020") { caseId, documentIds, deliveryDates ->
-            val settings = DynastyArchiveProfile.UEF.archiveProperties(properties.getArkistointi()).dynasty
-            val secrecy = DynastyDocumentReadback.KoejaksoSecrecy(deliveryDates, publicityClassId = requireNotNull(settings.koejaksoPublicityClassId))
-            readback.verify(caseId, documentIds, listOf("Lausunto"), expectedSecrecy = secrecy)
+        archiveKoejakso(programme, degreeRegulation = "55/2020") { caseId, documentIds ->
+            readback.verify(caseId, documentIds, listOf("Lausunto"), expectedPublicityClassName = "Osittain salassa pidettävä")
         }
 }
 

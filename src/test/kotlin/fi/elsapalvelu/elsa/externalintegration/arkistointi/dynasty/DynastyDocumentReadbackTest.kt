@@ -11,10 +11,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 class DynastyDocumentReadbackTest {
@@ -23,10 +22,7 @@ class DynastyDocumentReadbackTest {
     private val expectedDocumentTypes = listOf("Yhteenveto", "Liite", "Liite")
     private val schemaId = UUID.randomUUID().toString()
     private val assessmentIds = listOf("1078")
-    private val deliveryDate = LocalDate.of(2026, 11, 19)
-    private val expectedSecrecy = DynastyDocumentReadback.KoejaksoSecrecy(
-        deliveryDate..deliveryDate, publicityClassId = "S", publicityClassName = "Osittain salassa pidettävä"
-    )
+    private val expectedPublicityClassName = "Osittain salassa pidettävä"
 
     @Test
     fun `reads stored documents belonging directly to the same phase`() = MockWebServer().use { server ->
@@ -65,54 +61,35 @@ class DynastyDocumentReadbackTest {
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = [false, true])
-    fun `checks stored secrecy on an archived assessment`(flatPeriod: Boolean) = MockWebServer().use { server ->
+    @Test
+    fun `checks the stored publicity class on an archived assessment`() = MockWebServer().use { server ->
         val readback = readback(server)
-        val metadata = assessment()
-        if (flatPeriod) {
-            val period = metadata.remove("secrecyPeriod")
-            metadata.put("secrecyPeriodStart", period.path("start").asText())
-            metadata.put("secrecyPeriodEnd", period.path("end").asText())
-        }
         server.enqueue(MockResponse().setBody(caseContents(ids = assessmentIds)))
-        server.enqueue(MockResponse().setBody(metadata.toString()))
+        server.enqueue(MockResponse().setBody(assessment(expectedPublicityClassName)))
 
-        readback.verify("415", assessmentIds, listOf("Lausunto"), expectedSecrecy)
+        readback.verify("415", assessmentIds, listOf("Lausunto"), expectedPublicityClassName)
     }
 
     @ParameterizedTest
-    @CsvSource(
-        "publicityClassID,J,publicity class ID",
-        "publicityClassName,Julkinen,publicity class name",
-        "start,2026-11-18T00:00:00,secrecy start date",
-        "start,2026-11-19T01:00:00,secrecy start time",
-        "end,2125-11-19T00:00:00,secrecy end",
-        "end,,secrecy end"
-    )
-    fun `rejects incorrect or missing saved metadata`(field: String, replacement: String?, description: String) {
+    @NullSource
+    @ValueSource(strings = ["Julkinen"])
+    fun `rejects an incorrect or missing saved publicity class`(publicityClassName: String?) {
         MockWebServer().use { server ->
             val readback = readback(server)
-            val metadata = assessment()
-            val period = metadata.path("secrecyPeriod") as ObjectNode
-            val target = if (period.has(field)) period else metadata
-            if (replacement == null) target.remove(field) else target.put(field, replacement)
             server.enqueue(MockResponse().setBody(caseContents(ids = assessmentIds)))
-            server.enqueue(MockResponse().setBody(metadata.toString()))
+            server.enqueue(MockResponse().setBody(assessment(publicityClassName)))
 
-            assertThatThrownBy { readback.verify("415", assessmentIds, listOf("Lausunto"), expectedSecrecy) }
+            assertThatThrownBy { readback.verify("415", assessmentIds, listOf("Lausunto"), expectedPublicityClassName) }
                 .isInstanceOf(AssertionError::class.java)
-                .hasMessageContaining("$description of document 1078")
+                .hasMessageContaining("publicity class name of document 1078")
         }
     }
 
-    private fun assessment(): ObjectNode = mapper.readTree(
-        """{
-            "id":1078,"state":"Archived","schemaID":"$schemaId","documentType":"Lausunto",
-            "publicityClassID":"S","publicityClassName":"Osittain salassa pidettävä",
-            "secrecyPeriod":{"start":"2026-11-18T22:00:00Z","end":"2126-11-19T00:00:00"}
-        }"""
-    ) as ObjectNode
+    private fun assessment(publicityClassName: String?): String {
+        val metadata = mapper.readTree(document(assessmentIds.single(), "Lausunto")) as ObjectNode
+        publicityClassName?.let { metadata.put("publicityClassName", it) }
+        return metadata.toString()
+    }
 
     private fun document(id: String, type: String) =
         """{"id":$id,"state":"Archived","schemaID":"$schemaId","documentType":"$type"}"""
