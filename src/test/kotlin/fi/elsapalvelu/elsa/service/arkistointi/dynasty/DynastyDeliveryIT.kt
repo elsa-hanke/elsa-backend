@@ -16,6 +16,7 @@ import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.time.Duration
+import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.cache.CacheManager
@@ -262,9 +263,13 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         val image = format == "png"
         val fixture = createValmistumispyyntoFixture(kind, university, true)
         transactions.executeWithoutResult { _ ->
-            val opintooikeus = em.find(Valmistumispyynto::class.java, fixture.first).opintooikeus!!
+            val request = em.find(Valmistumispyynto::class.java, fixture.first)
+            request.virkailijanKuittausaika = reviewDate
+            val opintooikeus = request.opintooikeus!!
+            opintooikeus.opintooikeudenMyontamispaiva = studyRightStartDate
             dynastySettings(university).tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
             opintooikeus.erikoistuvaLaakari!!.apply {
+                laillistamispaiva = licensingDate
                 laillistamistodistus = AsiakirjaData(data = if (image) certificateImage else certificate)
                 laillistamispaivanLiitetiedostonNimi = "certificate.$format"
                 laillistamispaivanLiitetiedostonTyyppi = if (image) "image/png" else "application/pdf"
@@ -272,6 +277,10 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         }
         setSecurityContext(fixture.second, VASTUUHENKILO)
         approveValmistumispyynto(fixture.first).andExpect(status().isOk)
+        val approvalDate = requireNotNull(transactions.execute {
+            em.find(Valmistumispyynto::class.java, fixture.first).vastuuhenkiloHyvaksyjaKuittausaika
+        })
+        assertThat(listOf(reviewDate, studyRightStartDate, licensingDate, approvalDate)).doesNotHaveDuplicates()
         val job = jobs.findByKey("valmistuminen:$university:${fixture.first}")!!
         val taskId = UUID.randomUUID()
         val tosDriven = university == YliopistoEnum.TURUN_YLIOPISTO
@@ -292,12 +301,28 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
 
         val documents = requests.filter { it.path == "/api/v1/documents" }.map { it.body.readUtf8() }
         assertGraduationSelectors(documents, tosDriven, taskId)
+        assertGraduationDates(documents, tosDriven, approvalDate)
         assertThat(documents.last()).contains("filename=\"certificate.$format\"", "Content-Type: ${if (image) "image/png" else "application/pdf"}")
         assertThat(jobs.findById(job.id!!).orElseThrow().externalId).isEqualTo("415")
         val stepKeys = listOf("CASE", "DOCUMENT:0", "DOCUMENT:1", "DOCUMENT:2", "ARCHIVE_CASE") + if (tosDriven) emptyList() else listOf("TASK")
         assertThat(stepFixture.steps(job.id!!).associate { it.key to it.status })
             .isEqualTo(stepKeys.associateWith { DynastyStepStatus.VALMIS })
         assertThat((0..2).map { stepFixture.step(job.id!!, "DOCUMENT:$it")?.remoteId }).containsExactly("1078", "1079", "1080")
+    }
+
+    private fun assertGraduationDates(documents: List<String>, tosDriven: Boolean, approvalDate: LocalDate) {
+        val metadataPart = if (tosDriven) "metaData" else "MetaData"
+        val prefix = if (tosDriven) "UTU" else "UEF"
+        val summary = objectMapper.dynastyMultipartJson(documents.first(), metadataPart).path("AD")
+        val certificate = objectMapper.dynastyMultipartJson(documents.last(), metadataPart).path("AD")
+        assertThat(summary.path("${prefix}valmistumispaiva").asText()).describedAs("summary graduation date")
+            .isEqualTo(approvalDate.toString())
+        assertThat(summary.path("${prefix}alkamispaiva").asText()).describedAs("summary study right start date")
+            .isEqualTo(studyRightStartDate.toString())
+        assertThat(summary.path("${prefix}laillistamispaiva").asText()).describedAs("summary licensing date")
+            .isEqualTo(licensingDate.toString())
+        assertThat(certificate.path("${prefix}laillistamispaiva").asText()).describedAs("certificate licensing date")
+            .isEqualTo(licensingDate.toString())
     }
 
     private fun expectedGraduationRequests(tosDriven: Boolean, phaseId: UUID): List<String> = buildList {
@@ -358,6 +383,9 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     }
 
     companion object {
+        private val reviewDate = LocalDate.of(2026, 9, 7)
+        private val studyRightStartDate = LocalDate.of(2020, 8, 1)
+        private val licensingDate = LocalDate.of(2019, 6, 14)
         private val server = MockWebServer().apply { start() }
         private val certificate = PdfTestData.certificate()
         private val certificateImage = ByteArrayOutputStream().use { output ->
