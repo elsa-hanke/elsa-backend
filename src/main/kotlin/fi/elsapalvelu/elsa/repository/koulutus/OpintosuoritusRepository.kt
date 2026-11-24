@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query
 
 interface OpintosuoritusRepository : JpaRepository<Opintosuoritus, Long> {
 
+
     fun findOneByOpintooikeusYliopistoOpintooikeusIdAndKurssikoodi(
         yliopistoOpintooikeusId: String,
         kurssikoodi: String

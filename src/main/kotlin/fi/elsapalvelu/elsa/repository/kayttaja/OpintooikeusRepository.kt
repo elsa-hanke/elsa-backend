@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.repository.kayttaja
 
-import java.time.LocalDate
 import fi.elsapalvelu.elsa.domain.kayttaja.Opintooikeus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 
 @Repository
 interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>,
@@ -92,4 +92,17 @@ interface OpintooikeusRepository : JpaRepository<Opintooikeus, Long>,
         from: LocalDate,
         to: LocalDate
     ): List<Opintooikeus>
+
+    @Query(
+        value = """
+            select id from opintooikeus
+            where viimeinen_katselupaiva < current_date - interval '1 month'
+            and viimeinen_katselupaiva is not null
+            order by id
+            limit :limit
+        """,
+        nativeQuery = true
+    )
+    fun findOpintooikeusIdsPastViewingPeriodByMoreThanOneMonth(limit: Int): List<Long>
+
 }
