@@ -6,23 +6,24 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyCaseProfile
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 
-internal enum class DynastyDestination(
+internal enum class DynastyArchiveProfile(
     val university: YliopistoEnum,
     val fieldPrefix: String,
     val faculty: String,
-    val documentLinking: DocumentLinking,
+    val phaseSelection: PhaseSelection,
     val archiveProperties: (Arkistointi) -> DynastyArchiveProperties,
-    private val profiles: Map<CaseType, DynastyCaseProfile>
+    private val caseProfiles: Map<CaseType, DynastyCaseProfile>
 ) {
     TURKU(
         university = YliopistoEnum.TURUN_YLIOPISTO,
         fieldPrefix = "UTU",
         faculty = "Lääketieteellinen tiedekunta",
-        documentLinking = DocumentLinking.TOS_PHASE,
+        phaseSelection = PhaseSelection.TOS,
         archiveProperties = Arkistointi::getTurku,
-        profiles = mapOf(
+        caseProfiles = mapOf(
             CaseType.VALMISTUMINEN to DynastyCaseProfile.valmistuminen(
-                "05.06.02.04", "Hakeminen", "Valmistumisen yhteenveto,  EL, EHL tai YEK"
+                "05.06.02.04", "Hakeminen", "Valmistumisen yhteenveto,  EL, EHL tai YEK",
+                attachmentType = "Valmistumisen yhteenvedon liitteet,  EL, EHL tai YEK"
             ),
             CaseType.KOEJAKSO to DynastyCaseProfile.koejakso(
                 "05.06.02.00", "Arviointi", "Osittain salassapidettävä", "Asiakirjan päivämäärä"
@@ -33,27 +34,28 @@ internal enum class DynastyDestination(
         university = YliopistoEnum.ITA_SUOMEN_YLIOPISTO,
         fieldPrefix = "UEF",
         faculty = "Terveystieteiden tiedekunta",
-        documentLinking = DocumentLinking.SAME_PHASE,
+        phaseSelection = PhaseSelection.EXPLICIT,
         archiveProperties = Arkistointi::getUef,
-        profiles = mapOf(
+        caseProfiles = mapOf(
             CaseType.VALMISTUMINEN to DynastyCaseProfile.valmistuminen(
-                "03.11", "ELSA valmistumispyyntö ja sen liitteet", "Valmistumisen yhteenveto, EL, EHL tai YEK (valmistumispyyntö)"
+                "03.11", "ELSA valmistumispyyntö ja sen liitteet", "Yhteenveto", attachmentType = "Liite"
             ),
             CaseType.KOEJAKSO to DynastyCaseProfile.koejakso(
-                "03.11", "ELSA Koejaksojen yhteenvedot", "Osittain salassa pidettävä", "Asiakirjan päivämäärä (luontipvm)"
+                "03.11", "ELSA Koejaksojen yhteenvedot", "Osittain salassa pidettävä", "Asiakirjan päivämäärä (luontipvm)",
+                assessmentType = "Lausunto"
             )
         )
     );
 
-    val supportedCaseTypes: Set<CaseType> get() = profiles.keys
+    val supportedCaseTypes: Set<CaseType> get() = caseProfiles.keys
 
-    fun profile(caseType: CaseType): DynastyCaseProfile =
-        requireNotNull(profiles[caseType]) { "Unsupported Dynasty case type" }
+    fun caseProfile(caseType: CaseType): DynastyCaseProfile =
+        requireNotNull(caseProfiles[caseType]) { "Unsupported Dynasty case type" }
 
-    enum class DocumentLinking { TOS_PHASE, SAME_PHASE }
+    enum class PhaseSelection { TOS, EXPLICIT }
 
     companion object {
-        fun from(university: YliopistoEnum): DynastyDestination =
+        fun from(university: YliopistoEnum): DynastyArchiveProfile =
             requireNotNull(entries.firstOrNull { it.university == university }) { "Unsupported Dynasty university" }
     }
 }

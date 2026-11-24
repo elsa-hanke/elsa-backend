@@ -16,6 +16,10 @@ import fi.elsapalvelu.elsa.service.pdf.PdfTestData
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.cache.CacheManager
@@ -32,7 +36,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer
@@ -57,8 +60,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
  "db-scheduler.heartbeat-interval=1h",
  "application.arkistointi.turku.metadata.cases.koejakso.documents.arviointi.retention-period=-1",
  "application.arkistointi.turku.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
- "application.arkistointi.turku.metadata.cases.valmistuminen.documents.liite.retention-period=20",
- "application.arkistointi.turku.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=20",
+ "application.arkistointi.turku.metadata.cases.valmistuminen.documents.liite.retention-period=10",
+ "application.arkistointi.turku.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=10",
  "application.arkistointi.turku.dynasty.client-id=test",
  "application.arkistointi.turku.dynasty.client-secret=test",
  "application.arkistointi.turku.dynasty.organization=0",
@@ -119,20 +122,34 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     }
 
 
-    private fun job(university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO): fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob {
-        val id = approveKoejakso(university)
+    private fun job(
+        university: YliopistoEnum = YliopistoEnum.TURUN_YLIOPISTO, accepted: Boolean = true
+    ): fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJob {
+        val id = approveKoejakso(university, accepted)
         return jobs.findByKey("koejakso-arvio:$university:$id")!!
     }
     private fun enqueue(vararg bodies: String) = bodies.forEach { server.enqueue(MockResponse().setBody(it)) }
-    @ParameterizedTest
-    @EnumSource(value = YliopistoEnum::class, names = ["TURUN_YLIOPISTO", "ITA_SUOMEN_YLIOPISTO"])
-    fun `scheduler delivers through real adapter and commits every ledger step`(university: YliopistoEnum) {
-        val job = job(university)
+    @ParameterizedTest(name = "{0}, accepted = {1}")
+    @CsvSource("TURUN_YLIOPISTO,true", "TURUN_YLIOPISTO,false", "ITA_SUOMEN_YLIOPISTO,true", "ITA_SUOMEN_YLIOPISTO,false")
+    fun `final koejakso decision sends one confidential assessment before archiving the case`(university: YliopistoEnum, accepted: Boolean) {
+        val job = job(university, accepted)
+        assertThat(objectMapper.readTree(job.payload).path("koejaksoHyvaksytty")).isEqualTo(objectMapper.nodeFactory.booleanNode(accepted))
+
         val tosDriven = university == YliopistoEnum.TURUN_YLIOPISTO
-        if (tosDriven) TurkuTosFixture.ASSESSMENT.enqueueSuccess(server, listOf(1078))
-        else server.enqueueDynastySuccess(documentIds = listOf(1078))
+        val tosFixture = TurkuTosFixture.ASSESSMENT.takeIf { tosDriven }
+        val phaseId = UUID.randomUUID()
+        if (tosFixture != null) tosFixture.enqueueSuccess(server, listOf(1078), phaseId)
+        else server.enqueueDynastySuccess(documentIds = listOf(1078), taskId = phaseId)
+        val requestsBefore = server.requestCount
+        val archiveZone = ZoneId.of("Europe/Helsinki")
+        val earliestDeliveryDate = LocalDate.now(archiveZone)
+
         startAttempt()
         awaitDelivered(job.id!!)
+
+        val requests = assertDeliveryRequests(requestsBefore, expectedDeliveryRequests(tosFixture, phaseId, documentCount = 1))
+        val document = requests.single { it.path == "/api/v1/documents" }.body.readUtf8()
+        assertKoejaksoDocument(document, tosDriven, phaseId, earliestDeliveryDate, LocalDate.now(archiveZone))
         assertThat(jobs.findById(job.id!!).orElseThrow().externalId).isEqualTo("415")
         val stepKeys = listOf("CASE", "DOCUMENT:0", "ARCHIVE_CASE") + if (tosDriven) emptyList() else listOf("TASK")
         assertThat(stepFixture.steps(job.id!!).associate { it.key to it.status })
@@ -262,9 +279,13 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         val image = format == "png"
         val fixture = createValmistumispyyntoFixture(kind, university, true)
         transactions.executeWithoutResult { _ ->
-            val opintooikeus = em.find(Valmistumispyynto::class.java, fixture.first).opintooikeus!!
+            val request = em.find(Valmistumispyynto::class.java, fixture.first)
+            request.virkailijanKuittausaika = reviewDate
+            val opintooikeus = request.opintooikeus!!
+            opintooikeus.opintooikeudenMyontamispaiva = studyRightStartDate
             dynastySettings(university).tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
             opintooikeus.erikoistuvaLaakari!!.apply {
+                laillistamispaiva = licensingDate
                 laillistamistodistus = AsiakirjaData(data = if (image) certificateImage else certificate)
                 laillistamispaivanLiitetiedostonNimi = "certificate.$format"
                 laillistamispaivanLiitetiedostonTyyppi = if (image) "image/png" else "application/pdf"
@@ -272,6 +293,10 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         }
         setSecurityContext(fixture.second, VASTUUHENKILO)
         approveValmistumispyynto(fixture.first).andExpect(status().isOk)
+        val approvalDate = requireNotNull(transactions.execute {
+            em.find(Valmistumispyynto::class.java, fixture.first).vastuuhenkiloHyvaksyjaKuittausaika
+        })
+        assertThat(listOf(reviewDate, studyRightStartDate, licensingDate, approvalDate)).doesNotHaveDuplicates()
         val job = jobs.findByKey("valmistuminen:$university:${fixture.first}")!!
         val taskId = UUID.randomUUID()
         val tosDriven = university == YliopistoEnum.TURUN_YLIOPISTO
@@ -283,15 +308,14 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         startAttempt()
         awaitDelivered(job.id!!)
 
-        val expectedRequests = expectedGraduationRequests(tosDriven, taskId)
-        assertThat(server.requestCount - requestsBefore).isEqualTo(expectedRequests.size)
-        val requests = List(expectedRequests.size) { requireNotNull(server.takeRequest(5, TimeUnit.SECONDS)) }
-        assertThat(requests.map { it.method + " " + it.path!!.substringBefore('?') }).containsExactlyElementsOf(expectedRequests)
+        val tosFixture = TurkuTosFixture.GRADUATION.takeIf { tosDriven }
+        val requests = assertDeliveryRequests(requestsBefore, expectedDeliveryRequests(tosFixture, taskId, documentCount = 3))
         val caseBody = requests.single { it.path!!.startsWith("/api/v1/cases?") }.body.readUtf8()
         assertThat(objectMapper.readTree(caseBody).at("/caseModel/title").asText()).startsWith("$kind ")
 
         val documents = requests.filter { it.path == "/api/v1/documents" }.map { it.body.readUtf8() }
         assertGraduationSelectors(documents, tosDriven, taskId)
+        assertGraduationDates(documents, tosDriven, approvalDate)
         assertThat(documents.last()).contains("filename=\"certificate.$format\"", "Content-Type: ${if (image) "image/png" else "application/pdf"}")
         assertThat(jobs.findById(job.id!!).orElseThrow().externalId).isEqualTo("415")
         val stepKeys = listOf("CASE", "DOCUMENT:0", "DOCUMENT:1", "DOCUMENT:2", "ARCHIVE_CASE") + if (tosDriven) emptyList() else listOf("TASK")
@@ -300,30 +324,81 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         assertThat((0..2).map { stepFixture.step(job.id!!, "DOCUMENT:$it")?.remoteId }).containsExactly("1078", "1079", "1080")
     }
 
-    private fun expectedGraduationRequests(tosDriven: Boolean, phaseId: UUID): List<String> = buildList {
+    private fun assertGraduationDates(documents: List<String>, tosDriven: Boolean, approvalDate: LocalDate) {
+        val metadataPart = if (tosDriven) "metaData" else "MetaData"
+        val prefix = if (tosDriven) "UTU" else "UEF"
+        val summary = objectMapper.dynastyMultipartJson(documents.first(), metadataPart).path("AD")
+        val certificate = objectMapper.dynastyMultipartJson(documents.last(), metadataPart).path("AD")
+        assertThat(summary.path("${prefix}valmistumispaiva").asText()).describedAs("summary graduation date")
+            .isEqualTo(approvalDate.toString())
+        assertThat(summary.path("${prefix}alkamispaiva").asText()).describedAs("summary study right start date")
+            .isEqualTo(studyRightStartDate.toString())
+        assertThat(summary.path("${prefix}laillistamispaiva").asText()).describedAs("summary licensing date")
+            .isEqualTo(licensingDate.toString())
+        assertThat(certificate.path("${prefix}laillistamispaiva").asText()).describedAs("certificate licensing date")
+            .isEqualTo(licensingDate.toString())
+    }
+
+    private fun assertDeliveryRequests(requestsBefore: Int, expected: List<String>): List<RecordedRequest> {
+        assertThat(server.requestCount - requestsBefore).isEqualTo(expected.size)
+        val requests = List(expected.size) { requireNotNull(server.takeRequest(5, TimeUnit.SECONDS)) }
+        assertThat(requests.map { it.method + " " + it.path!!.substringBefore('?') }).containsExactlyElementsOf(expected)
+        return requests
+    }
+
+    private fun expectedDeliveryRequests(tosFixture: TurkuTosFixture?, phaseId: UUID, documentCount: Int): List<String> = buildList {
         add("POST /token")
-        val tosPath = TurkuTosFixture.GRADUATION.path
-        if (tosDriven) {
-            add("GET $tosPath")
-            add("GET $tosPath/$phaseId/documenttypes")
+        if (tosFixture != null) {
+            add("GET ${tosFixture.path}")
+            add("GET ${tosFixture.path}/$phaseId/documenttypes")
         }
         add("POST /api/v1/cases")
-        if (!tosDriven) add("POST /api/v1/cases/415/tasks")
-        repeat(3) { add("POST /api/v1/documents") }
+        if (tosFixture == null) add("POST /api/v1/cases/415/tasks")
+        repeat(documentCount) { add("POST /api/v1/documents") }
         add("POST /api/v1/cases/415/state/Archived")
+    }
+
+    private fun assertKoejaksoDocument(
+        document: String, tosDriven: Boolean, phaseId: UUID, earliestDeliveryDate: LocalDate, latestDeliveryDate: LocalDate
+    ) {
+        val metadata = objectMapper.dynastyMultipartJson(document, if (tosDriven) "metaData" else "MetaData")
+        val options = objectMapper.dynastyMultipartJson(document, if (tosDriven) "caseAttachmentOptions" else "CaseAttachmentOptions")
+        val secrecy = metadata.path("SecrecyPeriod")
+        val start = LocalDateTime.parse(secrecy.path("Start").asText())
+        assertThat(start.toLocalDate()).isBetween(earliestDeliveryDate, latestDeliveryDate)
+        assertThat(start.toLocalTime()).isEqualTo(LocalTime.MIDNIGHT)
+        assertThat(LocalDateTime.parse(secrecy.path("End").asText())).isEqualTo(start.plusYears(100))
+        assertThat(metadata.path("state").asInt()).isEqualTo(3)
+        if (tosDriven) {
+            assertThat(options.at("/CaseSelector/Id").longValue()).isEqualTo(415)
+            assertThat(options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(phaseId.toString())
+            assertThat(options.path("TOSTitle").asText()).isEqualTo("Koejakson vastuuhenkilön arvio")
+            assertThat(metadata.has("publicityClassId")).isFalse()
+            assertThat(metadata.has("publicityClassName")).isFalse()
+        } else {
+            assertThat(options.at("/CaseSelector/Id").asText()).isEqualTo("415")
+            assertThat(options.at("/PhaseSelector/Id").asText()).isEqualTo(phaseId.toString())
+            assertThat(metadata.path("publicityClassId").asText()).isEqualTo("test-secret")
+            assertThat(metadata.path("publicityClassName").asText()).isEqualTo("Osittain salassa pidettävä")
+            assertThat(metadata.path("secrecyPeriodLength").asInt()).isEqualTo(100)
+            assertThat(metadata.path("secrecyPeriodRule").asText()).isEqualTo("Asiakirjan päivämäärä")
+            assertThat(metadata.path("secrecyReason").map { it.asText() })
+                .containsExactly("JulkL 24.1 § 30 kohta (henk. koht. omin, oppilashuolto)")
+        }
     }
 
     private fun assertGraduationSelectors(documents: List<String>, tosDriven: Boolean, phaseId: UUID) {
         val optionsPart = if (tosDriven) "caseAttachmentOptions" else "CaseAttachmentOptions"
         val (main, attachment, certificate) = documents.map { objectMapper.dynastyMultipartJson(it, optionsPart) }
         if (tosDriven) {
-            assertThat(main.at("/CaseSelector/Id").longValue()).isEqualTo(415)
-            assertThat(main.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(phaseId.toString())
-            assertThat(main.at("/TOSTitle").asText()).isEqualTo(TurkuTosFixture.GRADUATION.documentTitle)
-            listOf(attachment, certificate).forEach {
-                assertThat(it.at("/caseSelector/id").asLong()).isEqualTo(415)
-                assertThat(it.at("/parentDocumentSelector/id").asLong()).isEqualTo(1078)
+            listOf(main, attachment, certificate).forEach {
+                assertThat(it.at("/CaseSelector/Id").longValue()).isEqualTo(415)
+                assertThat(it.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(phaseId.toString())
+                assertThat(it.has("parentDocumentSelector")).isFalse()
             }
+            assertThat(main.path("TOSTitle").asText()).isEqualTo(TurkuTosFixture.GRADUATION.documentTitle)
+            assertThat(attachment.path("TOSTitle").asText()).isEqualTo(TurkuTosFixture.ATTACHMENT_TITLE)
+            assertThat(certificate).isEqualTo(attachment)
         } else {
             assertThat(main.at("/CaseSelector/Id").asText()).isEqualTo("415")
             assertThat(main.at("/PhaseSelector/Id").asText()).isEqualTo(phaseId.toString())
@@ -332,18 +407,18 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
         }
     }
 
-    private fun approveKoejakso(university: YliopistoEnum): Long {
+    private fun approveKoejakso(university: YliopistoEnum, accepted: Boolean): Long {
         val fixture = koejaksoFixture(university, CaseType.KOEJAKSO)
         transactions.executeWithoutResult {
             val opintooikeus = vastuuhenkilonArvioRepository.findById(fixture.second).orElseThrow().opintooikeus!!
             dynastySettings(university).tutkintoasetukset = mapOf(opintooikeus.asetus!!.nimi!! to "Test regulation")
         }
-        approveKoejaksonVastuuhenkilonArvio(fixture).andExpect(status().isOk)
+        approveKoejaksonVastuuhenkilonArvio(fixture, accepted).andExpect(status().isOk)
         return fixture.second
     }
 
     private fun dynastySettings(university: YliopistoEnum) =
-        DynastyDestination.from(university).archiveProperties(properties.getArkistointi()).dynasty
+        DynastyArchiveProfile.from(university).archiveProperties(properties.getArkistointi()).dynasty
 
     private fun startAttempt() = schedulerControl.startAttempt()
 
@@ -357,6 +432,9 @@ class DynastyDeliveryIT : AsyncArchiveItSupport() {
     }
 
     companion object {
+        private val reviewDate = LocalDate.of(2026, 9, 7)
+        private val studyRightStartDate = LocalDate.of(2020, 8, 1)
+        private val licensingDate = LocalDate.of(2019, 6, 14)
         private val server = MockWebServer().apply { start() }
         private val certificate = PdfTestData.certificate()
         private val certificateImage = ByteArrayOutputStream().use { output ->

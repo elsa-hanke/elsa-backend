@@ -34,9 +34,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 import java.time.Clock
 
 /**
- * Interrupts a Turku graduation delivery (case, task, three documents, archive) at every step in three ways and
- * checks that recovery converges: each Dynasty mutation is created exactly once, in order, and attachments always
- * reference the main document. Uses the real ledger, step executor, mapper, client and both operator scripts
+ * Interrupts a Turku graduation delivery (case, three documents, archive) at every step in three ways and
+ * checks that recovery converges: each Dynasty mutation is created exactly once, in order, and all documents
+ * link directly to the TOS phase. Uses the real ledger, step executor, mapper, client and both operator scripts
  * (resolve and retry) against a stateful fake Dynasty. The scheduler is replaced by explicit attempts, but every
  * attempt runs under a new execution version like in production, so steps completed by an earlier version must be
  * reused. A permanent failure parks the job and a retryable one backs it off, exactly as the worker decides.
@@ -126,9 +126,11 @@ class DynastyValmistuminenFaultMatrixIT {
             assertThat(attempt()).isEqualTo(ArkistointiResult.Success("415"))
             assertThat(dynasty.created).describedAs("every mutation exactly once, in order").containsExactlyElementsOf(STEPS)
             assertThat(completedSteps(jobId)).containsExactlyElementsOf(STEPS)
-            assertThat(dynasty.attachmentRequests).describedAs("attachments reference the main document").isNotEmpty().allMatch { "1078" in it }
-            assertThat(dynasty.mainDocumentRequests).describedAs("main document references the TOS phase").isNotEmpty()
-                .allMatch { TurkuTosFixture.PHASE_ID.toString() in it }
+            assertThat(dynasty.attachmentRequests).isNotEmpty().allMatch { body ->
+                val options = mapper.dynastyMultipartJson(body, "caseAttachmentOptions")
+                options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText() == TurkuTosFixture.PHASE_ID.toString() &&
+                    options.path("TOSTitle").asText() == TurkuTosFixture.ATTACHMENT_TITLE && !options.has("parentDocumentSelector")
+            }
         } finally {
             server.shutdown()
         }
@@ -192,7 +194,6 @@ class DynastyValmistuminenFaultMatrixIT {
         val created = CopyOnWriteArrayList<String>()
         val remoteIds = ConcurrentHashMap<String, String>()
         val attachmentRequests = CopyOnWriteArrayList<String>()
-        val mainDocumentRequests = CopyOnWriteArrayList<String>()
         private var fault: Pair<String, Fault>? = null
         private var nextDocumentId = 1078L
 
@@ -225,10 +226,7 @@ class DynastyValmistuminenFaultMatrixIT {
 
         private fun recordRequest(step: String, body: String) {
             requests += step
-            when {
-                step == "DOCUMENT:0" -> mainDocumentRequests += body
-                step.startsWith("DOCUMENT:") -> attachmentRequests += body
-            }
+            if (step.startsWith("DOCUMENT:") && step != "DOCUMENT:0") attachmentRequests += body
         }
 
         private fun popFault(step: String): Fault? {

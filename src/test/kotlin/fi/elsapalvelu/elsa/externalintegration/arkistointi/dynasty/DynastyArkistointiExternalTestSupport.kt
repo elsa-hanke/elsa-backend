@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.mockito.kotlin.any
 import org.mockito.kotlin.never
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isNull
 import org.mockito.kotlin.reset
@@ -58,21 +59,28 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         whenever(ledger.complete(any(), any(), any(), anyOrNull())).thenReturn(true)
     }
 
-    protected fun archiveGraduation(programme: Programme) {
-        assertDeliverySucceeds(createGraduationSubmission(programme), "valmistuminen $programme")
+    protected fun archiveGraduation(programme: Programme, verifySavedCase: (String, List<String>) -> Unit = { _, _ -> }) {
+        val (caseId, documentIds) = assertDeliverySucceeds(createGraduationSubmission(programme), "valmistuminen $programme")
+        verifySavedCase(caseId, documentIds)
     }
 
-    protected fun archiveKoejakso(programme: Programme) {
-        assertDeliverySucceeds(createKoejaksoSubmission(programme), "koejakso $programme")
+    protected fun archiveKoejakso(
+        programme: Programme,
+        degreeRegulation: String = "56/2015",
+        verifySavedCase: (String, List<String>) -> Unit
+    ) {
+        val submission = createKoejaksoSubmission(programme, degreeRegulation)
+        val (caseId, documentIds) = assertDeliverySucceeds(submission, "koejakso $programme ($degreeRegulation)")
+        verifySavedCase(caseId, documentIds)
     }
 
-    private fun assertDeliverySucceeds(submission: ArkistointiSubmission, description: String) {
+    private fun assertDeliverySucceeds(submission: ArkistointiSubmission, description: String): Pair<String, List<String>> {
         log.info("Sending Dynasty archive test for {}: scenario={}, jobId={}", university, description, submission.jobId)
         val result = adapter.arkistoi(submission)
 
         assertThat(result).describedAs("Dynasty delivery must succeed for $description")
             .isInstanceOf(ArkistointiResult.Success::class.java)
-        val caseId = (result as ArkistointiResult.Success).externalId
+        val caseId = requireNotNull((result as ArkistointiResult.Success).externalId) { "Unknown Dynasty case ID" }
         assertThat(caseId).isNotBlank()
         verify(ledger).complete(eq(submission.jobId), eq(DynastyStepKey.Case), eq(submission.execution.version), eq(caseId))
         if (university == YliopistoEnum.TURUN_YLIOPISTO) {
@@ -80,16 +88,19 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         } else {
             verify(ledger).complete(eq(submission.jobId), eq(DynastyStepKey.Task), eq(submission.execution.version), any())
         }
-        submission.asiakirjat.forEach { document ->
+        val documentIds = submission.asiakirjat.map { document ->
+            val documentId = argumentCaptor<String>()
             verify(ledger).complete(
-                eq(submission.jobId), eq(DynastyStepKey.Document(document.jarjestysnumero)), eq(submission.execution.version), any()
+                eq(submission.jobId), eq(DynastyStepKey.Document(document.jarjestysnumero)), eq(submission.execution.version), documentId.capture()
             )
+            documentId.singleValue
         }
         verify(ledger).complete(eq(submission.jobId), eq(DynastyStepKey.ArchiveCase), eq(submission.execution.version), isNull())
         log.info("Dynasty archive test succeeded for {}: jobId={}, caseId={}", university, submission.jobId, caseId)
+        return caseId to documentIds
     }
 
-    private fun createKoejaksoSubmission(programme: Programme): ArkistointiSubmission {
+    private fun createKoejaksoSubmission(programme: Programme, degreeRegulation: String): ArkistointiSubmission {
         val scenario = ArkistointiTestScenario(
             name = "Dynasty koejakso $programme",
             yliopisto = university,
@@ -101,9 +112,9 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         val documents = loadDocuments(input.asiakirjat, pngCertificate = false)
         val payload = KoejaksoArkistointiPayload(
             caseId = requireNotNull(input.opintooikeus.id),
-            studyRight = studyRightPayload(input.opintooikeus, scenario, programme),
-            reviewer = "ELSA integraatiotesti", reviewDate = LocalDate.now().minusDays(2),
-            approver = "ELSA integraatiotesti", approvalDate = LocalDate.now().minusDays(1),
+            studyRight = studyRightPayload(input.opintooikeus, scenario, programme, degreeRegulation),
+            reviewer = "ELSA integraatiotesti", reviewDate = KOEJAKSO_REVIEW_DATE,
+            approver = "ELSA integraatiotesti", approvalDate = KOEJAKSO_APPROVAL_DATE,
             koejaksoHyvaksytty = true,
             documents = documents.map {
                 ArkistointiDocumentIdentity(it.asiakirjaId, it.asiakirjaId, it.asiakirjatyyppi, it.jarjestysnumero)
@@ -112,12 +123,17 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         return arkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, scenario.caseType, mapper.writeValueAsString(payload), documents)
     }
 
-    private fun studyRightPayload(opintooikeus: Opintooikeus, scenario: ArkistointiTestScenario, programme: Programme) =
-        ArchiveStudyRightPayload.create(opintooikeus, scenario.yliopisto).copy(
+    private fun studyRightPayload(
+        opintooikeus: Opintooikeus, scenario: ArkistointiTestScenario, programme: Programme, degreeRegulation: String
+    ): ArchiveStudyRightPayload {
+        val testStudyRight = opintooikeus.copy(opintooikeudenMyontamispaiva = STUDY_RIGHT_START_DATE)
+        return ArchiveStudyRightPayload.create(testStudyRight, scenario.yliopisto).copy(
+            birthDate = BIRTH_DATE,
             yek = scenario.yek,
             specialtyType = programme.specialtyType,
-            degreeRegulation = "56/2015"
+            degreeRegulation = degreeRegulation
         )
+    }
 
     // YEK certificates are uploaded as PNG images, so they are sent as image/png to real Dynasty.
     private fun loadDocuments(records: List<RecordProperties>, pngCertificate: Boolean) =
@@ -146,15 +162,15 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         )
         val input = ArkistointiTestData.createInput(scenario)
         val documents = loadDocuments(input.asiakirjat, pngCertificate = programme == Programme.YEK)
-        val studyRight = studyRightPayload(input.opintooikeus, scenario, programme)
+        val studyRight = studyRightPayload(input.opintooikeus, scenario, programme, degreeRegulation = "56/2015")
         val payload = ValmistuminenArkistointiPayload(
             caseId = requireNotNull(input.opintooikeus.id), studyRight = studyRight,
-            reviewer = "ELSA integraatiotesti", reviewDate = LocalDate.now().minusDays(2),
-            approver = "ELSA integraatiotesti", approvalDate = LocalDate.now().minusDays(1),
+            reviewer = "ELSA integraatiotesti", reviewDate = GRADUATION_REVIEW_DATE,
+            approver = "ELSA integraatiotesti", approvalDate = GRADUATION_APPROVAL_DATE,
             documents = documents.map {
                 ArkistointiDocumentIdentity(it.asiakirjaId, it.asiakirjaId, it.asiakirjatyyppi, it.jarjestysnumero)
             },
-            licensingDate = LocalDate.of(2019, 1, 1)
+            licensingDate = LICENSING_DATE
         )
         return arkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, scenario.caseType, mapper.writeValueAsString(payload), documents)
     }
@@ -163,5 +179,16 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         EL(ErikoisalaTyyppi.LAAKETIEDE),
         EHL(ErikoisalaTyyppi.HAMMASLAAKETIEDE),
         YEK(ErikoisalaTyyppi.LAAKETIEDE)
+    }
+
+    // Distinct dates let the archive verify that each Dynasty date field comes from the right Elsa field.
+    private companion object {
+        val BIRTH_DATE: LocalDate = LocalDate.of(1985, 3, 12)
+        val LICENSING_DATE: LocalDate = LocalDate.of(2019, 6, 14)
+        val STUDY_RIGHT_START_DATE: LocalDate = LocalDate.of(2020, 8, 1)
+        val KOEJAKSO_REVIEW_DATE: LocalDate = LocalDate.of(2026, 8, 18)
+        val KOEJAKSO_APPROVAL_DATE: LocalDate = LocalDate.of(2026, 9, 21)
+        val GRADUATION_REVIEW_DATE: LocalDate = LocalDate.of(2026, 9, 7)
+        val GRADUATION_APPROVAL_DATE: LocalDate = LocalDate.of(2026, 10, 15)
     }
 }

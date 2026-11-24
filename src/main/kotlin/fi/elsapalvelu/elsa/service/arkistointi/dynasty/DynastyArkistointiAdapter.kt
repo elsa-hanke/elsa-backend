@@ -12,16 +12,16 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExec
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 
 open class DynastyArkistointiAdapter internal constructor(
-    private val destination: DynastyDestination,
+    private val archiveProfile: DynastyArchiveProfile,
     private val client: DynastyClient,
     private val metadata: DynastyMetadataMapper,
     private val steps: DynastyStepExecutor,
     properties: ApplicationProperties
 ) : ArkistointiAdapter {
-    private val settings = destination.archiveProperties(properties.getArkistointi()).dynasty
-    final override val university: YliopistoEnum = destination.university
+    private val settings = archiveProfile.archiveProperties(properties.getArkistointi()).dynasty
+    final override val university: YliopistoEnum = archiveProfile.university
     override val canResumeAfterSuccessPersistenceFailure = true
-    override val supportedCaseTypes = destination.supportedCaseTypes
+    override val supportedCaseTypes = archiveProfile.supportedCaseTypes
 
     override fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {
         client.validateConfiguration()
@@ -56,40 +56,54 @@ open class DynastyArkistointiAdapter internal constructor(
         check(submission.asiakirjat.size == plan.documents.size) { "document plan does not match submission" }
         val documents = submission.asiakirjat.zip(plan.documents)
         val execution = submission.execution
-        val main = documents.first()
-        val tosDriven = destination.documentLinking == DynastyDestination.DocumentLinking.TOS_PHASE
-        val mainType = destination.profile(submission.caseType).documentTypes.getValue(main.first.asiakirjatyyppi)
-        val savedCase = if (tosDriven) steps.existing(execution, settings.inProgressGrace, DynastyStepKey.Case) else null
-        val savedMain = if (tosDriven) existingTosDocument(execution, main.first.jarjestysnumero) else null
-        val tosPhase = if (tosDriven && savedMain == null) client.resolveTosPhase(plan.tosClass, plan.task, mainType) else null
-
-        val caseId = savedCase ?: steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Case) {
-            client.createCase(plan.tosClass, plan.caseRequest)
+        val caseId = when (archiveProfile.phaseSelection) {
+            DynastyArchiveProfile.PhaseSelection.TOS -> deliverToTosPhase(submission, plan, documents)
+            DynastyArchiveProfile.PhaseSelection.EXPLICIT -> deliverToExplicitPhase(execution, plan, documents)
         }
-        val explicitPhase = if (tosDriven) null else steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Task) {
-            client.createTask(caseId, plan.task)
-        }
-        val phaseOptions = explicitPhase?.let { DynastyMainDocumentOptions(caseId, it) }
-        val mainId = savedMain ?: deliverDocument(
-            execution, main.first, main.second,
-            phaseOptions ?: DynastyTosDocumentOptions(caseId, checkNotNull(tosPhase), mainType)
-        )
-        val remainingOptions = phaseOptions ?: DynastyAttachmentOptions(caseId, mainId)
-        documents.drop(1).forEach { (document, metadata) -> deliverDocument(execution, document, metadata, remainingOptions) }
         // Conservatively park an ambiguous state change too, until vendor confirms replay semantics.
         steps.execute(execution, settings.inProgressGrace, DynastyStepKey.ArchiveCase) { client.archiveCase(caseId) }
         return caseId
     }
 
-    private fun existingTosDocument(execution: ArkistointiJobExecution, order: Int): DynastyDocumentId? {
-        // Older Turku jobs can have a TASK intent. Any unconfirmed create still needs reconciliation.
-        steps.existing(execution, settings.inProgressGrace, DynastyStepKey.Task)
-        return steps.existing(execution, settings.inProgressGrace, DynastyStepKey.Document(order))
+    private fun deliverToTosPhase(
+        submission: ArkistointiSubmission, plan: DynastyMetadataMapper.Plan,
+        documents: List<Pair<LoadedArkistointiAsiakirja, DynastyDocumentRequestMetadata>>
+    ): DynastyCaseId {
+        val execution = submission.execution
+        val savedCase = steps.existing(execution, settings.inProgressGrace, DynastyStepKey.Case)
+        val pendingDocuments = documents.filter { (document, _) ->
+            steps.existing(execution, settings.inProgressGrace, DynastyStepKey.Document(document.jarjestysnumero)) == null
+        }
+        if (pendingDocuments.isEmpty()) return checkNotNull(savedCase)
+
+        val tosTitlesByRecordType = archiveProfile.caseProfile(submission.caseType).documentTypes
+        val tosTitles = pendingDocuments.map { (document, _) -> tosTitlesByRecordType.getValue(document.asiakirjatyyppi) }.toSet()
+        val phaseId = client.resolveTosPhase(plan.tosClass, plan.task, tosTitles)
+        val caseId = savedCase ?: createCase(execution, plan)
+        pendingDocuments.forEach { (document, metadata) ->
+            val options = DynastyTosPhaseOptions(caseId, phaseId, tosTitlesByRecordType.getValue(document.asiakirjatyyppi))
+            deliverDocument(execution, document, metadata, options)
+        }
+        return caseId
     }
+
+    private fun deliverToExplicitPhase(
+        execution: ArkistointiJobExecution, plan: DynastyMetadataMapper.Plan,
+        documents: List<Pair<LoadedArkistointiAsiakirja, DynastyDocumentRequestMetadata>>
+    ): DynastyCaseId {
+        val caseId = createCase(execution, plan)
+        val phaseId = steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Task) { client.createTask(caseId, plan.task) }
+        val options = DynastyExplicitPhaseOptions(caseId, phaseId)
+        documents.forEach { (document, metadata) -> deliverDocument(execution, document, metadata, options) }
+        return caseId
+    }
+
+    private fun createCase(execution: ArkistointiJobExecution, plan: DynastyMetadataMapper.Plan): DynastyCaseId =
+        steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Case) { client.createCase(plan.tosClass, plan.caseRequest) }
 
     private fun deliverDocument(
         execution: ArkistointiJobExecution, document: LoadedArkistointiAsiakirja,
-        metadata: DynastyDocumentRequestMetadata, options: DynastyDocumentOptions
+        metadata: DynastyDocumentRequestMetadata, options: DynastyCaseAttachmentOptions
     ): DynastyDocumentId = steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Document(document.jarjestysnumero)) {
         client.createDocument(metadata, options, document)
     }

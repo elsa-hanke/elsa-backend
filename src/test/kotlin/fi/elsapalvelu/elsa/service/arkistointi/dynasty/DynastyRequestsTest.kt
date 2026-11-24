@@ -18,15 +18,17 @@ class DynastyRequestsTest {
     }
 
     @Test
-    fun `main document and attachment selectors preserve vendor casing and JSON number types`() {
+    fun `explicit and TOS phase selectors preserve vendor casing and JSON number types`() {
         val taskId = DynastyTaskId(UUID.fromString("8ae4f236-0cb5-4028-b4d2-c25da9643285"))
-        val main = DynastyMainDocumentOptions(DynastyCaseId(415), taskId)
-        val attachment = DynastyAttachmentOptions(DynastyCaseId(415), DynastyDocumentId(1078))
-        assertThat(mapper.readTree(mapper.writeValueAsString(main))).isEqualTo(mapper.readTree("""{
+        val explicit = DynastyExplicitPhaseOptions(DynastyCaseId(415), taskId)
+        val tos = DynastyTosPhaseOptions(DynastyCaseId(415), taskId, "TOS title")
+        assertThat(mapper.readTree(mapper.writeValueAsString(explicit))).isEqualTo(mapper.readTree("""{
             "CaseSelector":{"Id":"415"}, "PhaseSelector":{"Id":"8ae4f236-0cb5-4028-b4d2-c25da9643285"}
         }"""))
-        assertThat(mapper.readTree(mapper.writeValueAsString(attachment))).isEqualTo(mapper.readTree("""{
-            "caseSelector":{"id":415}, "parentDocumentSelector":{"id":1078}
+        assertThat(mapper.readTree(mapper.writeValueAsString(tos))).isEqualTo(mapper.readTree("""{
+            "CaseSelector":{"Id":415},
+            "PhaseSelector":{"smartAttachOptions":{"pathSelector":[{"Id":"8ae4f236-0cb5-4028-b4d2-c25da9643285"}]}},
+            "TOSTitle":"TOS title"
         }"""))
     }
 

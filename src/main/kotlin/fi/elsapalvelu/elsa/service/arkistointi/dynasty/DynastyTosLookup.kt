@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 
 private val log: Logger = LoggerFactory.getLogger(DynastyClient::class.java)
 
-internal fun DynastyClient.resolveTosPhase(tosClass: String, phaseTitle: String, documentTitle: String): DynastyTaskId {
+internal fun DynastyClient.resolveTosPhase(tosClass: String, phaseTitle: String, tosTitles: Set<String>): DynastyTaskId {
     val path = "api/v1/cases/phases/$tosClass"
     val phaseId = readTos(path, "tos_phases") { phases ->
         validateTosClass(phases, tosClass)
@@ -22,11 +22,12 @@ internal fun DynastyClient.resolveTosPhase(tosClass: String, phaseTitle: String,
         validateTosClass(documentTypes, tosClass)
         val responseId = documentTypes.path("taskRowId").textValue()
         if (!phaseId.toString().equals(responseId, ignoreCase = true)) invalidTos(DynastyDiagnosticReason.PHASE_ID_MISMATCH)
-        findTosTitle(documentTypes.path("thsDocuments"), documentTitle)
+        val topLevelDocuments = documentTypes.path("thsDocuments")
+        tosTitles.forEach { findTosTitle(topLevelDocuments, it) }
     }
     log.info(
-        "Dynasty TOS resolved [tosClass={}, phase={}, taskRowId={}, documentType={}]",
-        tosClass, phaseTitle, phaseId, documentTitle
+        "Dynasty TOS resolved [tosClass={}, phase={}, taskRowId={}, documentTypes={}]",
+        tosClass, phaseTitle, phaseId, tosTitles
     )
     return phaseId
 }

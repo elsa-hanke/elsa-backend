@@ -13,7 +13,7 @@ internal class DynastyMetadataRules(private val archiveProperties: DynastyArchiv
 
     fun validateConfiguration(profile: DynastyCaseProfile, configuration: ArkistointiConfiguration) {
         val regulations = settings.tutkintoasetukset
-        val explicitRetentionTypes = if (tosDriven) profile.documentTypes.keys - profile.mainDocumentType else profile.documentTypes.keys
+        val explicitRetentionTypes = if (tosDriven) emptySet() else profile.documentTypes.keys
         if (explicitRetentionTypes.any {
                 configuration.metadata.getDocumentMetadata(it, configuration.case)?.retentionPeriod?.toIntOrNull() == null
             } || regulations.isEmpty() || regulations.any { (key, value) -> key.isBlank() || value.isBlank() }) {

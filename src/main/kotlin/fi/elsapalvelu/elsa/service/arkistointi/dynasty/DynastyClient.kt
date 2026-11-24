@@ -146,10 +146,10 @@ class DynastyClient internal constructor(
     fun createTask(caseId: DynastyCaseId, title: String): DynastyTaskId =
         post("create_task", endpoint("api/v1/cases/$caseId/tasks").build(), json(DynastyTaskRequest(title)), DynastyResponseKind.TaskId)
 
-    fun createDocument(metadata: DynastyDocumentRequestMetadata, options: DynastyDocumentOptions, document: LoadedArkistointiAsiakirja): DynastyDocumentId {
+    fun createDocument(metadata: DynastyDocumentRequestMetadata, options: DynastyCaseAttachmentOptions, document: LoadedArkistointiAsiakirja): DynastyDocumentId {
         val (metadataPart, optionsPart, filePart) = when (options) {
-            is DynastyMainDocumentOptions -> Triple("MetaData", "CaseAttachmentOptions", "File")
-            is DynastyTosDocumentOptions, is DynastyAttachmentOptions -> Triple("metaData", "caseAttachmentOptions", "file")
+            is DynastyExplicitPhaseOptions -> Triple("MetaData", "CaseAttachmentOptions", "File")
+            is DynastyTosPhaseOptions -> Triple("metaData", "caseAttachmentOptions", "file")
         }
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
             .addFormDataPart(metadataPart, mapper.writeValueAsString(metadata))
@@ -168,23 +168,26 @@ class DynastyClient internal constructor(
 
     private fun endpoint(path: String): HttpUrl.Builder = requireSetting(settings.baseUrl).trimEnd('/').toHttpUrl().newBuilder().addPathSegments(path)
 
-    internal fun <T> readTos(path: String, operation: String, validate: (JsonNode) -> T): T {
+    internal fun <T> readResource(
+        path: String,
+        operation: String,
+        body: RequestBody? = null,
+        onIoFailure: (IOException) -> Exception = { it },
+        readResponse: DynastyCallDiagnostics.(Response, ObjectMapper) -> T
+    ): T {
         val url = endpoint(path).build()
         repeat(2) { attempt ->
-            val request = authorizedRequest(url, "application/json").get().build()
+            val request = authorizedRequest(url, "application/json").method(if (body == null) "GET" else "POST", body).build()
             diagnoseDynastyCall(operation) {
                 try {
                     httpClient.newCall(request).execute().use { response ->
                         recordResponse(response)
                         if (retryAfterUnauthorized(response.code, attempt)) return@use
-                        return validate(parseTosResponse(response, mapper))
+                        return readResponse(response, mapper)
                     }
-                } catch (exception: JsonProcessingException) {
-                    recordException(exception)
-                    throw DynastyFailure(DynastyFailureCategory.TOS_INVALID, DynastyDiagnosticReason.INVALID_JSON)
                 } catch (exception: IOException) {
                     recordException(exception)
-                    throw DynastyFailure(DynastyFailureCategory.TOS_UNAVAILABLE)
+                    throw onIoFailure(exception)
                 }
             }
         }
@@ -261,6 +264,16 @@ class DynastyClient internal constructor(
 }
 
 private const val MAX_TOS_RESPONSE_BYTES = 1_048_576L
+
+internal fun <T> DynastyClient.readTos(path: String, operation: String, validate: (JsonNode) -> T): T =
+    readResource(path, operation, onIoFailure = { DynastyFailure(DynastyFailureCategory.TOS_UNAVAILABLE) }) { response, mapper ->
+        try {
+            validate(parseTosResponse(response, mapper))
+        } catch (exception: JsonProcessingException) {
+            recordException(exception)
+            throw DynastyFailure(DynastyFailureCategory.TOS_INVALID, DynastyDiagnosticReason.INVALID_JSON)
+        }
+    }
 
 private fun parseTosResponse(response: Response, mapper: ObjectMapper): JsonNode {
     if (!response.isSuccessful) {

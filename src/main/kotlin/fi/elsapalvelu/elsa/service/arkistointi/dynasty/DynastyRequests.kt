@@ -15,8 +15,16 @@ class DynastyCaseModel(
     @get:JsonProperty("AD") val additionalData: DynastyAdditionalData,
     val publicityClassId: String = "J",
     val publicityClassName: String = "Julkinen",
-    val manner: String = "M"
+    val manner: String = "M",
+    @get:JsonInclude(JsonInclude.Include.NON_NULL) val retentionPeriodLength: Int? = null,
+    @get:JsonProperty("RetentionPeriod")
+    @get:JsonInclude(JsonInclude.Include.NON_NULL) val retentionPeriod: DynastyCaseRetentionPeriod? = null
 )
+
+class DynastyCaseRetentionPeriod(end: LocalDate) {
+    @get:JsonProperty("End")
+    val end: String = end.atStartOfDay().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+}
 
 class DynastyTaskRequest(val title: String)
 
@@ -66,7 +74,10 @@ class DynastyDocumentMetadata(
     val personalData: String = "Sisältää henkilötietoja",
     val state: Int = 3,
     @get:JsonProperty("SecrecyPeriod") @get:JsonInclude(JsonInclude.Include.NON_NULL) val secrecyPeriod: DynastySecrecyPeriod? = null,
-    @get:JsonProperty("DeliveryType") @get:JsonInclude(JsonInclude.Include.NON_NULL) val deliveryType: String? = null
+    @get:JsonProperty("DeliveryType") @get:JsonInclude(JsonInclude.Include.NON_NULL) val deliveryType: String? = null,
+    @get:JsonInclude(JsonInclude.Include.NON_NULL) val secrecyPeriodRule: String? = null,
+    @get:JsonInclude(JsonInclude.Include.NON_NULL) val secrecyPeriodLength: Int? = null,
+    @get:JsonInclude(JsonInclude.Include.NON_NULL) val secrecyReason: List<String>? = null
 ) : DynastyDocumentRequestMetadata
 
 class DynastyTosDocumentMetadata(
@@ -78,6 +89,7 @@ class DynastyTosDocumentMetadata(
     @get:JsonProperty("DeliveryType")
     val deliveryType = "M"
     val state = 3
+    val languageId = "fi-FI"
 }
 
 class DynastySecrecyPeriod(start: LocalDate, end: LocalDate) {
@@ -88,14 +100,14 @@ class DynastySecrecyPeriod(start: LocalDate, end: LocalDate) {
     val end: String = end.atStartOfDay().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
 }
 
-sealed interface DynastyDocumentOptions
+sealed interface DynastyCaseAttachmentOptions
 
-class DynastyMainDocumentOptions(caseId: DynastyCaseId, taskId: DynastyTaskId) : DynastyDocumentOptions {
+class DynastyExplicitPhaseOptions(caseId: DynastyCaseId, phaseId: DynastyTaskId) : DynastyCaseAttachmentOptions {
     @get:JsonProperty("CaseSelector") val caseSelector = DynastyTextSelector(caseId.toString())
-    @get:JsonProperty("PhaseSelector") val phaseSelector = DynastyTextSelector(taskId.toString())
+    @get:JsonProperty("PhaseSelector") val phaseSelector = DynastyTextSelector(phaseId.toString())
 }
 
-class DynastyTosDocumentOptions(caseId: DynastyCaseId, phaseId: DynastyTaskId, tosTitle: String) : DynastyDocumentOptions {
+class DynastyTosPhaseOptions(caseId: DynastyCaseId, phaseId: DynastyTaskId, tosTitle: String) : DynastyCaseAttachmentOptions {
     @get:JsonProperty("CaseSelector")
     val caseSelector = DynastyTosCaseSelector(caseId.numericValue)
 
@@ -110,10 +122,4 @@ class DynastyTosCaseSelector(@get:JsonProperty("Id") val id: Long)
 class DynastyTosPhaseSelector(val smartAttachOptions: DynastySmartAttachOptions)
 class DynastySmartAttachOptions(val pathSelector: List<DynastyTextSelector>)
 
-class DynastyAttachmentOptions(caseId: DynastyCaseId, parentId: DynastyDocumentId) : DynastyDocumentOptions {
-    val caseSelector = DynastyNumericSelector(caseId.numericValue)
-    val parentDocumentSelector = DynastyNumericSelector(parentId.numericValue)
-}
-
 class DynastyTextSelector(@get:JsonProperty("Id") val id: String)
-class DynastyNumericSelector(val id: Long)

@@ -265,6 +265,12 @@ poluista `/dev/application/dynasty/turku/clientid` ja
 `/dev/application/dynasty/turku/clientsecret`, kuten dev-ympäristön ECS-palvelu.
 Ulkoiset testit, dev ja staging käyttävät samoja testiosoitteita oletuksena.
 Testiaineisto käyttää tutkintoasetusta `56/2015`.
+Valmistumisen Turku-testi lukee arkistoidun asian asiakirjalinkit ja metatiedot
+Dynastysta. Se tarkistaa yhteisen käsittelyvaiheen, suorat asiakirjalinkit,
+asemointimallin, asiakirjojen arkistointitilan sekä liitteiden tyypin `Liite`.
+Tarkista testin lokiin tulostetun asian tunnisteella Dynastyssa käsittelyvaiheen
+nimi `Hakeminen`, asian tila `Arkistoitu` ja kummankin liiteasiakirjan 10 vuoden
+säilytysaika. Lukurajapinnan dokumentoidut vastaukset eivät sisällä näitä kenttiä.
 Pelkät Turun Dynasty-testit voi suorittaa komennolla:
 
 ```
@@ -819,16 +825,18 @@ pyyntökontekstia luoduilla jobeilla `requested_by_user_id` on tyhjä.
 
 ### Turku and UEF Dynasty REST delivery
 
-Both destinations support `VALMISTUMINEN` and `KOEJAKSO`. Turku reads the phase and
-document type from the active TOS before creating a case or sending a new main document.
-Dynasty creates the phase and supplies the main document's archive metadata (publicity,
-retention, document type) from TOS
-using `PhaseSelector.smartAttachOptions.pathSelector` and the exact `TOSTitle`.
-The graduation title has two spaces before `EL`. Graduation attachments are
-sent as `Liite` under the main document with a ten-year retention period, `DeliveryType` `M`
-and the identifying `AD` fields (the licensing date only on the certificate). The graduation
-main document also carries `ExtElsaTunniste` (the Elsa case id) and `UTUhyvaksymispaiva`;
-confirm both values with Turku.
+Both destinations support `VALMISTUMINEN` and `KOEJAKSO`. Turku resolves the phase
+and validates the exact top-level TOS titles for documents still to be sent.
+Dynasty resolves the phase and applies TOS metadata using
+`PhaseSelector.smartAttachOptions.pathSelector` and `TOSTitle`.
+The summary title `Valmistumisen yhteenveto,  EL, EHL tai YEK` has two spaces before `EL`.
+Both graduation attachments use the top-level title `Valmistumisen yhteenvedon liitteet,  EL, EHL tai YEK`
+(two spaces before `EL`) under the `Hakeminen` phase. They use the same schema as the summary and the
+identifying `AD` fields, with the licensing date on the certificate. Dynasty applies document type `Liite`,
+ten-year retention and publicity from the TOS title, so Turku requests do not send them.
+Every Turku document carries `languageId` `fi-FI` (Finnish is the only approved language).
+The graduation summary carries `ExtElsaTunniste` (the Elsa case id) and uses the Elsa approval
+date as `UTUvalmistumispaiva`.
 UEF creates its phase explicitly and sends its graduation documents as separate
 records under that phase. Both deliveries finish by archiving the case.
 
@@ -868,9 +876,8 @@ The external test profile defaults to the UEF test schema IDs.
 
 Every mutation is preceded by a committed intent in `arkistointi_dynasty_step`.
 Completed steps are reused on retry. The external case ID becomes the job external ID.
-Turku skips the TOS lookup when the main document is already recorded. An unconfirmed
-legacy Turku `TASK` still needs reconciliation. If a legacy task completed before the
-main document, the resumed upload uses the active TOS and the old phase stays in the case.
+Turku skips the TOS lookup once all documents are recorded. When documents remain,
+the lookup validates the TOS titles for those documents.
 `DYNASTY_TOS_INVALID` indicates a rejected lookup, invalid response or mismatched TOS entry.
 Transient TOS lookup failures use `DYNASTY_TOS_UNAVAILABLE` and can retry without a create intent.
 A stale scheduler execution cannot begin another step. A late successful response can
@@ -890,7 +897,7 @@ Use `ops/arkistointi/dynasty-resolve-step.sql` to confirm a discovered remote ID
 an intent only after establishing that nothing was created. Stop/drain the old worker
 before discard so an in-flight request cannot create an object after reconciliation.
 The resolution script requires all four psql variables: `job_id`, `step_key`, `remote_id`, and `action`.
-Allowed steps are `CASE`, `TASK`, `DOCUMENT:<manifest order>`, and `ARCHIVE_CASE`.
+Allowed steps are `CASE`, `DOCUMENT:<manifest order>`, and `ARCHIVE_CASE`. UEF also uses `TASK`.
 For `confirm`, use a canonical UUID for `TASK` or a positive bigint ID for `CASE`/`DOCUMENT`.
 Pass `remote_id=''` for `ARCHIVE_CASE` or `action=discard`. The task must be parked and unpicked,
 the job must require intervention, and the selected step must still be `ALOITETTU`.
@@ -900,14 +907,6 @@ Do not alter completed steps. The SQL scripts are operator procedures, not appli
 Ledger `started_at` and `completed_at` are PostgreSQL `timestamptz` values (absolute UTC instants).
 Intent age is evaluated against the database wall clock after locks are acquired; session time zones
 and the JVM clock do not participate in the decision.
-
-Before enabling Turku, check legacy jobs whose snapshots may lack Dynasty metadata:
-```sql
-select id, case_type, status from arkistointi_job
-where university = 'TURUN_YLIOPISTO' and status <> 'LAHETETTY';
-```
-Do not reconstruct missing approval metadata from subsequently modified live records.
-
 
 After a receiver reports success, a failure committing the local result is recorded as
 `ARCHIVE_SUCCESS_PERSISTENCE_FAILED`. Siilo and Louhi park for reconciliation; an automatic
