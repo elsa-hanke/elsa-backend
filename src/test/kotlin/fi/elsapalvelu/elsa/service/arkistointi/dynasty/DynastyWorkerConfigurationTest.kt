@@ -97,10 +97,7 @@ class DynastyWorkerConfigurationTest {
     }
 
     @Test
-    fun `missing document and invalid regulation mappings fail startup`() {
-        configure()
-        turku.metadata!!.getCaseMetadata(CaseType.VALMISTUMINEN)!!.documents = emptyMap()
-        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }.hasMessageContaining("DYNASTY_CONFIGURATION_INVALID")
+    fun `invalid regulation mappings fail startup`() {
         listOf(emptyMap(), mapOf("56/2015" to " ")).forEach { mappings ->
             configure()
             settings.tutkintoasetukset = mappings
@@ -109,11 +106,7 @@ class DynastyWorkerConfigurationTest {
     }
 
     @Test
-    fun `Turku requires certificate configuration and UEF cannot reuse Turku adapter`() {
-        configure()
-        val case = turku.metadata!!.getCaseMetadata(CaseType.VALMISTUMINEN)!!
-        case.documents = case.documents!! - "laillistamistodistus"
-        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }.hasMessageContaining("DYNASTY_CONFIGURATION_INVALID")
+    fun `UEF cannot reuse Turku adapter`() {
         configure()
         turku.kaytossa = false
         properties.getArkistointi().getUef().apply {
@@ -122,6 +115,13 @@ class DynastyWorkerConfigurationTest {
         }
         assertThatThrownBy { registry.validateWorkerConfiguration(provider) }
             .hasMessageContaining("ITA_SUOMEN_YLIOPISTO").hasMessageContaining("no asynchronous ArkistointiAdapter")
+    }
+
+    @Test
+    fun `Turku valmistuminen gets every document retention from TOS`() {
+        configure()
+        turku.metadata!!.getCaseMetadata(CaseType.VALMISTUMINEN)!!.documents!!.values.forEach { it.retentionPeriod = null }
+        assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
     }
 
     @Test

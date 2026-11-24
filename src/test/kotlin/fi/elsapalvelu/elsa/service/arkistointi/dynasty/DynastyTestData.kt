@@ -129,7 +129,7 @@ internal enum class TurkuTosFixture(val tosClass: String, val phase: String, val
     }
 
     companion object {
-        const val ATTACHMENT_TITLE = "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK"
+        const val ATTACHMENT_TITLE = "Valmistumisen yhteenvedon liitteet,  EL, EHL tai YEK"
         val PHASE_ID: UUID = UUID.fromString("68630ae0-34d8-43a5-93de-0a7219eecc60")
     }
 }

@@ -15,9 +15,8 @@ internal class DynastyCaseProfile(
 ) {
     companion object {
         private const val ASSESSMENT_TITLE = "Koejakson vastuuhenkilön arvio"
-        private const val GRADUATION_ATTACHMENTS = "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK"
 
-        fun valmistuminen(tosClass: String, task: String, summaryType: String, attachmentType: String = GRADUATION_ATTACHMENTS) = DynastyCaseProfile(
+        fun valmistuminen(tosClass: String, task: String, summaryType: String, attachmentType: String) = DynastyCaseProfile(
             tosClass = tosClass,
             task = task,
             title = "Valmistumisen yhteenveto",

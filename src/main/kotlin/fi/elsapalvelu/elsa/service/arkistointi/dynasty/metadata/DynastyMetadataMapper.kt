@@ -147,9 +147,12 @@ open class DynastyMetadataMapper internal constructor(
     )
 
     private fun documentMetadata(context: MappingContext, type: RecordType): DynastyDocumentRequestMetadata {
-        if (tosDriven && type == context.profile.mainDocumentType) {
+        if (tosDriven) {
+            // Dynasty applies document type, retention and publicity from the TOS title.
             val secrecyPeriod = if (context.profile.requiresSecrecy) secrecyPeriod() else null
-            return DynastyTosDocumentMetadata(context.title, settings.documentSchemaId, documentAdditionalData(context, type), secrecyPeriod)
+            return DynastyTosDocumentMetadata(
+                documentTitle(context, type), settings.documentSchemaId, documentAdditionalData(context, type), secrecyPeriod
+            )
         }
         val publicityClassId = rules.publicityClassId(context.profile)
         val additionalData = documentAdditionalData(context, type)
@@ -158,7 +161,7 @@ open class DynastyMetadataMapper internal constructor(
         return DynastyDocumentMetadata(
             title = documentTitle(context, type),
             schemaId = settings.documentSchemaId,
-            documentType = if (tosDriven) "Liite" else context.profile.documentTypes.getValue(type),
+            documentType = context.profile.documentTypes.getValue(type),
             retentionPeriodLength = retention,
             additionalData = additionalData,
             publicityClassId = publicityClassId,

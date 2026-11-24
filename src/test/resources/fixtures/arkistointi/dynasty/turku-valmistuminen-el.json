@@ -36,17 +36,12 @@
         "ExtElsaTunniste": "1"
       },
       "state": 3,
-      "DeliveryType": "M"
+      "DeliveryType": "M",
+      "languageId": "fi-FI"
     },
     {
       "title": "Valmistumisen yhteenvedon liitteet Maija Meikäläinen 31.10.2026",
       "schemaId": "document-schema",
-      "documentType": "Liite",
-      "retentionPeriodLength": 10,
-      "publicityClassId": "J",
-      "publicityClassName": "Julkinen",
-      "retentionPeriodRule": "Asian lopullinen ratkaisu",
-      "personalData": "Sisältää henkilötietoja",
       "state": 3,
       "DeliveryType": "M",
       "AD": {
@@ -55,17 +50,12 @@
         "UTUtiedekunta": "Lääketieteellinen tiedekunta",
         "UTUkoulutusohjelma": "Erikoislääkärikoulutus",
         "UTUpaaaine": "Akuuttilääketiede"
-      }
+      },
+      "languageId": "fi-FI"
     },
     {
       "title": "Laillistustodistus Maija Meikäläinen",
       "schemaId": "document-schema",
-      "documentType": "Liite",
-      "retentionPeriodLength": 10,
-      "publicityClassId": "J",
-      "publicityClassName": "Julkinen",
-      "retentionPeriodRule": "Asian lopullinen ratkaisu",
-      "personalData": "Sisältää henkilötietoja",
       "state": 3,
       "AD": {
         "UTUetunimi": "Maija",
@@ -75,7 +65,8 @@
         "UTUpaaaine": "Akuuttilääketiede",
         "UTUlaillistamispaiva": "2019-01-01"
       },
-      "DeliveryType": "M"
+      "DeliveryType": "M",
+      "languageId": "fi-FI"
     }
   ]
 }

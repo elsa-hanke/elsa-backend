@@ -29,16 +29,16 @@ class TurkuDynastyMetadataMapperTest {
         assertThat(plan.tosClass).isEqualTo("05.06.02.04")
         assertThat(plan.task).isEqualTo("Hakeminen")
         val (summary, attachment, certificate) = documents
-        assertThat(summary.fieldNames().asSequence().toList()).containsExactlyInAnyOrder("title", "schemaId", "state", "DeliveryType", "AD")
-        assertThat(summary.path("DeliveryType").asText()).isEqualTo("M")
-        listOf(attachment, certificate).forEach { document ->
+        // Type, retention and publicity come from the TOS title, so every document carries the same field set.
+        documents.forEach { document ->
+            assertThat(document.fieldNames().asSequence().toList())
+                .containsExactlyInAnyOrder("title", "schemaId", "state", "DeliveryType", "languageId", "AD")
             assertThat(document.path("schemaId").asText()).isEqualTo(summary.path("schemaId").asText())
-            assertThat(document.path("documentType").asText()).isEqualTo("Liite")
-            assertThat(document.path("publicityClassId").asText()).isEqualTo("J")
-            assertThat(document.path("retentionPeriodRule").asText()).isEqualTo("Asian lopullinen ratkaisu")
-            assertThat(document.path("retentionPeriodLength").asInt()).isEqualTo(10)
             assertThat(document.path("DeliveryType").asText()).isEqualTo("M")
+            assertThat(document.path("languageId").asText()).isEqualTo("fi-FI")
         }
+        assertThat(attachment.path("title").asText()).isEqualTo("Valmistumisen yhteenvedon liitteet Maija Meikäläinen 31.10.2026")
+        assertThat(certificate.path("title").asText()).isEqualTo("Laillistustodistus Maija Meikäläinen")
         assertThat(mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(plan.caseRequest).path("caseModel").path("title").asText()).startsWith(kind)
         assertThat(documents[0].path("AD").path("UTUkoulutusohjelma").asText()).isEqualTo(when(kind) {
             "YEK" -> "Yleislääketieteen erityiskoulutus"
@@ -64,7 +64,8 @@ class TurkuDynastyMetadataMapperTest {
         assertThat(plan.task).isEqualTo("Arviointi")
         assertThat(doc.path("title").asText()).isEqualTo("EL Koejakson vastuuhenkilön arvio Maija Meikäläinen 31.10.2026")
         assertThat(doc.fieldNames().asSequence().toList())
-            .containsExactlyInAnyOrder("title", "schemaId", "state", "DeliveryType", "AD", "SecrecyPeriod")
+            .containsExactlyInAnyOrder("title", "schemaId", "state", "DeliveryType", "languageId", "AD", "SecrecyPeriod")
+        assertThat(doc.path("languageId").asText()).isEqualTo("fi-FI")
         assertThat(doc.path("SecrecyPeriod").path("Start").asText()).isEqualTo("2026-11-19T00:00:00")
         assertThat(doc.path("SecrecyPeriod").path("End").asText()).isEqualTo("2126-11-19T00:00:00")
         assertThat(doc.path("AD").path("UTUhyvaksymispaiva").asText()).isEqualTo("2026-10-31")

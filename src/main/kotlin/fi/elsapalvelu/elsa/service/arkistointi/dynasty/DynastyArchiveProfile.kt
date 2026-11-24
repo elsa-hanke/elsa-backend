@@ -22,7 +22,8 @@ internal enum class DynastyArchiveProfile(
         archiveProperties = Arkistointi::getTurku,
         caseProfiles = mapOf(
             CaseType.VALMISTUMINEN to DynastyCaseProfile.valmistuminen(
-                "05.06.02.04", "Hakeminen", "Valmistumisen yhteenveto,  EL, EHL tai YEK"
+                "05.06.02.04", "Hakeminen", "Valmistumisen yhteenveto,  EL, EHL tai YEK",
+                attachmentType = "Valmistumisen yhteenvedon liitteet,  EL, EHL tai YEK"
             ),
             CaseType.KOEJAKSO to DynastyCaseProfile.koejakso(
                 "05.06.02.00", "Arviointi", "Osittain salassapidettävä", "Asiakirjan päivämäärä"

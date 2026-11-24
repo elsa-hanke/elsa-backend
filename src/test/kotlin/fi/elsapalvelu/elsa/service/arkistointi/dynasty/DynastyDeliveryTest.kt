@@ -135,8 +135,9 @@ class DynastyDeliveryTest {
             assertThat(options.at("/CaseSelector/Id").longValue()).isEqualTo(415)
             assertThat(options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(TurkuTosFixture.PHASE_ID.toString())
             assertThat(options.path("TOSTitle").asText()).isEqualTo(TurkuTosFixture.ATTACHMENT_TITLE)
-            assertThat(metadata.path("documentType").asText()).isEqualTo("Liite")
-            assertThat(metadata.path("retentionPeriodLength").asInt()).isEqualTo(10)
+            assertThat(metadata.fieldNames().asSequence().toList())
+                .containsExactlyInAnyOrder("title", "schemaId", "state", "DeliveryType", "languageId", "AD")
+            assertThat(metadata.path("languageId").asText()).isEqualTo("fi-FI")
             assertThat(metadata.path("schemaId")).isEqualTo(summaryMetadata.path("schemaId"))
         }
         assertThat(requests.last().path).isEqualTo("/api/v1/cases/415/state/Archived")

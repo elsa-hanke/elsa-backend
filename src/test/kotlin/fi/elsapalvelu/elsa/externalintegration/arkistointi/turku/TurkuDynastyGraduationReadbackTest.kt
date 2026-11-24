@@ -23,7 +23,7 @@ class TurkuDynastyGraduationReadbackTest {
         server.enqueue(MockResponse().setBody(caseContents()))
         documentIds.forEachIndexed { index, id ->
             val type = if (index == 0) "Yhteenveto" else "Liite"
-            server.enqueue(MockResponse().setBody("""{"id":$id,"state":"Archived","schemaID":"$schemaId","documentType":"$type"}"""))
+            server.enqueue(MockResponse().setBody(document(id, type)))
         }
 
         readback.verify("415", documentIds)
@@ -53,6 +53,23 @@ class TurkuDynastyGraduationReadbackTest {
                 .hasMessageContaining("parent document of 1079")
         }
     }
+
+    @Test
+    fun `a document without Finnish language fails the readback`() {
+        MockWebServer().use { server ->
+            val readback = readback(server)
+            server.enqueue(MockResponse().setBody(caseContents()))
+            server.enqueue(MockResponse().setBody(document(documentIds[0], "Yhteenveto", language = "sv-FI")))
+
+            assertThatThrownBy { readback.verify("415", documentIds) }
+                .isInstanceOf(AssertionError::class.java)
+                .hasMessageContaining("language of document 1078")
+                .hasMessageContaining("languageId=sv-FI")
+        }
+    }
+
+    private fun document(id: String, type: String, language: String = "fi-FI") =
+        """{"id":$id,"state":"Archived","schemaID":"$schemaId","documentType":"$type","languageId":"$language"}"""
 
     private fun caseContents(parentDocumentId: String? = null): String {
         val phaseId = UUID.randomUUID()

@@ -104,12 +104,11 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         )
         val input = ArkistointiTestData.createInput(scenario)
         val documents = loadDocuments(input.asiakirjat, pngCertificate = false)
-        val today = LocalDate.now()
         val payload = KoejaksoArkistointiPayload(
             caseId = requireNotNull(input.opintooikeus.id),
             studyRight = studyRightPayload(input.opintooikeus, scenario, programme),
-            reviewer = "ELSA integraatiotesti", reviewDate = today.minusDays(2),
-            approver = "ELSA integraatiotesti", approvalDate = today.minusDays(1),
+            reviewer = "ELSA integraatiotesti", reviewDate = KOEJAKSO_REVIEW_DATE,
+            approver = "ELSA integraatiotesti", approvalDate = KOEJAKSO_APPROVAL_DATE,
             koejaksoHyvaksytty = true,
             documents = documents.map {
                 ArkistointiDocumentIdentity(it.asiakirjaId, it.asiakirjaId, it.asiakirjatyyppi, it.jarjestysnumero)
@@ -121,8 +120,9 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
     private fun studyRightPayload(
         opintooikeus: Opintooikeus, scenario: ArkistointiTestScenario, programme: Programme
     ): ArchiveStudyRightPayload {
-        val testStudyRight = opintooikeus.copy(opintooikeudenMyontamispaiva = LocalDate.of(2020, 8, 1))
+        val testStudyRight = opintooikeus.copy(opintooikeudenMyontamispaiva = STUDY_RIGHT_START_DATE)
         return ArchiveStudyRightPayload.create(testStudyRight, scenario.yliopisto).copy(
+            birthDate = BIRTH_DATE,
             yek = scenario.yek,
             specialtyType = programme.specialtyType,
             degreeRegulation = "56/2015"
@@ -157,15 +157,14 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         val input = ArkistointiTestData.createInput(scenario)
         val documents = loadDocuments(input.asiakirjat, pngCertificate = programme == Programme.YEK)
         val studyRight = studyRightPayload(input.opintooikeus, scenario, programme)
-        val today = LocalDate.now()
         val payload = ValmistuminenArkistointiPayload(
             caseId = requireNotNull(input.opintooikeus.id), studyRight = studyRight,
-            reviewer = "ELSA integraatiotesti", reviewDate = today.minusDays(2),
-            approver = "ELSA integraatiotesti", approvalDate = today.minusDays(1),
+            reviewer = "ELSA integraatiotesti", reviewDate = GRADUATION_REVIEW_DATE,
+            approver = "ELSA integraatiotesti", approvalDate = GRADUATION_APPROVAL_DATE,
             documents = documents.map {
                 ArkistointiDocumentIdentity(it.asiakirjaId, it.asiakirjaId, it.asiakirjatyyppi, it.jarjestysnumero)
             },
-            licensingDate = LocalDate.of(2019, 1, 1)
+            licensingDate = LICENSING_DATE
         )
         return arkistointiSubmission(UUID.randomUUID(), scenario.yliopisto, scenario.caseType, mapper.writeValueAsString(payload), documents)
     }
@@ -174,5 +173,16 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         EL(ErikoisalaTyyppi.LAAKETIEDE),
         EHL(ErikoisalaTyyppi.HAMMASLAAKETIEDE),
         YEK(ErikoisalaTyyppi.LAAKETIEDE)
+    }
+
+    // Distinct dates let the archive verify that each Dynasty date field comes from the right Elsa field.
+    private companion object {
+        val BIRTH_DATE: LocalDate = LocalDate.of(1985, 3, 12)
+        val LICENSING_DATE: LocalDate = LocalDate.of(2019, 6, 14)
+        val STUDY_RIGHT_START_DATE: LocalDate = LocalDate.of(2020, 8, 1)
+        val KOEJAKSO_REVIEW_DATE: LocalDate = LocalDate.of(2026, 8, 18)
+        val KOEJAKSO_APPROVAL_DATE: LocalDate = LocalDate.of(2026, 9, 21)
+        val GRADUATION_REVIEW_DATE: LocalDate = LocalDate.of(2026, 9, 7)
+        val GRADUATION_APPROVAL_DATE: LocalDate = LocalDate.of(2026, 10, 15)
     }
 }

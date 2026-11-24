@@ -830,9 +830,11 @@ and validates the exact top-level TOS titles for documents still to be sent.
 Dynasty resolves the phase and applies TOS metadata using
 `PhaseSelector.smartAttachOptions.pathSelector` and `TOSTitle`.
 The summary title `Valmistumisen yhteenveto,  EL, EHL tai YEK` has two spaces before `EL`.
-Both graduation attachments use the top-level title `Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK`
-under the `Hakeminen` phase. They use the same schema as the summary, document type `Liite`,
-ten-year retention, and the identifying `AD` fields, with the licensing date on the certificate.
+Both graduation attachments use the top-level title `Valmistumisen yhteenvedon liitteet,  EL, EHL tai YEK`
+(two spaces before `EL`) under the `Hakeminen` phase. They use the same schema as the summary and the
+identifying `AD` fields, with the licensing date on the certificate. Dynasty applies document type `Liite`,
+ten-year retention and publicity from the TOS title, so Turku requests do not send them.
+Every Turku document carries `languageId` `fi-FI` (Finnish is the only approved language).
 The graduation summary carries `ExtElsaTunniste` (the Elsa case id) and uses the Elsa approval
 date as `UTUvalmistumispaiva`.
 UEF creates its phase explicitly and sends its graduation documents as separate

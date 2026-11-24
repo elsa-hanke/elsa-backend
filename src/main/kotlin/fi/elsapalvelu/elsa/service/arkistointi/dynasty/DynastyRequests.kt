@@ -89,6 +89,7 @@ class DynastyTosDocumentMetadata(
     @get:JsonProperty("DeliveryType")
     val deliveryType = "M"
     val state = 3
+    val languageId = "fi-FI"
 }
 
 class DynastySecrecyPeriod(start: LocalDate, end: LocalDate) {
