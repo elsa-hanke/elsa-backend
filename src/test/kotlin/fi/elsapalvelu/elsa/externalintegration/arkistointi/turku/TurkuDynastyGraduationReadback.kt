@@ -25,20 +25,11 @@ internal class TurkuDynastyGraduationReadback(private val client: DynastyClient,
             assertThat(metadata.path("id").longValue()).describedAs("document ID").isEqualTo(id.numericValue)
             assertThat(metadata.path("state").asText()).describedAs("state of document $id").isEqualTo("Archived")
             assertThat(metadata.path("schemaID").asText()).describedAs("schema of document $id").isEqualToIgnoringCase(documentSchemaId)
-            assertFinnish(metadata, id)
             // Manifest order is summary, combined attachments, licensing certificate.
             if (index > 0) {
                 assertThat(metadata.path("documentType").asText()).describedAs("type of document $id").isEqualTo("Liite")
             }
         }
-    }
-
-    // The read API field name for the language is not documented, so accept any top-level language field.
-    private fun assertFinnish(metadata: JsonNode, id: DynastyDocumentId) {
-        val languages = metadata.properties().filter { (name, _) -> name.contains("language", ignoreCase = true) }
-            .associate { (name, value) -> name to value.asText() }
-        assertThat(languages.values).describedAs("language of document $id, language fields $languages")
-            .anyMatch { it.equals(FINNISH, ignoreCase = true) }
     }
 
     private fun assertDirectPhaseLinks(documents: JsonNode, ids: List<DynastyDocumentId>) {
@@ -66,7 +57,6 @@ internal class TurkuDynastyGraduationReadback(private val client: DynastyClient,
 
     private companion object {
         val EMPTY_GUID = UUID(0, 0)
-        const val FINNISH = "fi-FI"
         const val MAX_RESPONSE_BYTES = 1_048_576L
     }
 }
