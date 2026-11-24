@@ -1,6 +1,7 @@
 package fi.elsapalvelu.elsa.cleanup
 
 import fi.elsapalvelu.elsa.domain.kayttaja.Asiakirja
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -14,8 +15,11 @@ interface AsiakirjaCleanupService {
 class AsiakirjaCleanupServiceImpl(
 ) : AsiakirjaCleanupService {
 
+    private final val log = LoggerFactory.getLogger(AsiakirjaCleanupServiceImpl::class.java)
+
     @Transactional(propagation = Propagation.MANDATORY)
     override fun cleanAsiakirjaContent(asiakirja: Asiakirja) {
+        log.info("Cleaning asiakirja content for asiakirja with id: ${asiakirja.id}")
         asiakirja.asiakirjaData?.data = null
         asiakirja.nimi = ""
     }

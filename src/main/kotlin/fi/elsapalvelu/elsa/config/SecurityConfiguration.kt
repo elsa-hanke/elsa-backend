@@ -1,37 +1,19 @@
 package fi.elsapalvelu.elsa.config
 
-import fi.elsapalvelu.elsa.required
-
-import fi.elsapalvelu.elsa.service.kayttaja.UserService
 import fi.elsapalvelu.elsa.audit.AuditLoggingWrapper
 import fi.elsapalvelu.elsa.domain.kayttaja.Authority
-import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.domain.kayttaja.KayttajatilinTila
-import fi.elsapalvelu.elsa.repository.*
-import fi.elsapalvelu.elsa.repository.koejakso.*
-import fi.elsapalvelu.elsa.repository.tyoskentely.*
-import fi.elsapalvelu.elsa.repository.arviointi.*
-import fi.elsapalvelu.elsa.repository.suoritteet.*
-import fi.elsapalvelu.elsa.repository.koulutus.*
-import fi.elsapalvelu.elsa.repository.seuranta.*
-import fi.elsapalvelu.elsa.repository.valmistuminen.*
+import fi.elsapalvelu.elsa.domain.kayttaja.User
 import fi.elsapalvelu.elsa.repository.kayttaja.*
-import fi.elsapalvelu.elsa.repository.perustiedot.*
+import fi.elsapalvelu.elsa.required
 import fi.elsapalvelu.elsa.security.*
-import fi.elsapalvelu.elsa.security.StaleXsrfCookieClearingFilter
-import fi.elsapalvelu.elsa.service.*
-import fi.elsapalvelu.elsa.service.koejakso.*
-import fi.elsapalvelu.elsa.service.tyoskentely.*
-import fi.elsapalvelu.elsa.service.arviointi.*
-import fi.elsapalvelu.elsa.service.suoritteet.*
-import fi.elsapalvelu.elsa.service.koulutus.*
-import fi.elsapalvelu.elsa.service.seuranta.*
-import fi.elsapalvelu.elsa.service.valmistuminen.*
-import fi.elsapalvelu.elsa.service.kayttaja.*
-import fi.elsapalvelu.elsa.service.perustiedot.*
 import fi.elsapalvelu.elsa.service.dto.koulutus.OpintotietodataDTO
 import fi.elsapalvelu.elsa.service.integration.OpintosuorituksetFetchingService
 import fi.elsapalvelu.elsa.service.integration.OpintotietodataFetchingService
+import fi.elsapalvelu.elsa.service.kayttaja.OpintooikeusService
+import fi.elsapalvelu.elsa.service.kayttaja.UserService
+import fi.elsapalvelu.elsa.service.koulutus.OpintosuorituksetPersistenceService
+import fi.elsapalvelu.elsa.service.koulutus.OpintotietodataPersistenceService
 import jakarta.persistence.EntityNotFoundException
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.*
@@ -257,6 +239,7 @@ class SecurityConfiguration(
                 .hasAnyAuthority(ERIKOISTUVA_LAAKARI, YEK_KOULUTETTAVA, KOULUTTAJA, VASTUUHENKILO, OPINTOHALLINNON_VIRKAILIJA, TEKNINEN_PAAKAYTTAJA)
                 .requestMatchers("/api/**").authenticated()
                 .requestMatchers("/management/health").permitAll()
+                .requestMatchers("/private/api/**").permitAll()
                 .requestMatchers("/management/info").denyAll()
                 .requestMatchers("/management/**").hasAuthority(ADMIN)
         }

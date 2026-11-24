@@ -9,6 +9,7 @@ import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 @Service
 class OpintooikeusCleanupOrchestrator(
@@ -35,13 +36,16 @@ class OpintooikeusCleanupOrchestrator(
 
     // Internal, incomplete cleanup only: no eligibility check or full-cleanup completion.
     @Transactional(rollbackFor = [EntityNotFoundException::class, Exception::class])
-    internal fun clearContent(opintooikeusId: Long) {
+    fun clearContent(opintooikeusId: Long) {
         val opintooikeus = opintooikeusRepository.findById(opintooikeusId)
             .orElseThrow { EntityNotFoundException(OPINTOOIKEUS_NOT_FOUND_ERROR) }
 
+        val cutoffDate = LocalDate.now().minusMonths(1)
+        val isBeforeCutoff = opintooikeus.viimeinenKatselupaiva?.isBefore(cutoffDate) ?: false
+
         // TODO lisää tarkistus että onko kyseinen opinto-oikeus jo siivottu, jos on niin ei tehdä mitään.
-        if( opintooikeus.viimeinenKatselupaiva == null ) {
-            log.warn("Opintooikeus with id: $opintooikeusId has no viimeinenKatselupaiva, skipping cleanup.")
+        if (!isBeforeCutoff) {
+            log.warn("Opintooikeus with id: $opintooikeusId has no viimeinenKatselupaiva or it is not before the cutoff date, skipping cleanup.")
             return
         }
         opintooikeusCleanupService.clearOpintooikeus(opintooikeus)
