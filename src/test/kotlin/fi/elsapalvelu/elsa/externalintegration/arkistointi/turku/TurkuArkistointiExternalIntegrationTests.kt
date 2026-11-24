@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.DynastyArkistointiExternalTestSupport
+import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.DynastyDocumentReadback
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.DynastyExternalTestConfiguration
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.externalDynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
@@ -36,8 +37,10 @@ class TurkuArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestS
     @EnumSource(Programme::class)
     fun shouldArchiveGraduationWithAttachments(programme: Programme) {
         val settings = DynastyArchiveProfile.TURKU.archiveProperties(properties.getArkistointi()).dynasty
-        val readback = TurkuDynastyGraduationReadback(turkuDynastyClient, requireNotNull(settings.documentSchemaId))
-        archiveGraduation(programme, readback::verify)
+        val readback = DynastyDocumentReadback(turkuDynastyClient, requireNotNull(settings.documentSchemaId))
+        archiveGraduation(programme) { caseId, documentIds ->
+            readback.verify(caseId, documentIds, listOf(null, "Liite", "Liite"))
+        }
     }
 
     @ParameterizedTest(name = "Turku Dynasty koejakso {0}")

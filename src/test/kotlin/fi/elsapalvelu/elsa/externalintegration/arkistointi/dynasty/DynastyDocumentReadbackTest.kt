@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.externalintegration.arkistointi.turku
+package fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DYNASTY_TEST_TOKEN_RESPONSE
@@ -12,9 +12,10 @@ import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.util.UUID
 
-class TurkuDynastyGraduationReadbackTest {
+class DynastyDocumentReadbackTest {
     private val mapper = jacksonObjectMapper()
     private val documentIds = listOf("1078", "1079", "1080")
+    private val expectedDocumentTypes = listOf("Yhteenveto", "Liite", "Liite")
     private val schemaId = UUID.randomUUID().toString()
 
     @Test
@@ -26,7 +27,7 @@ class TurkuDynastyGraduationReadbackTest {
             server.enqueue(MockResponse().setBody(document(id, type)))
         }
 
-        readback.verify("415", documentIds)
+        readback.verify("415", documentIds, expectedDocumentTypes)
 
         assertThat(server.requestCount).isEqualTo(5)
         assertThat(server.takeRequest().path).isEqualTo("/token")
@@ -48,7 +49,7 @@ class TurkuDynastyGraduationReadbackTest {
             val readback = readback(server)
             server.enqueue(MockResponse().setBody(caseContents(parentDocumentId = UUID.randomUUID().toString())))
 
-            assertThatThrownBy { readback.verify("415", documentIds) }
+            assertThatThrownBy { readback.verify("415", documentIds, expectedDocumentTypes) }
                 .isInstanceOf(AssertionError::class.java)
                 .hasMessageContaining("parent document of 1079")
         }
@@ -65,10 +66,10 @@ class TurkuDynastyGraduationReadbackTest {
         }.joinToString(prefix = "[", postfix = "]")
     }
 
-    private fun readback(server: MockWebServer): TurkuDynastyGraduationReadback {
+    private fun readback(server: MockWebServer): DynastyDocumentReadback {
         val settings = dynastyTestProperties(server.url("/").newBuilder().host("127.0.0.1").build().toString())
             .getArkistointi().getTurku().dynasty
         server.enqueue(MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE))
-        return TurkuDynastyGraduationReadback(DynastyClient(settings, mapper, Clock.systemUTC()), schemaId)
+        return DynastyDocumentReadback(DynastyClient(settings, mapper, Clock.systemUTC()), schemaId)
     }
 }

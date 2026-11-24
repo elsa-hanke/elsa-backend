@@ -64,8 +64,9 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         verifySavedCase(caseId, documentIds)
     }
 
-    protected fun archiveKoejakso(programme: Programme) {
-        assertDeliverySucceeds(createKoejaksoSubmission(programme), "koejakso $programme")
+    protected fun archiveKoejakso(programme: Programme, verifySavedCase: (String, List<String>) -> Unit = { _, _ -> }) {
+        val (caseId, documentIds) = assertDeliverySucceeds(createKoejaksoSubmission(programme), "koejakso $programme")
+        verifySavedCase(caseId, documentIds)
     }
 
     private fun assertDeliverySucceeds(submission: ArkistointiSubmission, description: String): Pair<String, List<String>> {

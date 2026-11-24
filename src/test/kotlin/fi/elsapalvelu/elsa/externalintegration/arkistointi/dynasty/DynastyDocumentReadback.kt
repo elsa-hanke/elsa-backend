@@ -1,4 +1,4 @@
-package fi.elsapalvelu.elsa.externalintegration.arkistointi.turku
+package fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty
 
 import com.fasterxml.jackson.databind.JsonNode
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyCaseId
@@ -10,24 +10,23 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.assertj.core.api.Assertions.assertThat
 import java.util.UUID
 
-internal class TurkuDynastyGraduationReadback(private val client: DynastyClient, private val documentSchemaId: String) {
-    fun verify(caseId: String, documentIds: List<String>) {
+internal class DynastyDocumentReadback(private val client: DynastyClient, private val documentSchemaId: String) {
+    fun verify(caseId: String, documentIds: List<String>, expectedDocumentTypes: List<String?>) {
         val ids = documentIds.map(::DynastyDocumentId)
-        assertThat(ids).hasSize(3).doesNotHaveDuplicates()
+        assertThat(ids).hasSize(expectedDocumentTypes.size).doesNotHaveDuplicates()
         val documents = read(
             "api/v1/cases/${DynastyCaseId(caseId)}/contents", "read_case_contents",
             """{"typeEquals":"DOCUMENT"}""".toRequestBody("application/json".toMediaType())
         )
         assertDirectPhaseLinks(documents, ids)
 
-        ids.forEachIndexed { index, id ->
+        ids.zip(expectedDocumentTypes).forEach { (id, expectedType) ->
             val metadata = read("api/v1/documents/$id", "read_document")
             assertThat(metadata.path("id").longValue()).describedAs("document ID").isEqualTo(id.numericValue)
             assertThat(metadata.path("state").asText()).describedAs("state of document $id").isEqualTo("Archived")
             assertThat(metadata.path("schemaID").asText()).describedAs("schema of document $id").isEqualToIgnoringCase(documentSchemaId)
-            // Manifest order is summary, combined attachments, licensing certificate.
-            if (index > 0) {
-                assertThat(metadata.path("documentType").asText()).describedAs("type of document $id").isEqualTo("Liite")
+            if (expectedType != null) {
+                assertThat(metadata.path("documentType").asText()).describedAs("type of document $id").isEqualTo(expectedType)
             }
         }
     }
