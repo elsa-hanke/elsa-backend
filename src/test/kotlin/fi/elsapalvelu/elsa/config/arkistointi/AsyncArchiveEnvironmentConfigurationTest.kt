@@ -27,6 +27,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.StandardEnvironment
 import org.springframework.core.env.SystemEnvironmentPropertySource
+import org.springframework.core.io.ClassPathResource
 import java.util.stream.Stream
 
 class AsyncArchiveEnvironmentConfigurationTest {
@@ -125,6 +126,25 @@ class AsyncArchiveEnvironmentConfigurationTest {
     }
 
     @Test
+    fun `shipped Dynasty configuration maps every regulation in asetus csv`() {
+        val regulations = ClassPathResource("config/liquibase/data/asetus.csv").inputStream.bufferedReader().useLines { rows ->
+            rows.drop(1).filter(String::isNotBlank).map { it.substringAfter(';') }.toList()
+        }
+        assertThat(regulations).isNotEmpty()
+
+        runner().withPropertyValues("spring.profiles.active=prod").run { context ->
+            assertThat(context).hasNotFailed()
+            val archive = context.getBean(ApplicationProperties::class.java).getArkistointi()
+            DynastyArchiveProfile.entries.forEach { profile ->
+                val configuredRegulations = profile.archiveProperties(archive).dynasty.tutkintoasetukset
+                assertThat(configuredRegulations.filterValues(String::isNotBlank).keys)
+                    .describedAs("%s Dynasty tutkintoasetukset", profile)
+                    .containsAll(regulations)
+            }
+        }
+    }
+
+    @Test
     fun `shipped Turku configuration passes worker validation when enabled with credentials`() {
         runner(mapOf(
             "APPLICATION_ARKISTOINTI_TURKU_KAYTOSSA" to "true",
@@ -140,8 +160,6 @@ class AsyncArchiveEnvironmentConfigurationTest {
                 DynastyStepExecutor(mock()), properties
             )))
 
-            assertThat(properties.getArkistointi().getTurku().dynasty.tutkintoasetukset.keys)
-                .containsExactlyInAnyOrder("678/1998", "1343/2002", "401/2007", "56/2015", "55/2020")
             assertThatCode { registry.validateWorkerConfiguration(context.getBean(ArkistointiConfigurationProvider::class.java)) }
                 .doesNotThrowAnyException()
         }

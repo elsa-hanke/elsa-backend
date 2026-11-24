@@ -64,8 +64,13 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         verifySavedCase(caseId, documentIds)
     }
 
-    protected fun archiveKoejakso(programme: Programme, verifySavedCase: (String, List<String>) -> Unit = { _, _ -> }) {
-        val (caseId, documentIds) = assertDeliverySucceeds(createKoejaksoSubmission(programme), "koejakso $programme")
+    protected fun archiveKoejakso(
+        programme: Programme,
+        degreeRegulation: String = "56/2015",
+        verifySavedCase: (String, List<String>) -> Unit = { _, _ -> }
+    ) {
+        val submission = createKoejaksoSubmission(programme, degreeRegulation)
+        val (caseId, documentIds) = assertDeliverySucceeds(submission, "koejakso $programme ($degreeRegulation)")
         verifySavedCase(caseId, documentIds)
     }
 
@@ -95,7 +100,7 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         return caseId to documentIds
     }
 
-    private fun createKoejaksoSubmission(programme: Programme): ArkistointiSubmission {
+    private fun createKoejaksoSubmission(programme: Programme, degreeRegulation: String): ArkistointiSubmission {
         val scenario = ArkistointiTestScenario(
             name = "Dynasty koejakso $programme",
             yliopisto = university,
@@ -107,7 +112,7 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         val documents = loadDocuments(input.asiakirjat, pngCertificate = false)
         val payload = KoejaksoArkistointiPayload(
             caseId = requireNotNull(input.opintooikeus.id),
-            studyRight = studyRightPayload(input.opintooikeus, scenario, programme),
+            studyRight = studyRightPayload(input.opintooikeus, scenario, programme, degreeRegulation),
             reviewer = "ELSA integraatiotesti", reviewDate = KOEJAKSO_REVIEW_DATE,
             approver = "ELSA integraatiotesti", approvalDate = KOEJAKSO_APPROVAL_DATE,
             koejaksoHyvaksytty = true,
@@ -119,14 +124,14 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
     }
 
     private fun studyRightPayload(
-        opintooikeus: Opintooikeus, scenario: ArkistointiTestScenario, programme: Programme
+        opintooikeus: Opintooikeus, scenario: ArkistointiTestScenario, programme: Programme, degreeRegulation: String
     ): ArchiveStudyRightPayload {
         val testStudyRight = opintooikeus.copy(opintooikeudenMyontamispaiva = STUDY_RIGHT_START_DATE)
         return ArchiveStudyRightPayload.create(testStudyRight, scenario.yliopisto).copy(
             birthDate = BIRTH_DATE,
             yek = scenario.yek,
             specialtyType = programme.specialtyType,
-            degreeRegulation = "56/2015"
+            degreeRegulation = degreeRegulation
         )
     }
 
@@ -157,7 +162,7 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         )
         val input = ArkistointiTestData.createInput(scenario)
         val documents = loadDocuments(input.asiakirjat, pngCertificate = programme == Programme.YEK)
-        val studyRight = studyRightPayload(input.opintooikeus, scenario, programme)
+        val studyRight = studyRightPayload(input.opintooikeus, scenario, programme, degreeRegulation = "56/2015")
         val payload = ValmistuminenArkistointiPayload(
             caseId = requireNotNull(input.opintooikeus.id), studyRight = studyRight,
             reviewer = "ELSA integraatiotesti", reviewDate = GRADUATION_REVIEW_DATE,

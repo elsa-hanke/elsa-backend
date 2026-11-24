@@ -44,11 +44,12 @@ class UefArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestSup
         readback.verify(caseId, documentIds, listOf("Yhteenveto", "Liite", "Liite"))
     }
 
-    @ParameterizedTest(name = "UEF Dynasty koejakso {0}")
+    @ParameterizedTest(name = "UEF Dynasty koejakso {0} (55/2020)")
     @EnumSource(Programme::class)
-    fun shouldArchiveKoejaksoWithSecrecyMetadata(programme: Programme) = archiveKoejakso(programme) { caseId, documentIds ->
-        readback.verify(caseId, documentIds, listOf("Lausunto"))
-    }
+    fun shouldArchiveKoejaksoWithSecrecyMetadata(programme: Programme) =
+        archiveKoejakso(programme, degreeRegulation = "55/2020") { caseId, documentIds ->
+            readback.verify(caseId, documentIds, listOf("Lausunto"))
+        }
 }
 
 @SpringBootConfiguration
