@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component
 class CleanupOpintoOikeus {
 
     fun clearKoulutussuunnitelmaContent(koulutussuunnitelma: Koulutussuunnitelma) {
+
         koulutussuunnitelma.motivaatiokirje = null
         koulutussuunnitelma.opiskeluJaTyohistoria = null
         koulutussuunnitelma.vahvuudet = null
