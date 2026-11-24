@@ -33,19 +33,25 @@ class TurkuArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestS
     @Autowired
     private lateinit var properties: ApplicationProperties
 
+    private val readback by lazy {
+        val settings = DynastyArchiveProfile.TURKU.archiveProperties(properties.getArkistointi()).dynasty
+        DynastyDocumentReadback(turkuDynastyClient, requireNotNull(settings.documentSchemaId), expectedLanguageId = "fi-FI")
+    }
+
     @ParameterizedTest(name = "Turku Dynasty valmistuminen {0}")
     @EnumSource(Programme::class)
-    fun shouldArchiveGraduationWithAttachments(programme: Programme) {
-        val settings = DynastyArchiveProfile.TURKU.archiveProperties(properties.getArkistointi()).dynasty
-        val readback = DynastyDocumentReadback(turkuDynastyClient, requireNotNull(settings.documentSchemaId))
+    fun shouldArchiveGraduationWithAttachments(programme: Programme) =
         archiveGraduation(programme) { caseId, documentIds ->
             readback.verify(caseId, documentIds, listOf(null, "Liite", "Liite"))
         }
-    }
 
     @ParameterizedTest(name = "Turku Dynasty koejakso {0}")
     @EnumSource(Programme::class)
-    fun shouldArchiveKoejaksoWithSecrecyMetadata(programme: Programme) = archiveKoejakso(programme)
+    fun shouldArchiveKoejaksoWithSecrecyMetadata(programme: Programme) =
+        archiveKoejakso(programme) { caseId, documentIds, deliveryDates ->
+            val secrecy = DynastyDocumentReadback.KoejaksoSecrecy(deliveryDates, publicityClassName = "Osittain salassapidettävä")
+            readback.verify(caseId, documentIds, listOf(null), expectedSecrecy = secrecy)
+        }
 }
 
 @SpringBootConfiguration
