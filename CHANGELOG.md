@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.2...HEAD)
 
+- UEF dynasty integration (PR1) [`#834`](https://github.com/elsa-hanke/elsa-backend/pull/834)(24 November 2026)
 - bump libs 112026 [`#835`](https://github.com/elsa-hanke/elsa-backend/pull/835)(23 November 2026)
 - ELSA-1297 Terveyskeskusjaksohakemuksilla työjaksot ja työjaksojen poissaolot satunnaisessa (epäloogisessa) järjestyksessä [`#829`](https://github.com/elsa-hanke/elsa-backend/pull/829)(23 November 2026)
 - improved diagnostics, error handling, and logging for Dynasty API calls [`#833`](https://github.com/elsa-hanke/elsa-backend/pull/833)(20 November 2026)
