@@ -4,7 +4,6 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -15,7 +14,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import com.fasterxml.jackson.databind.JsonNode
 
@@ -39,7 +37,9 @@ class TurkuDynastyMetadataMapperTest {
         }
         assertThat(attachment.path("title").asText()).isEqualTo("Valmistumisen yhteenvedon liitteet Maija Meikäläinen 31.10.2026")
         assertThat(certificate.path("title").asText()).isEqualTo("Laillistustodistus Maija Meikäläinen")
-        assertThat(mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(plan.caseRequest).path("caseModel").path("title").asText()).startsWith(kind)
+        val case = mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(plan.caseRequest).path("caseModel")
+        assertThat(case.path("title").asText()).startsWith(kind)
+        assertThat(case.has("retentionPeriod")).isFalse()
         assertThat(documents[0].path("AD").path("UTUkoulutusohjelma").asText()).isEqualTo(when(kind) {
             "YEK" -> "Yleislääketieteen erityiskoulutus"
             "EHL" -> "Erikoishammaslääkärikoulutus"
@@ -71,15 +71,6 @@ class TurkuDynastyMetadataMapperTest {
         assertThat(doc.path("AD").path("UTUhyvaksymispaiva").asText()).isEqualTo("2026-10-31")
         assertThat(doc.path("AD").has("UTUvalmistumispaiva")).isFalse()
         assertThat(doc.path("AD").has("ExtElsaTunniste")).isFalse()
-    }
-
-    @ParameterizedTest
-    @CsvSource("false,turku-valmistuminen-el.json", "true,turku-koejakso-el.json")
-    fun `plan matches the golden specification mapping`(koejakso: Boolean, goldenFile: String) {
-        val mapper = jacksonObjectMapper()
-        val actual = mapper.valueToTree<JsonNode>(plan("EL", koejakso))
-        val golden = javaClass.getResourceAsStream("/fixtures/arkistointi/dynasty/$goldenFile")!!.use(mapper::readTree)
-        assertThat(actual).isEqualTo(golden)
     }
 
     @Test
@@ -118,7 +109,8 @@ class TurkuDynastyMetadataMapperTest {
         val root = mapper.readTree(submission.payload) as com.fasterxml.jackson.databind.node.ObjectNode
         changePayload(root)
         val clock = Clock.fixed(Instant.parse("2026-11-18T22:30:00Z"), ZoneOffset.UTC)
-        return TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), clock)
+        val settings = properties.getArkistointi().getTurku().dynasty
+        return DynastyMetadataMapper(DynastyArchiveProfile.TURKU, settings, mapper, ArchivePayloadReader(mapper), clock)
             .plan(submission.copy(payload = root.toString()))
     }
 }

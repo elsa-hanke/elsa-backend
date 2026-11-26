@@ -7,7 +7,7 @@ buildscript {
     }
     dependencies {
         classpath "org.liquibase:liquibase-gradle-plugin:${liquibasePluginVersion}"
-        classpath "org.liquibase:liquibase-core:5.0.3"
+        classpath "org.liquibase:liquibase-core:5.0.4"
     }
 }
 
@@ -26,7 +26,7 @@ plugins {
     id "org.sonarqube"
     id "com.apollographql.apollo" version "${apolloVersion}"
     id "org.hibernate.orm" version "${hibernateVersion}"
-    id "org.cyclonedx.bom" version "3.5.1"
+    id "org.cyclonedx.bom" version "3.6.1"
     id("org.gradle.test-retry") version "1.6.6"
 }
 
@@ -62,10 +62,12 @@ springBoot {
 ext {
     // Keep Kotlin runtime aligned with the compiler plugin.
     set('kotlin.version', kotlinVersion)
+    set('hibernate.version', hibernateVersion)
     // Security fixes newer than the Boot BOM; Jackson 2 remains for application/AWS compatibility.
-    set('jackson-2-bom.version', '2.21.7')
-    set('jackson-bom.version', '3.1.7')
-    set('tomcat.version', '11.0.27')
+    set('jackson-2-bom.version', '2.21.9')
+    set('jackson-bom.version', '3.1.9')
+    set('postgresql.version', '42.7.15')
+    set('tomcat.version', '11.0.29')
 }
 
 dependencyManagement {
@@ -76,9 +78,11 @@ dependencyManagement {
     }
     dependencies {
         // Keep the crypto modules used by SAML and iText on the same release.
-        dependency "org.bouncycastle:bcprov-jdk18on:1.86"
-        dependency "org.bouncycastle:bcpkix-jdk18on:1.86"
-        dependency "org.bouncycastle:bcutil-jdk18on:1.86"
+        dependency "org.bouncycastle:bcprov-jdk18on:1.87"
+        dependency "org.bouncycastle:bcpkix-jdk18on:1.87"
+        dependency "org.bouncycastle:bcutil-jdk18on:1.87"
+        // OpenSAML and Shibboleth bring an older Guava release.
+        dependency "com.google.guava:guava:33.7.2-jre"
     }
 }
 
@@ -204,7 +208,7 @@ dependencies {
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-sns'
     implementation 'io.micrometer:micrometer-registry-cloudwatch2'
     implementation "org.apache.commons:commons-text:1.15.0"
-    implementation "com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261011.1"
+    implementation "com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261110.1"
     implementation "net.coobird:thumbnailator:0.4.21"
     implementation "net.logstash.logback:logstash-logback-encoder:9.0"
     implementation "org.fluentd:fluent-logger:0.3.4"
@@ -218,7 +222,7 @@ dependencies {
     implementation "com.itextpdf:bouncy-castle-adapter:${itextVersion}"
     implementation "com.itextpdf:pdfa:${itextVersion}"
     implementation "com.itextpdf:html2pdf:5.0.5"
-    implementation("org.apache.pdfbox:pdfbox:3.0.5")
+    implementation("org.apache.pdfbox:pdfbox:3.0.8")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation "org.springframework.integration:spring-integration-sftp"
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
@@ -227,7 +231,7 @@ dependencies {
 
 
 wrapper {
-    gradleVersion = "9.9.1"
+    gradleVersion = "9.9.2"
 }
 
 detekt {

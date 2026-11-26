@@ -1,0 +1,64 @@
+{
+  "tosClass": "03.11",
+  "caseRequest": {
+    "caseModel": {
+      "schemaid": "case-schema",
+      "title": "YEK Valmistumisen yhteenveto Maija Meikäläinen 31.10.2026",
+      "AD": {
+        "UEFetunimi": "Maija",
+        "UEFsukunimi": "Meikäläinen",
+        "UEFtiedekunta": "Terveystieteiden tiedekunta",
+        "UEFkoulutusohjelma": "Yleislääketieteen erityiskoulutus",
+        "UEFpaaaine": "Akuuttilääketiede",
+        "UEFsyntymaaika": "1980-01-01"
+      },
+      "publicityClassId": "J",
+      "publicityClassName": "Julkinen",
+      "manner": "M",
+      "retentionPeriod": {
+        "End": "9999-12-31T00:00:00"
+      }
+    }
+  },
+  "task": "ELSA valmistumispyyntö ja sen liitteet",
+  "documents": [
+    {
+      "title": "YEK Valmistumisen yhteenveto Maija Meikäläinen 31.10.2026",
+      "schemaId": "document-schema",
+      "AD": {
+        "UEFetunimi": "Maija",
+        "UEFsukunimi": "Meikäläinen",
+        "UEFtiedekunta": "Terveystieteiden tiedekunta",
+        "UEFkoulutusohjelma": "Yleislääketieteen erityiskoulutus",
+        "UEFpaaaine": "Akuuttilääketiede",
+        "UEFsyntymaaika": "1980-01-01",
+        "UEFalkamispaiva": "2020-01-01",
+        "UEFvalmistumispaiva": "2026-10-31",
+        "UEFtutkintoasetus": "Confirmed regulation",
+        "UEFlaillistamispaiva": "2019-01-01"
+      },
+      "state": 3,
+      "DeliveryType": "M"
+    },
+    {
+      "title": "Valmistumisen yhteenvedon liitteet Maija Meikäläinen 31.10.2026",
+      "schemaId": "document-schema",
+      "state": 3,
+      "DeliveryType": "M"
+    },
+    {
+      "title": "Laillistustodistus Maija Meikäläinen",
+      "schemaId": "document-schema",
+      "AD": {
+        "UEFlaillistamispaiva": "2019-01-01"
+      },
+      "state": 3,
+      "DeliveryType": "M"
+    }
+  ],
+  "tosTitles": [
+    "Valmistumisen yhteenveto, EL, EHL tai YEK (valmistumispyyntö)",
+    "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK",
+    "Laillistustodistus (valmistumisen yhteenvedon liite)"
+  ]
+}

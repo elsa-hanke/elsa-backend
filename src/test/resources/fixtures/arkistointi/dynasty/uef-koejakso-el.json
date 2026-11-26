@@ -1,0 +1,50 @@
+{
+  "tosClass": "03.11",
+  "caseRequest": {
+    "caseModel": {
+      "schemaid": "case-schema",
+      "title": "EL Koejakson vastuuhenkilön arvio Maija Meikäläinen 31.10.2026",
+      "AD": {
+        "UEFetunimi": "Maija",
+        "UEFsukunimi": "Meikäläinen",
+        "UEFtiedekunta": "Terveystieteiden tiedekunta",
+        "UEFkoulutusohjelma": "Erikoislääkärikoulutus",
+        "UEFpaaaine": "Akuuttilääketiede",
+        "UEFsyntymaaika": "1980-01-01"
+      },
+      "publicityClassId": "J",
+      "publicityClassName": "Julkinen",
+      "manner": "M",
+      "retentionPeriod": {
+        "End": "9999-12-31T00:00:00"
+      }
+    }
+  },
+  "task": "ELSA Koejaksojen yhteenvedot",
+  "documents": [
+    {
+      "title": "EL Koejakson vastuuhenkilön arvio Maija Meikäläinen 31.10.2026",
+      "schemaId": "document-schema",
+      "AD": {
+        "UEFetunimi": "Maija",
+        "UEFsukunimi": "Meikäläinen",
+        "UEFtiedekunta": "Terveystieteiden tiedekunta",
+        "UEFkoulutusohjelma": "Erikoislääkärikoulutus",
+        "UEFpaaaine": "Akuuttilääketiede",
+        "UEFsyntymaaika": "1980-01-01",
+        "UEFalkamispaiva": "2020-01-01",
+        "UEFhyvaksymispaiva": "2026-10-31",
+        "UEFtutkintoasetus": "Confirmed regulation"
+      },
+      "SecrecyPeriod": {
+        "Start": "2026-11-19T00:00:00",
+        "End": "2126-11-19T00:00:00"
+      },
+      "state": 3,
+      "DeliveryType": "M"
+    }
+  ],
+  "tosTitles": [
+    "Koejakson vastuuhenkilön arvio"
+  ]
+}

@@ -9,8 +9,8 @@ import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.DynastyExtern
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.externalDynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArchiveProfile
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.UefDynastyArkistointiAdapter
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.UefDynastyMetadataMapper
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArkistointiAdapterFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -42,20 +42,30 @@ class UefArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestSup
     @EnumSource(Programme::class)
     fun shouldArchiveGraduationWithParallelDocuments(programme: Programme) = archiveGraduation(programme) { caseId, documentIds ->
         readback.verify(caseId, documentIds, listOf("Yhteenveto", "Liite", "Liite"))
+        readback.verifyCaseRetentionBasis(caseId, UEF_RETENTION_BASIS)
     }
 
     @ParameterizedTest(name = "UEF Dynasty koejakso {0} (55/2020)")
     @EnumSource(Programme::class)
     fun shouldArchiveKoejaksoWithSecrecyMetadata(programme: Programme) =
         archiveKoejakso(programme, degreeRegulation = "55/2020") { caseId, documentIds ->
-            readback.verify(caseId, documentIds, listOf("Lausunto"), expectedPublicityClassName = "Osittain salassa pidettävä")
+            readback.verify(caseId, documentIds, listOf("Lausunto"), expectedPublicityClassName = "Osittain salassapidettävä")
+            readback.verifyCaseRetentionBasis(caseId, UEF_RETENTION_BASIS)
         }
+
+    private companion object {
+        const val UEF_RETENTION_BASIS = "UEF tiedonohjaussuunnitelma, TOS"
+    }
 }
 
 @SpringBootConfiguration
 @Profile("external-integration")
-@Import(DynastyExternalTestConfiguration::class, UefDynastyArkistointiAdapter::class, UefDynastyMetadataMapper::class)
+@Import(DynastyExternalTestConfiguration::class, DynastyArkistointiAdapterFactory::class)
 class UefArkistointiExternalIntegrationTestApplication {
+    @Bean("uefDynastyArkistointiAdapter")
+    internal fun uefDynastyArkistointiAdapter(client: DynastyClient, factory: DynastyArkistointiAdapterFactory): DynastyArkistointiAdapter =
+        factory.create(DynastyArchiveProfile.UEF, client)
+
     @Bean
     fun uefDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper, clock: Clock): DynastyClient {
         val settings = DynastyArchiveProfile.UEF.archiveProperties(properties.getArkistointi()).dynasty

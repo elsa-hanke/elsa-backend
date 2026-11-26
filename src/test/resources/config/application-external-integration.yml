@@ -22,20 +22,6 @@ application:
         # The 56/2015 text is the customer's example from the mapping spreadsheet.
         tutkintoasetukset:
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
-      metadata:
-        cases:
-          koejakso:
-            documents:
-              arviointi:
-                retention-period: "-1"
-          valmistuminen:
-            documents:
-              yhteenveto:
-                retention-period: "20"
-              liite:
-                retention-period: "10"
-              laillistamistodistus:
-                retention-period: "10"
     uef:
       dynasty:
         base-url: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_BASE_URL:https://dynasty-testi.uef.fi/dynasty.externalinterface.archive.oauth}
@@ -45,24 +31,9 @@ application:
         organization: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION:0}
         case-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_CASE_SCHEMA_ID:a31e955d-b12b-4eec-960c-15e26e75bac2}
         document-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_DOCUMENT_SCHEMA_ID:cc64ac32-083e-4a80-ab98-a1763be20658}
-        koejakso-publicity-class-id: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_KOEJAKSO_PUBLICITY_CLASS_ID:S}
         tutkintoasetukset:
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
           "[55/2020]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
-      metadata:
-        cases:
-          koejakso:
-            documents:
-              arviointi:
-                retention-period: "-1"
-          valmistuminen:
-            documents:
-              yhteenveto:
-                retention-period: "20"
-              liite:
-                retention-period: "10"
-              laillistamistodistus:
-                retention-period: "10"
     tre:
       kaytossa: true
       host: ${APPLICATION_ARKISTOINTI_TRE_HOST}

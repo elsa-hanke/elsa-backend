@@ -14,6 +14,7 @@ import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistuminenArkistointiAsiakirjat
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
@@ -29,24 +30,20 @@ class ValmistuminenArkistointiAsiakirjatTest {
     private val valmistumispyynto = mock<Valmistumispyynto>()
     private val generated = listOf(RecordType.YHTEENVETO, RecordType.LIITE).map { RecordProperties(Asiakirja(id = 1), it) }
 
-    private fun metadata(includeLaillistamistodistus: Boolean) = ApplicationProperties.Arkistointi.Metadata().apply {
-        cases = mapOf("valmistuminen" to ApplicationProperties.Arkistointi.Case().apply {
-            documents = (listOf("yhteenveto", "liite") + if (includeLaillistamistodistus) listOf("laillistamistodistus") else emptyList())
-                .associateWith { ApplicationProperties.Arkistointi.DocumentMetadata() }
-        })
+    @Test
+    fun `certificate is skipped when the university archives only generated documents`() {
+        properties.getArkistointi().getHki().metadata = ApplicationProperties.Arkistointi.Metadata().apply {
+            cases = mapOf("valmistuminen" to ApplicationProperties.Arkistointi.Case().apply {
+                documents = listOf("yhteenveto", "liite").associateWith { ApplicationProperties.Arkistointi.DocumentMetadata() }
+            })
+        }
+        assertThat(service.taydenna(valmistumispyynto, YliopistoEnum.HELSINGIN_YLIOPISTO, generated)).isSameAs(generated)
+        verifyNoInteractions(valmistumispyynto, snapshots)
     }
 
     @ParameterizedTest
     @EnumSource(value = YliopistoEnum::class, names = ["TURUN_YLIOPISTO", "ITA_SUOMEN_YLIOPISTO"])
-    fun `includeLaillistamistodistus selection is configured independently for each university`(university: YliopistoEnum) {
-        val turku = properties.getArkistointi().getTurku()
-        val uef = properties.getArkistointi().getUef()
-        turku.metadata = metadata(university != YliopistoEnum.TURUN_YLIOPISTO)
-        uef.metadata = metadata(university != YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
-        assertThat(service.taydenna(valmistumispyynto, university, generated)).isSameAs(generated)
-        verifyNoInteractions(valmistumispyynto, snapshots)
-
-        if (university == YliopistoEnum.TURUN_YLIOPISTO) turku.metadata = metadata(true) else uef.metadata = metadata(true)
+    fun `Dynasty graduation includes the certificate from the university profile`(university: YliopistoEnum) {
         val opintooikeus = mock<Opintooikeus>()
         whenever(valmistumispyynto.opintooikeus).thenReturn(opintooikeus)
         whenever(opintooikeus.erikoistuvaLaakari).thenReturn(mock<ErikoistuvaLaakari>())
@@ -61,8 +58,6 @@ class ValmistuminenArkistointiAsiakirjatTest {
     @ParameterizedTest
     @EnumSource(value = YliopistoEnum::class, names = ["TURUN_YLIOPISTO", "ITA_SUOMEN_YLIOPISTO"])
     fun `missing configured generated document fails before snapshot creation`(university: YliopistoEnum) {
-        properties.getArkistointi().getTurku().metadata = metadata(true)
-        properties.getArkistointi().getUef().metadata = metadata(true)
         assertThatThrownBy { service.taydenna(valmistumispyynto, university, generated.take(1)) }
             .hasMessage("Configured graduation document is missing")
         verifyNoInteractions(valmistumispyynto, snapshots)

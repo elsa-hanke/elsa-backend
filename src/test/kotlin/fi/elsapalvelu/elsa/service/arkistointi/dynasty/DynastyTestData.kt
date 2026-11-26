@@ -35,19 +35,6 @@ fun dynastyTestProperties(
         documentSchemaId = "document-schema"
         allowLoopbackHttpForTests = true
         tutkintoasetukset = mapOf("56/2015" to "Confirmed regulation")
-        koejaksoPublicityClassId = "test-secret"
-    }
-    archive.metadata = ApplicationProperties.Arkistointi.Metadata().apply {
-        cases = mapOf(
-            "valmistuminen" to ApplicationProperties.Arkistointi.Case().apply {
-                documents = listOf("yhteenveto", "liite", "laillistamistodistus").associateWith { type ->
-                    ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = if (type == "yhteenveto") "20" else "10" }
-                }
-            },
-            "koejakso" to ApplicationProperties.Arkistointi.Case().apply {
-                documents = mapOf("arviointi" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "-1" })
-            }
-        )
     }
 }
 
@@ -88,24 +75,20 @@ fun dynastySubmission(
     return arkistointiSubmission(jobId, studyRight.university, caseType, mapper.writeValueAsString(payload), documents, version)
 }
 
-/** Standard successful HTTP sequence; tests with rejection or ambiguity enqueue their own responses. */
-fun MockWebServer.enqueueDynastySuccess(documentIds: List<Long>, caseId: Long = 415, taskId: UUID = UUID.randomUUID()) {
-    listOf(DYNASTY_TEST_TOKEN_RESPONSE, caseId.toString(), "\"$taskId\"").forEach { enqueue(MockResponse().setBody(it)) }
-    documentIds.forEach { enqueue(MockResponse().setBody(it.toString())) }
-    enqueue(MockResponse().setBody(""))
-}
-
-internal enum class TurkuTosFixture(val tosClass: String, val phase: String, val documentTitle: String) {
-    GRADUATION("05.06.02.04", "Hakeminen", "Valmistumisen yhteenveto,  EL, EHL tai YEK"),
-    ASSESSMENT("05.06.02.00", "Arviointi", "Koejakson vastuuhenkilön arvio");
+internal enum class DynastyTosFixture(
+    val tosClass: String, val phase: String, val documentTitle: String, val additionalTitles: List<String> = emptyList()
+) {
+    GRADUATION("05.06.02.04", "Hakeminen", "Valmistumisen yhteenveto,  EL, EHL tai YEK",
+        listOf("Valmistumisen yhteenvedon liitteet,  EL, EHL tai YEK")),
+    ASSESSMENT("05.06.02.00", "Arviointi", "Koejakson vastuuhenkilön arvio"),
+    UEF_GRADUATION("03.11", "ELSA valmistumispyyntö ja sen liitteet",
+        "Valmistumisen yhteenveto, EL, EHL tai YEK (valmistumispyyntö)",
+        listOf("Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK", "Laillistustodistus (valmistumisen yhteenvedon liite)")),
+    UEF_ASSESSMENT("03.11", "ELSA Koejaksojen yhteenvedot", "Koejakson vastuuhenkilön arvio");
 
     val path get() = "/api/v1/cases/phases/$tosClass"
-    private val documentTypes: String
-        get() = if (this == GRADUATION) {
-            """{"title":"$documentTitle","childs":[]},{"title":"$ATTACHMENT_TITLE","childs":[]}"""
-        } else {
-            """{"title":"$documentTitle","childs":[]}"""
-        }
+    val documentTitles get() = listOf(documentTitle) + additionalTitles
+    private val documentTypes get() = documentTitles.joinToString(",") { """{"title":"$it","childs":[]}""" }
 
     fun response(requestPath: String, phaseId: UUID = PHASE_ID): MockResponse? = when (requestPath) {
         path -> MockResponse().setBody(

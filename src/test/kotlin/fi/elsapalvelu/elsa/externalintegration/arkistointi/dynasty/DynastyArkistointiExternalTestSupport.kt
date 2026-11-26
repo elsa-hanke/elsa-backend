@@ -83,11 +83,7 @@ abstract class DynastyArkistointiExternalTestSupport : ExternalIntegrationTestSu
         val caseId = requireNotNull((result as ArkistointiResult.Success).externalId) { "Unknown Dynasty case ID" }
         assertThat(caseId).isNotBlank()
         verify(ledger).complete(eq(submission.jobId), eq(DynastyStepKey.Case), eq(submission.execution.version), eq(caseId))
-        if (university == YliopistoEnum.TURUN_YLIOPISTO) {
-            verify(ledger, never()).begin(eq(submission.execution), eq(DynastyStepKey.Task), any())
-        } else {
-            verify(ledger).complete(eq(submission.jobId), eq(DynastyStepKey.Task), eq(submission.execution.version), any())
-        }
+        verify(ledger, never()).begin(eq(submission.execution), eq(DynastyStepKey.Task), any())
         val documentIds = submission.asiakirjat.map { document ->
             val documentId = argumentCaptor<String>()
             verify(ledger).complete(

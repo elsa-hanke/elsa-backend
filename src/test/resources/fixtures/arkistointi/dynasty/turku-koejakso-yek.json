@@ -1,0 +1,48 @@
+{
+  "tosClass": "05.06.02.00",
+  "caseRequest": {
+    "caseModel": {
+      "schemaid": "case-schema",
+      "title": "YEK Koejakson vastuuhenkilön arvio Maija Meikäläinen 31.10.2026",
+      "AD": {
+        "UTUetunimi": "Maija",
+        "UTUsukunimi": "Meikäläinen",
+        "UTUtiedekunta": "Lääketieteellinen tiedekunta",
+        "UTUkoulutusohjelma": "Yleislääketieteen erityiskoulutus",
+        "UTUpaaaine": "Akuuttilääketiede",
+        "UTUsyntymaaika": "1980-01-01"
+      },
+      "publicityClassId": "J",
+      "publicityClassName": "Julkinen",
+      "manner": "M"
+    }
+  },
+  "task": "Arviointi",
+  "documents": [
+    {
+      "title": "YEK Koejakson vastuuhenkilön arvio Maija Meikäläinen 31.10.2026",
+      "schemaId": "document-schema",
+      "AD": {
+        "UTUetunimi": "Maija",
+        "UTUsukunimi": "Meikäläinen",
+        "UTUtiedekunta": "Lääketieteellinen tiedekunta",
+        "UTUkoulutusohjelma": "Yleislääketieteen erityiskoulutus",
+        "UTUpaaaine": "Akuuttilääketiede",
+        "UTUsyntymaaika": "1980-01-01",
+        "UTUalkamispaiva": "2020-01-01",
+        "UTUhyvaksymispaiva": "2026-10-31",
+        "UTUtutkintoasetus": "Confirmed regulation"
+      },
+      "SecrecyPeriod": {
+        "Start": "2026-11-19T00:00:00",
+        "End": "2126-11-19T00:00:00"
+      },
+      "languageId": "fi-FI",
+      "state": 3,
+      "DeliveryType": "M"
+    }
+  ],
+  "tosTitles": [
+    "Koejakson vastuuhenkilön arvio"
+  ]
+}

@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiExecutionLock
@@ -73,12 +73,7 @@ class DynastyValmistuminenFaultMatrixIT {
         val dynasty = FakeDynasty()
         val server = MockWebServer().apply { dispatcher = dynasty; start() }
         try {
-            val properties = dynastyTestProperties(server.url("/").newBuilder().host("127.0.0.1").build().toString())
-            val adapter = TurkuDynastyArkistointiAdapter(
-                DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
-                TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
-                DynastyStepExecutor(ledger), properties
-            )
+            val adapter = adapter(server)
             var execution = stepFixture.execution(jobStatus = ArkistointiJobStatus.KASITTELYSSA, picked = true)
             (0..2).forEach { jdbc.update("insert into arkistointi_job_asiakirja values (?,?)", execution.jobId, it) }
             val jobId = execution.jobId
@@ -128,12 +123,23 @@ class DynastyValmistuminenFaultMatrixIT {
             assertThat(completedSteps(jobId)).containsExactlyElementsOf(STEPS)
             assertThat(dynasty.attachmentRequests).isNotEmpty().allMatch { body ->
                 val options = mapper.dynastyMultipartJson(body, "caseAttachmentOptions")
-                options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText() == TurkuTosFixture.PHASE_ID.toString() &&
-                    options.path("TOSTitle").asText() == TurkuTosFixture.ATTACHMENT_TITLE && !options.has("parentDocumentSelector")
+                options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText() == DynastyTosFixture.PHASE_ID.toString() &&
+                    options.path("TOSTitle").asText() == DynastyTosFixture.ATTACHMENT_TITLE && !options.has("parentDocumentSelector")
             }
         } finally {
             server.shutdown()
         }
+    }
+
+    private fun adapter(server: MockWebServer): DynastyArkistointiAdapter {
+        val properties = dynastyTestProperties(server.url("/").newBuilder().host("127.0.0.1").build().toString())
+        val settings = properties.getArkistointi().getTurku().dynasty
+        return DynastyArkistointiAdapter(
+            DynastyArchiveProfile.TURKU,
+            DynastyClient(settings, mapper, Clock.systemDefaultZone()),
+            DynastyMetadataMapper(DynastyArchiveProfile.TURKU, settings, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
+            DynastyStepExecutor(ledger), settings
+        )
     }
 
     private fun failureCode(result: ArkistointiResult): String? = when (result) {
@@ -202,7 +208,7 @@ class DynastyValmistuminenFaultMatrixIT {
         @Synchronized override fun dispatch(request: RecordedRequest): MockResponse {
             val path = request.path!!
             if (path == "/token") return MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE)
-            TurkuTosFixture.GRADUATION.response(path)?.let { return it }
+            DynastyTosFixture.GRADUATION.response(path)?.let { return it }
             val body = request.body.clone().readUtf8()
             val step = resolveStep(path, body) ?: return MockResponse().setResponseCode(404)
             recordRequest(step, body)

@@ -1,6 +1,6 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -26,11 +26,11 @@ class DynastyDeliveryTest {
             val ledger = resumableLedger(submission.execution)
             val adapter = adapter(server, mapper, ledger)
             server.enqueue(MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE))
-            with(TurkuTosFixture.GRADUATION) { server.enqueueLookup() }
+            with(DynastyTosFixture.GRADUATION) { server.enqueueLookup() }
             listOf("415", "1078").forEach { server.enqueue(MockResponse().setBody(it)) }
             server.enqueue(MockResponse().setResponseCode(403))
             assertThat(adapter.arkistoi(submission)).isInstanceOf(ArkistointiResult.PermanentFailure::class.java)
-            with(TurkuTosFixture.GRADUATION) { server.enqueueLookup() }
+            with(DynastyTosFixture.GRADUATION) { server.enqueueLookup() }
             listOf("1079","1080","").forEach { server.enqueue(MockResponse().setBody(it)) }
             assertThat(adapter.arkistoi(submission)).isEqualTo(ArkistointiResult.Success("415"))
             assertResumedDeliveryRequests(server, mapper)
@@ -44,11 +44,11 @@ class DynastyDeliveryTest {
             val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
             val ledger = mock<DynastyStepLedger>()
             val adapter = adapter(server, mapper, ledger)
-            val fixture = TurkuTosFixture.GRADUATION
-            val phaseId = TurkuTosFixture.PHASE_ID
+            val fixture = DynastyTosFixture.GRADUATION
+            val phaseId = DynastyTosFixture.PHASE_ID
             server.enqueue(MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE))
             server.enqueue(requireNotNull(fixture.response(fixture.path)))
-            val attachment = """{"title":"${TurkuTosFixture.ATTACHMENT_TITLE}"}"""
+            val attachment = """{"title":"${DynastyTosFixture.ATTACHMENT_TITLE}"}"""
             val documents = if (nestedAttachment) {
                 """{"title":"${fixture.documentTitle}","childs":[$attachment]}"""
             } else {
@@ -82,13 +82,15 @@ class DynastyDeliveryTest {
         }
     }
 
-    private fun adapter(server: MockWebServer, mapper: ObjectMapper, ledger: DynastyStepLedger): TurkuDynastyArkistointiAdapter {
+    private fun adapter(server: MockWebServer, mapper: ObjectMapper, ledger: DynastyStepLedger): DynastyArkistointiAdapter {
         val properties = dynastyTestProperties(server.url("/").newBuilder().host("127.0.0.1").build().toString())
+        val settings = properties.getArkistointi().getTurku().dynasty
         val clock = Clock.systemUTC()
-        return TurkuDynastyArkistointiAdapter(
-            DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, clock),
-            TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), clock),
-            DynastyStepExecutor(ledger), properties
+        return DynastyArkistointiAdapter(
+            DynastyArchiveProfile.TURKU,
+            DynastyClient(settings, mapper, clock),
+            DynastyMetadataMapper(DynastyArchiveProfile.TURKU, settings, mapper, ArchivePayloadReader(mapper), clock),
+            DynastyStepExecutor(ledger), settings
         )
     }
 
@@ -118,23 +120,23 @@ class DynastyDeliveryTest {
         val requests = List(server.requestCount) { server.takeRequest() }
         assertThat(requests.count { it.path!!.startsWith("/api/v1/cases?") }).isEqualTo(1)
         val lookups = requests.filter { it.method == "GET" }
-        val phasePath = TurkuTosFixture.GRADUATION.path
-        val typesPath = "$phasePath/${TurkuTosFixture.PHASE_ID}/documenttypes"
+        val phasePath = DynastyTosFixture.GRADUATION.path
+        val typesPath = "$phasePath/${DynastyTosFixture.PHASE_ID}/documenttypes"
         assertThat(lookups.map { it.path }).containsExactly(phasePath, typesPath, phasePath, typesPath)
         assertThat(lookups.map { it.getHeader("Authorization") }).containsOnly("Bearer test")
         assertThat(lookups.map { it.getHeader("Organization") }).containsOnly("0")
         assertThat(requests.map { it.path }).noneMatch { it?.endsWith("/tasks") == true }
         val bodies = requests.filter { it.path == "/api/v1/documents" }.map { it.body.readUtf8() }
         assertThat(bodies).hasSize(4)
-        assertThat(bodies[0]).contains("filename=\"file0.pdf\"", "UTUvalmistumispaiva", "Confirmed regulation")
+        assertThat(bodies[0]).contains("name=\"file\"; filename=\"file0.pdf\"", "UTUvalmistumispaiva", "Confirmed regulation")
         val summaryMetadata = mapper.dynastyMultipartJson(bodies[0], "metaData")
         bodies.drop(1).forEach { body ->
             val options = mapper.dynastyMultipartJson(body, "caseAttachmentOptions")
             val metadata = mapper.dynastyMultipartJson(body, "metaData")
             assertThat(options.fieldNames().asSequence().toList()).containsExactlyInAnyOrder("CaseSelector", "PhaseSelector", "TOSTitle")
             assertThat(options.at("/CaseSelector/Id").longValue()).isEqualTo(415)
-            assertThat(options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(TurkuTosFixture.PHASE_ID.toString())
-            assertThat(options.path("TOSTitle").asText()).isEqualTo(TurkuTosFixture.ATTACHMENT_TITLE)
+            assertThat(options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(DynastyTosFixture.PHASE_ID.toString())
+            assertThat(options.path("TOSTitle").asText()).isEqualTo(DynastyTosFixture.ATTACHMENT_TITLE)
             assertThat(metadata.fieldNames().asSequence().toList())
                 .containsExactlyInAnyOrder("title", "schemaId", "state", "DeliveryType", "languageId", "AD")
             assertThat(metadata.path("languageId").asText()).isEqualTo("fi-FI")

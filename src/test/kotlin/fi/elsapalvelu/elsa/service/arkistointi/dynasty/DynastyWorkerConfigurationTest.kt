@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -20,14 +21,15 @@ class DynastyWorkerConfigurationTest {
     private val turku = properties.getArkistointi().getTurku()
     private val settings = turku.dynasty
     private val mapper = jacksonObjectMapper()
-    private val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
-        DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
-        TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
-        DynastyStepExecutor(mock<DynastyStepLedger>()), properties
+    private val registry = ArkistointiAdapterRegistry(listOf(DynastyArkistointiAdapter(
+        DynastyArchiveProfile.TURKU,
+        DynastyClient(settings, mapper, Clock.systemDefaultZone()),
+        DynastyMetadataMapper(DynastyArchiveProfile.TURKU, settings, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
+        DynastyStepExecutor(mock<DynastyStepLedger>()), settings
     )))
     private val provider = ArkistointiConfigurationProvider(properties)
 
-    private fun configure(caseType: CaseType = CaseType.VALMISTUMINEN) {
+    private fun configure() {
         turku.kaytossa = true
         settings.apply {
             baseUrl = "https://dynasty.example"
@@ -38,15 +40,6 @@ class DynastyWorkerConfigurationTest {
             caseSchemaId = "case"
             documentSchemaId = "document"
             tutkintoasetukset = mapOf("56/2015" to "Confirmed regulation text")
-        }
-        val types = if (caseType == CaseType.VALMISTUMINEN) listOf("yhteenveto", "liite", "laillistamistodistus")
-            else listOf("arviointi")
-        turku.metadata = ApplicationProperties.Arkistointi.Metadata().apply {
-            cases = mapOf(caseType.value to ApplicationProperties.Arkistointi.Case().apply {
-                documents = types.associateWith {
-                    ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "10" }
-                }
-            })
         }
     }
 
@@ -64,17 +57,12 @@ class DynastyWorkerConfigurationTest {
     @Test
     fun `Turku does not archive koulutussopimus in Dynasty`() {
         configure()
-        val metadata = turku.metadata!!
-        metadata.cases = metadata.cases!! + (CaseType.SOPIMUS.value to ApplicationProperties.Arkistointi.Case().apply {
-            documents = mapOf("sopimus" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "10" })
-        })
-        assertThatThrownBy { registry.validateWorkerConfiguration(provider) }
-            .hasMessageContaining("TURUN_YLIOPISTO / sopimus")
-            .hasMessageContaining("does not support this case type")
+        assertThat(provider.onKaytossa(DynastyArchiveProfile.TURKU.university, CaseType.SOPIMUS)).isFalse()
+        assertThat(provider.isAsyncEnabled(DynastyArchiveProfile.TURKU.university, CaseType.SOPIMUS)).isFalse()
     }
 
     @Test
-    fun `valmistuminen does not require koejakso secrecy configuration`() {
+    fun `both Turku cases pass worker validation with transport and regulation settings alone`() {
         configure()
         assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
     }
@@ -109,25 +97,9 @@ class DynastyWorkerConfigurationTest {
     fun `UEF cannot reuse Turku adapter`() {
         configure()
         turku.kaytossa = false
-        properties.getArkistointi().getUef().apply {
-            kaytossa = true
-            metadata = turku.metadata
-        }
+        properties.getArkistointi().getUef().kaytossa = true
         assertThatThrownBy { registry.validateWorkerConfiguration(provider) }
             .hasMessageContaining("ITA_SUOMEN_YLIOPISTO").hasMessageContaining("no asynchronous ArkistointiAdapter")
     }
 
-    @Test
-    fun `Turku valmistuminen gets every document retention from TOS`() {
-        configure()
-        turku.metadata!!.getCaseMetadata(CaseType.VALMISTUMINEN)!!.documents!!.values.forEach { it.retentionPeriod = null }
-        assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
-    }
-
-    @Test
-    fun `Turku koejakso gets document publicity and retention from TOS`() {
-        configure(CaseType.KOEJAKSO)
-        turku.metadata!!.getCaseMetadata(CaseType.KOEJAKSO)!!.documents!!.getValue("arviointi").retentionPeriod = null
-        assertThatCode { registry.validateWorkerConfiguration(provider) }.doesNotThrowAnyException()
-    }
 }
