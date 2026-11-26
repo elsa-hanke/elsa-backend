@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Profile
 
 /** Each destination owns its client, connection pool and token cache. */
 @Configuration
-class DynastyClientConfiguration {
+class DynastyConfiguration {
     @Bean
     fun turkuDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper, clock: Clock): DynastyClient =
         DynastyClient(DynastyArchiveProfile.TURKU.archiveProperties(properties.getArkistointi()).dynasty, mapper, clock)
