@@ -1,9 +1,9 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.domain.arkistointi.ArkistointiJobStatus
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiExecutionLock
@@ -73,12 +73,7 @@ class DynastyValmistuminenFaultMatrixIT {
         val dynasty = FakeDynasty()
         val server = MockWebServer().apply { dispatcher = dynasty; start() }
         try {
-            val properties = dynastyTestProperties(server.url("/").newBuilder().host("127.0.0.1").build().toString())
-            val adapter = TurkuDynastyArkistointiAdapter(
-                DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
-                TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
-                DynastyStepExecutor(ledger), properties
-            )
+            val adapter = adapter(server)
             var execution = stepFixture.execution(jobStatus = ArkistointiJobStatus.KASITTELYSSA, picked = true)
             (0..2).forEach { jdbc.update("insert into arkistointi_job_asiakirja values (?,?)", execution.jobId, it) }
             val jobId = execution.jobId
@@ -134,6 +129,17 @@ class DynastyValmistuminenFaultMatrixIT {
         } finally {
             server.shutdown()
         }
+    }
+
+    private fun adapter(server: MockWebServer): DynastyArkistointiAdapter {
+        val properties = dynastyTestProperties(server.url("/").newBuilder().host("127.0.0.1").build().toString())
+        val settings = properties.getArkistointi().getTurku().dynasty
+        return DynastyArkistointiAdapter(
+            DynastyArchiveProfile.TURKU,
+            DynastyClient(settings, mapper, Clock.systemDefaultZone()),
+            DynastyMetadataMapper(DynastyArchiveProfile.TURKU, settings, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
+            DynastyStepExecutor(ledger), settings
+        )
     }
 
     private fun failureCode(result: ArkistointiResult): String? = when (result) {

@@ -1,11 +1,11 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.domain.perustiedot.ErikoisalaTyyppi
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.UefDynastyMetadataMapper
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
 import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -43,7 +43,8 @@ class UefDynastyArkistointiAdapterTest {
         val submission = dynastySubmission(
             mapper, specialtyType = specialtyType(prefix), yek = prefix == "YEK", university = university
         )
-        val plan = UefDynastyMetadataMapper(properties, mapper, reader, Clock.systemUTC()).plan(submission)
+        val settings = properties.getArkistointi().getUef().dynasty
+        val plan = DynastyMetadataMapper(DynastyArchiveProfile.UEF, settings, mapper, reader, Clock.systemUTC()).plan(submission)
         val case = mapper.valueToTree<JsonNode>(plan.caseRequest)["caseModel"]
         val (summary, attachments, license) = plan.documents.map { mapper.valueToTree<JsonNode>(it) }
 
@@ -63,6 +64,8 @@ class UefDynastyArkistointiAdapterTest {
         assertThat(summary["AD"]["UEFvalmistumispaiva"].asText()).isEqualTo("2026-10-31")
         assertThat(summary["AD"]["UEFtutkintoasetus"].asText()).isEqualTo("Confirmed regulation")
         assertThat(summary["AD"]["UEFlaillistamispaiva"].asText()).isEqualTo("2019-01-01")
+        assertThat(summary["AD"].has("ExtElsaTunniste")).isFalse()
+        assertThat(listOf(summary, attachments, license)).allSatisfy { assertThat(it.has("languageId")).isFalse() }
         assertThat(attachments["title"].asText()).isEqualTo("Valmistumisen yhteenvedon liitteet Maija Meikäläinen 31.10.2026")
         assertThat(license["title"].asText()).isEqualTo("Laillistustodistus Maija Meikäläinen")
         assertThat(attachments.has("AD")).isFalse()
@@ -74,7 +77,8 @@ class UefDynastyArkistointiAdapterTest {
     fun `koejakso maps each programme to a partially secret permanent assessment`(prefix: String, type: ErikoisalaTyyppi) {
         val properties = dynastyTestProperties("https://dynasty.example", university)
         val submission = dynastySubmission(mapper, CaseType.KOEJAKSO, type, yek = prefix == "YEK", university = university)
-        val plan = UefDynastyMetadataMapper(properties, mapper, reader, Clock.systemUTC()).plan(submission)
+        val settings = properties.getArkistointi().getUef().dynasty
+        val plan = DynastyMetadataMapper(DynastyArchiveProfile.UEF, settings, mapper, reader, Clock.systemUTC()).plan(submission)
         val case = mapper.valueToTree<JsonNode>(plan.caseRequest)["caseModel"]
         val document = mapper.valueToTree<JsonNode>(plan.documents.single())
         assertThat(case["title"].asText()).isEqualTo("$prefix Koejakson vastuuhenkilön arvio Maija Meikäläinen 31.10.2026")
@@ -100,10 +104,11 @@ class UefDynastyArkistointiAdapterTest {
             val ledger = mock<DynastyStepLedger>()
             whenever(ledger.begin(any(), any(), any())).thenReturn(DynastyStepLedger.Decision.Proceed)
             whenever(ledger.complete(any(), any(), any(), anyOrNull())).thenReturn(true)
-            val adapter = UefDynastyArkistointiAdapter(
+            val adapter = DynastyArkistointiAdapter(
+                DynastyArchiveProfile.UEF,
                 DynastyClient(settings, mapper, Clock.systemUTC()),
-                UefDynastyMetadataMapper(properties, mapper, reader, Clock.systemUTC()),
-                DynastyStepExecutor(ledger), properties
+                DynastyMetadataMapper(DynastyArchiveProfile.UEF, settings, mapper, reader, Clock.systemUTC()),
+                DynastyStepExecutor(ledger), settings
             )
             val submission = dynastySubmission(mapper, university = university)
             val phaseId = UUID.randomUUID()

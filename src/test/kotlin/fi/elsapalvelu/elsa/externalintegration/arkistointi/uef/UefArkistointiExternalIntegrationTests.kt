@@ -9,8 +9,8 @@ import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.DynastyExtern
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.externalDynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArchiveProfile
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.UefDynastyArkistointiAdapter
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.UefDynastyMetadataMapper
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArkistointiAdapterFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -60,8 +60,12 @@ class UefArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestSup
 
 @SpringBootConfiguration
 @Profile("external-integration")
-@Import(DynastyExternalTestConfiguration::class, UefDynastyArkistointiAdapter::class, UefDynastyMetadataMapper::class)
+@Import(DynastyExternalTestConfiguration::class, DynastyArkistointiAdapterFactory::class)
 class UefArkistointiExternalIntegrationTestApplication {
+    @Bean("uefDynastyArkistointiAdapter")
+    internal fun uefDynastyArkistointiAdapter(client: DynastyClient, factory: DynastyArkistointiAdapterFactory): DynastyArkistointiAdapter =
+        factory.create(DynastyArchiveProfile.UEF, client)
+
     @Bean
     fun uefDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper, clock: Clock): DynastyClient {
         val settings = DynastyArchiveProfile.UEF.archiveProperties(properties.getArkistointi()).dynasty

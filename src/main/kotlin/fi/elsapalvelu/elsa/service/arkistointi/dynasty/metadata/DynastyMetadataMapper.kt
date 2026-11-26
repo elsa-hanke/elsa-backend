@@ -8,7 +8,7 @@ import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyCaseRetentionPerio
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyAdditionalData
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastySecrecyPeriod
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyTosDocumentMetadata
-import fi.elsapalvelu.elsa.config.arkistointi.DynastyArchiveProperties
+import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArchiveProfile
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyFailure
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyFailureCategory
@@ -25,9 +25,9 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /** Build and serialize the entire delivery before creating anything in Dynasty. */
-open class DynastyMetadataMapper internal constructor(
+class DynastyMetadataMapper internal constructor(
     private val archiveProfile: DynastyArchiveProfile,
-    archiveProperties: DynastyArchiveProperties,
+    private val settings: DynastyProperties,
     private val mapper: ObjectMapper,
     private val reader: ArchivePayloadReader,
     private val clock: Clock
@@ -35,11 +35,8 @@ open class DynastyMetadataMapper internal constructor(
     private companion object {
         val SUPPORTED_SPECIALTY_TYPES = setOf(ErikoisalaTyyppi.LAAKETIEDE, ErikoisalaTyyppi.HAMMASLAAKETIEDE)
         val ARCHIVE_ZONE: ZoneId = ZoneId.of("Europe/Helsinki")
-        val PERMANENT_RETENTION_END: LocalDate = LocalDate.of(9999, 12, 31)
         const val KOEJAKSO_SECRECY_YEARS = 100
     }
-
-    private val settings = archiveProperties.dynasty
 
     data class Plan(val tosClass: String, val caseRequest: DynastyCaseRequest, val task: String, val documents: List<DynastyTosDocumentMetadata>) {
         override fun toString() = "DynastyPlan(documents=${documents.size})"
@@ -123,7 +120,7 @@ open class DynastyMetadataMapper internal constructor(
         schemaId = settings.caseSchemaId,
         title = context.title,
         additionalData = additionalData(context, birthDate = context.payload.birthDate?.toString()),
-        retentionPeriod = if (archiveProfile == DynastyArchiveProfile.UEF) DynastyCaseRetentionPeriod(PERMANENT_RETENTION_END) else null
+        retentionPeriod = archiveProfile.caseRetentionEnd?.let(::DynastyCaseRetentionPeriod)
     ))
 
     private fun additionalData(
@@ -174,16 +171,16 @@ open class DynastyMetadataMapper internal constructor(
             approvalDate = decisionDate.takeUnless { context.isValmistuminen },
             degreeRegulation = regulation,
             licensingDate = payload.licensingDate?.toString()?.takeIf { context.isValmistuminen },
-            extElsaId = payload.caseId.toString().takeIf { archiveProfile == DynastyArchiveProfile.TURKU && context.isValmistuminen }
+            extElsaId = payload.caseId.toString().takeIf { archiveProfile.includeGraduationExtElsaId && context.isValmistuminen }
         )
     }
 
     private fun attachmentAdditionalData(context: MappingContext, type: RecordType): DynastyAdditionalData? {
         val licensingDate = context.payload.licensingDate?.toString()?.takeIf { type == RecordType.LAILLISTAMISTODISTUS }
-        return if (archiveProfile == DynastyArchiveProfile.UEF) {
-            licensingDate?.let { DynastyAdditionalData(archiveProfile.fieldPrefix, licensingDate = it) }
-        } else {
-            additionalData(context, licensingDate = licensingDate)
+        return when (archiveProfile.attachmentAd) {
+            DynastyArchiveProfile.AttachmentAd.TRAINEE_DETAILS -> additionalData(context, licensingDate = licensingDate)
+            DynastyArchiveProfile.AttachmentAd.LICENSING_DATE_ONLY ->
+                licensingDate?.let { DynastyAdditionalData(archiveProfile.fieldPrefix, licensingDate = it) }
         }
     }
 

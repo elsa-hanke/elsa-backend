@@ -1,5 +1,6 @@
 package fi.elsapalvelu.elsa.config.arkistointi
 
-interface DynastyArchiveProperties {
-    val dynasty: DynastyProperties
+class DynastyArchiveProperties {
+    var kaytossa: Boolean = false
+    val dynasty = DynastyProperties()
 }

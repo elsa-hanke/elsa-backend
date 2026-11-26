@@ -1,7 +1,7 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
@@ -21,10 +21,11 @@ class DynastyWorkerConfigurationTest {
     private val turku = properties.getArkistointi().getTurku()
     private val settings = turku.dynasty
     private val mapper = jacksonObjectMapper()
-    private val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
-        DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
-        TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
-        DynastyStepExecutor(mock<DynastyStepLedger>()), properties
+    private val registry = ArkistointiAdapterRegistry(listOf(DynastyArkistointiAdapter(
+        DynastyArchiveProfile.TURKU,
+        DynastyClient(settings, mapper, Clock.systemDefaultZone()),
+        DynastyMetadataMapper(DynastyArchiveProfile.TURKU, settings, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
+        DynastyStepExecutor(mock<DynastyStepLedger>()), settings
     )))
     private val provider = ArkistointiConfigurationProvider(properties)
 

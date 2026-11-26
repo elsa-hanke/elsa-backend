@@ -3,7 +3,6 @@ package fi.elsapalvelu.elsa.config
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiRetryProperties
 import fi.elsapalvelu.elsa.config.arkistointi.LouhiTransferProperties
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyArchiveProperties
-import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -185,8 +184,8 @@ class ApplicationProperties {
         private val oulu = Oulu()
         private val hki = Hki()
         private val tre = Tre()
-        private val turku = Turku()
-        private val uef = Uef()
+        private val turku = DynastyArchiveProperties()
+        private val uef = DynastyArchiveProperties()
 
         fun getOulu(): Oulu {
             return oulu
@@ -200,11 +199,11 @@ class ApplicationProperties {
             return tre
         }
 
-        fun getTurku(): Turku {
+        fun getTurku(): DynastyArchiveProperties {
             return turku
         }
 
-        fun getUef(): Uef {
+        fun getUef(): DynastyArchiveProperties {
             return uef
         }
 
@@ -231,16 +230,6 @@ class ApplicationProperties {
             var privateKeyLocation: String? = null
             var metadata: Metadata? = null
             val transfer = LouhiTransferProperties()
-        }
-
-        class Turku : DynastyArchiveProperties {
-            override val dynasty = DynastyProperties()
-            var kaytossa: Boolean = false
-        }
-
-        class Uef : DynastyArchiveProperties {
-            override val dynasty = DynastyProperties()
-            var kaytossa: Boolean = false
         }
 
         class Metadata {

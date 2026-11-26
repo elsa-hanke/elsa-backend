@@ -9,8 +9,8 @@ import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.DynastyExtern
 import fi.elsapalvelu.elsa.externalintegration.arkistointi.dynasty.externalDynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArchiveProfile
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.TurkuDynastyArkistointiAdapter
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArkistointiAdapter
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArkistointiAdapterFactory
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,8 +55,12 @@ class TurkuArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestS
 
 @SpringBootConfiguration
 @Profile("external-integration")
-@Import(DynastyExternalTestConfiguration::class, TurkuDynastyArkistointiAdapter::class, TurkuDynastyMetadataMapper::class)
+@Import(DynastyExternalTestConfiguration::class, DynastyArkistointiAdapterFactory::class)
 class TurkuArkistointiExternalIntegrationTestApplication {
+    @Bean("turkuDynastyArkistointiAdapter")
+    internal fun turkuDynastyArkistointiAdapter(client: DynastyClient, factory: DynastyArkistointiAdapterFactory): DynastyArkistointiAdapter =
+        factory.create(DynastyArchiveProfile.TURKU, client)
+
     @Bean
     fun turkuDynastyClient(properties: ApplicationProperties, mapper: ObjectMapper, clock: Clock): DynastyClient {
         val settings = DynastyArchiveProfile.TURKU.archiveProperties(properties.getArkistointi()).dynasty

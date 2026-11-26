@@ -1,9 +1,8 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 
-import fi.elsapalvelu.elsa.config.ApplicationProperties
+import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
@@ -18,9 +17,11 @@ import java.util.UUID
 
 class TurkuDynastyArkistointiAdapterTest {
     private val client = mock<DynastyClient>()
-    private val metadata = mock<TurkuDynastyMetadataMapper>()
+    private val metadata = mock<DynastyMetadataMapper>()
     private val ledger = mock<DynastyStepLedger>()
-    private val adapter = TurkuDynastyArkistointiAdapter(client,metadata,DynastyStepExecutor(ledger), ApplicationProperties())
+    private val adapter = DynastyArkistointiAdapter(
+        DynastyArchiveProfile.TURKU, client, metadata, DynastyStepExecutor(ledger), DynastyProperties()
+    )
     private val execution = ArkistointiJobExecution("archive",UUID.randomUUID().toString(),1)
     private val document = LoadedArkistointiAsiakirja(1, RecordType.ARVIOINTI, 0, "approval.pdf", "application/pdf", "checksum", byteArrayOf(1))
     private val submission = ArkistointiSubmission(execution.jobId,YliopistoEnum.TURUN_YLIOPISTO,CaseType.KOEJAKSO,"{}",listOf(document),execution)

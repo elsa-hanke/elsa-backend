@@ -1,13 +1,13 @@
 package fi.elsapalvelu.elsa.config.arkistointi
 
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyClient
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArchiveProfile
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyStepExecutor
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.TurkuDynastyArkistointiAdapter
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapterRegistry
 import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayloadReader
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -136,10 +136,12 @@ class AsyncArchiveEnvironmentConfigurationTest {
             assertThat(context).hasNotFailed()
             val properties = context.getBean(ApplicationProperties::class.java)
             val mapper = jacksonObjectMapper()
-            val registry = ArkistointiAdapterRegistry(listOf(TurkuDynastyArkistointiAdapter(
-                DynastyClient(properties.getArkistointi().getTurku().dynasty, mapper, Clock.systemDefaultZone()),
-                TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
-                DynastyStepExecutor(mock()), properties
+            val settings = properties.getArkistointi().getTurku().dynasty
+            val registry = ArkistointiAdapterRegistry(listOf(DynastyArkistointiAdapter(
+                DynastyArchiveProfile.TURKU,
+                DynastyClient(settings, mapper, Clock.systemDefaultZone()),
+                DynastyMetadataMapper(DynastyArchiveProfile.TURKU, settings, mapper, ArchivePayloadReader(mapper), Clock.systemUTC()),
+                DynastyStepExecutor(mock()), settings
             )))
 
             assertThatCode { registry.validateWorkerConfiguration(context.getBean(ArkistointiConfigurationProvider::class.java)) }

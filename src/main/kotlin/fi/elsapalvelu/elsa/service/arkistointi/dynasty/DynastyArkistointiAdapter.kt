@@ -1,8 +1,8 @@
 package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
-import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
+import fi.elsapalvelu.elsa.config.arkistointi.DynastyProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiAdapter
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiResult
@@ -11,15 +11,14 @@ import fi.elsapalvelu.elsa.service.arkistointi.job.document.LoadedArkistointiAsi
 import fi.elsapalvelu.elsa.service.arkistointi.job.processing.ArkistointiJobExecution
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 
-open class DynastyArkistointiAdapter internal constructor(
+class DynastyArkistointiAdapter internal constructor(
     private val archiveProfile: DynastyArchiveProfile,
     private val client: DynastyClient,
     private val metadata: DynastyMetadataMapper,
     private val steps: DynastyStepExecutor,
-    properties: ApplicationProperties
+    private val settings: DynastyProperties
 ) : ArkistointiAdapter {
-    private val settings = archiveProfile.archiveProperties(properties.getArkistointi()).dynasty
-    final override val university: YliopistoEnum = archiveProfile.university
+    override val university: YliopistoEnum = archiveProfile.university
     override val canResumeAfterSuccessPersistenceFailure = true
     override val supportedCaseTypes = archiveProfile.supportedCaseTypes
 
@@ -80,7 +79,7 @@ open class DynastyArkistointiAdapter internal constructor(
         pendingDocuments.forEach { (document, metadata) ->
             val options = DynastyTosPhaseOptions(caseId, phaseId, tosTitlesByRecordType.getValue(document.asiakirjatyyppi))
             steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Document(document.jarjestysnumero)) {
-                client.createDocument(metadata, options, document, pascalCaseMultipartNames = archiveProfile == DynastyArchiveProfile.UEF)
+                client.createDocument(metadata, options, document, pascalCaseMultipartNames = archiveProfile.pascalCaseMultipartNames)
             }
         }
         return caseId

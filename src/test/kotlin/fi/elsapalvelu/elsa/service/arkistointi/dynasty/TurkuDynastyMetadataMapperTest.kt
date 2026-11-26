@@ -4,7 +4,6 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyMetadataMapper
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.TurkuDynastyMetadataMapper
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -39,7 +38,9 @@ class TurkuDynastyMetadataMapperTest {
         }
         assertThat(attachment.path("title").asText()).isEqualTo("Valmistumisen yhteenvedon liitteet Maija Meikäläinen 31.10.2026")
         assertThat(certificate.path("title").asText()).isEqualTo("Laillistustodistus Maija Meikäläinen")
-        assertThat(mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(plan.caseRequest).path("caseModel").path("title").asText()).startsWith(kind)
+        val case = mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(plan.caseRequest).path("caseModel")
+        assertThat(case.path("title").asText()).startsWith(kind)
+        assertThat(case.has("retentionPeriod")).isFalse()
         assertThat(documents[0].path("AD").path("UTUkoulutusohjelma").asText()).isEqualTo(when(kind) {
             "YEK" -> "Yleislääketieteen erityiskoulutus"
             "EHL" -> "Erikoishammaslääkärikoulutus"
@@ -118,7 +119,8 @@ class TurkuDynastyMetadataMapperTest {
         val root = mapper.readTree(submission.payload) as com.fasterxml.jackson.databind.node.ObjectNode
         changePayload(root)
         val clock = Clock.fixed(Instant.parse("2026-11-18T22:30:00Z"), ZoneOffset.UTC)
-        return TurkuDynastyMetadataMapper(properties, mapper, ArchivePayloadReader(mapper), clock)
+        val settings = properties.getArkistointi().getTurku().dynasty
+        return DynastyMetadataMapper(DynastyArchiveProfile.TURKU, settings, mapper, ArchivePayloadReader(mapper), clock)
             .plan(submission.copy(payload = root.toString()))
     }
 }
