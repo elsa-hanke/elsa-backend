@@ -6,13 +6,12 @@ import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyCaseRequest
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyCaseModel
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyCaseRetentionPeriod
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyAdditionalData
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDocumentMetadata
-import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyDocumentRequestMetadata
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastySecrecyPeriod
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyTosDocumentMetadata
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyArchiveProperties
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArchiveProfile
-import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyFailure
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyFailureCategory
 import fi.elsapalvelu.elsa.service.arkistointi.job.delivery.ArkistointiSubmission
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiManifestValidator
 import fi.elsapalvelu.elsa.service.arkistointi.job.payload.ArchivePayload
@@ -38,19 +37,20 @@ open class DynastyMetadataMapper internal constructor(
         val ARCHIVE_ZONE: ZoneId = ZoneId.of("Europe/Helsinki")
         val PERMANENT_RETENTION_END: LocalDate = LocalDate.of(9999, 12, 31)
         const val KOEJAKSO_SECRECY_YEARS = 100
-        const val UEF_SECRECY_REASON = "JulkL 24.1 § 30 kohta (henk. koht. omin, oppilashuolto)"
     }
 
     private val settings = archiveProperties.dynasty
-    private val tosDriven = archiveProfile.phaseSelection == DynastyArchiveProfile.PhaseSelection.TOS
-    private val rules = DynastyMetadataRules(archiveProperties, tosDriven)
 
-    data class Plan(val tosClass: String, val caseRequest: DynastyCaseRequest, val task: String, val documents: List<DynastyDocumentRequestMetadata>) {
+    data class Plan(val tosClass: String, val caseRequest: DynastyCaseRequest, val task: String, val documents: List<DynastyTosDocumentMetadata>) {
         override fun toString() = "DynastyPlan(documents=${documents.size})"
     }
 
-    fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) =
-        rules.validateConfiguration(archiveProfile.caseProfile(caseType), configuration)
+    fun validateConfiguration() {
+        val regulations = settings.tutkintoasetukset
+        if (regulations.isEmpty() || regulations.any { (key, value) -> key.isBlank() || value.isBlank() }) {
+            throw DynastyFailure(DynastyFailureCategory.CONFIGURATION_INVALID)
+        }
+    }
 
     fun plan(submission: ArkistointiSubmission): Plan {
         val payload = reader.read(submission.payload)
@@ -123,7 +123,6 @@ open class DynastyMetadataMapper internal constructor(
         schemaId = settings.caseSchemaId,
         title = context.title,
         additionalData = additionalData(context, birthDate = context.payload.birthDate?.toString()),
-        retentionPeriodLength = if (archiveProfile == DynastyArchiveProfile.UEF) -1 else null,
         retentionPeriod = if (archiveProfile == DynastyArchiveProfile.UEF) DynastyCaseRetentionPeriod(PERMANENT_RETENTION_END) else null
     ))
 
@@ -146,55 +145,46 @@ open class DynastyMetadataMapper internal constructor(
         fieldPrefix = archiveProfile.fieldPrefix
     )
 
-    private fun documentMetadata(context: MappingContext, type: RecordType): DynastyDocumentRequestMetadata {
-        if (tosDriven) {
-            // Dynasty applies document type, retention and publicity from the TOS title.
-            val secrecyPeriod = if (context.profile.requiresSecrecy) secrecyPeriod() else null
-            return DynastyTosDocumentMetadata(
-                documentTitle(context, type), settings.documentSchemaId, documentAdditionalData(context, type), secrecyPeriod
-            )
-        }
-        val publicityClassId = rules.publicityClassId(context.profile)
-        val additionalData = documentAdditionalData(context, type)
-        val retention = rules.retentionPeriod(context.caseType, type)
-        val confidential = context.profile.requiresSecrecy
-        return DynastyDocumentMetadata(
-            title = documentTitle(context, type),
-            schemaId = settings.documentSchemaId,
-            documentType = context.profile.documentTypes.getValue(type),
-            retentionPeriodLength = retention,
-            additionalData = additionalData,
-            publicityClassId = publicityClassId,
-            publicityClassName = context.profile.publicityClassName,
-            retentionPeriodRule = context.profile.retentionRule,
-            secrecyPeriod = if (confidential) secrecyPeriod() else null,
-            deliveryType = "M",
-            secrecyPeriodRule = "Asiakirjan päivämäärä".takeIf { confidential },
-            secrecyPeriodLength = KOEJAKSO_SECRECY_YEARS.takeIf { confidential },
-            secrecyReason = listOf(UEF_SECRECY_REASON).takeIf { confidential }
-        )
-    }
+    private fun documentMetadata(context: MappingContext, type: RecordType) = DynastyTosDocumentMetadata(
+        documentTitle(context, type), settings.documentSchemaId, documentAdditionalData(context, type),
+        if (context.profile.requiresSecrecy) secrecyPeriod() else null,
+        archiveProfile.documentLanguageId
+    )
 
     private fun secrecyPeriod(): DynastySecrecyPeriod {
         val received = LocalDate.now(clock.withZone(ARCHIVE_ZONE))
         return DynastySecrecyPeriod(received, received.plusYears(KOEJAKSO_SECRECY_YEARS.toLong()))
     }
 
-    private fun documentAdditionalData(context: MappingContext, type: RecordType): DynastyAdditionalData {
+    private fun documentAdditionalData(context: MappingContext, type: RecordType): DynastyAdditionalData? =
+        if (type == context.profile.mainDocumentType) mainDocumentAdditionalData(context)
+        else attachmentAdditionalData(context, type)
+
+    private fun mainDocumentAdditionalData(context: MappingContext): DynastyAdditionalData {
         val payload = context.payload
-        val main = type == context.profile.mainDocumentType
+        val regulation = payload.degreeRegulation?.let {
+            settings.tutkintoasetukset[it] ?: throw DynastyFailure(DynastyFailureCategory.REGULATION_UNCONFIGURED)
+        }
+        val decisionDate = payload.approvalDate.toString()
         return additionalData(
             context,
-            birthDate = if (main) payload.birthDate?.toString() else null,
-            studyRightStartDate = if (main) payload.studyRightStartDate?.toString() else null,
-            graduationDate = if (main && context.isValmistuminen) payload.approvalDate.toString() else null,
-            approvalDate = if (main && !context.isValmistuminen) payload.approvalDate.toString() else null,
-            degreeRegulation = if (main) payload.degreeRegulation?.let { regulation ->
-                rules.degreeRegulation(regulation)
-            } else null,
-            licensingDate = if (context.isValmistuminen && type != RecordType.LIITE) payload.licensingDate?.toString() else null,
-            extElsaId = if (main && tosDriven && context.isValmistuminen) payload.caseId.toString() else null
+            birthDate = payload.birthDate?.toString(),
+            studyRightStartDate = payload.studyRightStartDate?.toString(),
+            graduationDate = decisionDate.takeIf { context.isValmistuminen },
+            approvalDate = decisionDate.takeUnless { context.isValmistuminen },
+            degreeRegulation = regulation,
+            licensingDate = payload.licensingDate?.toString()?.takeIf { context.isValmistuminen },
+            extElsaId = payload.caseId.toString().takeIf { archiveProfile == DynastyArchiveProfile.TURKU && context.isValmistuminen }
         )
+    }
+
+    private fun attachmentAdditionalData(context: MappingContext, type: RecordType): DynastyAdditionalData? {
+        val licensingDate = context.payload.licensingDate?.toString()?.takeIf { type == RecordType.LAILLISTAMISTODISTUS }
+        return if (archiveProfile == DynastyArchiveProfile.UEF) {
+            licensingDate?.let { DynastyAdditionalData(archiveProfile.fieldPrefix, licensingDate = it) }
+        } else {
+            additionalData(context, licensingDate = licensingDate)
+        }
     }
 
     private fun documentTitle(context: MappingContext, type: RecordType): String = when (type) {

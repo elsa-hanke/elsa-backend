@@ -2,21 +2,21 @@ package fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata
 
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 
-/** Fixed mapping values. Retention lengths and secrecy fields come from configuration. */
+/** Titles must match the university’s TOS configuration. */
 internal class DynastyCaseProfile(
     val tosClass: String,
     val task: String,
     val title: String,
     val mainDocumentType: RecordType,
     val documentTypes: Map<RecordType, String>,
-    val publicityClassName: String,
-    val requiresSecrecy: Boolean,
-    val retentionRule: String
+    val requiresSecrecy: Boolean
 ) {
     companion object {
         private const val ASSESSMENT_TITLE = "Koejakson vastuuhenkilön arvio"
 
-        fun valmistuminen(tosClass: String, task: String, summaryType: String, attachmentType: String) = DynastyCaseProfile(
+        fun valmistuminen(
+            tosClass: String, task: String, summaryType: String, attachmentType: String, certificateType: String = attachmentType
+        ) = DynastyCaseProfile(
             tosClass = tosClass,
             task = task,
             title = "Valmistumisen yhteenveto",
@@ -24,24 +24,18 @@ internal class DynastyCaseProfile(
             documentTypes = mapOf(
                 RecordType.YHTEENVETO to summaryType,
                 RecordType.LIITE to attachmentType,
-                RecordType.LAILLISTAMISTODISTUS to attachmentType
+                RecordType.LAILLISTAMISTODISTUS to certificateType
             ),
-            publicityClassName = "Julkinen",
-            requiresSecrecy = false,
-            retentionRule = "Asian lopullinen ratkaisu"
+            requiresSecrecy = false
         )
 
-        fun koejakso(
-            tosClass: String, task: String, publicityClassName: String, retentionRule: String, assessmentType: String = ASSESSMENT_TITLE
-        ) = DynastyCaseProfile(
+        fun koejakso(tosClass: String, task: String) = DynastyCaseProfile(
             tosClass = tosClass,
             task = task,
             title = ASSESSMENT_TITLE,
             mainDocumentType = RecordType.ARVIOINTI,
-            documentTypes = mapOf(RecordType.ARVIOINTI to assessmentType),
-            publicityClassName = publicityClassName,
-            requiresSecrecy = true,
-            retentionRule = retentionRule
+            documentTypes = mapOf(RecordType.ARVIOINTI to ASSESSMENT_TITLE),
+            requiresSecrecy = true
         )
     }
 }

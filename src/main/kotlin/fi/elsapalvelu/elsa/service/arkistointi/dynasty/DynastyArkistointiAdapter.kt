@@ -25,7 +25,7 @@ open class DynastyArkistointiAdapter internal constructor(
 
     override fun validateConfiguration(caseType: CaseType, configuration: ArkistointiConfiguration) {
         client.validateConfiguration()
-        metadata.validateConfiguration(caseType, configuration)
+        metadata.validateConfiguration()
     }
 
     override fun arkistoi(pyynto: ArkistointiSubmission): ArkistointiResult {
@@ -56,10 +56,7 @@ open class DynastyArkistointiAdapter internal constructor(
         check(submission.asiakirjat.size == plan.documents.size) { "document plan does not match submission" }
         val documents = submission.asiakirjat.zip(plan.documents)
         val execution = submission.execution
-        val caseId = when (archiveProfile.phaseSelection) {
-            DynastyArchiveProfile.PhaseSelection.TOS -> deliverToTosPhase(submission, plan, documents)
-            DynastyArchiveProfile.PhaseSelection.EXPLICIT -> deliverToExplicitPhase(execution, plan, documents)
-        }
+        val caseId = deliverToTosPhase(submission, plan, documents)
         // Conservatively park an ambiguous state change too, until vendor confirms replay semantics.
         steps.execute(execution, settings.inProgressGrace, DynastyStepKey.ArchiveCase) { client.archiveCase(caseId) }
         return caseId
@@ -67,7 +64,7 @@ open class DynastyArkistointiAdapter internal constructor(
 
     private fun deliverToTosPhase(
         submission: ArkistointiSubmission, plan: DynastyMetadataMapper.Plan,
-        documents: List<Pair<LoadedArkistointiAsiakirja, DynastyDocumentRequestMetadata>>
+        documents: List<Pair<LoadedArkistointiAsiakirja, DynastyTosDocumentMetadata>>
     ): DynastyCaseId {
         val execution = submission.execution
         val savedCase = steps.existing(execution, settings.inProgressGrace, DynastyStepKey.Case)
@@ -82,31 +79,15 @@ open class DynastyArkistointiAdapter internal constructor(
         val caseId = savedCase ?: createCase(execution, plan)
         pendingDocuments.forEach { (document, metadata) ->
             val options = DynastyTosPhaseOptions(caseId, phaseId, tosTitlesByRecordType.getValue(document.asiakirjatyyppi))
-            deliverDocument(execution, document, metadata, options)
+            steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Document(document.jarjestysnumero)) {
+                client.createDocument(metadata, options, document, pascalCaseMultipartNames = archiveProfile == DynastyArchiveProfile.UEF)
+            }
         }
-        return caseId
-    }
-
-    private fun deliverToExplicitPhase(
-        execution: ArkistointiJobExecution, plan: DynastyMetadataMapper.Plan,
-        documents: List<Pair<LoadedArkistointiAsiakirja, DynastyDocumentRequestMetadata>>
-    ): DynastyCaseId {
-        val caseId = createCase(execution, plan)
-        val phaseId = steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Task) { client.createTask(caseId, plan.task) }
-        val options = DynastyExplicitPhaseOptions(caseId, phaseId)
-        documents.forEach { (document, metadata) -> deliverDocument(execution, document, metadata, options) }
         return caseId
     }
 
     private fun createCase(execution: ArkistointiJobExecution, plan: DynastyMetadataMapper.Plan): DynastyCaseId =
         steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Case) { client.createCase(plan.tosClass, plan.caseRequest) }
-
-    private fun deliverDocument(
-        execution: ArkistointiJobExecution, document: LoadedArkistointiAsiakirja,
-        metadata: DynastyDocumentRequestMetadata, options: DynastyCaseAttachmentOptions
-    ): DynastyDocumentId = steps.execute(execution, settings.inProgressGrace, DynastyStepKey.Document(document.jarjestysnumero)) {
-        client.createDocument(metadata, options, document)
-    }
 
     private fun failure(code: String, retryable: Boolean = false): ArkistointiResult =
         ArkistointiResult.failure(code, "Dynasty-arkistoinnin tila tai asetukset on tarkistettava", retryable)

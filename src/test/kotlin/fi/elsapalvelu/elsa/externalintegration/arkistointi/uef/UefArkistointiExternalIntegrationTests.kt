@@ -42,14 +42,20 @@ class UefArkistointiExternalIntegrationTests : DynastyArkistointiExternalTestSup
     @EnumSource(Programme::class)
     fun shouldArchiveGraduationWithParallelDocuments(programme: Programme) = archiveGraduation(programme) { caseId, documentIds ->
         readback.verify(caseId, documentIds, listOf("Yhteenveto", "Liite", "Liite"))
+        readback.verifyCaseRetentionBasis(caseId, UEF_RETENTION_BASIS)
     }
 
     @ParameterizedTest(name = "UEF Dynasty koejakso {0} (55/2020)")
     @EnumSource(Programme::class)
     fun shouldArchiveKoejaksoWithSecrecyMetadata(programme: Programme) =
         archiveKoejakso(programme, degreeRegulation = "55/2020") { caseId, documentIds ->
-            readback.verify(caseId, documentIds, listOf("Lausunto"), expectedPublicityClassName = "Osittain salassa pidettävä")
+            readback.verify(caseId, documentIds, listOf("Lausunto"), expectedPublicityClassName = "Osittain salassapidettävä")
+            readback.verifyCaseRetentionBasis(caseId, UEF_RETENTION_BASIS)
         }
+
+    private companion object {
+        const val UEF_RETENTION_BASIS = "UEF tiedonohjaussuunnitelma, TOS"
+    }
 }
 
 @SpringBootConfiguration

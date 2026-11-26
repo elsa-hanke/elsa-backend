@@ -10,7 +10,7 @@ internal enum class DynastyArchiveProfile(
     val university: YliopistoEnum,
     val fieldPrefix: String,
     val faculty: String,
-    val phaseSelection: PhaseSelection,
+    val documentLanguageId: String?,
     val archiveProperties: (Arkistointi) -> DynastyArchiveProperties,
     private val caseProfiles: Map<CaseType, DynastyCaseProfile>
 ) {
@@ -18,7 +18,7 @@ internal enum class DynastyArchiveProfile(
         university = YliopistoEnum.TURUN_YLIOPISTO,
         fieldPrefix = "UTU",
         faculty = "Lääketieteellinen tiedekunta",
-        phaseSelection = PhaseSelection.TOS,
+        documentLanguageId = "fi-FI",
         archiveProperties = Arkistointi::getTurku,
         caseProfiles = mapOf(
             CaseType.VALMISTUMINEN to DynastyCaseProfile.valmistuminen(
@@ -26,7 +26,7 @@ internal enum class DynastyArchiveProfile(
                 attachmentType = "Valmistumisen yhteenvedon liitteet,  EL, EHL tai YEK"
             ),
             CaseType.KOEJAKSO to DynastyCaseProfile.koejakso(
-                "05.06.02.00", "Arviointi", "Osittain salassapidettävä", "Asiakirjan päivämäärä"
+                "05.06.02.00", "Arviointi"
             )
         )
     ),
@@ -34,15 +34,17 @@ internal enum class DynastyArchiveProfile(
         university = YliopistoEnum.ITA_SUOMEN_YLIOPISTO,
         fieldPrefix = "UEF",
         faculty = "Terveystieteiden tiedekunta",
-        phaseSelection = PhaseSelection.EXPLICIT,
+        documentLanguageId = null,
         archiveProperties = Arkistointi::getUef,
         caseProfiles = mapOf(
             CaseType.VALMISTUMINEN to DynastyCaseProfile.valmistuminen(
-                "03.11", "ELSA valmistumispyyntö ja sen liitteet", "Yhteenveto", attachmentType = "Liite"
+                "03.11", "ELSA valmistumispyyntö ja sen liitteet",
+                "Valmistumisen yhteenveto, EL, EHL tai YEK (valmistumispyyntö)",
+                attachmentType = "Valmistumisen yhteenvedon liitteet, EL, EHL tai YEK",
+                certificateType = "Laillistustodistus (valmistumisen yhteenvedon liite)"
             ),
             CaseType.KOEJAKSO to DynastyCaseProfile.koejakso(
-                "03.11", "ELSA Koejaksojen yhteenvedot", "Osittain salassa pidettävä", "Asiakirjan päivämäärä (luontipvm)",
-                assessmentType = "Lausunto"
+                "03.11", "ELSA Koejaksojen yhteenvedot"
             )
         )
     );
@@ -51,8 +53,6 @@ internal enum class DynastyArchiveProfile(
 
     fun caseProfile(caseType: CaseType): DynastyCaseProfile =
         requireNotNull(caseProfiles[caseType]) { "Unsupported Dynasty case type" }
-
-    enum class PhaseSelection { TOS, EXPLICIT }
 
     companion object {
         fun from(university: YliopistoEnum): DynastyArchiveProfile =

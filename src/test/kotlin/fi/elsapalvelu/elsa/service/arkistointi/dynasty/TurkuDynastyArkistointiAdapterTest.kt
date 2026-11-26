@@ -26,7 +26,7 @@ class TurkuDynastyArkistointiAdapterTest {
     private val submission = ArkistointiSubmission(execution.jobId,YliopistoEnum.TURUN_YLIOPISTO,CaseType.KOEJAKSO,"{}",listOf(document),execution)
     private val plan = DynastyMetadataMapper.Plan(
         "x", DynastyCaseRequest(DynastyCaseModel("schema", "Test", DynastyAdditionalData(fieldPrefix = "UTU"))), "Arviointi",
-        listOf(DynastyDocumentMetadata("Test", "document-schema", "Arviointi", -1, DynastyAdditionalData(fieldPrefix = "UTU")))
+        listOf(DynastyTosDocumentMetadata("Test", "document-schema", DynastyAdditionalData(fieldPrefix = "UTU"), null, "fi-FI"))
     )
 
     @Test

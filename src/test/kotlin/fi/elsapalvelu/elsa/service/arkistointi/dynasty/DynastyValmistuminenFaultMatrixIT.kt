@@ -128,8 +128,8 @@ class DynastyValmistuminenFaultMatrixIT {
             assertThat(completedSteps(jobId)).containsExactlyElementsOf(STEPS)
             assertThat(dynasty.attachmentRequests).isNotEmpty().allMatch { body ->
                 val options = mapper.dynastyMultipartJson(body, "caseAttachmentOptions")
-                options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText() == TurkuTosFixture.PHASE_ID.toString() &&
-                    options.path("TOSTitle").asText() == TurkuTosFixture.ATTACHMENT_TITLE && !options.has("parentDocumentSelector")
+                options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText() == DynastyTosFixture.PHASE_ID.toString() &&
+                    options.path("TOSTitle").asText() == DynastyTosFixture.ATTACHMENT_TITLE && !options.has("parentDocumentSelector")
             }
         } finally {
             server.shutdown()
@@ -202,7 +202,7 @@ class DynastyValmistuminenFaultMatrixIT {
         @Synchronized override fun dispatch(request: RecordedRequest): MockResponse {
             val path = request.path!!
             if (path == "/token") return MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE)
-            TurkuTosFixture.GRADUATION.response(path)?.let { return it }
+            DynastyTosFixture.GRADUATION.response(path)?.let { return it }
             val body = request.body.clone().readUtf8()
             val step = resolveStep(path, body) ?: return MockResponse().setResponseCode(404)
             recordRequest(step, body)

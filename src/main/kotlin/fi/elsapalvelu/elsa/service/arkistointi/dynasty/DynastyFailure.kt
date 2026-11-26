@@ -7,7 +7,6 @@ internal enum class DynastyFailureCategory(
     val definitelyNotProcessed: Boolean
 ) {
     CONFIGURATION_INVALID("DYNASTY_CONFIGURATION_INVALID", retryable = false, definitelyNotProcessed = false),
-    SECRECY_UNCONFIGURED("DYNASTY_SECRECY_UNCONFIGURED", retryable = false, definitelyNotProcessed = false),
     REGULATION_UNCONFIGURED("DYNASTY_REGULATION_UNCONFIGURED", retryable = false, definitelyNotProcessed = false),
     AUTH_FAILED("DYNASTY_AUTH_FAILED", retryable = false, definitelyNotProcessed = true),
     AUTH_TEMPORARILY_REJECTED("DYNASTY_AUTH_FAILED", retryable = true, definitelyNotProcessed = true),

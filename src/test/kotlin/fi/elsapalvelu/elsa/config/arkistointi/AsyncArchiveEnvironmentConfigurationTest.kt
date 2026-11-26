@@ -104,28 +104,6 @@ class AsyncArchiveEnvironmentConfigurationTest {
     }
 
     @Test
-    fun `UEF koejakso defaults to publicity class S`() {
-        runner().run { context ->
-            assertThat(context).hasNotFailed()
-            val archive = context.getBean(ApplicationProperties::class.java).getArkistointi()
-            assertThat(archive.getUef().dynasty.koejaksoPublicityClassId).isEqualTo("S")
-        }
-    }
-
-    @Test
-    fun `external tests can override UEF koejakso publicity class`() {
-        runner(mapOf(
-            "APPLICATION_ARKISTOINTI_DYNASTY_UEF_KOEJAKSO_PUBLICITY_CLASS_ID" to "uef-secret"
-        )).withPropertyValues(
-            "spring.config.additional-location=classpath:/config/application-external-integration.yml"
-        ).run { context ->
-            assertThat(context).hasNotFailed()
-            val archive = context.getBean(ApplicationProperties::class.java).getArkistointi()
-            assertThat(archive.getUef().dynasty.koejaksoPublicityClassId).isEqualTo("uef-secret")
-        }
-    }
-
-    @Test
     fun `shipped Dynasty configuration maps every regulation in asetus csv`() {
         val regulations = ClassPathResource("config/liquibase/data/asetus.csv").inputStream.bufferedReader().useLines { rows ->
             rows.drop(1).filter(String::isNotBlank).map { it.substringAfter(';') }.toList()

@@ -825,7 +825,7 @@ pyyntökontekstia luoduilla jobeilla `requested_by_user_id` on tyhjä.
 
 ### Turku and UEF Dynasty REST delivery
 
-Both destinations support `VALMISTUMINEN` and `KOEJAKSO`. Turku resolves the phase
+Both destinations support `VALMISTUMINEN` and `KOEJAKSO`. Elsa resolves the phase
 and validates the exact top-level TOS titles for documents still to be sent.
 Dynasty resolves the phase and applies TOS metadata using
 `PhaseSelector.smartAttachOptions.pathSelector` and `TOSTitle`.
@@ -837,8 +837,9 @@ ten-year retention and publicity from the TOS title, so Turku requests do not se
 Every Turku document carries `languageId` `fi-FI` (Finnish is the only approved language).
 The graduation summary carries `ExtElsaTunniste` (the Elsa case id) and uses the Elsa approval
 date as `UTUvalmistumispaiva`.
-UEF creates its phase explicitly and sends its graduation documents as separate
-records under that phase. Both deliveries finish by archiving the case.
+UEF uses class `03.11` and its own TOS titles for the graduation summary, other attachments,
+licensing certificate and koejakso assessment. Graduation documents are linked directly to the
+same phase. Both deliveries finish by archiving the case.
 
 Configure `application.arkistointi.turku.dynasty` (URLs, client credentials, Organization,
 case/document schema UUIDs) before enabling the university. For Dynasty, both case
@@ -848,25 +849,21 @@ Credentials must come from secrets/environment. Test case/document schemas:
 `30e1cd27-54f9-44c1-9853-401cbdc871de` / `b11af6ae-afc6-42e8-b09b-6b37d3f29397`;
 production: `80cdec85-07fa-455b-9d7d-6c08ac1e2863` / `f9352666-327a-4262-b888-9c4c847590b6`.
 The configured `tutkintoasetukset` map must contain the customer-approved text for each
-regulation encountered. For Turku KOEJAKSO, TOS supplies the publicity class and
+regulation encountered. For KOEJAKSO, TOS supplies the publicity class and
 the request contains `SecrecyPeriod.Start` at midnight on the delivery date and
-`SecrecyPeriod.End` 100 years later. UEF uses publicity class `S` and sends the same
-`SecrecyPeriod` structure. Its external test profile supports
-`APPLICATION_ARKISTOINTI_DYNASTY_UEF_KOEJAKSO_PUBLICITY_CLASS_ID`.
+`SecrecyPeriod.End` 100 years later.
 Metadata validation completes before the first external create.
 
 The shared application configuration defaults to the Dynasty test URLs so dev and
 staging can inherit them. All ECS environments use the `prod` Spring profile.
-The UEF paths follow Turku's API configuration and need confirmation in the UEF
-archive. In the production ECS deployment, explicitly set `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_BASE_URL`
+In the production ECS deployment, explicitly set `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_BASE_URL`
 and `APPLICATION_ARKISTOINTI_DYNASTY_TURKU_TOKEN_URL` for Turku, or
 `APPLICATION_ARKISTOINTI_DYNASTY_UEF_BASE_URL` and `APPLICATION_ARKISTOINTI_DYNASTY_UEF_TOKEN_URL`
 for UEF. Supply the production organization, credentials and schema IDs.
 Configure the UEF integration account to select the archive material.
 Test material is `IB29`.
 
-The UEF external suite is disabled with JUnit's `@Disabled` annotation.
-To run it, remove the annotation and supply the test archive values for `APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION`,
+To run the UEF external suite, supply the test archive values for `APPLICATION_ARKISTOINTI_DYNASTY_UEF_ORGANIZATION`,
 `APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_ID` and `APPLICATION_ARKISTOINTI_DYNASTY_UEF_CLIENT_SECRET`.
 The external test profile defaults to the UEF test schema IDs.
 

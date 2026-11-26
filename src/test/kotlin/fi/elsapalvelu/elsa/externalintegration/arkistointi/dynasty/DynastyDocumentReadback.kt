@@ -37,6 +37,12 @@ internal class DynastyDocumentReadback(private val client: DynastyClient, privat
         }
     }
 
+    fun verifyCaseRetentionBasis(caseId: String, expectedBasis: String) {
+        val metadata = read("api/v1/cases/${DynastyCaseId(caseId)}", "read_case")
+        assertThat(metadata.path("retentionPeriodBasis").map { it.asText() })
+            .describedAs("retention basis of case $caseId").contains(expectedBasis)
+    }
+
     private fun assertDirectPhaseLinks(documents: JsonNode, ids: List<DynastyDocumentId>) {
         assertThat(documents.isArray).describedAs("case contents is an array").isTrue()
         assertThat(documents.map { it.path("id").longValue() })

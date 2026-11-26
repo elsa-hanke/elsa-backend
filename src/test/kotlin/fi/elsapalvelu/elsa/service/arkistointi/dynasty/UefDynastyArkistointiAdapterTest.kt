@@ -17,9 +17,10 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.Duration
@@ -54,8 +55,8 @@ class UefDynastyArkistointiAdapterTest {
         )
         assertThat(case["AD"]["UEFkoulutusohjelma"].asText()).isEqualTo(programme)
         assertThat(case["AD"]["UEFtiedekunta"].asText()).isEqualTo("Terveystieteiden tiedekunta")
-        assertThat(case["retentionPeriodLength"].asInt()).isEqualTo(-1)
-        assertThat(case["RetentionPeriod"]["End"].asText()).isEqualTo("9999-12-31T00:00:00")
+        assertThat(case.has("retentionPeriodLength")).isFalse()
+        assertThat(case["retentionPeriod"]["End"].asText()).isEqualTo("9999-12-31T00:00:00")
 
         assertThat(summary["title"]).isEqualTo(case["title"])
         assertThat(summary["AD"]["UEFalkamispaiva"].asText()).isEqualTo("2020-01-01")
@@ -64,10 +65,8 @@ class UefDynastyArkistointiAdapterTest {
         assertThat(summary["AD"]["UEFlaillistamispaiva"].asText()).isEqualTo("2019-01-01")
         assertThat(attachments["title"].asText()).isEqualTo("Valmistumisen yhteenvedon liitteet Maija Meikäläinen 31.10.2026")
         assertThat(license["title"].asText()).isEqualTo("Laillistustodistus Maija Meikäläinen")
-        val commonFields = listOf("UEFetunimi", "UEFsukunimi", "UEFtiedekunta", "UEFkoulutusohjelma", "UEFpaaaine")
-        assertThat(attachments["AD"].fieldNames().asSequence().toList()).containsExactlyInAnyOrderElementsOf(commonFields)
-        assertThat(license["AD"].fieldNames().asSequence().toList())
-            .containsExactlyInAnyOrderElementsOf(commonFields + "UEFlaillistamispaiva")
+        assertThat(attachments.has("AD")).isFalse()
+        assertThat(license["AD"]).isEqualTo(mapper.readTree("""{"UEFlaillistamispaiva":"2019-01-01"}"""))
     }
 
     @ParameterizedTest
@@ -83,36 +82,13 @@ class UefDynastyArkistointiAdapterTest {
         assertThat(plan.tosClass).isEqualTo("03.11")
         assertThat(plan.task).isEqualTo("ELSA Koejaksojen yhteenvedot")
         assertThat(document["title"]).isEqualTo(case["title"])
-        assertThat(document["documentType"].asText()).isEqualTo("Lausunto")
-        assertThat(document["publicityClassId"].asText()).isEqualTo("test-secret")
-        assertThat(document["publicityClassName"].asText()).isEqualTo("Osittain salassa pidettävä")
-        assertThat(document["retentionPeriodLength"].asInt()).isEqualTo(-1)
-        assertThat(document["retentionPeriodRule"].asText()).isEqualTo("Asiakirjan päivämäärä (luontipvm)")
-        assertThat(document["secrecyPeriodLength"].asInt()).isEqualTo(100)
-        assertThat(document["secrecyPeriodRule"].asText()).isEqualTo("Asiakirjan päivämäärä")
-        assertThat(document["secrecyReason"].single().asText()).isEqualTo("JulkL 24.1 § 30 kohta (henk. koht. omin, oppilashuolto)")
+        assertThat(document.fieldNames().asSequence().toList()).containsExactlyInAnyOrder(
+            "title", "schemaId", "AD", "DeliveryType", "state", "SecrecyPeriod"
+        )
         val start = java.time.LocalDateTime.parse(document["SecrecyPeriod"]["Start"].asText())
         assertThat(java.time.LocalDateTime.parse(document["SecrecyPeriod"]["End"].asText())).isEqualTo(start.plusYears(100))
         assertThat(document["AD"]["UEFhyvaksymispaiva"].asText()).isEqualTo("2026-10-31")
         assertThat(document["AD"].has("UEFvalmistumispaiva")).isFalse()
-    }
-
-    @Test
-    fun `unconfigured secrecy prevents case creation`() {
-        val properties = dynastyTestProperties("https://dynasty.example", university)
-        val settings = properties.getArkistointi().getUef().dynasty.apply { koejaksoPublicityClassId = null }
-        val ledger = mock<DynastyStepLedger>()
-        val client = DynastyClient(settings, mapper, Clock.systemUTC())
-        val adapter = UefDynastyArkistointiAdapter(
-            client, UefDynastyMetadataMapper(properties, mapper, reader, Clock.systemUTC()), DynastyStepExecutor(ledger), properties
-        )
-
-        val result = adapter.arkistoi(dynastySubmission(mapper, CaseType.KOEJAKSO, university = university))
-
-        assertThat(result).isInstanceOfSatisfying(ArkistointiResult.PermanentFailure::class.java) {
-            assertThat(it.error.code).isEqualTo(DynastyFailureCategory.SECRECY_UNCONFIGURED.code)
-        }
-        verifyNoInteractions(ledger)
     }
 
     @Test
@@ -131,17 +107,18 @@ class UefDynastyArkistointiAdapterTest {
             )
             val submission = dynastySubmission(mapper, university = university)
             val phaseId = UUID.randomUUID()
-            server.enqueueDynastySuccess(listOf(1078L, 1079L, 1080L), taskId = phaseId)
+            DynastyTosFixture.UEF_GRADUATION.enqueueSuccess(server, listOf(1078L, 1079L, 1080L), phaseId)
 
             assertThat(adapter.arkistoi(submission)).isEqualTo(ArkistointiResult.Success("415"))
 
-            val requests = List(7) { requireNotNull(server.takeRequest(2, TimeUnit.SECONDS)) }
+            val requests = List(8) { requireNotNull(server.takeRequest(2, TimeUnit.SECONDS)) }
             assertThat(requests.map { it.path }).containsExactly(
-                "/token", "/api/v1/cases?tosClass=03.11", "/api/v1/cases/415/tasks",
+                "/token", "/api/v1/cases/phases/03.11", "/api/v1/cases/phases/03.11/$phaseId/documenttypes",
+                "/api/v1/cases?tosClass=03.11",
                 "/api/v1/documents", "/api/v1/documents", "/api/v1/documents", "/api/v1/cases/415/state/Archived"
             )
-            assertThat(mapper.readTree(requests[2].body.readUtf8())["title"].asText()).isEqualTo("ELSA valmistumispyyntö ja sen liitteet")
-            assertParallelDocuments(requests.subList(3, 6), phaseId)
+            assertParallelDocuments(requests.subList(4, 7), phaseId)
+            verify(ledger, never()).begin(any(), eq(DynastyStepKey.Task), any())
             verify(ledger).begin(submission.execution, DynastyStepKey.Case, Duration.ofMinutes(9))
         }
     }
@@ -151,18 +128,18 @@ class UefDynastyArkistointiAdapterTest {
             val body = request.body.readUtf8()
             assertThat(body).contains("name=\"File\"; filename=\"file$index.pdf\"")
             val options = mapper.dynastyMultipartJson(body, "CaseAttachmentOptions")
-            assertThat(options).isEqualTo(mapper.readTree("""{"CaseSelector":{"Id":"415"},"PhaseSelector":{"Id":"$phaseId"}}"""))
+            assertThat(options.at("/CaseSelector/Id").longValue()).isEqualTo(415)
+            assertThat(options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(phaseId.toString())
+            assertThat(options.path("TOSTitle").asText()).isEqualTo(DynastyTosFixture.UEF_GRADUATION.documentTitles[index])
+            assertThat(options.has("parentDocumentSelector")).isFalse()
             mapper.dynastyMultipartJson(body, "MetaData")
         }
-        assertThat(documents.map { it["documentType"].asText() }).containsExactly(
-            "Yhteenveto", "Liite", "Liite"
-        )
-        assertThat(documents.map { it["retentionPeriodLength"].asInt() }).containsExactly(20, 10, 10)
         assertThat(documents).allSatisfy {
             assertThat(it["state"].asInt()).isEqualTo(3)
             assertThat(it["DeliveryType"].asText()).isEqualTo("M")
             assertThat(it["schemaId"].asText()).isEqualTo("document-schema")
-            assertThat(it["retentionPeriodRule"].asText()).isEqualTo("Asian lopullinen ratkaisu")
+            assertThat(it.fieldNames().asSequence().toList())
+                .isSubsetOf(listOf("title", "schemaId", "AD", "DeliveryType", "state"))
         }
     }
 

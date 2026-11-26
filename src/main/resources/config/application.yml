@@ -438,7 +438,6 @@ application:
           "[401/2007]": "Asetus 401/2007"
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
           "[55/2020]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
-        koejakso-publicity-class-id: "S"
       metadata:
         cases:
           koejakso:

@@ -26,11 +26,11 @@ class DynastyDeliveryTest {
             val ledger = resumableLedger(submission.execution)
             val adapter = adapter(server, mapper, ledger)
             server.enqueue(MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE))
-            with(TurkuTosFixture.GRADUATION) { server.enqueueLookup() }
+            with(DynastyTosFixture.GRADUATION) { server.enqueueLookup() }
             listOf("415", "1078").forEach { server.enqueue(MockResponse().setBody(it)) }
             server.enqueue(MockResponse().setResponseCode(403))
             assertThat(adapter.arkistoi(submission)).isInstanceOf(ArkistointiResult.PermanentFailure::class.java)
-            with(TurkuTosFixture.GRADUATION) { server.enqueueLookup() }
+            with(DynastyTosFixture.GRADUATION) { server.enqueueLookup() }
             listOf("1079","1080","").forEach { server.enqueue(MockResponse().setBody(it)) }
             assertThat(adapter.arkistoi(submission)).isEqualTo(ArkistointiResult.Success("415"))
             assertResumedDeliveryRequests(server, mapper)
@@ -44,11 +44,11 @@ class DynastyDeliveryTest {
             val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
             val ledger = mock<DynastyStepLedger>()
             val adapter = adapter(server, mapper, ledger)
-            val fixture = TurkuTosFixture.GRADUATION
-            val phaseId = TurkuTosFixture.PHASE_ID
+            val fixture = DynastyTosFixture.GRADUATION
+            val phaseId = DynastyTosFixture.PHASE_ID
             server.enqueue(MockResponse().setBody(DYNASTY_TEST_TOKEN_RESPONSE))
             server.enqueue(requireNotNull(fixture.response(fixture.path)))
-            val attachment = """{"title":"${TurkuTosFixture.ATTACHMENT_TITLE}"}"""
+            val attachment = """{"title":"${DynastyTosFixture.ATTACHMENT_TITLE}"}"""
             val documents = if (nestedAttachment) {
                 """{"title":"${fixture.documentTitle}","childs":[$attachment]}"""
             } else {
@@ -118,8 +118,8 @@ class DynastyDeliveryTest {
         val requests = List(server.requestCount) { server.takeRequest() }
         assertThat(requests.count { it.path!!.startsWith("/api/v1/cases?") }).isEqualTo(1)
         val lookups = requests.filter { it.method == "GET" }
-        val phasePath = TurkuTosFixture.GRADUATION.path
-        val typesPath = "$phasePath/${TurkuTosFixture.PHASE_ID}/documenttypes"
+        val phasePath = DynastyTosFixture.GRADUATION.path
+        val typesPath = "$phasePath/${DynastyTosFixture.PHASE_ID}/documenttypes"
         assertThat(lookups.map { it.path }).containsExactly(phasePath, typesPath, phasePath, typesPath)
         assertThat(lookups.map { it.getHeader("Authorization") }).containsOnly("Bearer test")
         assertThat(lookups.map { it.getHeader("Organization") }).containsOnly("0")
@@ -133,8 +133,8 @@ class DynastyDeliveryTest {
             val metadata = mapper.dynastyMultipartJson(body, "metaData")
             assertThat(options.fieldNames().asSequence().toList()).containsExactlyInAnyOrder("CaseSelector", "PhaseSelector", "TOSTitle")
             assertThat(options.at("/CaseSelector/Id").longValue()).isEqualTo(415)
-            assertThat(options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(TurkuTosFixture.PHASE_ID.toString())
-            assertThat(options.path("TOSTitle").asText()).isEqualTo(TurkuTosFixture.ATTACHMENT_TITLE)
+            assertThat(options.at("/PhaseSelector/smartAttachOptions/pathSelector/0/Id").asText()).isEqualTo(DynastyTosFixture.PHASE_ID.toString())
+            assertThat(options.path("TOSTitle").asText()).isEqualTo(DynastyTosFixture.ATTACHMENT_TITLE)
             assertThat(metadata.fieldNames().asSequence().toList())
                 .containsExactlyInAnyOrder("title", "schemaId", "state", "DeliveryType", "languageId", "AD")
             assertThat(metadata.path("languageId").asText()).isEqualTo("fi-FI")

@@ -16,6 +16,5 @@ class DynastyProperties {
     var inProgressGrace: Duration = Duration.ofMinutes(5)
     var allowLoopbackHttpForTests: Boolean = false
     var tutkintoasetukset: Map<String, String> = emptyMap()
-    var koejaksoPublicityClassId: String? = null
     override fun toString() = "DynastyProperties()"
 }

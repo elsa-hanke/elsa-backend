@@ -143,14 +143,16 @@ class DynastyClient internal constructor(
     fun createCase(tosClass: String, metadata: DynastyCaseRequest): DynastyCaseId =
         post("create_case", endpoint("api/v1/cases").addQueryParameter("tosClass", tosClass).build(), json(metadata), DynastyResponseKind.CaseId)
 
-    fun createTask(caseId: DynastyCaseId, title: String): DynastyTaskId =
-        post("create_task", endpoint("api/v1/cases/$caseId/tasks").build(), json(DynastyTaskRequest(title)), DynastyResponseKind.TaskId)
-
-    fun createDocument(metadata: DynastyDocumentRequestMetadata, options: DynastyCaseAttachmentOptions, document: LoadedArkistointiAsiakirja): DynastyDocumentId {
-        val (metadataPart, optionsPart, filePart) = when (options) {
-            is DynastyExplicitPhaseOptions -> Triple("MetaData", "CaseAttachmentOptions", "File")
-            is DynastyTosPhaseOptions -> Triple("metaData", "caseAttachmentOptions", "file")
-        }
+    fun createDocument(
+        metadata: DynastyTosDocumentMetadata,
+        options: DynastyTosPhaseOptions,
+        document: LoadedArkistointiAsiakirja,
+        pascalCaseMultipartNames: Boolean
+    ): DynastyDocumentId {
+        val (metadataPart, optionsPart, filePart) = if (pascalCaseMultipartNames)
+            Triple("MetaData", "CaseAttachmentOptions", "File")
+        else
+            Triple("metaData", "caseAttachmentOptions", "file")
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
             .addFormDataPart(metadataPart, mapper.writeValueAsString(metadata))
             .addFormDataPart(optionsPart, mapper.writeValueAsString(options))
