@@ -68,5 +68,10 @@
       "DeliveryType": "M",
       "languageId": "fi-FI"
     }
+  ],
+  "tosTitles": [
+    "Valmistumisen yhteenveto,  EL, EHL tai YEK",
+    "Valmistumisen yhteenvedon liitteet,  EL, EHL tai YEK",
+    "Valmistumisen yhteenvedon liitteet,  EL, EHL tai YEK"
   ]
 }

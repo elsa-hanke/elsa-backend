@@ -1,0 +1,77 @@
+{
+  "tosClass": "05.06.02.04",
+  "caseRequest": {
+    "caseModel": {
+      "schemaid": "case-schema",
+      "title": "EHL Valmistumisen yhteenveto Maija Meikäläinen 31.10.2026",
+      "AD": {
+        "UTUetunimi": "Maija",
+        "UTUsukunimi": "Meikäläinen",
+        "UTUtiedekunta": "Lääketieteellinen tiedekunta",
+        "UTUkoulutusohjelma": "Erikoishammaslääkärikoulutus",
+        "UTUpaaaine": "Akuuttilääketiede",
+        "UTUsyntymaaika": "1980-01-01"
+      },
+      "publicityClassId": "J",
+      "publicityClassName": "Julkinen",
+      "manner": "M"
+    }
+  },
+  "task": "Hakeminen",
+  "documents": [
+    {
+      "title": "EHL Valmistumisen yhteenveto Maija Meikäläinen 31.10.2026",
+      "schemaId": "document-schema",
+      "AD": {
+        "UTUetunimi": "Maija",
+        "UTUsukunimi": "Meikäläinen",
+        "UTUtiedekunta": "Lääketieteellinen tiedekunta",
+        "UTUkoulutusohjelma": "Erikoishammaslääkärikoulutus",
+        "UTUpaaaine": "Akuuttilääketiede",
+        "UTUsyntymaaika": "1980-01-01",
+        "UTUalkamispaiva": "2020-01-01",
+        "UTUvalmistumispaiva": "2026-10-31",
+        "UTUtutkintoasetus": "Confirmed regulation",
+        "UTUlaillistamispaiva": "2019-01-01",
+        "ExtElsaTunniste": "1"
+      },
+      "languageId": "fi-FI",
+      "state": 3,
+      "DeliveryType": "M"
+    },
+    {
+      "title": "Valmistumisen yhteenvedon liitteet Maija Meikäläinen 31.10.2026",
+      "schemaId": "document-schema",
+      "AD": {
+        "UTUetunimi": "Maija",
+        "UTUsukunimi": "Meikäläinen",
+        "UTUtiedekunta": "Lääketieteellinen tiedekunta",
+        "UTUkoulutusohjelma": "Erikoishammaslääkärikoulutus",
+        "UTUpaaaine": "Akuuttilääketiede"
+      },
+      "languageId": "fi-FI",
+      "state": 3,
+      "DeliveryType": "M"
+    },
+    {
+      "title": "Laillistustodistus Maija Meikäläinen",
+      "schemaId": "document-schema",
+      "AD": {
+        "UTUetunimi": "Maija",
+        "UTUsukunimi": "Meikäläinen",
+        "UTUtiedekunta": "Lääketieteellinen tiedekunta",
+        "UTUkoulutusohjelma": "Erikoishammaslääkärikoulutus",
+        "UTUpaaaine": "Akuuttilääketiede",
+        "UTUlaillistamispaiva": "2019-01-01"
+      },
+      "languageId": "fi-FI",
+      "state": 3,
+      "DeliveryType": "M"
+    }
+  ],
+  "tosTitles": [
+    "Valmistumisen yhteenveto,  EL, EHL tai YEK",
+    "Valmistumisen yhteenvedon liitteet,  EL, EHL tai YEK",
+    "Valmistumisen yhteenvedon liitteet,  EL, EHL tai YEK"
+  ]
+}

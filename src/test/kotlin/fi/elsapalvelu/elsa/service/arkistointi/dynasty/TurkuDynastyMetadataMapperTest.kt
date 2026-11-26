@@ -14,7 +14,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import com.fasterxml.jackson.databind.JsonNode
 
@@ -72,15 +71,6 @@ class TurkuDynastyMetadataMapperTest {
         assertThat(doc.path("AD").path("UTUhyvaksymispaiva").asText()).isEqualTo("2026-10-31")
         assertThat(doc.path("AD").has("UTUvalmistumispaiva")).isFalse()
         assertThat(doc.path("AD").has("ExtElsaTunniste")).isFalse()
-    }
-
-    @ParameterizedTest
-    @CsvSource("false,turku-valmistuminen-el.json", "true,turku-koejakso-el.json")
-    fun `plan matches the golden specification mapping`(koejakso: Boolean, goldenFile: String) {
-        val mapper = jacksonObjectMapper()
-        val actual = mapper.valueToTree<JsonNode>(plan("EL", koejakso))
-        val golden = javaClass.getResourceAsStream("/fixtures/arkistointi/dynasty/$goldenFile")!!.use(mapper::readTree)
-        assertThat(actual).isEqualTo(golden)
     }
 
     @Test

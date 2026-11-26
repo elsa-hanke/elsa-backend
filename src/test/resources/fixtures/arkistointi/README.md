@@ -29,3 +29,28 @@ text, ignoring formatting indentation between elements. It also checks the legac
 every embedded PDF against the input bytes. ZIP container timestamps are not
 part of the contract. Do not regenerate these files from the current builder
 merely to make a failing test pass; review any intended contract change first.
+
+# Dynasty metadata golden files
+
+`dynasty/{turku|uef}-{valmistuminen|koejakso}-{el|ehl|yek}.json` are the
+acceptance contract for the metadata that Elsa sends to Turku and UEF Dynasty.
+`DynastyMetadataGoldenTest` compares each file with
+`DynastyMetadataMapper.plan(...)` using strict JSON comparison: no missing or extra
+fields, and arrays keep their order. `tosTitles` lists the TOS document type
+(`TOSTitle`, asiakirjatyypin tarkenne) of each document in delivery order.
+
+Input comes from `dynastySubmission` and `dynastyTestProperties` in
+`DynastyTestData.kt`. Approval date is 2026-10-31. The clock is fixed so the
+Europe/Helsinki archive date is 2026-11-19. Schema IDs and the regulation text are
+test placeholders.
+
+The files were reviewed field by field against the customer mapping tables
+`ELSA-Dynasty arkisto mäppäystaulukko 25.5.2026.xlsx` (Turku) and
+`... UEF (Turun pohjalle) 18.11.2026.xlsx` (UEF). Where these tables were silent,
+the files follow the customer's example requests. Wire-level multipart
+serialization is covered separately by `DynastyDeliveryIT` and the adapter tests.
+
+To change archive metadata, edit the golden file to match the customer's
+request first. The test then fails. Change the code until it passes. Do not
+regenerate the golden files from the current code merely to make a failing test
+pass.
