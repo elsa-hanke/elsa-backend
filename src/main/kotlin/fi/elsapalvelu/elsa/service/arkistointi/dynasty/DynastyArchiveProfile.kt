@@ -54,6 +54,15 @@ internal enum class DynastyArchiveProfile(
     fun caseProfile(caseType: CaseType): DynastyCaseProfile =
         requireNotNull(caseProfiles[caseType]) { "Unsupported Dynasty case type" }
 
+    fun archiveMetadata() = Arkistointi.Metadata().apply {
+        cases = caseProfiles.entries.associate { (caseType, profile) ->
+            caseType.value to Arkistointi.Case().apply {
+                asyncEnabled = true
+                documents = profile.documentTypes.keys.associate { it.name.lowercase() to Arkistointi.DocumentMetadata() }
+            }
+        }
+    }
+
     companion object {
         fun from(university: YliopistoEnum): DynastyArchiveProfile =
             requireNotNull(entries.firstOrNull { it.university == university }) { "Unsupported Dynasty university" }

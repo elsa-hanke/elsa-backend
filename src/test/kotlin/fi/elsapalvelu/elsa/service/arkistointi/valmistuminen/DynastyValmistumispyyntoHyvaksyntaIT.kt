@@ -38,12 +38,6 @@ import javax.imageio.ImageIO
 
 @SpringBootTest(classes = [ElsaBackendApp::class], properties = [
     "spring.datasource.url=jdbc:tc:postgresql:16.9:///dynastyGraduation?TC_TMPFS=/testtmpfs:rw&TC_DAEMON=true",
-    "application.arkistointi.turku.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
-    "application.arkistointi.turku.metadata.cases.valmistuminen.documents.liite.retention-period=20",
-    "application.arkistointi.turku.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=20",
-    "application.arkistointi.uef.metadata.cases.valmistuminen.documents.yhteenveto.retention-period=20",
-    "application.arkistointi.uef.metadata.cases.valmistuminen.documents.liite.retention-period=20",
-    "application.arkistointi.uef.metadata.cases.valmistuminen.documents.laillistamistodistus.retention-period=20",
     "application.arkistointi.turku.kaytossa=true", "application.arkistointi.uef.kaytossa=true"
 ])
 @Import(DynastyValmistumispyyntoHyvaksyntaIT.Adapters::class)

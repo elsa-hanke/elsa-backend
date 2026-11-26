@@ -28,8 +28,8 @@ class ArkistointiConfigurationProviderTest {
     }
 
     @Test
-    fun `getConfiguration resolves metadata for every university`() {
-        YliopistoEnum.entries.forEach { yliopisto ->
+    fun `getConfiguration resolves configured SÄHKE metadata`() {
+        listOf(YliopistoEnum.HELSINGIN_YLIOPISTO, YliopistoEnum.OULUN_YLIOPISTO, YliopistoEnum.TAMPEREEN_YLIOPISTO).forEach { yliopisto ->
             val metadata = createMetadata(yliopisto.name)
             configure(yliopisto, enabled = true, metadata = metadata)
 
@@ -67,17 +67,17 @@ class ArkistointiConfigurationProviderTest {
     @Test
     fun `getConfiguration reports missing case metadata with university context`() {
         configure(
-            YliopistoEnum.TURUN_YLIOPISTO,
+            YliopistoEnum.OULUN_YLIOPISTO,
             enabled = true,
             metadata = ApplicationProperties.Arkistointi.Metadata()
         )
 
         assertThatThrownBy {
-            provider.getConfiguration(YliopistoEnum.TURUN_YLIOPISTO, CaseType.KOEJAKSO)
+            provider.getConfiguration(YliopistoEnum.OULUN_YLIOPISTO, CaseType.KOEJAKSO)
         }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining(CaseType.KOEJAKSO.value)
-            .hasMessageContaining(YliopistoEnum.TURUN_YLIOPISTO.name)
+            .hasMessageContaining(YliopistoEnum.OULUN_YLIOPISTO.name)
     }
 
     private fun createMetadata(organisation: String): ApplicationProperties.Arkistointi.Metadata {
@@ -112,15 +112,7 @@ class ArkistointiConfigurationProviderTest {
                 this.metadata = metadata
             }
 
-            YliopistoEnum.TURUN_YLIOPISTO -> arkistointi.getTurku().apply {
-                kaytossa = enabled
-                this.metadata = metadata
-            }
-
-            YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> arkistointi.getUef().apply {
-                kaytossa = enabled
-                this.metadata = metadata
-            }
+            else -> error("Expected SÄHKE university")
         }
     }
 }

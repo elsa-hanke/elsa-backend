@@ -397,9 +397,6 @@ application:
         organization: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_ORGANIZATION:0}
         case-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_CASE_SCHEMA_ID:30e1cd27-54f9-44c1-9853-401cbdc871de}
         document-schema-id: ${APPLICATION_ARKISTOINTI_DYNASTY_TURKU_DOCUMENT_SCHEMA_ID:b11af6ae-afc6-42e8-b09b-6b37d3f29397}
-        call-timeout: 2m
-        in-progress-grace: 5m
-        allow-loopback-http-for-tests: false
         # Keys are asetus.nimi values. The text for 56/2015 is the customer's example (mappäystaulukko);
         # PLACEHOLDER: the other texts must be confirmed by Turku before production use.
         tutkintoasetukset:
@@ -408,20 +405,6 @@ application:
           "[401/2007]": "Asetus 401/2007"
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
           "[55/2020]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
-      metadata:
-        cases:
-          koejakso:
-            documents:
-              arviointi:
-                retention-period: "-1"
-          valmistuminen:
-            documents:
-              yhteenveto:
-                retention-period: "20"
-              liite:
-                retention-period: "10"
-              laillistamistodistus:
-                retention-period: "10"
     uef:
       kaytossa: ${APPLICATION_ARKISTOINTI_UEF_KAYTOSSA:false}
       dynasty:
@@ -438,20 +421,6 @@ application:
           "[401/2007]": "Asetus 401/2007"
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
           "[55/2020]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
-      metadata:
-        cases:
-          koejakso:
-            documents:
-              arviointi:
-                retention-period: "-1"
-          valmistuminen:
-            documents:
-              yhteenveto:
-                retention-period: "20"
-              liite:
-                retention-period: "10"
-              laillistamistodistus:
-                retention-period: "10"
 
 db-scheduler:
   delay-startup-until-context-ready: true

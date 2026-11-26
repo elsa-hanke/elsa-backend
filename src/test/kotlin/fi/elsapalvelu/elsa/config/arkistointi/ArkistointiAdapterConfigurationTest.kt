@@ -140,9 +140,7 @@ class ArkistointiAdapterConfigurationTest {
         runner().withPropertyValues(
             "db-scheduler.enabled=false",
             "application.arkistointi.hki.kaytossa=false",
-            "application.arkistointi.$university.kaytossa=true",
-            "application.arkistointi.$university.metadata.cases.valmistuminen.async-enabled=false",
-            "application.arkistointi.$university.metadata.cases.koejakso.async-enabled=false"
+            "application.arkistointi.$university.kaytossa=true"
         ).run { context ->
             assertThat(context).hasNotFailed()
             verify(worker, never()).start()

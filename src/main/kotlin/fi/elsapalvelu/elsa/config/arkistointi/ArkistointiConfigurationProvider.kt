@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.config.arkistointi
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArchiveProfile
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import org.springframework.stereotype.Component
 
@@ -39,12 +40,7 @@ class ArkistointiConfigurationProvider(
 
     fun isAsyncEnabled(yliopisto: YliopistoEnum, caseType: CaseType): Boolean {
         if (!isEnabled(yliopisto)) return false
-        val case = getMetadata(yliopisto)?.getCaseMetadata(caseType) ?: return false
-        return when (yliopisto) {
-            // Dynasty has only an async adapter, so its route is fixed.
-            YliopistoEnum.TURUN_YLIOPISTO, YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> true
-            else -> case.asyncEnabled
-        }
+        return getMetadata(yliopisto)?.getCaseMetadata(caseType)?.asyncEnabled == true
     }
 
     private fun getMetadata(yliopisto: YliopistoEnum): ApplicationProperties.Arkistointi.Metadata? {
@@ -53,8 +49,8 @@ class ArkistointiConfigurationProvider(
             YliopistoEnum.TAMPEREEN_YLIOPISTO -> arkistointi.getTre().metadata
             YliopistoEnum.HELSINGIN_YLIOPISTO -> arkistointi.getHki().metadata
             YliopistoEnum.OULUN_YLIOPISTO -> arkistointi.getOulu().metadata
-            YliopistoEnum.TURUN_YLIOPISTO -> arkistointi.getTurku().metadata
-            YliopistoEnum.ITA_SUOMEN_YLIOPISTO -> arkistointi.getUef().metadata
+            YliopistoEnum.TURUN_YLIOPISTO, YliopistoEnum.ITA_SUOMEN_YLIOPISTO ->
+                DynastyArchiveProfile.from(yliopisto).archiveMetadata()
         }
     }
 

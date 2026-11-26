@@ -22,20 +22,6 @@ application:
         # The 56/2015 text is the customer's example from the mapping spreadsheet.
         tutkintoasetukset:
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
-      metadata:
-        cases:
-          koejakso:
-            documents:
-              arviointi:
-                retention-period: "-1"
-          valmistuminen:
-            documents:
-              yhteenveto:
-                retention-period: "20"
-              liite:
-                retention-period: "10"
-              laillistamistodistus:
-                retention-period: "10"
     uef:
       dynasty:
         base-url: ${APPLICATION_ARKISTOINTI_DYNASTY_UEF_BASE_URL:https://dynasty-testi.uef.fi/dynasty.externalinterface.archive.oauth}
@@ -48,20 +34,6 @@ application:
         tutkintoasetukset:
           "[56/2015]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
           "[55/2020]": "Asetus 56/2015, muutettu asetuksilla 55/2020 ja 1240/2022"
-      metadata:
-        cases:
-          koejakso:
-            documents:
-              arviointi:
-                retention-period: "-1"
-          valmistuminen:
-            documents:
-              yhteenveto:
-                retention-period: "20"
-              liite:
-                retention-period: "10"
-              laillistamistodistus:
-                retention-period: "10"
     tre:
       kaytossa: true
       host: ${APPLICATION_ARKISTOINTI_TRE_HOST}

@@ -236,13 +236,11 @@ class ApplicationProperties {
         class Turku : DynastyArchiveProperties {
             override val dynasty = DynastyProperties()
             var kaytossa: Boolean = false
-            override var metadata: Metadata? = null
         }
 
         class Uef : DynastyArchiveProperties {
             override val dynasty = DynastyProperties()
             var kaytossa: Boolean = false
-            override var metadata: Metadata? = null
         }
 
         class Metadata {

@@ -36,18 +36,6 @@ fun dynastyTestProperties(
         allowLoopbackHttpForTests = true
         tutkintoasetukset = mapOf("56/2015" to "Confirmed regulation")
     }
-    archive.metadata = ApplicationProperties.Arkistointi.Metadata().apply {
-        cases = mapOf(
-            "valmistuminen" to ApplicationProperties.Arkistointi.Case().apply {
-                documents = listOf("yhteenveto", "liite", "laillistamistodistus").associateWith { type ->
-                    ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = if (type == "yhteenveto") "20" else "10" }
-                }
-            },
-            "koejakso" to ApplicationProperties.Arkistointi.Case().apply {
-                documents = mapOf("arviointi" to ApplicationProperties.Arkistointi.DocumentMetadata().apply { retentionPeriod = "-1" })
-            }
-        )
-    }
 }
 
 /** Valid serialized approval; malformed-field mutations remain explicit in the calling test. */

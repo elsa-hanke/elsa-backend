@@ -39,7 +39,7 @@ class AsyncArchiveEnvironmentConfigurationTest {
         ).run { context ->
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
-            flows.forEach { (university, caseTypes) ->
+            arkistointiFlows.forEach { (university, caseTypes) ->
                 caseTypes.forEach { caseType ->
                     assertThat(provider.isAsyncEnabled(university, caseType))
                         .describedAs("$university / $caseType").isFalse()
@@ -60,12 +60,16 @@ class AsyncArchiveEnvironmentConfigurationTest {
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
             if (university in dynastyUniversities) {
-                val settings = provider.getConfiguration(university, CaseType.VALMISTUMINEN)
-                assertThat(settings.case.documents?.keys).containsExactlyInAnyOrder("yhteenveto", "liite", "laillistamistodistus")
-                assertThat(provider.getConfiguration(university, CaseType.KOEJAKSO).case.documents?.keys)
-                    .containsExactly("arviointi")
+                val graduationDocuments = provider.getConfiguration(university, CaseType.VALMISTUMINEN).case.documents.orEmpty()
+                val assessmentDocuments = provider.getConfiguration(university, CaseType.KOEJAKSO).case.documents.orEmpty()
+                assertThat(graduationDocuments.keys).containsExactlyInAnyOrder("yhteenveto", "liite", "laillistamistodistus")
+                assertThat(assessmentDocuments.keys).containsExactly("arviointi")
+                assertThat(graduationDocuments.values + assessmentDocuments.values).allSatisfy {
+                    assertThat(it.retentionPeriod).isNull()
+                }
+                assertThat(provider.onKaytossa(university, CaseType.SOPIMUS)).isFalse()
             }
-            flows.getValue(university).forEach { caseType ->
+            arkistointiFlows.getValue(university).forEach { caseType ->
                 assertThat(provider.isAsyncEnabled(university, caseType))
                     .describedAs("$university / $caseType")
                     .isTrue()
@@ -159,7 +163,7 @@ class AsyncArchiveEnvironmentConfigurationTest {
         )).run { context ->
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
-            flows.forEach { (otherUniversity, caseTypes) ->
+            arkistointiFlows.forEach { (otherUniversity, caseTypes) ->
                 caseTypes.forEach { otherCase ->
                     assertThat(provider.isAsyncEnabled(otherUniversity, otherCase))
                         .describedAs("$otherUniversity / $otherCase")
@@ -171,16 +175,12 @@ class AsyncArchiveEnvironmentConfigurationTest {
 
     @ParameterizedTest
     @ValueSource(strings = ["TURKU", "UEF"])
-    fun `KAYTOSSA enables both Dynasty flows despite legacy async environment overrides`(prefix: String) {
+    fun `KAYTOSSA enables both Dynasty flows only for the selected university`(prefix: String) {
         val university = environmentPrefixes.entries.single { it.value == prefix }.key
-        runner(mapOf(
-            "APPLICATION_ARKISTOINTI_${prefix}_KAYTOSSA" to "true",
-            "APPLICATION_ARKISTOINTI_${prefix}_METADATA_CASES_KOEJAKSO_ASYNCENABLED" to "false",
-            "APPLICATION_ARKISTOINTI_${prefix}_METADATA_CASES_VALMISTUMINEN_ASYNCENABLED" to "false"
-        )).run { context ->
+        runner(mapOf("APPLICATION_ARKISTOINTI_${prefix}_KAYTOSSA" to "true")).run { context ->
             assertThat(context).hasNotFailed()
             val provider = context.getBean(ArkistointiConfigurationProvider::class.java)
-            flows.filterKeys { it in dynastyUniversities }.forEach { (otherUniversity, caseTypes) ->
+            arkistointiFlows.filterKeys { it in dynastyUniversities }.forEach { (otherUniversity, caseTypes) ->
                 caseTypes.forEach { caseType ->
                     assertThat(provider.isAsyncEnabled(otherUniversity, caseType))
                         .describedAs("$otherUniversity / $caseType")
@@ -236,7 +236,7 @@ class AsyncArchiveEnvironmentConfigurationTest {
 
     companion object {
         private val dynastyUniversities = setOf(YliopistoEnum.TURUN_YLIOPISTO, YliopistoEnum.ITA_SUOMEN_YLIOPISTO)
-        private val flows = mapOf(
+        private val arkistointiFlows = mapOf(
             YliopistoEnum.TURUN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO),
             YliopistoEnum.ITA_SUOMEN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO),
             YliopistoEnum.TAMPEREEN_YLIOPISTO to listOf(CaseType.VALMISTUMINEN, CaseType.KOEJAKSO),
@@ -248,16 +248,16 @@ class AsyncArchiveEnvironmentConfigurationTest {
         )
 
         @JvmStatic
-        fun universities(): Stream<Arguments> = flows.keys.stream().map { Arguments.of(it) }
+        fun universities(): Stream<Arguments> = arkistointiFlows.keys.stream().map { Arguments.of(it) }
 
         @JvmStatic
-        fun switchableUniversityFlows(): Stream<Arguments> = flowArguments(flows.keys - dynastyUniversities)
+        fun switchableUniversityFlows(): Stream<Arguments> = flowArguments(arkistointiFlows.keys - dynastyUniversities)
 
         @JvmStatic
-        fun universityFlows(): Stream<Arguments> = flowArguments(flows.keys)
+        fun universityFlows(): Stream<Arguments> = flowArguments(arkistointiFlows.keys)
 
         private fun flowArguments(universities: Set<YliopistoEnum>): Stream<Arguments> = universities.flatMap { university ->
-            flows.getValue(university).map { Arguments.of(university, it) }
+            arkistointiFlows.getValue(university).map { Arguments.of(university, it) }
         }.stream()
     }
 }
