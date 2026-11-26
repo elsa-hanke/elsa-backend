@@ -6,7 +6,7 @@ pluginManagement {
     resolutionStrategy {
         eachPlugin {
             if (requested.id.id == "com.google.cloud.tools.jib") {
-                useModule("com.google.cloud.tools:jib-gradle-plugin:${requested.version}")
+                useModule("com.google.cloud.tools:jib-gradle-plugin:${jibPluginVersion}")
             }
         }
     }
