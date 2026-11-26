@@ -3,6 +3,13 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "com.google.cloud.tools.jib") {
+                useModule("com.google.cloud.tools:jib-gradle-plugin:${requested.version}")
+            }
+        }
+    }
     plugins {
         id "org.springframework.boot" version "${springBootVersion}"
         id "com.google.cloud.tools.jib" version "${jibPluginVersion}"
