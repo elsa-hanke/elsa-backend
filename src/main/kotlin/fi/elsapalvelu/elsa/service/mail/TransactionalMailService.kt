@@ -1,12 +1,11 @@
 package fi.elsapalvelu.elsa.service.mail
 
 import fi.elsapalvelu.elsa.domain.kayttaja.User
+import fi.elsapalvelu.elsa.extensions.runAfterCommit
 import fi.elsapalvelu.elsa.service.kayttaja.MailProperty
 import fi.elsapalvelu.elsa.service.kayttaja.MailService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import org.springframework.transaction.support.TransactionSynchronization
-import org.springframework.transaction.support.TransactionSynchronizationManager
 
 @Service
 class TransactionalMailService(
@@ -45,14 +44,8 @@ class TransactionalMailService(
         mailService.sendFeedbackEmail(to, cc, templateName, properties)
     }
 
-    private fun afterCommit(action: () -> Unit) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
-                override fun afterCommit() = action()
-            })
-        } else {
-            log.debug("No active transaction, sending mail immediately")
-            action()
-        }
-    }
+    private fun afterCommit(action: () -> Unit) = runAfterCommit(
+        onImmediate = { log.debug("No active transaction, sending mail immediately") },
+        action = action
+    )
 }
