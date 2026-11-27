@@ -71,7 +71,7 @@ class AsyncSahkePackageBuilder(
         val records = documents.sortedBy { it.jarjestysnumero }.map { document ->
             requireValidPayload(document.filename.isNotBlank() && document.filename !in setOf(".", ".."))
             requireValidPayload(document.filename.none { it == '/' || it == '\\' || it.isISOControl() })
-            if (configuration.metadata.getDocumentMetadata(document.asiakirjatyyppi, configuration.case) == null) {
+            if (!configuration.includesDocument(document.asiakirjatyyppi)) {
                 throw SahkePackageException(SahkePackageFailure.CONFIGURATION_INVALID)
             }
             RecordProperties(

@@ -41,8 +41,9 @@ class ValmistumispyynnonViimeistelyService(
             jobEnqueuer.enqueue(university, CaseType.VALMISTUMINEN, valmistumispyyntoId, {
                 val documents = luoAsiakirjat(valmistumispyyntoId, tarkistus, valmistumispyynto)
                 valmistumispyynto.opintooikeus?.erikoisala.required()
-                val completed = arkistointiAsiakirjat.taydenna(valmistumispyynto, university, documents)
-                valitseArkistoitavatAsiakirjat(completed, university)
+                val configuration = arkistointiConfigurationProvider.getConfiguration(university, CaseType.VALMISTUMINEN)
+                val completed = arkistointiAsiakirjat.taydenna(valmistumispyynto, configuration, documents)
+                configuration.selectDocuments(completed)
             }) { identities ->
                 ValmistuminenArkistointiPayload.create(valmistumispyynto, university, identities)
             }
@@ -94,16 +95,6 @@ class ValmistumispyynnonViimeistelyService(
             caseId = valmistumispyynto.id.required().toString(),
             erikoistujanNimi = valmistumispyynto.opintooikeus?.erikoistuvaLaakari?.kayttaja?.user?.getName()
         )
-    }
-
-    private fun valitseArkistoitavatAsiakirjat(
-        documents: List<RecordProperties>,
-        university: YliopistoEnum
-    ): List<RecordProperties> {
-        val configuration = arkistointiConfigurationProvider.getConfiguration(university, CaseType.VALMISTUMINEN)
-        return documents.filter {
-            configuration.metadata.getDocumentMetadata(it.type, configuration.case) != null
-        }
     }
 
     fun onkoArkistointiKaytossa(yliopisto: YliopistoEnum?): Boolean = arkistointiService.onKaytossa(yliopisto.required(), CaseType.VALMISTUMINEN)

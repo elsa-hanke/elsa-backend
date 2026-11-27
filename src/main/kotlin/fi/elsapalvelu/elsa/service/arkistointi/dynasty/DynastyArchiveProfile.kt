@@ -2,6 +2,7 @@ package fi.elsapalvelu.elsa.service.arkistointi.dynasty
 
 import fi.elsapalvelu.elsa.config.ApplicationProperties.Arkistointi
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyArchiveProperties
+import fi.elsapalvelu.elsa.config.arkistointi.archiveConfigurationKey
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.metadata.DynastyCaseProfile
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
@@ -73,7 +74,7 @@ internal enum class DynastyArchiveProfile(
         cases = caseProfiles.entries.associate { (caseType, profile) ->
             caseType.value to Arkistointi.Case().apply {
                 asyncEnabled = true
-                documents = profile.documentTypes.keys.associate { it.name.lowercase() to Arkistointi.DocumentMetadata() }
+                documents = profile.documentTypes.keys.associate { it.archiveConfigurationKey to Arkistointi.DocumentMetadata() }
             }
         }
     }
