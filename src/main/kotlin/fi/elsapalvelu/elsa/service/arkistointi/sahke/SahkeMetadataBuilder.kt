@@ -77,7 +77,7 @@ class SahkeMetadataBuilder(private val clock: Clock) {
 
         val configuredAsiakirjat = configuration.selectDocuments(request.asiakirjat)
 
-        buildRecords(configuredAsiakirjat, metadata, configuration, request.copy(created = luontipaiva))
+        buildRecords(configuredAsiakirjat, metadata, configuration, request.copy(created = luontipaiva), person)
         return SahkeMetadataResult(metadata, configuredAsiakirjat)
     }
 
@@ -140,10 +140,9 @@ class SahkeMetadataBuilder(private val clock: Clock) {
         asiakirjat: List<RecordProperties>,
         metadata: ArkistointiMetadata,
         configuration: ArkistointiConfiguration,
-        request: SahkeMetadataRequest
+        request: SahkeMetadataRequest,
+        person: SahkePerson
     ) {
-        val person = request.savedPerson ?: SahkePerson.from(request.opintooikeus)
-        val name = person.name
         val resourceBundle = ResourceBundle.getBundle("i18n/messages")
 
         asiakirjat.forEach { recordProperties ->
@@ -161,11 +160,11 @@ class SahkeMetadataBuilder(private val clock: Clock) {
             val publicityClass = getPublicityClass(recordProperties.type)
             record.restriction.publicityClass = publicityClass.displayName
             record.restriction.securityReason = publicityClass.securityReason
-            record.restriction.person.name = name
+            record.restriction.person.name = person.name
             record.restriction.person.ssn = person.birthDate
             record.restriction.owner = configuration.metadata.organisation
 
-            buildCustomMetadata(record, request, configuration, name, resourceBundle)
+            buildCustomMetadata(record, request, configuration, person, resourceBundle)
 
             val document = record.document
             document.nativeId = asiakirja.nimi
@@ -181,12 +180,11 @@ class SahkeMetadataBuilder(private val clock: Clock) {
         record: Record,
         request: SahkeMetadataRequest,
         configuration: ArkistointiConfiguration,
-        name: String?,
+        person: SahkePerson,
         resourceBundle: ResourceBundle
     ) {
-        val person = request.savedPerson ?: SahkePerson.from(request.opintooikeus)
         val custom = record.custom
-        custom.erikoistujanNimi = name
+        custom.erikoistujanNimi = person.name
         custom.erikoisala = person.specialty
         custom.opiskelijanumero = person.studentNumber
         custom.syntymaaika = person.birthDate
