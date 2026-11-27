@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.2...HEAD)
 
+- Dynasty siivous [`#839`](https://github.com/elsa-hanke/elsa-backend/pull/839)(27 November 2026)
+- Turku / UEF code quality imporvements [`#836`](https://github.com/elsa-hanke/elsa-backend/pull/836)(26 November 2026)
 - UEF dynasty integration (PR1) [`#834`](https://github.com/elsa-hanke/elsa-backend/pull/834)(24 November 2026)
 - bump libs 112026 [`#835`](https://github.com/elsa-hanke/elsa-backend/pull/835)(23 November 2026)
 - ELSA-1297 Terveyskeskusjaksohakemuksilla työjaksot ja työjaksojen poissaolot satunnaisessa (epäloogisessa) järjestyksessä [`#829`](https://github.com/elsa-hanke/elsa-backend/pull/829)(23 November 2026)

@@ -4,12 +4,29 @@ import fi.elsapalvelu.elsa.config.ApplicationProperties
 import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.service.arkistointi.dynasty.DynastyArchiveProfile
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
+import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.springframework.stereotype.Component
 
 data class ArkistointiConfiguration(
     val metadata: ApplicationProperties.Arkistointi.Metadata,
     val case: ApplicationProperties.Arkistointi.Case
-)
+) {
+    fun getDocumentMetadata(type: RecordType): ApplicationProperties.Arkistointi.DocumentMetadata? =
+        case.documents?.get(type.archiveConfigurationKey)
+
+    fun includesDocument(type: RecordType): Boolean = getDocumentMetadata(type) != null
+
+    fun selectDocuments(documents: List<RecordProperties>): List<RecordProperties> =
+        documents.filter { includesDocument(it.type) }
+
+    fun hasAllRequiredDocuments(availableTypes: Collection<RecordType>): Boolean {
+        val availableKeys = availableTypes.mapTo(mutableSetOf()) { it.archiveConfigurationKey }
+        return availableKeys.containsAll(case.documents.orEmpty().keys)
+    }
+}
+
+internal val RecordType.archiveConfigurationKey: String get() = name.lowercase()
 
 @Component
 class ArkistointiConfigurationProvider(
