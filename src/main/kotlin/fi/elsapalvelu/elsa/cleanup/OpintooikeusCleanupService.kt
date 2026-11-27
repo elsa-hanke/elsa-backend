@@ -9,7 +9,9 @@ class OpintooikeusCleanupService(
     private val opintooikeusRepository: OpintooikeusRepository,
     private val erikoistuvaLaakariCleanupService: ErikoistuvaLaakariCleanupService,
     private val koulutusSuunnitelmaCleanupService: KoulutusSuunnitelmaCleanupService,
-    private val opintosuorituksetCleanupService: OpintosuorituksetCleanupService
+    private val opintosuorituksetCleanupService: OpintosuorituksetCleanupService,
+    private val teoriakoulutusCleanupService: TeoriakoulutusCleanupService,
+    private val tyoskentelyjaksoCleanupService: TyoskentelyjaksoCleanupService
 ) {
 
     fun clearOpintooikeus(opintooikeus: Opintooikeus) {
@@ -28,9 +30,8 @@ class OpintooikeusCleanupService(
         opintooikeus.opintosuoritukset?.let { opintosuorituksetCleanupService.cleanOpintosuoritukset(it) }
 
         opintooikeus.opiskelijatunnus = ""
-        opintooikeus.teoriakoulutukset
-        opintooikeus.terveyskeskuskoulutusjaksonHyvaksynta
-        opintooikeus.tyoskentelyjaksot
+        opintooikeus.teoriakoulutukset?.let { teoriakoulutusCleanupService.cleanTeoriakoulutukset(it) }
+        opintooikeus.tyoskentelyjaksot?.let { tyoskentelyjaksoCleanupService.cleanTyoskentelyjaksot(it) }
 
         opintooikeusRepository.save(opintooikeus)
 

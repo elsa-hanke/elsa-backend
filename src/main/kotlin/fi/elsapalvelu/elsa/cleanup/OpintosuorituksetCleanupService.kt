@@ -3,16 +3,22 @@ package fi.elsapalvelu.elsa.cleanup
 import fi.elsapalvelu.elsa.domain.koulutus.Opintosuoritus
 import org.springframework.stereotype.Component
 
+interface  OpintosuorituksetCleanupService {
+
+    fun cleanOpintosuoritukset(opintosuoritukset: Set<Opintosuoritus>)
+
+    fun cleanOpintosuoritus(opintosuoritus: Opintosuoritus)
+}
+
 @Component
-class OpintosuorituksetCleanupService{
+class OpintosuorituksetCleanupServiceImpl () : OpintosuorituksetCleanupService {
 
-    fun cleanOpintosuoritukset(opintosuoritukset: Set<Opintosuoritus>) {
-        opintosuoritukset.forEach { cleanOpintosuoritus(it)
-
-        }
+    override fun cleanOpintosuoritukset(opintosuoritukset: Set<Opintosuoritus>) {
+        opintosuoritukset.forEach { cleanOpintosuoritus(it) }
     }
 
-    fun cleanOpintosuoritus(opintosuoritus: Opintosuoritus) {
+    override fun cleanOpintosuoritus(opintosuoritus: Opintosuoritus) {
+        val s = "s t o p"
 
     }
 }
