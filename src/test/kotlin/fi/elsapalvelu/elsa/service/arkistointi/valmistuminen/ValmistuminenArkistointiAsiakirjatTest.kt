@@ -9,6 +9,7 @@ import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaReference
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
+import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import fi.elsapalvelu.elsa.service.impl.valmistuminen.ValmistuminenArkistointiAsiakirjat
@@ -26,7 +27,8 @@ import org.mockito.kotlin.whenever
 class ValmistuminenArkistointiAsiakirjatTest {
     private val properties = ApplicationProperties()
     private val snapshots = mock<ArkistointiAsiakirjaSnapshotService>()
-    private val service = ValmistuminenArkistointiAsiakirjat(ArkistointiConfigurationProvider(properties), snapshots)
+    private val configuration = ArkistointiConfigurationProvider(properties)
+    private val service = ValmistuminenArkistointiAsiakirjat(snapshots)
     private val valmistumispyynto = mock<Valmistumispyynto>()
     private val generated = listOf(RecordType.YHTEENVETO, RecordType.LIITE).map { RecordProperties(Asiakirja(id = 1), it) }
 
@@ -37,7 +39,8 @@ class ValmistuminenArkistointiAsiakirjatTest {
                 documents = listOf("yhteenveto", "liite").associateWith { ApplicationProperties.Arkistointi.DocumentMetadata() }
             })
         }
-        assertThat(service.taydenna(valmistumispyynto, YliopistoEnum.HELSINGIN_YLIOPISTO, generated)).isSameAs(generated)
+        val settings = configuration.getConfiguration(YliopistoEnum.HELSINGIN_YLIOPISTO, CaseType.VALMISTUMINEN)
+        assertThat(service.taydenna(valmistumispyynto, settings, generated)).isSameAs(generated)
         verifyNoInteractions(valmistumispyynto, snapshots)
     }
 
@@ -50,7 +53,8 @@ class ValmistuminenArkistointiAsiakirjatTest {
         val snapshot = Asiakirja(id = 44, archiveSnapshot = true)
         whenever(snapshots.createSnapshot(any(), anyOrNull(), anyOrNull(), anyOrNull(), any(), any()))
             .thenReturn(ArkistointiAsiakirjaReference(snapshot, RecordType.LAILLISTAMISTODISTUS, 2, "certificate.pdf", "application/pdf", "sha"))
-        val result = service.taydenna(valmistumispyynto, university, generated)
+        val settings = configuration.getConfiguration(university, CaseType.VALMISTUMINEN)
+        val result = service.taydenna(valmistumispyynto, settings, generated)
         assertThat(result.map { it.type }).containsExactly(RecordType.YHTEENVETO, RecordType.LIITE, RecordType.LAILLISTAMISTODISTUS)
         assertThat(result.last().asiakirja).isSameAs(snapshot)
     }
@@ -58,7 +62,8 @@ class ValmistuminenArkistointiAsiakirjatTest {
     @ParameterizedTest
     @EnumSource(value = YliopistoEnum::class, names = ["TURUN_YLIOPISTO", "ITA_SUOMEN_YLIOPISTO"])
     fun `missing configured generated document fails before snapshot creation`(university: YliopistoEnum) {
-        assertThatThrownBy { service.taydenna(valmistumispyynto, university, generated.take(1)) }
+        val settings = configuration.getConfiguration(university, CaseType.VALMISTUMINEN)
+        assertThatThrownBy { service.taydenna(valmistumispyynto, settings, generated.take(1)) }
             .hasMessage("Configured graduation document is missing")
         verifyNoInteractions(valmistumispyynto, snapshots)
     }
