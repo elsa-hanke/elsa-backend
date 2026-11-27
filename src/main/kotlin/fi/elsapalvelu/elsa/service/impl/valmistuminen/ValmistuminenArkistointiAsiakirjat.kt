@@ -1,11 +1,9 @@
 package fi.elsapalvelu.elsa.service.impl.valmistuminen
 
-import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfigurationProvider
-import fi.elsapalvelu.elsa.domain.perustiedot.YliopistoEnum
+import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiConfiguration
 import fi.elsapalvelu.elsa.domain.valmistuminen.Valmistumispyynto
 import fi.elsapalvelu.elsa.service.arkistointi.job.document.ArkistointiAsiakirjaSnapshotService
 import fi.elsapalvelu.elsa.required
-import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.springframework.stereotype.Service
@@ -16,14 +14,16 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional(propagation = Propagation.MANDATORY)
 class ValmistuminenArkistointiAsiakirjat(
-    private val configuration: ArkistointiConfigurationProvider,
     private val snapshots: ArkistointiAsiakirjaSnapshotService
 ) {
-    fun taydenna(valmistumispyynto: Valmistumispyynto, university: YliopistoEnum, generated: List<RecordProperties>): List<RecordProperties> {
-        val settings = configuration.getConfiguration(university, CaseType.VALMISTUMINEN)
-        val includeLaillistamistodistus = settings.metadata.getDocumentMetadata(RecordType.LAILLISTAMISTODISTUS, settings.case) != null
+    fun taydenna(
+        valmistumispyynto: Valmistumispyynto,
+        settings: ArkistointiConfiguration,
+        generated: List<RecordProperties>
+    ): List<RecordProperties> {
+        val includeLaillistamistodistus = settings.includesDocument(RecordType.LAILLISTAMISTODISTUS)
         val available = generated.map { it.type } + if (includeLaillistamistodistus) listOf(RecordType.LAILLISTAMISTODISTUS) else emptyList()
-        check(settings.case.documents.orEmpty().keys.all { key -> available.any { it.name.lowercase() == key } }) {
+        check(settings.hasAllRequiredDocuments(available)) {
             "Configured graduation document is missing"
         }
         if (!includeLaillistamistodistus) {

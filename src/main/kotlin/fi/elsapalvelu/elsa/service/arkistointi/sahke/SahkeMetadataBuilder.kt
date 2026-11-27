@@ -75,9 +75,7 @@ class SahkeMetadataBuilder(private val clock: Clock) {
         buildContactInformation(metadata.contactInformation, configuration)
         buildCaseFile(metadata.caseFile, request.caseId, person.name, person.birthDate, configuration, luontipaiva)
 
-        val configuredAsiakirjat = request.asiakirjat.filter { recordProperties ->
-            configuration.metadata.getDocumentMetadata(recordProperties.type, configuration.case) != null
-        }
+        val configuredAsiakirjat = configuration.selectDocuments(request.asiakirjat)
 
         buildRecords(configuredAsiakirjat, metadata, configuration, request.copy(created = luontipaiva))
         return SahkeMetadataResult(metadata, configuredAsiakirjat)
@@ -149,9 +147,7 @@ class SahkeMetadataBuilder(private val clock: Clock) {
         val resourceBundle = ResourceBundle.getBundle("i18n/messages")
 
         asiakirjat.forEach { recordProperties ->
-            val documentMetadata = configuration.metadata
-                .getDocumentMetadata(recordProperties.type, configuration.case)
-                .required()
+            val documentMetadata = configuration.getDocumentMetadata(recordProperties.type).required()
             val asiakirja = recordProperties.asiakirja
             val record = Record()
             record.created = request.created

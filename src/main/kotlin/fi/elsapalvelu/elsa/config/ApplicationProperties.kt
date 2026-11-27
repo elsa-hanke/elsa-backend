@@ -4,7 +4,6 @@ import fi.elsapalvelu.elsa.config.arkistointi.ArkistointiRetryProperties
 import fi.elsapalvelu.elsa.config.arkistointi.LouhiTransferProperties
 import fi.elsapalvelu.elsa.config.arkistointi.DynastyArchiveProperties
 import fi.elsapalvelu.elsa.service.dto.arkistointi.CaseType
-import fi.elsapalvelu.elsa.service.dto.arkistointi.RecordType
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 /**
@@ -240,10 +239,6 @@ class ApplicationProperties {
             var retentionPeriod: String? = null
             var useType: String? = null
             var cases: Map<String, Case>? = null
-
-            fun getDocumentMetadata(recordType: RecordType, case: Case?): DocumentMetadata? {
-                return case?.documents?.get(recordType.name.lowercase())
-            }
 
             fun getCaseMetadata(caseType: CaseType): Case? {
                 return cases?.get(caseType.value)
