@@ -2,6 +2,11 @@
 
 ## [Unreleased](https://github.com/elsa-hanke/elsa-backend/compare/v2.5.2...HEAD)
 
+- Bump semver from 5.7.1 to 5.7.3 in /frontend [`#840`](https://github.com/elsa-hanke/elsa-backend/pull/840)(27 November 2026)
+- Bump loader-utils from 2.0.2 to 2.0.4 in /frontend [`#842`](https://github.com/elsa-hanke/elsa-backend/pull/842)(27 November 2026)
+- Bump tough-cookie from 4.0.0 to 4.1.4 in /frontend [`#841`](https://github.com/elsa-hanke/elsa-backend/pull/841)(27 November 2026)
+- Bump ws from 7.5.6 to 7.5.14 in /frontend [`#837`](https://github.com/elsa-hanke/elsa-backend/pull/837)(27 November 2026)
+- Bump form-data from 3.0.1 to 3.0.5 in /frontend [`#838`](https://github.com/elsa-hanke/elsa-backend/pull/838)(27 November 2026)
 - Dynasty siivous [`#839`](https://github.com/elsa-hanke/elsa-backend/pull/839)(27 November 2026)
 - Turku / UEF code quality imporvements [`#836`](https://github.com/elsa-hanke/elsa-backend/pull/836)(26 November 2026)
 - UEF dynasty integration (PR1) [`#834`](https://github.com/elsa-hanke/elsa-backend/pull/834)(24 November 2026)
